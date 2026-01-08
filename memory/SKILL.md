@@ -139,7 +139,7 @@ description: [简短描述，作为索引] 触发条件：[什么时候使用]
 
 - [ ] 步骤 5：执行写入
       - 战略记忆 → 编辑 CLAUDE.md
-      - 程序记忆 → 创建新 Skill
+      - 程序记忆 → 调用 `/skill-creator` 创建新 Skill
       - 工具记忆 → 编辑相关 Skill 的末尾
 
 - [ ] 步骤 6：确认完成
@@ -309,6 +309,14 @@ Agent：检查发现已存在相似的 SOP：
 ---
 
 ## 程序记忆（SOP Skill）创建指南
+
+### 创建方式
+
+**推荐**：使用 `/skill-creator` Skill 来创建新的 SOP Skill，它会引导你完成整个创建过程，确保 Skill 结构规范、质量达标。
+
+```
+Agent：检测到需要创建新的 SOP Skill，正在调用 /skill-creator...
+```
 
 ### 创建位置
 
@@ -522,7 +530,8 @@ Agent：我注意到这次部署涉及 8 个步骤，形成了一个可复用的
 
 用户：是的
 
-Agent：正在创建 .claude/skills/sop-004-deployment/SKILL.md...
+Agent：正在调用 /skill-creator 创建 SOP Skill...
+[skill-creator 引导完成 Skill 创建]
 已创建 SOP Skill。以后可以通过 `/sop-004-deployment` 触发。
 ```
 
