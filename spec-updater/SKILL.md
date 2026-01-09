@@ -850,3 +850,41 @@ pytest tests/ --cov=src --cov-report=html
 - [ ] review-xxx.md 审查报告已生成
 - [ ] 用户已确认审查报告
 - [ ] **没有执行归档操作**
+
+---
+
+## 后续动作（工具记忆）
+
+完成功能更新后，你应该：
+
+### update-xxx-summary.md 文档优化
+
+由于 Spec 文档使用 Obsidian 维护，创建更新总结时可以利用 Obsidian 特性：
+
+1. **添加内部链接**：链接到原 plan.md、summary.md 和 update-xxx.md
+   - 示例：`原设计：[[plan|设计方案]]`
+   - 示例：`更新方案：[[update-001|更新001]]`
+2. **使用 Callout 标注关键信息**：
+   - `> [!success]` 标注成功完成的修改
+   - `> [!warning]` 标注回滚方案和风险点
+   - `> [!note]` 标注与更新方案的差异
+3. **添加标签**：便于后续检索
+   - 示例：`#spec/更新` `#update-001`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 更新功能演变图：使用 `json-canvas` Skill 可视化功能迭代历史
+
+### 后续流程
+1. 创建 update-xxx-summary.md 后，使用 `spec-reviewer` 审查更新
+2. 等待用户确认审查报告
+3. **不归档**，保留在原目录以便后续更新
+
+### 记忆更新提示
+如果在更新过程中发现了重要的「困境-策略」对（如 Bug 根因分析、性能优化方案），考虑使用 `/memory` Skill 将其记录到 CLAUDE.md 的战略记忆章节。
+
+### 常见陷阱
+- 忘记创建 update-xxx-summary.md
+- 更新完成后错误地执行了归档操作
+- 修改了更新方案之外的代码
+- 回归测试未通过就完成更新

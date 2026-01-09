@@ -401,3 +401,38 @@ spec/06-已归档/20260104-0900-专业评价Agent设计/
 - [ ] 已告知用户 summary.md 将在执行后创建
 - [ ] 已告知用户执行完成后会归档到 `06-已归档`
 - [ ] 等待用户确认后再开发
+
+---
+
+## 后续动作（工具记忆）
+
+完成 Spec 文档撰写后，你应该：
+
+### Obsidian 格式优化
+
+由于 Spec 文档使用 Obsidian 维护，可以利用 Obsidian 特性增强文档：
+
+1. **添加内部链接**：使用 `[[wikilinks]]` 链接到相关 Spec 文档
+   - 示例：`参见 [[20260104-1030-服务层架构设计/plan|服务层设计]]`
+2. **使用 Callout 突出重要信息**：
+   - `> [!warning]` 标注风险和注意事项
+   - `> [!tip]` 标注最佳实践建议
+   - `> [!important]` 标注关键决策
+3. **添加标签**：在 frontmatter 或正文中添加标签便于检索
+   - 示例：`#spec/功能实现` `#agent` `#评估系统`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 创建 Spec 关系图：使用 `json-canvas` Skill 可视化 Spec 之间的依赖关系
+- 创建 Spec 索引视图：使用 `obsidian-bases` Skill 创建动态 Spec 列表
+
+### 后续流程
+1. 等待用户确认 Spec
+2. 用户确认后，使用 `spec-executor` 执行实现
+3. 如果是功能更新，使用 `spec-updater` 执行
+
+### 常见陷阱
+- 忘记在分类目录下创建文件夹
+- 任务描述使用英文而非中文
+- 缺少时间部分（HHMM）
+- 未等待用户确认就开始开发

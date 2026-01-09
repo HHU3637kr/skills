@@ -847,3 +847,40 @@ async def evaluate_multiple_majors(
     results = await asyncio.gather(*tasks)
     return results
 ```
+
+---
+
+## 后续动作（工具记忆）
+
+完成 Spec 执行后，你应该：
+
+### summary.md 文档优化
+
+由于 Spec 文档使用 Obsidian 维护，创建 summary.md 时可以利用 Obsidian 特性：
+
+1. **添加内部链接**：链接到对应的 plan.md 和相关文档
+   - 示例：`对应 Spec：[[plan|设计方案]]`
+2. **使用 Callout 标注关键信息**：
+   - `> [!success]` 标注成功完成的功能
+   - `> [!warning]` 标注遇到的问题和解决方案
+   - `> [!note]` 标注与 plan.md 的差异
+3. **添加标签**：便于后续检索
+   - 示例：`#spec/已完成` `#summary`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 创建实现架构图：使用 `json-canvas` Skill 可视化模块关系
+
+### 后续流程
+1. 创建 summary.md 后，使用 `spec-reviewer` 审查实现
+2. 等待用户确认审查报告
+3. 用户确认后，将 Spec 文件夹归档到 `06-已归档`
+
+### 记忆更新提示
+如果在实现过程中发现了重要的「困境-策略」对（如技术难点的解决方案），考虑使用 `/memory` Skill 将其记录到 CLAUDE.md 的战略记忆章节。
+
+### 常见陷阱
+- 忘记创建 summary.md
+- 未运行 spec-reviewer 就直接归档
+- 添加了 Spec 中未定义的额外功能
+- 未等待用户确认就归档
