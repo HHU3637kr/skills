@@ -169,6 +169,29 @@ Glob(pattern="backend/**/*_service.py")
 1. 在 Spec 目录下创建 `review.md`（新功能）或 `review-xxx.md`（更新）
 2. 记录所有检查结果
 3. 给出审查结论和建议
+4. **撰写时直接应用 Obsidian 格式优化**
+
+**Obsidian 格式优化（撰写时应用）**：
+
+1. **文档关联（必须）**：使用双链建立文档间的关系
+   - **review.md**：必须链接到 plan.md 和 summary.md
+   - **review-xxx.md**：必须链接到 update-xxx.md 和 update-xxx-summary.md
+   - 示例：`设计文档: [[plan|设计方案]]`、`实现总结: [[summary|实现总结]]`
+
+2. **使用 Callout 标注审查结果**：
+   - `> [!success]` 标注审查通过的部分
+   - `> [!failure]` 标注未完成或不符项
+   - `> [!warning]` 标注需要关注的风险点
+   - `> [!tip]` 标注改进建议
+
+3. **添加标签**：便于后续检索
+   - 示例：`#spec/审查` `#review`
+   - 如有问题：`#spec/待修复`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 创建审查结果可视化：使用 `json-canvas` Skill 展示问题分布
+- 更新 Spec 索引：使用 `obsidian-bases` Skill 更新索引状态
 
 **文件命名**：
 - 新功能审查：`review.md`
@@ -203,9 +226,92 @@ Claude: Spec 审查已完成，报告已保存到 review.md
 建议：请先修复以上问题后再确认归档。
 ```
 
+## Frontmatter 规范
+
+### 文档 Frontmatter 要求
+
+审查报告文档必须包含 YAML frontmatter，用于文档管理和索引。
+
+#### review.md Frontmatter（新功能审查）
+
+```yaml
+---
+title: 功能名称-审查报告
+type: review
+category: 03-功能实现
+status: 已完成
+result: 通过/需修复/严重不符
+created: YYYY-MM-DD
+plan: "[[plan]]"
+summary: "[[summary]]"
+tags:
+  - spec
+  - review
+---
+```
+
+#### review-xxx.md Frontmatter（更新审查）
+
+```yaml
+---
+title: 功能名称-更新XXX-审查报告
+type: review
+update_number: 1
+category: 03-功能实现
+status: 已完成
+result: 通过/需修复/严重不符
+created: YYYY-MM-DD
+plan: "[[plan]]"
+update: "[[update-XXX]]"
+update_summary: "[[update-XXX-summary]]"
+tags:
+  - spec
+  - review
+---
+```
+
+### Frontmatter 字段说明
+
+| 字段 | review.md | review-xxx.md | 说明 |
+|------|-----------|---------------|------|
+| `title` | 必填 | 必填 | 文档标题，格式：`功能名称-审查报告` / `功能名称-更新XXX-审查报告` |
+| `type` | `review` | `review` | 文档类型标识 |
+| `update_number` | - | 必填 | 更新编号，与 update 文档一致 |
+| `category` | 必填 | 必填 | 分类目录，继承自原 plan.md |
+| `status` | `已完成` | `已完成` | 审查状态 |
+| `result` | 必填 | 必填 | 审查结果：`通过`/`需修复`/`严重不符` |
+| `created` | 必填 | 必填 | 审查日期，`YYYY-MM-DD` 格式 |
+| `plan` | 必填 | 必填 | 链接到 plan.md |
+| `summary` | 必填 | - | 链接到 summary.md |
+| `update` | - | 必填 | 链接到 update-xxx.md |
+| `update_summary` | - | 必填 | 链接到 update-xxx-summary.md |
+| `tags` | 必填 | 必填 | 标签列表，必须包含 `spec` 和 `review` |
+
+### result 可选值
+
+| 值 | 使用场景 |
+|----|----------|
+| `通过` | 所有功能已完成，无不符项，可以归档 |
+| `需修复` | 存在未完成或不符项，需要修复后再归档 |
+| `严重不符` | 实现与 Spec 严重不符，需要重新实现 |
+
 ## 审查报告模板
 
 ```markdown
+---
+title: 功能名称-审查报告
+type: review
+category: 03-功能实现
+status: 已完成
+result: 需修复
+created: YYYY-MM-DD
+plan: "[[plan]]"
+summary: "[[summary]]"
+tags:
+  - spec
+  - review
+---
+
 # Spec 审查报告
 
 ## 文档信息
@@ -348,7 +454,14 @@ class ModelName(BaseModel):
 
 ---
 
-## 5. 审查人
+## 5. 文档关联
+
+- 设计文档: [[plan|设计方案]]
+- 实现总结: [[summary|实现总结]]
+
+---
+
+## 6. 审查人
 
 - **审查工具**: Claude Code (spec-reviewer)
 - **审查时间**: YYYY-MM-DD HH:MM
@@ -485,26 +598,6 @@ Write(file_path="spec/03-功能实现/xxx/review.md", content="...")
 ## 后续动作（工具记忆）
 
 完成 Spec 审查后，你应该：
-
-### review.md 文档优化
-
-由于 Spec 文档使用 Obsidian 维护，创建审查报告时可以利用 Obsidian 特性：
-
-1. **添加内部链接**：链接到 plan.md、summary.md 和相关代码文件
-   - 示例：`审查对象：[[plan|设计方案]]`
-   - 示例：`实现总结：[[summary|实现总结]]`
-2. **使用 Callout 标注审查结果**：
-   - `> [!success]` 标注审查通过的部分
-   - `> [!failure]` 标注未完成或不符项
-   - `> [!warning]` 标注需要关注的风险点
-   - `> [!tip]` 标注改进建议
-3. **添加标签**：便于后续检索
-   - 示例：`#spec/审查` `#review`
-   - 如有问题：`#spec/待修复`
-
-**相关 Skill**：
-- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
-- 创建审查结果可视化：使用 `json-canvas` Skill 展示问题分布
 
 ### 后续流程
 

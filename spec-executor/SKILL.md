@@ -308,15 +308,74 @@ pytest tests/test_agents/test_indicator_parser.py -v
 **操作**：
 1. 在与 plan.md 相同的目录下创建 summary.md
 2. 记录实现总结、测试结果、遇到的问题和解决方案
-3. 使用 `Write` 工具保存文件
+3. **撰写时直接应用 Obsidian 格式优化**
+4. 使用 `Write` 工具保存文件
 
 **summary.md 必须包含**：
+- **Frontmatter 元数据**（必须放在文件最开头）
 - 实现总结（完成了哪些功能）
 - 测试结果（测试覆盖率、通过率）
 - 遇到的问题（实现过程中的困难）
 - 解决方案（如何解决问题）
 - 与 plan.md 的差异（如果有）
 - 后续建议（优化方向、待完成事项）
+- **文档关联**（固定章节，链接到 plan.md）
+
+**Frontmatter 格式（必须）**：
+
+```yaml
+---
+title: 功能名称-实现总结
+type: summary
+category: 03-功能实现
+status: 已完成
+created: YYYY-MM-DD
+plan: "[[plan]]"
+tags:
+  - spec
+  - summary
+---
+```
+
+**Frontmatter 字段说明**：
+
+| 字段 | 必填 | 说明 | 可选值 |
+|------|------|------|--------|
+| `title` | 是 | 文档标题 | - |
+| `type` | 是 | 文档类型 | `summary` |
+| `category` | 是 | 分类目录 | 与 plan.md 相同 |
+| `status` | 是 | 当前状态 | `已完成` |
+| `created` | 是 | 创建日期 | `YYYY-MM-DD` 格式 |
+| `plan` | 是 | 关联的 plan | `"[[plan]]"` |
+| `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `summary` |
+
+**文档关联章节格式**：
+
+```markdown
+## 文档关联
+
+- 设计文档: [[plan|设计方案]]
+```
+
+**Obsidian 格式优化（撰写时应用）**：
+
+1. **文档关联（必须）**：使用双链建立文档间的关系
+   - **summary.md**：必须链接到 plan.md
+   - 示例：`设计文档: [[plan|设计方案]]`
+
+2. **使用 Callout 标注关键信息**：
+   - `> [!success]` 标注成功完成的功能
+   - `> [!warning]` 标注遇到的问题和解决方案
+   - `> [!note]` 标注与 plan.md 的差异
+   - `> [!info]` 添加补充说明
+
+3. **添加标签**：便于后续检索
+   - 示例：`#spec/已完成` `#summary`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 创建实现架构图：使用 `json-canvas` Skill 可视化模块关系
+- 更新 Spec 索引：使用 `obsidian-bases` Skill 更新索引状态
 
 **示例**：
 ```bash
@@ -377,6 +436,7 @@ ls "spec/06-已归档/20251231-专业评价Agent设计/"
 - **必须等待用户确认后才能归档**
 - 归档后原目录中不应再有该 Spec 文件夹
 - 如果 `06-已归档` 中已存在同名文件夹，需要先处理冲突
+- 索引.base 会自动识别归档后的位置，无需手动更新
 
 **归档示例**：
 ```
@@ -494,7 +554,14 @@ tests/
 
 ---
 
-## 6. 参考资料
+## 6. 文档关联
+
+- 设计文档: [[plan|设计方案]]
+- 审查报告: [[review|审查报告]] (待生成)
+
+---
+
+## 7. 参考资料
 
 - plan.md: spec/20251231-任务描述/plan.md
 - 相关代码: src/xxx
@@ -853,23 +920,6 @@ async def evaluate_multiple_majors(
 ## 后续动作（工具记忆）
 
 完成 Spec 执行后，你应该：
-
-### summary.md 文档优化
-
-由于 Spec 文档使用 Obsidian 维护，创建 summary.md 时可以利用 Obsidian 特性：
-
-1. **添加内部链接**：链接到对应的 plan.md 和相关文档
-   - 示例：`对应 Spec：[[plan|设计方案]]`
-2. **使用 Callout 标注关键信息**：
-   - `> [!success]` 标注成功完成的功能
-   - `> [!warning]` 标注遇到的问题和解决方案
-   - `> [!note]` 标注与 plan.md 的差异
-3. **添加标签**：便于后续检索
-   - 示例：`#spec/已完成` `#summary`
-
-**相关 Skill**：
-- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
-- 创建实现架构图：使用 `json-canvas` Skill 可视化模块关系
 
 ### 后续流程
 1. 创建 summary.md 后，使用 `spec-reviewer` 审查实现

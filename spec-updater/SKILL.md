@@ -84,6 +84,74 @@ spec/03-功能实现/20251231-专业评价Agent设计/
 └── review-002.md        # 第二次更新审查报告
 ```
 
+## Frontmatter 规范
+
+### 文档 Frontmatter 要求
+
+所有更新相关文档必须包含 YAML frontmatter，用于文档管理和索引。
+
+#### update-xxx.md Frontmatter
+
+```yaml
+---
+title: 功能名称-更新XXX
+type: update
+update_number: 1
+category: 03-功能实现
+status: 进行中
+update_type: 功能增强
+created: YYYY-MM-DD
+plan: "[[plan]]"
+tags:
+  - spec
+  - update
+---
+```
+
+#### update-xxx-summary.md Frontmatter
+
+```yaml
+---
+title: 功能名称-更新XXX-实现总结
+type: update-summary
+update_number: 1
+category: 03-功能实现
+status: 已完成
+created: YYYY-MM-DD
+plan: "[[plan]]"
+update: "[[update-XXX]]"
+tags:
+  - spec
+  - update
+  - summary
+---
+```
+
+### Frontmatter 字段说明
+
+| 字段 | update-xxx.md | update-xxx-summary.md | 说明 |
+|------|---------------|----------------------|------|
+| `title` | 必填 | 必填 | 文档标题，格式：`功能名称-更新XXX` / `功能名称-更新XXX-实现总结` |
+| `type` | `update` | `update-summary` | 文档类型标识 |
+| `update_number` | 必填 | 必填 | 更新编号，与文件名一致（如 001） |
+| `category` | 必填 | 必填 | 分类目录，继承自原 plan.md |
+| `status` | `进行中` → `已完成` | `已完成` | 更新状态 |
+| `update_type` | 必填 | - | 更新类型：`功能增强`/`Bug修复`/`性能优化`/`重构` |
+| `created` | 必填 | 必填 | 创建日期，`YYYY-MM-DD` 格式 |
+| `plan` | 必填 | 必填 | 链接到原 plan.md，使用 `[[plan]]` |
+| `update` | - | 必填 | 链接到对应的 update-xxx.md |
+| `tags` | 必填 | 必填 | 标签列表，必须包含 `spec` 和 `update` |
+
+### update_type 可选值
+
+| 值 | 使用场景 |
+|----|----------|
+| `功能增强` | 添加新功能或扩展现有功能 |
+| `Bug修复` | 修复已知问题 |
+| `性能优化` | 优化性能，不改变功能 |
+| `重构` | 代码结构重构，不改变功能 |
+| `安全修复` | 修复安全漏洞 |
+
 ## 工作流程
 
 ### 流程概览
@@ -189,14 +257,26 @@ ls spec/03-功能实现/20251231-专业评价Agent设计/update-*.md 2>/dev/null
 **update-xxx.md 模板**：
 
 ```markdown
+---
+title: 功能名称-更新XXX
+type: update
+update_number: 1
+category: 03-功能实现
+status: 进行中
+update_type: 功能增强
+created: YYYY-MM-DD
+plan: "[[plan]]"
+tags:
+  - spec
+  - update
+---
+
 # 功能更新方案
 
-## 文档信息
+## 文档关联
 
-- **更新编号**: update-XXX
-- **创建日期**: YYYY-MM-DD
-- **原 Spec**: spec/XX-分类/YYYYMMDD-功能名称/plan.md
-- **更新类型**: [功能增强/Bug修复/性能优化/需求适配]
+- 原设计: [[plan|设计方案]]
+- 原总结: [[summary|实现总结]]
 
 ---
 
@@ -460,6 +540,28 @@ pytest tests/ --cov=src --cov-report=html
 **操作**：
 1. 在同一目录下创建 `update-xxx-summary.md`
 2. 记录更新内容、测试结果、影响范围
+3. **撰写时直接应用 Obsidian 格式优化**
+
+**Obsidian 格式优化（撰写时应用）**：
+
+1. **文档关联（必须）**：使用双链建立文档间的关系
+   - **update-xxx.md**：必须链接到原 plan.md 和 summary.md
+   - **update-xxx-summary.md**：必须链接到 update-xxx.md、plan.md 和 summary.md
+   - 示例：`原设计: [[plan|设计方案]]`、`更新方案: [[update-001|更新001]]`
+
+2. **使用 Callout 标注关键信息**：
+   - `> [!success]` 标注成功完成的修改
+   - `> [!warning]` 标注回滚方案和风险点
+   - `> [!note]` 标注与更新方案的差异
+   - `> [!info]` 添加补充说明
+
+3. **添加标签**：便于后续检索
+   - 示例：`#spec/更新` `#update-001`
+
+**相关 Skill**：
+- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
+- 更新功能演变图：使用 `json-canvas` Skill 可视化功能迭代历史
+- 更新 Spec 索引：使用 `obsidian-bases` Skill 更新索引状态
 
 **示例**：
 ```bash
@@ -469,6 +571,21 @@ Write(file_path="spec/03-功能实现/20251231-专业评价Agent设计/update-00
 **update-xxx-summary.md 模板**：
 
 ```markdown
+---
+title: 功能名称-更新XXX-实现总结
+type: update-summary
+update_number: 1
+category: 03-功能实现
+status: 已完成
+created: YYYY-MM-DD
+plan: "[[plan]]"
+update: "[[update-XXX]]"
+tags:
+  - spec
+  - update
+  - summary
+---
+
 # 更新总结
 
 ## 文档信息
@@ -593,7 +710,16 @@ tests/
 
 ---
 
-## 7. 参考资料
+## 7. 文档关联
+
+- 更新方案: [[update-XXX|更新方案]]
+- 原设计: [[plan|设计方案]]
+- 原总结: [[summary|实现总结]]
+- 审查报告: [[review-XXX|审查报告]] (待生成)
+
+---
+
+## 8. 参考资料
 
 - 原 plan.md: spec/XX-分类/YYYYMMDD-功能名称/plan.md
 - 更新文档: update-XXX.md
@@ -856,24 +982,6 @@ pytest tests/ --cov=src --cov-report=html
 ## 后续动作（工具记忆）
 
 完成功能更新后，你应该：
-
-### update-xxx-summary.md 文档优化
-
-由于 Spec 文档使用 Obsidian 维护，创建更新总结时可以利用 Obsidian 特性：
-
-1. **添加内部链接**：链接到原 plan.md、summary.md 和 update-xxx.md
-   - 示例：`原设计：[[plan|设计方案]]`
-   - 示例：`更新方案：[[update-001|更新001]]`
-2. **使用 Callout 标注关键信息**：
-   - `> [!success]` 标注成功完成的修改
-   - `> [!warning]` 标注回滚方案和风险点
-   - `> [!note]` 标注与更新方案的差异
-3. **添加标签**：便于后续检索
-   - 示例：`#spec/更新` `#update-001`
-
-**相关 Skill**：
-- 详细 Obsidian Markdown 语法：使用 `obsidian-markdown` Skill
-- 更新功能演变图：使用 `json-canvas` Skill 可视化功能迭代历史
 
 ### 后续流程
 1. 创建 update-xxx-summary.md 后，使用 `spec-reviewer` 审查更新

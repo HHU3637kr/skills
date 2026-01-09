@@ -1,237 +1,237 @@
 ---
 name: obsidian-markdown
-description: 创建和编辑 Obsidian 风格的 Markdown，包括 wikilinks、嵌入、callouts、属性和其他 Obsidian 特有语法。用于处理 Obsidian 中的 .md 文件，或当用户提到 wikilinks、callouts、frontmatter、标签、嵌入或 Obsidian 笔记时使用。
+description: Create and edit Obsidian Flavored Markdown with wikilinks, embeds, callouts, properties, and other Obsidian-specific syntax. Use when working with .md files in Obsidian, or when the user mentions wikilinks, callouts, frontmatter, tags, embeds, or Obsidian notes.
 ---
 
-# Obsidian 风格 Markdown 技能
+# Obsidian Flavored Markdown Skill
 
-本技能使 Claude Code 能够创建和编辑有效的 Obsidian 风格 Markdown，包括所有 Obsidian 特有的语法扩展。
+This skill enables Claude Code to create and edit valid Obsidian Flavored Markdown, including all Obsidian-specific syntax extensions.
 
-## 概述
+## Overview
 
-Obsidian 使用多种 Markdown 风格的组合：
+Obsidian uses a combination of Markdown flavors:
 - [CommonMark](https://commonmark.org/)
 - [GitHub Flavored Markdown](https://github.github.com/gfm/)
-- [LaTeX](https://www.latex-project.org/) 用于数学公式
-- Obsidian 特有扩展（wikilinks、callouts、嵌入等）
+- [LaTeX](https://www.latex-project.org/) for math
+- Obsidian-specific extensions (wikilinks, callouts, embeds, etc.)
 
-## 基础格式
+## Basic Formatting
 
-### 段落和换行
+### Paragraphs and Line Breaks
 
 ```markdown
-这是一个段落。
+This is a paragraph.
 
-这是另一个段落（段落之间用空行分隔）。
+This is another paragraph (blank line between creates separate paragraphs).
 
-要在段落内换行，在行尾添加两个空格
-或使用 Shift+Enter。
+For a line break within a paragraph, add two spaces at the end  
+or use Shift+Enter.
 ```
 
-### 标题
+### Headings
 
 ```markdown
-# 一级标题
-## 二级标题
-### 三级标题
-#### 四级标题
-##### 五级标题
-###### 六级标题
+# Heading 1
+## Heading 2
+### Heading 3
+#### Heading 4
+##### Heading 5
+###### Heading 6
 ```
 
-### 文本格式
+### Text Formatting
 
-| 样式 | 语法 | 示例 | 输出 |
-|------|------|------|------|
-| 粗体 | `**文本**` 或 `__文本__` | `**粗体**` | **粗体** |
-| 斜体 | `*文本*` 或 `_文本_` | `*斜体*` | *斜体* |
-| 粗斜体 | `***文本***` | `***两者***` | ***两者*** |
-| 删除线 | `~~文本~~` | `~~删除~~` | ~~删除~~ |
-| 高亮 | `==文本==` | `==高亮==` | ==高亮== |
-| 行内代码 | `` `代码` `` | `` `代码` `` | `代码` |
+| Style | Syntax | Example | Output |
+|-------|--------|---------|--------|
+| Bold | `**text**` or `__text__` | `**Bold**` | **Bold** |
+| Italic | `*text*` or `_text_` | `*Italic*` | *Italic* |
+| Bold + Italic | `***text***` | `***Both***` | ***Both*** |
+| Strikethrough | `~~text~~` | `~~Striked~~` | ~~Striked~~ |
+| Highlight | `==text==` | `==Highlighted==` | ==Highlighted== |
+| Inline code | `` `code` `` | `` `code` `` | `code` |
 
-### 转义格式
+### Escaping Formatting
 
-使用反斜杠转义特殊字符：
+Use backslash to escape special characters:
 ```markdown
-\*这不会变成斜体\*
-\#这不会变成标题
-1\. 这不会变成列表项
+\*This won't be italic\*
+\#This won't be a heading
+1\. This won't be a list item
 ```
 
-常见需要转义的字符：`\*`、`\_`、`\#`、`` \` ``、`\|`、`\~`
+Common characters to escape: `\*`, `\_`, `\#`, `` \` ``, `\|`, `\~`
 
-## 内部链接（Wikilinks）
+## Internal Links (Wikilinks)
 
-### 基本链接
+### Basic Links
 
 ```markdown
-[[笔记名称]]
-[[笔记名称.md]]
-[[笔记名称|显示文本]]
+[[Note Name]]
+[[Note Name.md]]
+[[Note Name|Display Text]]
 ```
 
-### 链接到标题
+### Link to Headings
 
 ```markdown
-[[笔记名称#标题]]
-[[笔记名称#标题|自定义文本]]
-[[#同一笔记中的标题]]
-[[##搜索库中所有标题]]
+[[Note Name#Heading]]
+[[Note Name#Heading|Custom Text]]
+[[#Heading in same note]]
+[[##Search all headings in vault]]
 ```
 
-### 链接到块
+### Link to Blocks
 
 ```markdown
-[[笔记名称#^块ID]]
-[[笔记名称#^块ID|自定义文本]]
+[[Note Name#^block-id]]
+[[Note Name#^block-id|Custom Text]]
 ```
 
-通过在段落末尾添加 `^块ID` 来定义块 ID：
+Define a block ID by adding `^block-id` at the end of a paragraph:
 ```markdown
-这是一个可以被链接的段落。 ^my-block-id
+This is a paragraph that can be linked to. ^my-block-id
 ```
 
-对于列表和引用，在单独一行添加块 ID：
+For lists and quotes, add the block ID on a separate line:
 ```markdown
-> 这是一段引用
-> 包含多行
+> This is a quote
+> With multiple lines
 
 ^quote-id
 ```
 
-### 搜索链接
+### Search Links
 
 ```markdown
-[[##标题]]     搜索包含"标题"的标题
-[[^^块]]       搜索包含"块"的块
+[[##heading]]     Search for headings containing "heading"
+[[^^block]]       Search for blocks containing "block"
 ```
 
-## Markdown 风格链接
+## Markdown-Style Links
 
 ```markdown
-[显示文本](笔记%20名称.md)
-[显示文本](笔记%20名称.md#标题)
-[显示文本](https://example.com)
-[笔记](obsidian://open?vault=库名&file=笔记.md)
+[Display Text](Note%20Name.md)
+[Display Text](Note%20Name.md#Heading)
+[Display Text](https://example.com)
+[Note](obsidian://open?vault=VaultName&file=Note.md)
 ```
 
-注意：Markdown 链接中的空格必须 URL 编码为 `%20`。
+Note: Spaces must be URL-encoded as `%20` in Markdown links.
 
-## 嵌入
+## Embeds
 
-### 嵌入笔记
+### Embed Notes
 
 ```markdown
-![[笔记名称]]
-![[笔记名称#标题]]
-![[笔记名称#^块ID]]
+![[Note Name]]
+![[Note Name#Heading]]
+![[Note Name#^block-id]]
 ```
 
-### 嵌入图片
+### Embed Images
 
 ```markdown
-![[图片.png]]
-![[图片.png|640x480]]    宽度 x 高度
-![[图片.png|300]]        仅宽度（保持宽高比）
+![[image.png]]
+![[image.png|640x480]]    Width x Height
+![[image.png|300]]        Width only (maintains aspect ratio)
 ```
 
-### 外部图片
+### External Images
 
 ```markdown
-![替代文本](https://example.com/image.png)
-![替代文本|300](https://example.com/image.png)
+![Alt text](https://example.com/image.png)
+![Alt text|300](https://example.com/image.png)
 ```
 
-### 嵌入音频
+### Embed Audio
 
 ```markdown
-![[音频.mp3]]
-![[音频.ogg]]
+![[audio.mp3]]
+![[audio.ogg]]
 ```
 
-### 嵌入 PDF
+### Embed PDF
 
 ```markdown
-![[文档.pdf]]
-![[文档.pdf#page=3]]
-![[文档.pdf#height=400]]
+![[document.pdf]]
+![[document.pdf#page=3]]
+![[document.pdf#height=400]]
 ```
 
-### 嵌入列表
+### Embed Lists
 
 ```markdown
-![[笔记#^列表ID]]
+![[Note#^list-id]]
 ```
 
-其中列表已定义块 ID：
+Where the list has been defined with a block ID:
 ```markdown
-- 项目 1
-- 项目 2
-- 项目 3
+- Item 1
+- Item 2
+- Item 3
 
 ^list-id
 ```
 
-### 嵌入搜索结果
+### Embed Search Results
 
 ````markdown
 ```query
-tag:#项目 status:done
+tag:#project status:done
 ```
 ````
 
-## Callouts（标注）
+## Callouts
 
-### 基本 Callout
+### Basic Callout
 
 ```markdown
 > [!note]
-> 这是一个笔记 callout。
+> This is a note callout.
 
-> [!info] 自定义标题
-> 这个 callout 有自定义标题。
+> [!info] Custom Title
+> This callout has a custom title.
 
-> [!tip] 仅标题
+> [!tip] Title Only
 ```
 
-### 可折叠 Callout
+### Foldable Callouts
 
 ```markdown
-> [!faq]- 默认折叠
-> 此内容在展开前是隐藏的。
+> [!faq]- Collapsed by default
+> This content is hidden until expanded.
 
-> [!faq]+ 默认展开
-> 此内容可见但可以折叠。
+> [!faq]+ Expanded by default
+> This content is visible but can be collapsed.
 ```
 
-### 嵌套 Callout
+### Nested Callouts
 
 ```markdown
-> [!question] 外层 callout
-> > [!note] 内层 callout
-> > 嵌套内容
+> [!question] Outer callout
+> > [!note] Inner callout
+> > Nested content
 ```
 
-### 支持的 Callout 类型
+### Supported Callout Types
 
-| 类型 | 别名 | 描述 |
-|------|------|------|
-| `note` | - | 蓝色，铅笔图标 |
-| `abstract` | `summary`、`tldr` | 青色，剪贴板图标 |
-| `info` | - | 蓝色，信息图标 |
-| `todo` | - | 蓝色，复选框图标 |
-| `tip` | `hint`、`important` | 青色，火焰图标 |
-| `success` | `check`、`done` | 绿色，勾选图标 |
-| `question` | `help`、`faq` | 黄色，问号图标 |
-| `warning` | `caution`、`attention` | 橙色，警告图标 |
-| `failure` | `fail`、`missing` | 红色，X 图标 |
-| `danger` | `error` | 红色，闪电图标 |
-| `bug` | - | 红色，虫子图标 |
-| `example` | - | 紫色，列表图标 |
-| `quote` | `cite` | 灰色，引用图标 |
+| Type | Aliases | Description |
+|------|---------|-------------|
+| `note` | - | Blue, pencil icon |
+| `abstract` | `summary`, `tldr` | Teal, clipboard icon |
+| `info` | - | Blue, info icon |
+| `todo` | - | Blue, checkbox icon |
+| `tip` | `hint`, `important` | Cyan, flame icon |
+| `success` | `check`, `done` | Green, checkmark icon |
+| `question` | `help`, `faq` | Yellow, question mark |
+| `warning` | `caution`, `attention` | Orange, warning icon |
+| `failure` | `fail`, `missing` | Red, X icon |
+| `danger` | `error` | Red, zap icon |
+| `bug` | - | Red, bug icon |
+| `example` | - | Purple, list icon |
+| `quote` | `cite` | Gray, quote icon |
 
-### 自定义 Callout（CSS）
+### Custom Callouts (CSS)
 
 ```css
 .callout[data-callout="custom-type"] {
@@ -240,133 +240,133 @@ tag:#项目 status:done
 }
 ```
 
-## 列表
+## Lists
 
-### 无序列表
+### Unordered Lists
 
 ```markdown
-- 项目 1
-- 项目 2
-  - 嵌套项目
-  - 另一个嵌套
-- 项目 3
+- Item 1
+- Item 2
+  - Nested item
+  - Another nested
+- Item 3
 
-* 也可以用星号
-+ 或加号
+* Also works with asterisks
++ Or plus signs
 ```
 
-### 有序列表
+### Ordered Lists
 
 ```markdown
-1. 第一项
-2. 第二项
-   1. 嵌套编号
-   2. 另一个嵌套
-3. 第三项
+1. First item
+2. Second item
+   1. Nested numbered
+   2. Another nested
+3. Third item
 
-1) 替代语法
-2) 使用括号
+1) Alternative syntax
+2) With parentheses
 ```
 
-### 任务列表
+### Task Lists
 
 ```markdown
-- [ ] 未完成任务
-- [x] 已完成任务
-- [ ] 带子任务的任务
-  - [ ] 子任务 1
-  - [x] 子任务 2
+- [ ] Incomplete task
+- [x] Completed task
+- [ ] Task with sub-tasks
+  - [ ] Subtask 1
+  - [x] Subtask 2
 ```
 
-## 引用
+## Quotes
 
 ```markdown
-> 这是一段引用。
-> 可以跨越多行。
+> This is a blockquote.
+> It can span multiple lines.
 >
-> 也可以包含多个段落。
+> And include multiple paragraphs.
 >
-> > 嵌套引用也可以。
+> > Nested quotes work too.
 ```
 
-## 代码
+## Code
 
-### 行内代码
+### Inline Code
 
 ```markdown
-使用 `反引号` 表示行内代码。
-使用双反引号表示 ``包含 ` 反引号的代码``。
+Use `backticks` for inline code.
+Use double backticks for ``code with a ` backtick inside``.
 ```
 
-### 代码块
+### Code Blocks
 
 ````markdown
 ```
-普通代码块
+Plain code block
 ```
 
 ```javascript
-// 语法高亮代码块
+// Syntax highlighted code block
 function hello() {
   console.log("Hello, world!");
 }
 ```
 
 ```python
-# Python 示例
+# Python example
 def greet(name):
     print(f"Hello, {name}!")
 ```
 ````
 
-### 嵌套代码块
+### Nesting Code Blocks
 
-使用更多反引号或波浪号作为外层块：
+Use more backticks or tildes for the outer block:
 
 `````markdown
 ````markdown
-这是如何创建代码块：
+Here's how to create a code block:
 ```js
 console.log("Hello")
 ```
 ````
 `````
 
-## 表格
+## Tables
 
 ```markdown
-| 表头 1 | 表头 2 | 表头 3 |
-|--------|--------|--------|
-| 单元格 1 | 单元格 2 | 单元格 3 |
-| 单元格 4 | 单元格 5 | 单元格 6 |
+| Header 1 | Header 2 | Header 3 |
+|----------|----------|----------|
+| Cell 1   | Cell 2   | Cell 3   |
+| Cell 4   | Cell 5   | Cell 6   |
 ```
 
-### 对齐
+### Alignment
 
 ```markdown
-| 左对齐 | 居中 | 右对齐 |
-|:-------|:----:|---------:|
-| 左 | 中 | 右 |
+| Left     | Center   | Right    |
+|:---------|:--------:|---------:|
+| Left     | Center   | Right    |
 ```
 
-### 在表格中使用管道符
+### Using Pipes in Tables
 
-用反斜杠转义管道符：
+Escape pipes with backslash:
 ```markdown
-| 列 1 | 列 2 |
-|------|------|
-| [[链接\|显示]] | ![[图片\|100]] |
+| Column 1 | Column 2 |
+|----------|----------|
+| [[Link\|Display]] | ![[Image\|100]] |
 ```
 
-## 数学公式（LaTeX）
+## Math (LaTeX)
 
-### 行内公式
+### Inline Math
 
 ```markdown
-这是行内公式：$e^{i\pi} + 1 = 0$
+This is inline math: $e^{i\pi} + 1 = 0$
 ```
 
-### 块级公式
+### Block Math
 
 ```markdown
 $$
@@ -377,79 +377,79 @@ c & d
 $$
 ```
 
-### 常用数学语法
+### Common Math Syntax
 
 ```markdown
-$x^2$              上标
-$x_i$              下标
-$\frac{a}{b}$      分数
-$\sqrt{x}$         平方根
-$\sum_{i=1}^{n}$   求和
-$\int_a^b$         积分
-$\alpha, \beta$    希腊字母
+$x^2$              Superscript
+$x_i$              Subscript
+$\frac{a}{b}$      Fraction
+$\sqrt{x}$         Square root
+$\sum_{i=1}^{n}$   Summation
+$\int_a^b$         Integral
+$\alpha, \beta$    Greek letters
 ```
 
-## 图表（Mermaid）
+## Diagrams (Mermaid)
 
 ````markdown
 ```mermaid
 graph TD
-    A[开始] --> B{决策}
-    B -->|是| C[执行此操作]
-    B -->|否| D[执行那操作]
-    C --> E[结束]
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do this]
+    B -->|No| D[Do that]
+    C --> E[End]
     D --> E
 ```
 ````
 
-### 时序图
+### Sequence Diagrams
 
 ````markdown
 ```mermaid
 sequenceDiagram
-    Alice->>Bob: 你好 Bob
-    Bob-->>Alice: 你好 Alice
+    Alice->>Bob: Hello Bob
+    Bob-->>Alice: Hi Alice
 ```
 ````
 
-### 图表中的链接
+### Linking in Diagrams
 
 ````markdown
 ```mermaid
 graph TD
-    A[生物学]
-    B[化学]
+    A[Biology]
+    B[Chemistry]
     A --> B
     class A,B internal-link;
 ```
 ````
 
-## 脚注
+## Footnotes
 
 ```markdown
-这句话有一个脚注[^1]。
+This sentence has a footnote[^1].
 
-[^1]: 这是脚注内容。
+[^1]: This is the footnote content.
 
-你也可以使用命名脚注[^note]。
+You can also use named footnotes[^note].
 
-[^note]: 命名脚注仍然显示为数字。
+[^note]: Named footnotes still appear as numbers.
 
-也支持行内脚注。^[这是行内脚注。]
+Inline footnotes are also supported.^[This is an inline footnote.]
 ```
 
-## 注释
+## Comments
 
 ```markdown
-这是可见的 %%但这是隐藏的%% 文本。
+This is visible %%but this is hidden%% text.
 
 %%
-整个块都是隐藏的。
-不会在阅读视图中显示。
+This entire block is hidden.
+It won't appear in reading view.
 %%
 ```
 
-## 水平线
+## Horizontal Rules
 
 ```markdown
 ---
@@ -459,183 +459,162 @@ ___
 * * *
 ```
 
-## 属性（Frontmatter）
+## Properties (Frontmatter)
 
-属性使用笔记开头的 YAML frontmatter：
+Properties use YAML frontmatter at the start of a note:
 
 ```yaml
 ---
-title: 我的笔记标题
+title: My Note Title
 date: 2024-01-15
 tags:
-  - 项目
-  - 重要
+  - project
+  - important
 aliases:
-  - 我的笔记
-  - 替代名称
+  - My Note
+  - Alternative Name
 cssclasses:
   - custom-class
-status: 进行中
+status: in-progress
 rating: 4.5
 completed: false
 due: 2024-02-01T14:30:00
 ---
 ```
 
-### 属性类型
+### Property Types
 
-| 类型 | 示例 |
-|------|------|
-| 文本 | `title: 我的标题` |
-| 数字 | `rating: 4.5` |
-| 复选框 | `completed: true` |
-| 日期 | `date: 2024-01-15` |
-| 日期时间 | `due: 2024-01-15T14:30:00` |
-| 列表 | `tags: [one, two]` 或 YAML 列表 |
-| 链接 | `related: "[[其他笔记]]"` |
+| Type | Example |
+|------|---------|
+| Text | `title: My Title` |
+| Number | `rating: 4.5` |
+| Checkbox | `completed: true` |
+| Date | `date: 2024-01-15` |
+| Date & Time | `due: 2024-01-15T14:30:00` |
+| List | `tags: [one, two]` or YAML list |
+| Links | `related: "[[Other Note]]"` |
 
-### 默认属性
+### Default Properties
 
-- `tags` - 笔记标签
-- `aliases` - 笔记的替代名称
-- `cssclasses` - 应用于笔记的 CSS 类
+- `tags` - Note tags
+- `aliases` - Alternative names for the note
+- `cssclasses` - CSS classes applied to the note
 
-## 标签
+## Tags
 
 ```markdown
-#标签
-#嵌套/标签
-#带-连字符-的标签
-#带_下划线_的标签
+#tag
+#nested/tag
+#tag-with-dashes
+#tag_with_underscores
 
-在 frontmatter 中：
+In frontmatter:
 ---
 tags:
-  - 标签1
-  - 嵌套/标签2
+  - tag1
+  - nested/tag2
 ---
 ```
 
-标签可以包含：
-- 字母（任何语言）
-- 数字（不能作为首字符）
-- 下划线 `_`
-- 连字符 `-`
-- 斜杠 `/`（用于嵌套）
+Tags can contain:
+- Letters (any language)
+- Numbers (not as first character)
+- Underscores `_`
+- Hyphens `-`
+- Forward slashes `/` (for nesting)
 
-## HTML 内容
+## HTML Content
 
-Obsidian 支持在 Markdown 中使用 HTML：
+Obsidian supports HTML within Markdown:
 
 ```markdown
 <div class="custom-container">
-  <span style="color: red;">彩色文本</span>
+  <span style="color: red;">Colored text</span>
 </div>
 
 <details>
-  <summary>点击展开</summary>
-  隐藏内容在这里。
+  <summary>Click to expand</summary>
+  Hidden content here.
 </details>
 
 <kbd>Ctrl</kbd> + <kbd>C</kbd>
 ```
 
-## 完整示例
+## Complete Example
 
 ````markdown
 ---
-title: 项目 Alpha
+title: Project Alpha
 date: 2024-01-15
 tags:
-  - 项目
-  - 活跃
-status: 进行中
-priority: 高
+  - project
+  - active
+status: in-progress
+priority: high
 ---
 
-# 项目 Alpha
+# Project Alpha
 
-## 概述
+## Overview
 
-本项目旨在使用现代技术[[改进工作流程]]。
+This project aims to [[improve workflow]] using modern techniques.
 
-> [!important] 关键截止日期
-> 第一个里程碑截止日期是 ==1月30日==。
+> [!important] Key Deadline
+> The first milestone is due on ==January 30th==.
 
-## 任务
+## Tasks
 
-- [x] 初始规划
-- [x] 资源分配
-- [ ] 开发阶段
-  - [ ] 后端实现
-  - [ ] 前端设计
-- [ ] 测试
-- [ ] 部署
+- [x] Initial planning
+- [x] Resource allocation
+- [ ] Development phase
+  - [ ] Backend implementation
+  - [ ] Frontend design
+- [ ] Testing
+- [ ] Deployment
 
-## 技术说明
+## Technical Notes
 
-主要算法使用 $O(n \log n)$ 复杂度进行排序。
+The main algorithm uses the formula $O(n \log n)$ for sorting.
 
 ```python
 def process_data(items):
     return sorted(items, key=lambda x: x.priority)
 ```
 
-## 架构
+## Architecture
 
 ```mermaid
 graph LR
-    A[输入] --> B[处理]
-    B --> C[输出]
-    B --> D[缓存]
+    A[Input] --> B[Process]
+    B --> C[Output]
+    B --> D[Cache]
 ```
 
-## 相关文档
+## Related Documents
 
-- ![[会议记录 2024-01-10#决策]]
-- [[预算分配|预算]]
-- [[团队成员]]
+- ![[Meeting Notes 2024-01-10#Decisions]]
+- [[Budget Allocation|Budget]]
+- [[Team Members]]
 
-## 参考资料
+## References
 
-更多详情请参阅官方文档[^1]。
+For more details, see the official documentation[^1].
 
 [^1]: https://example.com/docs
 
 %%
-内部笔记：
-- 周五与团队审查
-- 考虑替代方案
+Internal notes:
+- Review with team on Friday
+- Consider alternative approaches
 %%
 ````
 
-## 参考资料
+## References
 
-- [基础格式语法](https://help.obsidian.md/syntax)
-- [高级格式语法](https://help.obsidian.md/advanced-syntax)
-- [Obsidian 风格 Markdown](https://help.obsidian.md/obsidian-flavored-markdown)
-- [内部链接](https://help.obsidian.md/links)
-- [嵌入文件](https://help.obsidian.md/embeds)
+- [Basic formatting syntax](https://help.obsidian.md/syntax)
+- [Advanced formatting syntax](https://help.obsidian.md/advanced-syntax)
+- [Obsidian Flavored Markdown](https://help.obsidian.md/obsidian-flavored-markdown)
+- [Internal links](https://help.obsidian.md/links)
+- [Embed files](https://help.obsidian.md/embeds)
 - [Callouts](https://help.obsidian.md/callouts)
-- [属性](https://help.obsidian.md/properties)
-
----
-
-## 后续动作（工具记忆）
-
-完成 Obsidian 笔记创建/编辑后，你应该：
-
-### 内容完善
-1. 检查是否需要添加 `[[wikilinks]]` 链接到相关笔记
-2. 考虑是否需要添加标签（`#tag`）便于后续检索
-3. 如有重要段落，考虑添加块 ID（`^block-id`）便于引用
-
-### 结构优化
-1. 长笔记考虑添加目录或使用标题层级
-2. 重要信息使用 Callout 突出显示
-3. 复杂流程考虑使用 Mermaid 图表可视化
-
-### 关联操作
-1. 如需创建数据库视图，使用 `obsidian-bases` Skill
-2. 如需创建可视化画布，使用 `json-canvas` Skill
-3. 检查是否需要更新相关笔记的反向链接
+- [Properties](https://help.obsidian.md/properties)

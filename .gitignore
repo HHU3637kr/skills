@@ -18,3 +18,7 @@ Thumbs.db
 *.tmp
 *.temp
 *.bak
+
+# SOP skills（由 memory Skill 动态生成）
+sop-**/
+
