@@ -8,7 +8,7 @@ allowed-tools: Read, Grep, Glob, Write(spec/**), Bash, LSP
 
 ## 概述
 
-这个 Skill 用于审查 `spec-executor` 的执行结果，检验实现是否严格按照 Spec 文档执行。审查完成后在 Spec 目录下生成审查报告（`review.md` 或 `review-xxx.md`），作为用户确认归档前的质量把关环节。
+这个 Skill 用于审查 `spec-executor` 的执行结果，检验实现是否严格按照 Spec 文档执行。审查完成后在 Spec 目录下生成审查报告（`review.md` 或 `update-xxx-review.md`），作为用户确认归档前的质量把关环节。
 
 ## 使用时机
 
@@ -166,7 +166,7 @@ Glob(pattern="backend/**/*_service.py")
 #### 步骤 6：生成审查报告
 
 **操作**：
-1. 在 Spec 目录下创建 `review.md`（新功能）或 `review-xxx.md`（更新）
+1. 在 Spec 目录下创建 `review.md`（新功能）或 `update-xxx-review.md`（更新）
 2. 记录所有检查结果
 3. 给出审查结论和建议
 4. **撰写时直接应用 Obsidian 格式优化**
@@ -175,7 +175,7 @@ Glob(pattern="backend/**/*_service.py")
 
 1. **文档关联（必须）**：使用双链建立文档间的关系
    - **review.md**：必须链接到 plan.md 和 summary.md
-   - **review-xxx.md**：必须链接到 update-xxx.md 和 update-xxx-summary.md
+   - **update-xxx-review.md**：必须链接到 update-xxx.md 和 update-xxx-summary.md
    - 示例：`设计文档: [[plan|设计方案]]`、`实现总结: [[summary|实现总结]]`
 
 2. **使用 Callout 标注审查结果**：
@@ -250,7 +250,7 @@ tags:
 ---
 ```
 
-#### review-xxx.md Frontmatter（更新审查）
+#### update-xxx-review.md Frontmatter（更新审查）
 
 ```yaml
 ---
@@ -272,7 +272,7 @@ tags:
 
 ### Frontmatter 字段说明
 
-| 字段 | review.md | review-xxx.md | 说明 |
+| 字段 | review.md | update-xxx-review.md | 说明 |
 |------|-----------|---------------|------|
 | `title` | 必填 | 必填 | 文档标题，格式：`功能名称-审查报告` / `功能名称-更新XXX-审查报告` |
 | `type` | `review` | `review` | 文档类型标识 |
@@ -524,9 +524,9 @@ class ModelName(BaseModel):
    ↓
 5. spec-reviewer 审查更新 ← 当前 Skill
    ↓
-6. spec-reviewer 创建 review-xxx.md
+6. spec-reviewer 创建 update-xxx-review.md
    ↓
-7. 用户阅读 review-xxx.md
+7. 用户阅读 update-xxx-review.md
    ↓
 8. 如有问题 → 修复 → 重新审查
    ↓
