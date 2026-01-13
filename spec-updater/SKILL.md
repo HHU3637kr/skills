@@ -98,7 +98,7 @@ title: 功能名称-更新XXX
 type: update
 update_number: 1
 category: 03-功能实现
-status: 进行中
+status: 未确认
 update_type: 功能增强
 created: YYYY-MM-DD
 plan: "[[plan]]"
@@ -116,7 +116,7 @@ title: 功能名称-更新XXX-实现总结
 type: update-summary
 update_number: 1
 category: 03-功能实现
-status: 已完成
+status: 未确认
 created: YYYY-MM-DD
 plan: "[[plan]]"
 update: "[[update-XXX]]"
@@ -135,12 +135,30 @@ tags:
 | `type` | `update` | `update-summary` | 文档类型标识 |
 | `update_number` | 必填 | 必填 | 更新编号，与文件名一致（如 001） |
 | `category` | 必填 | 必填 | 分类目录，继承自原 plan.md |
-| `status` | `进行中` → `已完成` | `已完成` | 更新状态 |
+| `status` | `未确认`/`已确认`/`已归档` | `未确认`/`已确认`/`已归档` | 状态（见下方状态变更规则） |
 | `update_type` | 必填 | - | 更新类型：`功能增强`/`Bug修复`/`性能优化`/`重构` |
 | `created` | 必填 | 必填 | 创建日期，`YYYY-MM-DD` 格式 |
 | `plan` | 必填 | 必填 | 链接到原 plan.md，使用 `[[plan]]` |
 | `update` | - | 必填 | 链接到对应的 update-xxx.md |
 | `tags` | 必填 | 必填 | 标签列表，必须包含 `spec` 和 `update` |
+
+**status 状态变更规则（适用于 update-xxx.md 和 update-xxx-summary.md）**：
+
+```
+┌─────────────┐    用户确认    ┌─────────────┐    归档完成    ┌─────────────┐
+│   未确认    │ ────────────→ │   已确认    │ ────────────→ │   已归档    │
+└─────────────┘               └─────────────┘               └─────────────┘
+       ↑                             │
+       │      用户修改文档内容        │
+       └─────────────────────────────┘
+```
+
+| 触发条件 | 状态变更 | 操作说明 |
+|----------|----------|----------|
+| 创建文档 | → `未确认` | 初始状态 |
+| 用户确认 | `未确认` → `已确认` | 用户确认内容无误时，更新 frontmatter |
+| 用户修改文档 | `已确认` → `未确认` | 文档内容被修改后，需重新确认 |
+| 归档完成 | `已确认` → `已归档` | 归档时更新 |
 
 ### update_type 可选值
 
@@ -262,7 +280,7 @@ title: 功能名称-更新XXX
 type: update
 update_number: 1
 category: 03-功能实现
-status: 进行中
+status: 未确认
 update_type: 功能增强
 created: YYYY-MM-DD
 plan: "[[plan]]"

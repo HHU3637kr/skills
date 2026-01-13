@@ -239,7 +239,7 @@ Claude: Spec 审查已完成，报告已保存到 review.md
 title: 功能名称-审查报告
 type: review
 category: 03-功能实现
-status: 已完成
+status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD
 plan: "[[plan]]"
@@ -258,7 +258,7 @@ title: 功能名称-更新XXX-审查报告
 type: review
 update_number: 1
 category: 03-功能实现
-status: 已完成
+status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD
 plan: "[[plan]]"
@@ -278,7 +278,7 @@ tags:
 | `type` | `review` | `review` | 文档类型标识 |
 | `update_number` | - | 必填 | 更新编号，与 update 文档一致 |
 | `category` | 必填 | 必填 | 分类目录，继承自原 plan.md |
-| `status` | `已完成` | `已完成` | 审查状态 |
+| `status` | `未确认`/`已确认`/`已归档` | `未确认`/`已确认`/`已归档` | 审查状态（见下方状态变更规则） |
 | `result` | 必填 | 必填 | 审查结果：`通过`/`需修复`/`严重不符` |
 | `created` | 必填 | 必填 | 审查日期，`YYYY-MM-DD` 格式 |
 | `plan` | 必填 | 必填 | 链接到 plan.md |
@@ -286,6 +286,24 @@ tags:
 | `update` | - | 必填 | 链接到 update-xxx.md |
 | `update_summary` | - | 必填 | 链接到 update-xxx-summary.md |
 | `tags` | 必填 | 必填 | 标签列表，必须包含 `spec` 和 `review` |
+
+**status 状态变更规则**：
+
+```
+┌─────────────┐    用户确认    ┌─────────────┐    归档完成    ┌─────────────┐
+│   未确认    │ ────────────→ │   已确认    │ ────────────→ │   已归档    │
+└─────────────┘               └─────────────┘               └─────────────┘
+       ↑                             │
+       │      用户修改文档内容        │
+       └─────────────────────────────┘
+```
+
+| 触发条件 | 状态变更 | 操作说明 |
+|----------|----------|----------|
+| 创建 review.md | → `未确认` | 初始状态 |
+| 用户确认审查报告 | `未确认` → `已确认` | 用户确认审查报告无误时，更新 frontmatter |
+| 用户修改文档 | `已确认` → `未确认` | 文档内容被修改后，需重新确认 |
+| 归档完成 | `已确认` → `已归档` | 归档时更新 |
 
 ### result 可选值
 
@@ -302,7 +320,7 @@ tags:
 title: 功能名称-审查报告
 type: review
 category: 03-功能实现
-status: 已完成
+status: 未确认
 result: 需修复
 created: YYYY-MM-DD
 plan: "[[plan]]"

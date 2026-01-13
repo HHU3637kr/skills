@@ -183,7 +183,7 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 title: 功能名称
 type: plan
 category: 03-功能实现
-status: 进行中
+status: 未确认
 priority: 高
 created: 2026-01-09
 tags:
