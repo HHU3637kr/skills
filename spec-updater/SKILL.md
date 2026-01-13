@@ -78,10 +78,10 @@ spec/03-功能实现/20251231-专业评价Agent设计/
 ├── summary.md           # 原始实现总结（保持不变）
 ├── update-001.md        # 第一次更新方案
 ├── update-001-summary.md # 第一次更新总结
-├── review-001.md        # 第一次更新审查报告
+├── update-001-review.md        # 第一次更新审查报告
 ├── update-002.md        # 第二次更新方案
 ├── update-002-summary.md # 第二次更新总结
-└── review-002.md        # 第二次更新审查报告
+└── update-002-review.md        # 第二次更新审查报告
 ```
 
 ## Frontmatter 规范
@@ -733,7 +733,7 @@ tests/
 - 更新方案: [[update-XXX|更新方案]]
 - 原设计: [[plan|设计方案]]
 - 原总结: [[summary|实现总结]]
-- 审查报告: [[review-XXX|审查报告]] (待生成)
+- 审查报告: [[update-XXX-review|审查报告]] (待生成)
 
 ---
 
@@ -749,15 +749,15 @@ tests/
 
 **操作**：
 1. 调用 spec-reviewer 审查更新实现
-2. 生成 review-xxx.md 审查报告
+2. 生成 update-xxx-review.md 审查报告
 3. 审查报告放在同一目录下
 
 **示例**：
 ```
 Claude: 更新实现完成，现在使用 spec-reviewer 进行审查...
 
-审查完成，review-001.md 已创建在：
-spec/03-功能实现/20251231-专业评价Agent设计/review-001.md
+审查完成，update-001-review.md 已创建在：
+spec/03-功能实现/20251231-专业评价Agent设计/update-001-review.md
 ```
 
 ### 步骤 12：等待用户确认审查报告
@@ -769,7 +769,7 @@ spec/03-功能实现/20251231-专业评价Agent设计/review-001.md
 
 **示例对话**：
 ```
-Claude: 更新审查完成，review-001.md 已创建。
+Claude: 更新审查完成，update-001-review.md 已创建。
 
 审查结果摘要：
 - ✅ 已完成：5/5 项修改
@@ -777,7 +777,7 @@ Claude: 更新审查完成，review-001.md 已创建。
 - ⚠️ 不符项：0 项
 - ✅ 回归测试：全部通过
 
-请阅读 review-001.md 确认更新是否符合预期。
+请阅读 update-001-review.md 确认更新是否符合预期。
 
 注意：功能更新完成后不会归档，保留在原目录以便后续更新。
 ```
@@ -915,7 +915,7 @@ mv "spec/03-功能实现/20251231-xxx" "spec/06-已归档/"
    ↓
 8. 使用 spec-reviewer 审查更新
    ↓
-9. 生成 review-xxx.md 审查报告
+9. 生成 update-xxx-review.md 审查报告
    ↓
 10. 用户阅读并确认审查报告
    ↓
@@ -931,10 +931,10 @@ spec/03-功能实现/20260104-专业评价Agent设计/
 ├── review.md                # 初始审查报告
 ├── update-001.md            # 第一次更新：修复评分精度问题（2026-01-05）
 ├── update-001-summary.md    # 第一次更新总结
-├── review-001.md            # 第一次更新审查报告
+├── update-001-review.md            # 第一次更新审查报告
 ├── update-002.md            # 第二次更新：添加并发支持（2026-01-10）
 ├── update-002-summary.md    # 第二次更新总结
-└── review-002.md            # 第二次更新审查报告
+└── update-002-review.md            # 第二次更新审查报告
 ```
 
 ## 快速参考
@@ -991,7 +991,7 @@ pytest tests/ --cov=src --cov-report=html
 - [ ] 新增测试通过
 - [ ] 回归测试通过
 - [ ] update-xxx-summary.md 已创建
-- [ ] review-xxx.md 审查报告已生成
+- [ ] update-xxx-review.md 审查报告已生成
 - [ ] 用户已确认审查报告
 - [ ] **没有执行归档操作**
 

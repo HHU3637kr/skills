@@ -195,7 +195,7 @@ Glob(pattern="backend/**/*_service.py")
 
 **文件命名**：
 - 新功能审查：`review.md`
-- 更新审查：`review-001.md`、`review-002.md`（与 update 编号对应）
+- 更新审查：`update-001-review.md`、`update-002-review.md`（与 update 编号对应）
 
 **示例**：
 ```bash
@@ -560,7 +560,7 @@ spec/03-功能实现/20260104-1713-专业评价Agent设计/
 ├── review.md                # 审查报告
 ├── update-001.md            # 第一次更新
 ├── update-001-summary.md    # 第一次更新总结
-└── review-001.md            # 第一次更新审查报告
+└── update-001-review.md            # 第一次更新审查报告
 ```
 
 ## 检查清单

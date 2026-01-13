@@ -108,7 +108,7 @@ spec-updater 创建 update-xxx-summary.md
     ↓
 spec-reviewer 审查更新
     ↓
-spec-reviewer 生成 review-xxx.md
+spec-reviewer 生成 update-xxx-review.md
     ↓
 用户确认
     ↓
@@ -152,7 +152,7 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 ├── review.md                  # 审查报告（spec-reviewer 创建）
 ├── update-001.md              # 更新方案（spec-writer 创建）
 ├── update-001-summary.md      # 更新总结（spec-updater 创建）
-└── review-001.md              # 更新审查（spec-reviewer 创建）
+└── update-001-review.md              # 更新审查（spec-reviewer 创建）
 ```
 
 ## Obsidian 在 Spec 流程中的关键作用
