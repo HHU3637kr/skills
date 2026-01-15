@@ -1,0 +1,257 @@
+/**
+ * Obsidian Spec Confirm Plugin - 样式文件
+ *
+ * 根据 update-001: spec/03-功能实现/20260115-1617-Obsidian插件-Spec确认工作流/update-001-侧边栏面板.md
+ * 章节: 实现步骤 - 步骤 4: 添加样式
+ */
+
+/* ============================================
+   侧边栏容器
+   ============================================ */
+
+.spec-confirm-sidebar {
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* ============================================
+   空状态
+   ============================================ */
+
+.spec-confirm-empty {
+    text-align: center;
+    padding: 2rem 1rem;
+    color: var(--text-muted);
+}
+
+/* ============================================
+   状态指示
+   ============================================ */
+
+.spec-confirm-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 1rem;
+    background: var(--background-secondary);
+    border-radius: 0.5rem;
+    font-weight: 500;
+}
+
+/* 脉冲动画 - 吸引用户注意 */
+.spec-confirm-pulse {
+    animation: pulse 1.5s ease-in-out infinite;
+    display: inline-block;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+    }
+}
+
+/* ============================================
+   文档卡片
+   ============================================ */
+
+.spec-confirm-doc-card {
+    background: var(--background-secondary);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.spec-confirm-doc-card h3 {
+    margin: 0 0 0.5rem 0;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.spec-confirm-doc-card h3:hover {
+    color: var(--text-accent);
+}
+
+.spec-confirm-doc-card h3:active {
+    color: var(--text-accent-hover);
+}
+
+/* 文档标题 */
+.spec-confirm-doc-title {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+/* 文档信息 */
+.spec-confirm-doc-info {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.spec-confirm-doc-info strong {
+    color: var(--text-normal);
+}
+
+/* 文档路径 */
+.spec-confirm-doc-path {
+    font-size: 0.85em;
+    color: var(--text-faint);
+    margin-bottom: 1rem;
+    word-break: break-all;
+    font-family: var(--font-monospace);
+}
+
+/* 反馈区域 */
+.spec-confirm-feedback {
+    margin-bottom: 1rem;
+}
+
+.spec-confirm-feedback label {
+    display: block;
+    font-size: 0.9em;
+    font-weight: 500;
+    margin-bottom: 0.25rem;
+    color: var(--text-normal);
+}
+
+.spec-confirm-feedback-input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 0.25rem;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-interface);
+    font-size: 0.9em;
+    resize: vertical;
+    min-height: 60px;
+    transition: border-color 0.2s ease;
+}
+
+.spec-confirm-feedback-input:focus {
+    outline: none;
+    border-color: var(--interactive-accent);
+}
+
+/* 分隔线 */
+.spec-confirm-divider {
+    border: none;
+    border-top: 1px solid var(--background-modifier-border-hover);
+    margin: 1rem 0;
+}
+
+/* ============================================
+   按钮组
+   ============================================ */
+
+.spec-confirm-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.spec-confirm-btn {
+    flex: 1;
+    min-width: 90px;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.spec-confirm-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.spec-confirm-btn:active {
+    transform: translateY(0);
+}
+
+/* 普通按钮 */
+.spec-confirm-btn {
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+}
+
+.spec-confirm-btn:hover {
+    background: var(--interactive-hover);
+}
+
+/* CTA 按钮（确认） */
+.spec-confirm-btn.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.spec-confirm-btn.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* 警告按钮（需要修改） */
+.spec-confirm-btn.mod-warning {
+    background: var(--color-orange);
+    color: white;
+}
+
+.spec-confirm-btn.mod-warning:hover {
+    background: var(--color-orange-hover, #e67e22);
+}
+
+/* ============================================
+   底部提示
+   ============================================ */
+
+.spec-confirm-tip {
+    text-align: center;
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    border-top: 1px solid var(--background-modifier-border);
+    margin-top: 0.5rem;
+}
+
+/* ============================================
+   状态栏
+   ============================================ */
+
+.spec-confirm-status {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.spec-confirm-status:hover {
+    opacity: 0.8;
+}
+
+/* ============================================
+   响应式调整
+   ============================================ */
+
+/* 小屏幕适配 */
+@media (max-width: 600px) {
+    .spec-confirm-sidebar {
+        padding: 0.75rem;
+    }
+
+    .spec-confirm-buttons {
+        flex-direction: column;
+    }
+
+    .spec-confirm-btn {
+        width: 100%;
+        min-width: unset;
+    }
+}

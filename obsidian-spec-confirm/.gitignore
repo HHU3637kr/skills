@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Build output
+main.js
+main.js.map
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

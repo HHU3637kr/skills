@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-spec-confirm",
+  "name": "Obsidian Spec Confirm",
+  "version": "1.0.0",
+  "minAppVersion": "0.16.0",
+  "description": "与 Claude Code 集成，实现 Spec 文档一键确认工作流",
+  "author": "Professional Evaluation Team",
+  "authorUrl": "https://github.com/HHU3637kr",
+  "isDesktopOnly": false
+}

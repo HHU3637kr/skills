@@ -341,15 +341,29 @@ plan.md 作为起点文档，其文档关联章节用于预留后续文档的链
 Write(file_path="spec/02-架构设计/20260104-1713-任务描述/plan.md", content="...")
 ```
 
-#### 步骤 9：等待用户确认
+#### 步骤 9：等待用户确认（使用 MCP 工具）
 
-保存后：
-1. 告知用户文件已创建
-2. 说明文件路径：`spec/分类目录/YYYYMMDD-HHMM-任务描述/plan.md`
-3. 简要概述文档内容
-4. 说明执行后会在同一目录创建 `summary.md`
-5. 说明执行完成后，整个文件夹会被移动到 `06-已归档`
-6. 等待用户确认后再进行开发
+保存后，使用 `spec_confirm` MCP 工具等待用户确认：
+
+```python
+# 使用 MCP 工具等待用户确认
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/plan.md",
+    doc_type="plan",
+    title="文档标题"
+)
+```
+
+**确认流程**：
+1. 工具调用后，侧边栏会自动打开，显示文档信息和确认按钮
+2. 用户在 Obsidian 中审阅文档
+3. 审阅完成后，用户在侧边栏点击"✓ 确认"或"✗ 需要修改"
+4. 收到确认响应后，根据用户反馈继续或修改
+
+**响应处理**：
+- `action: "continue"` - 用户确认，可以开始实现
+- `action: "modify"` - 用户需要修改，根据 `userMessage` 调整 Spec
+- `newStatus: "已确认"` - 文档状态已更新为已确认
 
 ## 重要提醒
 
