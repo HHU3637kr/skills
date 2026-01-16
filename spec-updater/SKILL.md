@@ -32,6 +32,31 @@ allowed-tools: Read, Grep, Glob, Edit, Write, Bash, LSP
 
 ## 核心原则
 
+### 0. MCP 确认工具（必须使用）
+
+> [!important] 必须使用 MCP 工具等待用户确认
+> 在以下两个节点**必须**调用 `spec_confirm` MCP 工具，不要直接询问用户。
+
+**节点 1：更新方案确认**
+```python
+# 创建 update-xxx.md 后立即调用
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/update-001.md",
+    doc_type="update",
+    title="更新方案 - 功能名称"
+)
+```
+
+**节点 2：审查报告确认**
+```python
+# 生成 update-xxx-review.md 后立即调用
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/update-001-review.md",
+    doc_type="review",
+    title="更新审查报告 - 功能名称"
+)
+```
+
 ### 1. 同目录原则
 
 **必须遵守**：

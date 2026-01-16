@@ -1,16 +1,9 @@
-# Obsidian 插件开发指南
-
-## 元信息
-
-- **Skill ID**: obsidian-plugin-dev
-- **触发方式**: 手动触发 `/obsidian-plugin-dev`
-- **适用场景**: 开发 Obsidian 插件时使用
-
-## 概述
-
-本 Skill 提供 Obsidian 插件开发的完整指南，包括项目初始化、配置模板、常见问题解决方案和最佳实践。
-
 ---
+name: obsidian-plugin-dev
+description: Obsidian 插件开发指南，提供项目初始化模板、配置文件、常见问题解决方案和 API 使用示例。当需要开发 Obsidian 插件、解决 Obsidian 插件开发问题、或查询 Obsidian API 用法时使用。触发场景：(1) 创建新的 Obsidian 插件项目，(2) 配置 esbuild/TypeScript 构建环境，(3) 解决 Node.js 模块加载问题，(4) 使用 Obsidian API（文件操作、frontmatter、UI 组件、命令注册、事件监听），(5) 调试 Obsidian 插件。
+---
+
+# Obsidian 插件开发指南
 
 ## 项目初始化
 

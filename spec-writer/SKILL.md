@@ -13,6 +13,20 @@ model: claude-sonnet-4-5
 
 ## 核心规则
 
+### 0. MCP 确认工具（必须使用）
+
+> [!important] 必须使用 MCP 工具等待用户确认
+> 完成 plan.md 撰写后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
+
+```python
+# 保存 plan.md 后立即调用
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/plan.md",
+    doc_type="plan",
+    title="文档标题"
+)
+```
+
 ### 1. 目录分类结构
 
 **必须遵守**：Spec 必须放入对应的分类目录（01-06）

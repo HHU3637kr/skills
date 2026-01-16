@@ -33,6 +33,7 @@
 │  │  • 双链建立文档关联                                              │  │
 │  │  • Frontmatter 管理元数据                                         │  │
 │  │  • Callout 突出关键信息                                           │  │
+│  │  • obsidian-spec-confirm 插件实现一键确认工作流                  │  │
 │  └─────────────────────────────────────────────────────────────────┘  │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
@@ -123,7 +124,13 @@ spec-reviewer 生成 update-xxx-review.md
 | `obsidian-bases` | 创建和管理数据库视图 | 动态 Spec 索引、状态跟踪 |
 | `json-canvas` | 创建可视化 Canvas | Spec 依赖关系图、架构图 |
 
-### 3. 辅助 Skills
+### 3. Obsidian 插件
+
+| 插件 | 功能 | 在 Spec 流程中的作用 |
+|------|------|---------------------|
+| `obsidian-spec-confirm` | Spec 文档一键确认工作流 | 用户在 Obsidian 侧边栏确认 Spec，自动更新 frontmatter 状态 |
+
+### 4. 辅助 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
@@ -232,6 +239,101 @@ views:
       - status
       - priority
 ```
+
+## Obsidian Spec Confirm 插件
+
+### 概述
+
+`obsidian-spec-confirm` 是专为本项目开发的 Obsidian 插件，实现了 Claude Code 与 Obsidian 之间的 Spec 确认工作流集成。
+
+### 工作流程
+
+```
+Claude Code 生成 Spec 文档
+       ↓
+调用 spec_confirm MCP 工具
+       ↓
+Obsidian 侧边栏自动打开，显示文档信息
+       ↓
+用户在 Obsidian 中审阅文档
+       ↓
+点击"✓ 确认"按钮
+       ↓
+文档 frontmatter status 自动更新为"已确认"
+       ↓
+Claude Code 收到响应，继续执行
+```
+
+![alt text](image.png)
+
+### 核心功能
+
+| 功能 | 说明 |
+|------|------|
+| **侧边栏面板** | 在右侧边栏显示等待确认的 Spec 文档，不打断用户审阅 |
+| **一键确认** | 在侧边栏直接点击确认按钮，无需切换窗口 |
+| **状态同步** | 确认后自动更新文档 frontmatter 的 `status` 字段为"已确认" |
+| **MCP Server** | 内置 MCP Server，接收 Claude Code 的确认请求 |
+
+### 安装步骤
+
+1. **构建插件**：
+```bash
+cd .claude/skills/obsidian-spec-confirm
+npm install
+npm run build
+```
+
+2. **复制到 Obsidian**：
+将以下文件复制到 Obsidian vault 的 `.obsidian/plugins/obsidian-spec-confirm/` 目录：
+   - `main.js`
+   - `manifest.json`
+   - `styles.css`
+
+3. **启用插件**：
+在 Obsidian 设置 → 第三方插件 中启用 `Spec Confirm`
+
+### MCP 配置
+
+在 Claude Code 的 MCP 配置中添加：
+
+```json
+{
+  "mcpServers": {
+    "obsidian-spec-confirm": {
+      "type": "http",
+      "url": "http://localhost:5300"
+    }
+  }
+}
+```
+
+### MCP 工具
+
+插件提供以下 MCP 工具供 Claude Code 调用：
+
+| 工具 | 参数 | 说明 |
+|------|------|------|
+| `spec_confirm` | `file_path`, `doc_type`, `title` | 请求用户确认 Spec 文档 |
+| `get_status` | 无 | 获取当前 MCP Server 状态 |
+
+**调用示例**：
+```
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/03-功能实现/20260115-xxx/plan.md",
+    doc_type="plan",
+    title="功能设计方案"
+)
+```
+
+### 支持的文档类型
+
+| doc_type | 说明 |
+|----------|------|
+| `plan` | 设计方案文档 |
+| `update` | 更新方案文档 |
+| `summary` | 实现总结文档 |
+| `review` | 审查报告文档 |
 
 ## 完整工作流示例
 
@@ -586,6 +688,6 @@ description: [简短描述] 触发条件：[什么时候使用]
 
 ---
 
-**版本**: 1.0
-**最后更新**: 2026-01-09
+**版本**: 1.1
+**最后更新**: 2026-01-16
 **维护者**: 项目团队

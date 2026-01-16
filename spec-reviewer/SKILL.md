@@ -30,6 +30,33 @@ spec-executor 创建 summary.md
 用户确认后归档
 ```
 
+## 核心规则
+
+### MCP 确认工具（必须使用）
+
+> [!important] 必须使用 MCP 工具等待用户确认
+> 完成审查报告后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
+
+**新功能审查**：
+```python
+# 生成 review.md 后立即调用
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/review.md",
+    doc_type="review",
+    title="Spec 审查报告 - 功能名称"
+)
+```
+
+**更新审查**：
+```python
+# 生成 update-xxx-review.md 后立即调用
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/update-001-review.md",
+    doc_type="review",
+    title="更新审查报告 - 功能名称"
+)
+```
+
 ## 审查范围
 
 ### 1. 完成度检查
@@ -202,12 +229,39 @@ Glob(pattern="backend/**/*_service.py")
 Write(file_path="spec/03-功能实现/20260104-1713-专业评价Agent设计/review.md", content="...")
 ```
 
-#### 步骤 7：告知用户审查结果
+#### 步骤 7：告知用户审查结果（使用 MCP 工具）
 
 **操作**：
-1. 总结审查结果
-2. 列出关键问题（如有）
-3. 给出建议
+1. 生成审查报告后，使用 `spec_confirm` MCP 工具等待用户确认
+2. 总结审查结果
+3. 根据用户反馈决定后续操作
+
+**使用 MCP 工具确认**：
+```python
+# 新功能审查
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/03-功能实现/20260104-1713-专业评价Agent设计/review.md",
+    doc_type="review",
+    title="Spec 审查报告 - 专业评价Agent设计"
+)
+
+# 更新审查
+mcp__obsidian-spec-confirm__spec_confirm(
+    file_path="spec/03-功能实现/20260104-1713-专业评价Agent设计/update-001-review.md",
+    doc_type="review",
+    title="更新审查报告 - 专业评价Agent设计"
+)
+```
+
+**确认流程**：
+1. 工具调用后，侧边栏会自动打开，显示审查报告信息和确认按钮
+2. 用户在 Obsidian 中审阅 review.md
+3. 审阅完成后，用户在侧边栏点击"✓ 确认"或"✗ 需要修改"
+4. 收到确认响应后，根据用户反馈继续或修复
+
+**响应处理**：
+- `action: "continue"` - 用户确认无问题，可以进行归档（新功能）或完成（更新）
+- `action: "modify"` - 用户发现需要修改的地方，根据 `userMessage` 修复后重新审查
 
 **示例对话**：
 ```
@@ -219,11 +273,7 @@ Claude: Spec 审查已完成，报告已保存到 review.md
 - ⚠️ 不符项：1 项
 - ➕ 额外项：0 项
 
-主要问题：
-1. 功能 X 未实现
-2. 接口 Y 的参数与 Spec 不一致
-
-建议：请先修复以上问题后再确认归档。
+正在等待您在 Obsidian 侧边栏确认...
 ```
 
 ## Frontmatter 规范
@@ -576,7 +626,7 @@ spec/03-功能实现/20260104-1713-专业评价Agent设计/
 - [ ] 已检查 API 接口
 - [ ] 已检查测试情况
 - [ ] 已生成审查报告
-- [ ] 已告知用户审查结果（由调用者使用 MCP 工具通知用户确认）
+- [ ] 已使用 MCP 工具 `spec_confirm` 等待用户确认
 
 ## 快速参考
 
