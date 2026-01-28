@@ -127,7 +127,9 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - [ ] 步骤 7：运行测试验证
 - [ ] 步骤 8：创建 summary.md 总结文档
 - [ ] 步骤 9：调用 MCP 工具，等待用户确认 summary.md
-- [ ] 步骤 10：用户确认后，将 Spec 文件夹移动到 06-已归档
+- [ ] 步骤 10：经验反思与沉淀（调用 exp-reflect）
+- [ ] 步骤 11：更新 summary.md 添加经验引用
+- [ ] 步骤 12：将 Spec 文件夹移动到 06-已归档
 ```
 
 ### 步骤详解
@@ -430,7 +432,35 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - 必须等待用户通过 MCP 工具确认后才能归档
 - 如果用户需要审查实现细节，可单独调用 `spec-reviewer` Skill
 
-#### 步骤 10：用户确认后，将 Spec 文件夹移动到 06-已归档
+#### 步骤 10：经验反思与沉淀
+
+**前提条件**：用户已确认 summary.md 无误
+
+**操作**：
+1. 调用 `/exp-reflect` 进行经验反思，以 summary.md 中的「遇到的问题」和「解决方案」为反思素材
+2. 如有值得沉淀的经验，按 exp-reflect 的流程完成写入
+3. 如果没有值得沉淀的经验，跳过此步骤
+
+> [!important] 此步骤必须执行
+> 归档前必须进行经验反思，这是将执行过程中的知识转化为可复用经验的关键环节。具体的反思流程和记忆分类由 `exp-reflect` Skill 负责。
+
+#### 步骤 11：更新 summary.md 添加经验引用
+
+**前提条件**：步骤 10 中沉淀了经验
+
+**操作**：
+1. 在 summary.md 的「文档关联」章节，使用双链引用沉淀的经验文件
+2. 如果没有沉淀经验，跳过此步骤
+
+**更新示例**：
+```markdown
+## 文档关联
+
+- 设计文档: [[plan|设计方案]]
+- 沉淀经验: [[spec/context/experience/exp-007-异步任务超时处理|EXP-007 异步任务超时处理]]
+```
+
+#### 步骤 12：将 Spec 文件夹移动到 06-已归档
 
 **前提条件**：用户通过 MCP 工具确认 summary.md 无误（收到 `action: "continue"` 响应）
 
@@ -573,6 +603,8 @@ tests/
 ## 6. 文档关联
 
 - 设计文档: [[plan|设计方案]]
+- 沉淀经验: （如有经验沉淀，在此添加双链引用）
+  - [[spec/context/experience/exp-xxx-标题|EXP-xxx 标题]]
 
 ---
 
@@ -811,7 +843,9 @@ black src/
 - [ ] 可追溯性得到保证
 - [ ] summary.md 已创建
 - [ ] **已等待用户确认 summary.md 无误**
-- [ ] 用户确认后，Spec 文件夹已移动到 `06-已归档`
+- [ ] **已调用 exp-reflect 进行经验反思**
+- [ ] 如有经验沉淀，已更新 summary.md 添加经验引用
+- [ ] Spec 文件夹已移动到 `06-已归档`
 
 ## 与其他 Skill 的协作
 
@@ -832,9 +866,13 @@ black src/
    ↓
 7. 用户确认 summary.md
    ↓
-8. 移动 Spec 文件夹到 06-已归档
+8. 调用 exp-reflect 进行经验反思与沉淀
    ↓
-9. 完成
+9. 更新 summary.md 添加经验引用（如有沉淀）
+   ↓
+10. 移动 Spec 文件夹到 06-已归档
+   ↓
+11. 完成
 
 可选：用户可在任意时刻调用 spec-reviewer 进行审查
 ```
@@ -935,13 +973,14 @@ async def evaluate_multiple_majors(
 
 ### 后续流程
 1. 创建 summary.md 后，等待用户确认
-2. 用户确认后，将 Spec 文件夹归档到 `06-已归档`
-3. 如果用户需要详细审查，可单独调用 `spec-reviewer` Skill
-
-### 记忆更新提示
-如果在实现过程中发现了重要的「困境-策略」对（如技术难点的解决方案），考虑使用 `/memory` Skill 将其记录到 CLAUDE.md 的战略记忆章节。
+2. 用户确认后，**调用 `/exp-reflect` 进行经验反思**
+3. 如有经验沉淀，更新 summary.md 添加经验引用
+4. 将 Spec 文件夹归档到 `06-已归档`
+5. 如果用户需要详细审查，可单独调用 `spec-reviewer` Skill
 
 ### 常见陷阱
 - 忘记创建 summary.md
 - 添加了 Spec 中未定义的额外功能
 - 未等待用户确认就归档
+- **归档前忘记调用 exp-reflect 进行经验反思**
+

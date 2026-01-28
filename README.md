@@ -78,6 +78,11 @@ spec-executor 创建 summary.md
     ↓
 用户确认 summary.md
     ↓
+【exp-reflect】经验反思与沉淀 ⚠️
+- 分析遇到的问题和解决方案
+- 如有值得沉淀的经验，调用 exp-write 写入
+- 更新 summary.md 添加经验引用（双链）
+    ↓
 移动到 spec/06-已归档
 
 可选：用户可在任意时刻调用 spec-reviewer 进行详细审查
@@ -178,7 +183,11 @@ spec/
 ├── 03-功能实现/          # 功能、API、集成
 ├── 04-问题修复/          # Bug修复、重构
 ├── 05-测试文档/          # 测试计划、测试报告
-└── 06-已归档/           # 已完成的 Spec（自动移动）
+├── 06-已归档/           # 已完成的 Spec（自动移动）
+└── context/             # 记忆系统（与 Spec 工作流一致）
+    └── experience/      # 经验记忆存储
+        ├── index.md     # 经验索引
+        └── exp-xxx-标题.md  # 经验详情
 ```
 
 每个 Spec 目录遵循以下命名规范：
@@ -443,7 +452,7 @@ Claude（调用 spec-executor 归档流程）：
 │                                                                 │
 │  ┌──────────────────┐   ┌──────────────────┐   ┌─────────────┐ │
 │  │   经验记忆       │   │   程序记忆       │   │  工具记忆   │ │
-│  │ context/        │   │  SOP Skill      │   │Skill 末尾   │ │
+│  │ spec/context/   │   │  SOP Skill      │   │Skill 末尾   │ │
 │  │ experience/     │   │  按需加载       │   │自动参考     │ │
 │  └──────────────────┘   └──────────────────┘   └─────────────┘ │
 │                                                                 │
@@ -452,11 +461,11 @@ Claude（调用 spec-executor 归档流程）：
 
 ### 三层记忆详解
 
-#### 1. 经验记忆 → context/experience/
+#### 1. 经验记忆 → spec/context/experience/
 
-**存储位置**：`context/experience/exp-xxx-标题.md`
+**存储位置**：`spec/context/experience/exp-xxx-标题.md`
 
-**索引位置**：`context/experience/index.md`
+**索引位置**：`spec/context/experience/index.md`
 
 **加载方式**：索引全量加载，详情按需检索
 
@@ -678,13 +687,44 @@ description: [简短描述] 触发条件：[什么时候使用]
 
 ---
 
-**版本**: 1.2
+**版本**: 1.3
 **最后更新**: 2026-01-28
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v1.3 (2026-01-28) - 归档与经验沉淀闭环
+
+**核心改进**：
+
+1. **spec-executor 归档前自动触发经验反思**：
+   - 用户确认 summary.md 后，必须调用 `/exp-reflect` 进行经验反思
+   - 解决了「归档只是移动文件，不是学习」的问题
+   - 将执行过程中的知识转化为可复用经验
+
+2. **summary.md 通过双链引用沉淀的经验**：
+   - 文档关联章节新增「沉淀经验」字段
+   - 使用 `[[spec/context/experience/exp-xxx-标题|EXP-xxx 标题]]` 格式引用
+   - 实现 Spec 文档与经验记忆的关联
+
+3. **经验记忆目录迁移到 spec/ 下**：
+   - 路径从 `context/experience/` 改为 `spec/context/experience/`
+   - 记忆系统与 Spec 工作流保持一致的目录结构
+   - 更新了 exp-search、exp-reflect、exp-write 的路径引用
+
+**更新的流程**：
+
+```
+用户确认 summary.md
+    ↓
+调用 exp-reflect 进行经验反思
+    ↓
+如有经验沉淀，更新 summary.md 添加经验引用
+    ↓
+移动到 spec/06-已归档
+```
 
 ### v1.2 (2026-01-28) - 经验管理系统重构
 

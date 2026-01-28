@@ -12,7 +12,7 @@ model: claude-haiku-4
 快速检索项目积累的三层记忆，在正确的时刻加载相关知识，避免重复踩坑。
 
 **三层记忆检索范围**：
-1. **经验记忆**：困境-策略对 → `context/experience/exp-xxx-标题.md`
+1. **经验记忆**：困境-策略对 → `spec/context/experience/exp-xxx-标题.md`
 2. **程序记忆**：SOP 流程 → `.claude/skills/sop-xxx/SKILL.md`
 3. **工具记忆**：Skill 后续动作 → 各 Skill 末尾「后续动作」章节
 
@@ -24,8 +24,8 @@ model: claude-haiku-4
 
 ## 核心文件
 
-- **经验索引**：`context/experience/index.md`（包含三层记忆的索引）
-- **经验详情**：`context/experience/exp-xxx-标题.md`
+- **经验索引**：`spec/context/experience/index.md`（包含三层记忆的索引）
+- **经验详情**：`spec/context/experience/exp-xxx-标题.md`
 - **SOP Skill**：`.claude/skills/sop-xxx-名称/SKILL.md`
 
 ---
@@ -35,7 +35,7 @@ model: claude-haiku-4
 ```
 检索流程：
 - [ ] 步骤 1：读取经验索引
-      读取 `context/experience/index.md`
+      读取 `spec/context/experience/index.md`
       索引包含三部分：经验记忆、程序记忆（SOP）、工具记忆
 
 - [ ] 步骤 2：关键词匹配
@@ -51,7 +51,7 @@ model: claude-haiku-4
       按记忆类型分组展示
 
 - [ ] 步骤 4：加载详情（可选）
-      - 经验记忆 → 读取 context/experience/exp-xxx-标题.md
+      - 经验记忆 → 读取 spec/context/experience/exp-xxx-标题.md
       - 程序记忆 → 提示用户调用对应 SOP Skill
       - 工具记忆 → 读取对应 Skill 的后续动作章节
 ```

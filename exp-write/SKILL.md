@@ -9,7 +9,7 @@ model: claude-haiku-4
 
 ## 概述
 
-将经验记忆（困境-策略对）写入 `context/experience/` 目录，并更新索引文件。
+将经验记忆（困境-策略对）写入 `spec/context/experience/` 目录，并更新索引文件。
 
 **注意**：本 Skill 仅处理经验记忆的写入。
 - 程序记忆（SOP）→ 使用 `/skill-creator` 创建
@@ -22,8 +22,8 @@ model: claude-haiku-4
 
 ## 核心文件
 
-- **经验索引**：`context/experience/index.md`
-- **经验详情**：`context/experience/exp-{ID}-{中文标题}.md`
+- **经验索引**：`spec/context/experience/index.md`
+- **经验详情**：`spec/context/experience/exp-{ID}-{中文标题}.md`
 
 ---
 
@@ -42,7 +42,7 @@ model: claude-haiku-4
       示例：exp-001-websocket-timeout.md
 
 - [ ] 步骤 3：写入经验详情文件
-      路径：context/experience/exp-{ID}-{slug}.md
+      路径：spec/context/experience/exp-{ID}-{slug}.md
       使用标准模板格式
 
 - [ ] 步骤 4：更新索引文件
@@ -166,8 +166,8 @@ created: {YYYY-MM-DD}
 ```markdown
 ✅ 经验已保存
 
-**文件**：context/experience/exp-003-agentscope-memory.md
-**索引**：已更新 context/experience/index.md
+**文件**：spec/context/experience/exp-003-agentscope-memory.md
+**索引**：已更新 spec/context/experience/index.md
 
 检索方式：
 - `/exp-search AgentScope`
@@ -179,7 +179,7 @@ created: {YYYY-MM-DD}
 ```markdown
 ✅ 经验已更新
 
-**文件**：context/experience/exp-001-websocket-timeout.md
+**文件**：spec/context/experience/exp-001-websocket-timeout.md
 **变更**：
 - 新增策略步骤：添加重试机制
 - 补充相关文件：backend/utils/retry.py

@@ -12,7 +12,7 @@ model: claude-sonnet-4-5
 基于 MUSE 框架的"反思 → 结构化 → 记忆化"理念，分析当前对话，提取可沉淀的三类记忆。
 
 **可沉淀的记忆类型**：
-1. **经验记忆**：困境-策略对 → 写入 `context/experience/`
+1. **经验记忆**：困境-策略对 → 写入 `spec/context/experience/`
 2. **程序记忆**：可复用的多步骤 SOP → 创建 `sop-xxx` Skill
 3. **工具记忆**：Skill 执行后的固定后续动作 → 更新 Skill 末尾
 
@@ -49,14 +49,14 @@ model: claude-sonnet-4-5
 
       | 内容特征 | 记忆类型 | 存储位置 |
       |----------|----------|----------|
-      | 解决了什么问题？为什么这样解决？ | 经验记忆 | context/experience/ |
+      | 解决了什么问题？为什么这样解决？ | 经验记忆 | spec/context/experience/ |
       | 完成了哪些多步骤操作（>5步）？是否可复用？ | 程序记忆 | sop-xxx Skill |
       | 某 Skill 执行后总是需要做什么？ | 工具记忆 | Skill 末尾后续动作 |
 
 - [ ] 步骤 3：检查现有记忆（防止重复）
       根据步骤 2 识别的类型，检查对应位置：
 
-      - 经验记忆 → 读取 context/experience/index.md
+      - 经验记忆 → 读取 spec/context/experience/index.md
       - 程序记忆 → 列出 .claude/skills/ 下所有 sop-* 目录
       - 工具记忆 → 读取目标 Skill 的「后续动作」章节
 
@@ -197,5 +197,5 @@ Agent 应在以下场景**主动询问**是否需要反思：
 | 写入经验记忆 | → `/exp-write` 写入经验文件和索引 |
 | 创建程序记忆（SOP） | → `/skill-creator` 创建 SOP Skill |
 | 更新工具记忆 | → 直接编辑目标 Skill 文件末尾 |
-| 检查是否重复 | → 读取 `context/experience/index.md` |
+| 检查是否重复 | → 读取 `spec/context/experience/index.md` |
 | 更新现有经验 | → `/exp-write` 更新模式 |
