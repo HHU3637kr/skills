@@ -236,13 +236,14 @@ tags:
 - [ ] 步骤 3：创建 update-xxx.md（由 spec-writer 完成）
 - [ ] 步骤 4：等待用户确认更新方案
 - [ ] 步骤 5：读取并理解 update-xxx.md 文档
-- [ ] 步骤 6：创建任务清单
-- [ ] 步骤 7：按方案实现更新
-- [ ] 步骤 8：编写/更新测试
-- [ ] 步骤 9：运行测试验证
-- [ ] 步骤 10：创建 update-xxx-summary.md 总结文档
-- [ ] 步骤 11：使用 spec-reviewer 审查更新
-- [ ] 步骤 12：等待用户确认审查报告
+- [ ] 步骤 6：检索历史经验（调用 exp-search）
+- [ ] 步骤 7：创建任务清单
+- [ ] 步骤 8：按方案实现更新
+- [ ] 步骤 9：编写/更新测试
+- [ ] 步骤 10：运行测试验证
+- [ ] 步骤 11：创建 update-xxx-summary.md 总结文档
+- [ ] 步骤 12：使用 spec-reviewer 审查更新
+- [ ] 步骤 13：等待用户确认审查报告
 ```
 
 ## 步骤详解
@@ -477,7 +478,15 @@ mcp__obsidian-spec-confirm__spec_confirm(
 Read(file_path="spec/03-功能实现/20251231-专业评价Agent设计/update-001.md")
 ```
 
-### 步骤 6：创建任务清单
+### 步骤 6：检索历史经验
+
+**目的**：在开始实现前，检索相关的历史经验，避免重复踩坑。
+
+**操作**：
+1. 根据 update-xxx.md 的功能关键词，调用 `/exp-search <关键词>` 检索相关经验
+2. 如有相关经验，阅读详情并在实现时参考
+
+### 步骤 7：创建任务清单
 
 **操作**：
 1. 根据更新文档的"实现步骤"章节创建任务清单
@@ -505,7 +514,7 @@ TodoWrite(todos=[
 ])
 ```
 
-### 步骤 7：按方案实现更新
+### 步骤 8：按方案实现更新
 
 **操作**：
 1. 按照任务清单的顺序逐个实现
@@ -537,7 +546,7 @@ class IndicatorParser:
         pass
 ```
 
-### 步骤 8：编写/更新测试
+### 步骤 9：编写/更新测试
 
 **操作**：
 1. 为新增/修改的功能编写测试
@@ -569,7 +578,7 @@ class TestIndicatorParserUpdate001:
         pass
 ```
 
-### 步骤 9：运行测试验证
+### 步骤 10：运行测试验证
 
 **操作**：
 1. 运行新增/修改的测试
@@ -589,7 +598,7 @@ pytest tests/test_agents/test_indicator_parser.py -v
 pytest tests/ --cov=src --cov-report=html
 ```
 
-### 步骤 10：创建 update-xxx-summary.md 总结文档
+### 步骤 11：创建 update-xxx-summary.md 总结文档
 
 **操作**：
 1. 在同一目录下创建 `update-xxx-summary.md`
@@ -781,7 +790,7 @@ tests/
 - 测试文件: tests/xxx
 ```
 
-### 步骤 11：使用 spec-reviewer 审查更新
+### 步骤 12：使用 spec-reviewer 审查更新
 
 **操作**：
 1. 调用 spec-reviewer 审查更新实现
@@ -796,7 +805,7 @@ Claude: 更新实现完成，现在使用 spec-reviewer 进行审查...
 spec/03-功能实现/20251231-专业评价Agent设计/update-001-review.md
 ```
 
-### 步骤 12：等待用户确认审查报告（使用 MCP 工具）
+### 步骤 13：等待用户确认审查报告（使用 MCP 工具）
 
 **操作**：
 1. 告知用户审查报告已生成
@@ -1047,13 +1056,13 @@ pytest tests/ --cov=src --cov-report=html
 ### 后续流程
 1. 创建 update-xxx-summary.md 后，使用 `spec-reviewer` 审查更新
 2. 等待用户确认审查报告
-3. **不归档**，保留在原目录以便后续更新
-
-### 记忆更新提示
-如果在更新过程中发现了重要的「困境-策略」对（如 Bug 根因分析、性能优化方案），考虑使用 `/memory` Skill 将其记录到 CLAUDE.md 的战略记忆章节。
+3. **调用 `/exp-reflect` 进行经验反思**
+4. 如有经验沉淀，更新 update-xxx-summary.md 添加经验引用
+5. **不归档**，保留在原目录以便后续更新
 
 ### 常见陷阱
 - 忘记创建 update-xxx-summary.md
 - 更新完成后错误地执行了归档操作
 - 修改了更新方案之外的代码
 - 回归测试未通过就完成更新
+- **完成后忘记调用 exp-reflect 进行经验反思**

@@ -121,15 +121,16 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - [ ] 步骤 1：读取并理解 plan.md 文档
 - [ ] 步骤 2：验证 plan.md 的完整性
 - [ ] 步骤 3：确定当前开发阶段
-- [ ] 步骤 4：创建任务清单
-- [ ] 步骤 5：按顺序实现功能
-- [ ] 步骤 6：编写单元测试
-- [ ] 步骤 7：运行测试验证
-- [ ] 步骤 8：创建 summary.md 总结文档
-- [ ] 步骤 9：调用 MCP 工具，等待用户确认 summary.md
-- [ ] 步骤 10：经验反思与沉淀（调用 exp-reflect）
-- [ ] 步骤 11：更新 summary.md 添加经验引用
-- [ ] 步骤 12：将 Spec 文件夹移动到 06-已归档
+- [ ] 步骤 4：检索历史经验（调用 exp-search）
+- [ ] 步骤 5：创建任务清单
+- [ ] 步骤 6：按顺序实现功能
+- [ ] 步骤 7：编写单元测试
+- [ ] 步骤 8：运行测试验证
+- [ ] 步骤 9：创建 summary.md 总结文档
+- [ ] 步骤 10：调用 MCP 工具，等待用户确认 summary.md
+- [ ] 步骤 11：经验反思与沉淀（调用 exp-reflect）
+- [ ] 步骤 12：更新 summary.md 添加经验引用
+- [ ] 步骤 13：将 Spec 文件夹移动到 06-已归档
 ```
 
 ### 步骤详解
@@ -179,7 +180,15 @@ Read(file_path="spec/03-功能实现/20251231-专业评价Agent设计/plan.md")
 2. 检查依赖的前置阶段是否已完成
 3. 如果前置阶段未完成，提醒用户
 
-#### 步骤 4：创建任务清单
+#### 步骤 4：检索历史经验
+
+**目的**：在开始实现前，检索相关的历史经验，避免重复踩坑。
+
+**操作**：
+1. 根据 plan.md 的功能关键词，调用 `/exp-search <关键词>` 检索相关经验
+2. 如有相关经验，阅读详情并在实现时参考
+
+#### 步骤 5：创建任务清单
 
 **操作**：
 1. 根据 Spec 的"实现步骤"章节创建任务清单
@@ -202,7 +211,7 @@ TodoWrite(todos=[
 ])
 ```
 
-#### 步骤 5：按顺序实现功能
+#### 步骤 6：按顺序实现功能
 
 **操作**：
 1. 按照任务清单的顺序逐个实现
@@ -244,7 +253,7 @@ class IndicatorParser:
         pass
 ```
 
-#### 步骤 6：编写单元测试
+#### 步骤 7：编写单元测试
 
 **操作**：
 1. 为每个类和方法编写单元测试
@@ -284,7 +293,7 @@ class TestIndicatorParser:
         assert result[0].id == "ind_001"
 ```
 
-#### 步骤 7：运行测试验证
+#### 步骤 8：运行测试验证
 
 **操作**：
 1. 运行单元测试
@@ -304,7 +313,7 @@ pytest tests/ --cov=src --cov-report=html
 pytest tests/test_agents/test_indicator_parser.py -v
 ```
 
-#### 步骤 8：创建 summary.md 总结文档
+#### 步骤 9：创建 summary.md 总结文档
 
 **操作**：
 1. 在与 plan.md 相同的目录下创建 summary.md
@@ -402,7 +411,7 @@ tags:
 Write(file_path="spec/03-功能实现/20251231-专业评价Agent设计/summary.md", content="...")
 ```
 
-#### 步骤 9：等待用户确认 summary.md（使用 MCP 工具）
+#### 步骤 10：等待用户确认 summary.md（使用 MCP 工具）
 
 **操作**：
 1. 告知用户 summary.md 已创建
@@ -432,7 +441,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - 必须等待用户通过 MCP 工具确认后才能归档
 - 如果用户需要审查实现细节，可单独调用 `spec-reviewer` Skill
 
-#### 步骤 10：经验反思与沉淀
+#### 步骤 11：经验反思与沉淀
 
 **前提条件**：用户已确认 summary.md 无误
 
@@ -444,7 +453,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 > [!important] 此步骤必须执行
 > 归档前必须进行经验反思，这是将执行过程中的知识转化为可复用经验的关键环节。具体的反思流程和记忆分类由 `exp-reflect` Skill 负责。
 
-#### 步骤 11：更新 summary.md 添加经验引用
+#### 步骤 12：更新 summary.md 添加经验引用
 
 **前提条件**：步骤 10 中沉淀了经验
 
@@ -460,7 +469,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - 沉淀经验: [[spec/context/experience/exp-007-异步任务超时处理|EXP-007 异步任务超时处理]]
 ```
 
-#### 步骤 12：将 Spec 文件夹移动到 06-已归档
+#### 步骤 13：将 Spec 文件夹移动到 06-已归档
 
 **前提条件**：用户通过 MCP 工具确认 summary.md 无误（收到 `action: "continue"` 响应）
 

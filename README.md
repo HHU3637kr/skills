@@ -714,9 +714,20 @@ description: [简短描述] 触发条件：[什么时候使用]
    - 记忆系统与 Spec 工作流保持一致的目录结构
    - 更新了 exp-search、exp-reflect、exp-write 的路径引用
 
+4. **执行前检索历史经验，形成完整闭环**：
+   - spec-executor、spec-updater、spec-debugger 新增检索历史经验步骤
+   - 开发/更新/调试前调用 `/exp-search` 检索相关经验，避免重复踩坑
+   - 形成闭环：开发前检索（exp-search）→ 开发后反思（exp-reflect）
+
 **更新的流程**：
 
 ```
+读取并理解 plan.md
+    ↓
+检索历史经验（exp-search）  ← 新增
+    ↓
+创建任务清单并实现
+    ↓
 用户确认 summary.md
     ↓
 调用 exp-reflect 进行经验反思
