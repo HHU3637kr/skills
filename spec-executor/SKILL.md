@@ -64,14 +64,14 @@ spec/06-已归档/20251231-专业评价Agent设计/
 ### 0. MCP 确认工具（必须使用）
 
 > [!important] 必须使用 MCP 工具等待用户确认
-> 完成审查报告后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
+> 完成 summary.md 后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
 
 ```python
-# 生成 review.md 后立即调用
+# 生成 summary.md 后立即调用
 mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/review.md",
-    doc_type="review",
-    title="Spec 审查报告 - 功能名称"
+    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/summary.md",
+    doc_type="summary",
+    title="实现总结 - 功能名称"
 )
 ```
 
@@ -126,7 +126,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - [ ] 步骤 6：编写单元测试
 - [ ] 步骤 7：运行测试验证
 - [ ] 步骤 8：创建 summary.md 总结文档
-- [ ] 步骤 9：调用MCP工具，等待用户确认审查报告
+- [ ] 步骤 9：调用 MCP 工具，等待用户确认 summary.md
 - [ ] 步骤 10：用户确认后，将 Spec 文件夹移动到 06-已归档
 ```
 
@@ -400,42 +400,39 @@ tags:
 Write(file_path="spec/03-功能实现/20251231-专业评价Agent设计/summary.md", content="...")
 ```
 
-#### 步骤 9：等待用户确认审查报告（使用 MCP 工具）
+#### 步骤 9：等待用户确认 summary.md（使用 MCP 工具）
 
 **操作**：
 1. 告知用户 summary.md 已创建
-2. 使用 spec-reviewer 审查实现
-3. 生成 review.md 审查报告
-4. 使用 `spec_confirm` MCP 工具等待用户确认审查报告
+2. 使用 `spec_confirm` MCP 工具等待用户确认 summary.md
 
 **使用 MCP 工具确认**：
 ```python
-# 等待用户确认审查报告
+# 等待用户确认 summary.md
 mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/03-功能实现/20251231-专业评价Agent设计/review.md",
-    doc_type="review",
-    title="Spec 审查报告 - 专业评价Agent设计"
+    file_path="spec/03-功能实现/20251231-专业评价Agent设计/summary.md",
+    doc_type="summary",
+    title="实现总结 - 专业评价Agent设计"
 )
 ```
 
 **确认流程**：
-1. 工具调用后，侧边栏会自动打开，显示审查报告信息和确认按钮
-2. 用户在 Obsidian 中审阅 review.md
+1. 工具调用后，侧边栏会自动打开，显示 summary.md 信息和确认按钮
+2. 用户在 Obsidian 中审阅 summary.md
 3. 审阅完成后，用户在侧边栏点击"✓ 确认"或"✗ 需要修改"
 4. 收到确认响应后，根据用户反馈继续或修复
 
 **响应处理**：
 - `action: "continue"` - 用户确认无问题，可以进行归档
-- `action: "modify"` - 用户发现需要修改的地方，根据 `userMessage` 修复后重新审查
+- `action: "modify"` - 用户发现需要修改的地方，根据 `userMessage` 修复后重新确认
 
 **注意**：
-- 必须先运行 spec-reviewer 生成审查报告
 - 必须等待用户通过 MCP 工具确认后才能归档
-- 如果审查发现问题，需要先修复再重新审查
+- 如果用户需要审查实现细节，可单独调用 `spec-reviewer` Skill
 
 #### 步骤 10：用户确认后，将 Spec 文件夹移动到 06-已归档
 
-**前提条件**：用户通过 MCP 工具确认 review.md 审查报告无误（收到 `action: "continue"` 响应）
+**前提条件**：用户通过 MCP 工具确认 summary.md 无误（收到 `action: "continue"` 响应）
 
 **操作**：
 1. 确认用户已通过侧边栏确认并同意归档
@@ -576,7 +573,6 @@ tests/
 ## 6. 文档关联
 
 - 设计文档: [[plan|设计方案]]
-- 审查报告: [[review|审查报告]] (待生成)
 
 ---
 
@@ -814,13 +810,12 @@ black src/
 - [ ] 文档已更新
 - [ ] 可追溯性得到保证
 - [ ] summary.md 已创建
-- [ ] **review.md 审查报告已生成**
-- [ ] **已等待用户确认审查报告无误**
+- [ ] **已等待用户确认 summary.md 无误**
 - [ ] 用户确认后，Spec 文件夹已移动到 `06-已归档`
 
 ## 与其他 Skill 的协作
 
-### 新功能开发流程：spec-writer → spec-executor → spec-reviewer
+### 新功能开发流程：spec-writer → spec-executor
 
 ```
 1. 用户提出需求
@@ -835,15 +830,13 @@ black src/
    ↓
 6. 创建 summary.md
    ↓
-7. 使用 spec-reviewer 审查实现
+7. 用户确认 summary.md
    ↓
-8. 生成 review.md 审查报告
+8. 移动 Spec 文件夹到 06-已归档
    ↓
-9. 用户阅读并确认审查报告
-   ↓
-10. 用户确认后，移动 Spec 文件夹到 06-已归档
-   ↓
-11. 完成
+9. 完成
+
+可选：用户可在任意时刻调用 spec-reviewer 进行审查
 ```
 
 ### 功能更新流程：使用 spec-updater
@@ -941,15 +934,14 @@ async def evaluate_multiple_majors(
 完成 Spec 执行后，你应该：
 
 ### 后续流程
-1. 创建 summary.md 后，使用 `spec-reviewer` 审查实现
-2. 等待用户确认审查报告
-3. 用户确认后，将 Spec 文件夹归档到 `06-已归档`
+1. 创建 summary.md 后，等待用户确认
+2. 用户确认后，将 Spec 文件夹归档到 `06-已归档`
+3. 如果用户需要详细审查，可单独调用 `spec-reviewer` Skill
 
 ### 记忆更新提示
 如果在实现过程中发现了重要的「困境-策略」对（如技术难点的解决方案），考虑使用 `/memory` Skill 将其记录到 CLAUDE.md 的战略记忆章节。
 
 ### 常见陷阱
 - 忘记创建 summary.md
-- 未运行 spec-reviewer 就直接归档
 - 添加了 Spec 中未定义的额外功能
 - 未等待用户确认就归档
