@@ -1,6 +1,6 @@
 ---
 name: exp-search
-description: 经验检索 Skill，根据关键词搜索项目历史经验（经验记忆+程序记忆SOP+工具记忆）。触发场景：开始复杂任务前、遇到问题时、需要查找历史解决方案。
+description: 经验检索 Skill，根据关键词搜索项目历史经验（经验记忆+程序记忆SOP+工具记忆+Auto Memory只读）。触发场景：开始复杂任务前、遇到问题时、需要查找历史解决方案。
 allowed-tools: Read, Glob, Grep
 model: claude-haiku-4
 ---
@@ -9,12 +9,15 @@ model: claude-haiku-4
 
 ## 概述
 
-快速检索项目积累的三层记忆，在正确的时刻加载相关知识，避免重复踩坑。
+快速检索项目积累的多层记忆，在正确的时刻加载相关知识，避免重复踩坑。
 
-**三层记忆检索范围**：
+**四层记忆检索范围**：
 1. **经验记忆**：困境-策略对 → `spec/context/experience/exp-xxx-标题.md`
 2. **程序记忆**：SOP 流程 → `.claude/skills/sop-xxx/SKILL.md`
 3. **工具记忆**：Skill 后续动作 → 各 Skill 末尾「后续动作」章节
+4. **Auto Memory（只读）**：跨会话记忆 → `~/.claude/projects/*/memory/*.md`
+
+**职责边界**：exp-search **只读**所有记忆源，不写入任何文件。
 
 ## 触发场景
 
@@ -27,6 +30,7 @@ model: claude-haiku-4
 - **经验索引**：`spec/context/experience/index.md`（包含三层记忆的索引）
 - **经验详情**：`spec/context/experience/exp-xxx-标题.md`
 - **SOP Skill**：`.claude/skills/sop-xxx-名称/SKILL.md`
+- **Auto Memory**：`~/.claude/projects/*/memory/*.md`（只读）
 
 ---
 
@@ -34,9 +38,10 @@ model: claude-haiku-4
 
 ```
 检索流程：
-- [ ] 步骤 1：读取经验索引
-      读取 `spec/context/experience/index.md`
-      索引包含三部分：经验记忆、程序记忆（SOP）、工具记忆
+- [ ] 步骤 1：读取经验索引（扩展）
+      1. 读取 spec/context/experience/index.md（原有）
+      2. 【新增】读取 MEMORY.md（只读，作为补充搜索源）
+      3. 【新增】扫描 ~/.claude/projects/*/memory/*.md 文件名列表（只读）
 
 - [ ] 步骤 2：关键词匹配
       在索引中搜索匹配的条目
@@ -46,6 +51,8 @@ model: claude-haiku-4
       - 经验记忆表（EXP-xxx）
       - 程序记忆表（sop-xxx）
       - 工具记忆表（Skill 后续动作）
+      - 【新增】MEMORY.md 中的摘要行（只读）
+      - 【新增】Auto Memory 目录下的 .md 文件内容（只读）
 
 - [ ] 步骤 3：展示匹配结果
       按记忆类型分组展示
@@ -98,6 +105,13 @@ model: claude-haiku-4
 [spec-executor] 后续动作
 摘要：创建 summary.md → spec-reviewer 审查 → 归档
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🧠 Auto Memory（跨会话记忆·只读）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[MEMORY.md] 一句话摘要...
+[debugging.md] 相关内容片段...
+
 需要查看详情请告诉我记忆 ID 或 SOP 名称。
 ```
 
@@ -137,7 +151,8 @@ model: claude-haiku-4
 建议：
 1. 尝试使用更通用的关键词
 2. 检查关键词拼写
-3. 这可能是一个新问题，解决后可使用 `/exp-reflect` 沉淀经验
+3. 检查 Auto Memory 是否有相关记录（MEMORY.md 在每次会话中自动加载）
+4. 这可能是一个新问题，解决后可使用 `/exp-reflect` 沉淀经验
 ```
 
 ---

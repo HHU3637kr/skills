@@ -314,6 +314,34 @@ scripts/init_skill.py <skill-name> --path <output-directory>
 
 编写使用 Skill 及其捆绑资源的说明。
 
+### 步骤 4.5：评估是否需要 .claude/rules/ 摘要
+
+如果 Skill 包含应全局遵守的规范（如编码规范、架构约定），需要在 `.claude/rules/` 下创建摘要文件，确保这些规范在每次会话中自动加载。
+
+**判断标准**：
+
+| 条件 | 需要 rules 摘要 | 不需要 |
+|------|----------------|--------|
+| 包含编码规范 | ✅ 如命名约定、架构约定 | ❌ 纯工作流程 |
+| 包含全局约束 | ✅ 如禁止操作、必须遵守的规则 | ❌ 仅限特定场景 |
+| 每次会话都需要 | ✅ 如代码风格、提交规范 | ❌ 按需触发即可 |
+
+**如果需要**：
+1. 在 `.claude/rules/` 下创建对应的 `.md` 文件
+2. 文件名格式：`{skill-name}-rules.md`
+3. 内容：仅包含规范摘要（不超过 20 行），引用 Skill 获取详情
+
+**摘要文件示例**：
+```markdown
+# spec-writer 规范摘要
+- Spec 必须放入 01-05 分类目录
+- 文件夹命名：YYYYMMDD-HHMM-中文任务描述
+- 文件名固定为 plan.md
+- 详细规范见 spec-writer Skill
+```
+
+**如果不需要**：跳过此步骤，Skill 仅通过触发机制按需加载。
+
 ### 步骤 5：打包 Skill
 
 Skill 开发完成后，必须将其打包成可分发的 .skill 文件与用户共享。打包过程会自动先验证 Skill 以确保它满足所有要求：
@@ -363,6 +391,8 @@ scripts/package_skill.py <path/to/skill-folder> ./dist
 2. 确认 description 包含"何时使用"的触发条件
 3. 验证所有引用的资源文件（scripts/、references/、assets/）都存在
 4. 如有脚本，运行测试确保无错误
+5. 如果 Skill 包含全局规范，检查 `.claude/rules/` 下是否有对应摘要文件
+6. 如有摘要文件，确认摘要内容与 Skill 正文一致（避免信息不同步）
 
 ### 质量检查
 1. SKILL.md 正文是否控制在 500 行以内？

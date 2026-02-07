@@ -1,6 +1,6 @@
 ---
 name: exp-write
-description: 经验写入 Skill，将经验草稿写入文件并更新索引。触发场景：exp-reflect 确认后、手动添加经验。仅处理经验记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
+description: 经验写入 Skill，将重大经验写入 exp/ 文件并更新索引（不写 MEMORY.md）。触发场景：exp-reflect 确认后、手动添加经验。仅处理经验记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
 allowed-tools: Read, Write, Edit, Glob
 model: claude-haiku-4
 ---
@@ -10,6 +10,11 @@ model: claude-haiku-4
 ## 概述
 
 将经验记忆（困境-策略对）写入 `spec/context/experience/` 目录，并更新索引文件。
+
+**职责边界**：
+- ✅ 写入 `spec/context/experience/` 目录（经验详情 + 索引）
+- ❌ 不写入 MEMORY.md（由 Claude Code Auto Memory 自主管理）
+- ❌ 不写入 `.claude/rules/`（由 skill-creator 管理）
 
 **注意**：本 Skill 仅处理经验记忆的写入。
 - 程序记忆（SOP）→ 使用 `/skill-creator` 创建
@@ -168,6 +173,8 @@ created: {YYYY-MM-DD}
 
 **文件**：spec/context/experience/exp-003-agentscope-memory.md
 **索引**：已更新 spec/context/experience/index.md
+
+💡 如果这条经验中有日常编码技巧值得跨会话记住，Auto Memory 会自动处理，无需额外操作。
 
 检索方式：
 - `/exp-search AgentScope`
