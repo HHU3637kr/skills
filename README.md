@@ -233,9 +233,9 @@ spec-updater 创建 update-xxx-summary.md
 |-------|------|---------------------|
 | `intent-confirmation` | 确认用户意图 | **在执行任务前**避免理解偏差，确保 Agent 正确理解需求 |
 | `git-workflow-sop` | Git 操作规范 | 提交代码、同步仓库 |
-| `exp-search` | 经验检索 | 检索四层记忆（经验+SOP+工具记忆+Auto Memory 只读） |
-| `exp-reflect` | 经验反思 | 分析对话提取经验，按权重分流到 exp-write 或 Auto Memory |
-| `exp-write` | 经验写入 | 将重大经验写入 exp/ 文件并更新索引（不写 MEMORY.md） |
+| `exp-search` | 记忆检索 | 检索五层记忆（经验+知识+SOP+工具记忆+Auto Memory 只读） |
+| `exp-reflect` | 记忆反思 | 分析对话提取记忆，自动识别类型（经验/知识），按权重分流 |
+| `exp-write` | 记忆写入 | 将经验写入 experience/ 或知识写入 knowledge/，更新索引 |
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
 
 ## Spec 目录结构
@@ -249,9 +249,12 @@ spec/
 ├── 05-测试文档/          # 测试计划、测试报告
 ├── 06-已归档/           # 已完成的 Spec（自动移动）
 └── context/             # 记忆系统（与 Spec 工作流一致）
-    └── experience/      # 经验记忆存储（显式层）
-        ├── index.md     # 经验索引
-        └── exp-xxx-标题.md  # 经验详情
+    ├── experience/      # 经验记忆存储（显式层）
+    │   ├── index.md     # 经验索引
+    │   └── exp-xxx-标题.md  # 经验详情
+    └── knowledge/       # 知识记忆存储（显式层）
+        ├── index.md     # 知识索引
+        └── know-xxx-标题.md  # 知识详情
 
 ~/.claude/projects/*/memory/   # Auto Memory（自动层，Claude 自主管理）
     ├── MEMORY.md              # 自动加载到系统提示
@@ -486,11 +489,12 @@ Claude（调用 spec-executor 归档流程）：
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  exp-* 系统（显式层）— 项目级结构化经验                       │  │
+│  │  exp-* 系统（显式层）— 项目级结构化记忆                       │  │
 │  │  ├─ 经验记忆：重大困境-策略对 → spec/context/experience/      │  │
+│  │  ├─ 知识记忆：项目理解/技术调研 → spec/context/knowledge/     │  │
 │  │  ├─ 程序记忆：可复用 SOP → sop-xxx Skill                     │  │
 │  │  ├─ 工具记忆：Skill 后续动作 → Skill 末尾                    │  │
-│  │  └─ 覆盖 ~20% 的重要经验，需要 Obsidian 双链关联到 Spec      │  │
+│  │  └─ 覆盖 ~20% 的重要记忆，需要 Obsidian 双链关联到 Spec      │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  职责边界：                                                          │
@@ -553,7 +557,44 @@ created: YYYY-MM-DD
 
 **管理 Skill**：`exp-search`、`exp-reflect`、`exp-write`
 
-#### 2. 程序记忆 → SOP Skill
+#### 2. 知识记忆 → spec/context/knowledge/
+
+**存储位置**：`spec/context/knowledge/know-xxx-标题.md`
+
+**索引位置**：`spec/context/knowledge/index.md`
+
+**加载方式**：索引全量加载，详情按需检索
+
+**存储格式**：
+```markdown
+---
+id: KNOW-xxx
+title: 标题
+type: 项目理解 / 技术调研 / 代码分析
+keywords: [关键词1, 关键词2]
+created: YYYY-MM-DD
+---
+
+# 标题
+
+## 概述
+[简要说明核心内容]
+
+## 详细内容
+[根据类型组织内容：项目理解/技术调研/代码分析]
+
+## 相关文件
+[涉及的文件路径]
+```
+
+**写入时机**：
+- 探索项目架构、数据流后
+- 完成技术调研、框架对比后
+- 深入分析某个模块的设计后
+
+**管理 Skill**：`exp-search`、`exp-reflect`、`exp-write`
+
+#### 3. 程序记忆 → SOP Skill
 
 **存储位置**：`.claude/skills/sop-xxx-名称/SKILL.md`
 
@@ -571,7 +612,7 @@ created: YYYY-MM-DD
 - 完成了可重复执行的操作流程
 - 发现了固定的操作模式
 
-#### 3. 工具记忆 → Skill 末尾
+#### 4. 工具记忆 → Skill 末尾
 
 **存储位置**：每个 Skill 文件的末尾「后续动作」章节
 
@@ -582,11 +623,12 @@ created: YYYY-MM-DD
 - 工具调用有固定的检查或验证模式
 - 一个 Skill 执行后经常需要调用另一个 Skill
 
-### 经验记忆与 SOP 的边界
+### 记忆类型边界
 
 | 类型 | 核心问题 | 内容特征 | 示例 |
 |------|---------|---------|------|
-| **经验记忆** | 为什么 | 知识点、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
+| **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
+| **知识记忆** | 是什么 | 项目理解、技术调研、代码分析 | TeachingAnalyzer 架构、AgentScope 框架对比 |
 | **程序记忆（SOP）** | 怎么做 | 可机械执行的步骤序列 | Docker 部署流程、数据库迁移流程 |
 
 ### 经验权重分流
@@ -600,17 +642,21 @@ created: YYYY-MM-DD
 | 共享性 | 团队/项目级别需要共享的经验 | 个人编码习惯和偏好 |
 | 持久性 | 长期有效的架构决策和设计模式 | 临时性的调试技巧 |
 
-### 使用经验管理 Skills
+### 使用记忆管理 Skills
 
 **手动触发**：
 ```bash
-/exp-search <关键词>   # 检索相关经验（含 Auto Memory 只读搜索）
-/exp-reflect           # 反思对话，按权重分流到 exp-write 或 Auto Memory
-/exp-write             # 写入经验（通常由 exp-reflect 调用）
+/exp-search <关键词>        # 检索相关记忆（含 Auto Memory 只读搜索）
+/exp-reflect               # 反思对话，自动识别记忆类型并分流
+/exp-reflect 记录数据流     # 带提示词，引导识别为知识记忆
+/exp-write type=experience # 写入经验记忆（通常由 exp-reflect 调用）
+/exp-write type=knowledge  # 写入知识记忆（通常由 exp-reflect 调用）
 ```
 
 **自动提示**：
 - 解决了反复出现的困难问题 → 经验记忆（exp-write）
+- 探索了项目架构、数据流 → 知识记忆（exp-write）
+- 完成了技术调研、框架对比 → 知识记忆（exp-write）
 - 完成了一个可重复的操作流程 → 程序记忆（SOP）
 - 发现某个操作后总是需要特定的后续步骤 → 工具记忆
 - 日常编码技巧和调试经验 → Auto Memory（自动处理）
@@ -725,13 +771,50 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 1.4.1
+**版本**: 1.4.2
 **最后更新**: 2026-02-09
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v1.4.2 (2026-02-09) - 知识记忆支持
+
+**核心改进**：
+
+1. **扩展记忆类型，支持知识记忆**：
+   - 原有经验记忆（困境-策略对）→ `spec/context/experience/`
+   - 新增知识记忆（项目理解/技术调研）→ `spec/context/knowledge/`
+   - 统一入口，自动分类：用户只需调用 `/exp-reflect`，Skill 自动识别类型
+
+2. **exp-reflect 增强**：
+   - 支持用户提示词参数（如 `/exp-reflect 记录数据流`）
+   - 自动识别记忆类型：困境-策略对 vs 项目理解/技术调研
+   - 根据类型调用 `exp-write type=experience` 或 `type=knowledge`
+   - 新增知识记忆草稿格式模板
+
+3. **exp-search 扩展搜索范围**：
+   - 从 4 层扩展到 5 层记忆检索
+   - 新增知识记忆搜索（`spec/context/knowledge/`）
+   - 同时搜索 `experience/index.md` 和 `knowledge/index.md`
+   - 搜索结果按类型分组展示（经验记忆、知识记忆、程序记忆、工具记忆、Auto Memory）
+
+4. **exp-write 支持知识记忆写入**：
+   - 支持 `type=experience` 和 `type=knowledge` 参数
+   - 根据类型选择文件名前缀（`exp-` 或 `know-`）
+   - 根据类型选择 ID 格式（`EXP-xxx` 或 `KNOW-xxx`）
+   - 提供知识记忆文档模板（项目理解/技术调研/代码分析）
+   - 支持写入和更新 `spec/context/knowledge/` 目录
+
+**文件命名规范**：
+- 经验记忆：`exp-001-中文标题.md` → `spec/context/experience/`
+- 知识记忆：`know-001-中文标题.md` → `spec/context/knowledge/`
+
+**使用场景**：
+- 探索项目数据流、架构后，使用 `/exp-reflect 记录数据流` 自动识别为知识记忆
+- 技术选型、框架对比后，使用 `/exp-reflect 记录技术调研` 自动识别为知识记忆
+- 解决困难问题后，使用 `/exp-reflect` 自动识别为经验记忆
 
 ### v1.4.1 (2026-02-09) - 用户确认机制优化
 
