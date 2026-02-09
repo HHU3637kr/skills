@@ -221,11 +221,11 @@ spec-updater 创建 update-xxx-summary.md
 | `obsidian-bases` | 创建和管理数据库视图 | 动态 Spec 索引、状态跟踪 |
 | `json-canvas` | 创建可视化 Canvas | Spec 依赖关系图、架构图 |
 
-### 3. Obsidian 插件
+### 3. Obsidian 插件开发支持
 
-| 插件 | 功能 | 在 Spec 流程中的作用 |
-|------|------|---------------------|
-| `obsidian-spec-confirm` | Spec 文档一键确认工作流 | 用户在 Obsidian 侧边栏确认 Spec，自动更新 frontmatter 状态 |
+| Skill | 功能 | 使用场景 |
+|-------|------|----------|
+| `obsidian-plugin-dev` | Obsidian 插件开发指南 | 开发 Obsidian 插件时参考 |
 
 ### 4. 辅助 Skills
 
@@ -350,100 +350,58 @@ views:
       - priority
 ```
 
-## Obsidian Spec Confirm 插件
+## 用户确认机制
 
 ### 概述
 
-`obsidian-spec-confirm` 是专为本项目开发的 Obsidian 插件，实现了 Claude Code 与 Obsidian 之间的 Spec 确认工作流集成。
+本项目使用 Claude Code 的原生 `AskUserQuestion` 工具实现 Spec 文档的用户确认工作流。
 
 ### 工作流程
 
 ```
 Claude Code 生成 Spec 文档
        ↓
-调用 spec_confirm MCP 工具
+调用 AskUserQuestion 工具
        ↓
-Obsidian 侧边栏自动打开，显示文档信息
+用户在 Claude Code 界面中看到确认选项
        ↓
-用户在 Obsidian 中审阅文档
+用户选择确认或修改
        ↓
-点击"✓ 确认"按钮
-       ↓
-文档 frontmatter status 自动更新为"已确认"
-       ↓
-Claude Code 收到响应，继续执行
+Claude Code 根据用户选择继续执行或调整
 ```
 
-![alt text](image.png)
+### 确认节点
 
-### 核心功能
+| 节点 | 触发时机 | 确认内容 |
+|------|---------|---------|
+| **方案确认** | spec-writer 创建 plan.md 后 | 设计方案是否可以开始实现 |
+| **实现确认** | spec-executor 创建 summary.md 后 | 实现总结是否正确，可以归档 |
+| **更新方案确认** | spec-writer 创建 update-xxx.md 后 | 更新方案是否可以开始执行 |
+| **审查确认** | spec-reviewer 创建 review.md 后 | 审查报告是否准确 |
+| **诊断确认** | spec-debugger 创建 debug-xxx.md 后 | 问题诊断是否正确 |
+| **修复确认** | spec-debugger 创建 debug-xxx-fix.md 后 | 修复结果是否满意 |
 
-| 功能 | 说明 |
-|------|------|
-| **侧边栏面板** | 在右侧边栏显示等待确认的 Spec 文档，不打断用户审阅 |
-| **一键确认** | 在侧边栏直接点击确认按钮，无需切换窗口 |
-| **状态同步** | 确认后自动更新文档 frontmatter 的 `status` 字段为"已确认" |
-| **MCP Server** | 内置 MCP Server，接收 Claude Code 的确认请求 |
+### 确认示例
 
-### 安装步骤
-
-1. **构建插件**：
-```bash
-cd .claude/skills/obsidian-spec-confirm
-npm install
-npm run build
-```
-
-2. **复制到 Obsidian**：
-将以下文件复制到 Obsidian vault 的 `.obsidian/plugins/obsidian-spec-confirm/` 目录：
-   - `main.js`
-   - `manifest.json`
-   - `styles.css`
-
-3. **启用插件**：
-在 Obsidian 设置 → 第三方插件 中启用 `Spec Confirm`
-
-### MCP 配置
-
-在 Claude Code 的 MCP 配置中添加：
-
-```json
-{
-  "mcpServers": {
-    "obsidian-spec-confirm": {
-      "type": "http",
-      "url": "http://localhost:5300"
-    }
-  }
-}
-```
-
-### MCP 工具
-
-插件提供以下 MCP 工具供 Claude Code 调用：
-
-| 工具 | 参数 | 说明 |
-|------|------|------|
-| `spec_confirm` | `file_path`, `doc_type`, `title` | 请求用户确认 Spec 文档 |
-| `get_status` | 无 | 获取当前 MCP Server 状态 |
-
-**调用示例**：
-```
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/03-功能实现/20260115-xxx/plan.md",
-    doc_type="plan",
-    title="功能设计方案"
+```python
+AskUserQuestion(
+    questions=[{
+        "question": "plan.md 已创建完成，请确认设计方案是否可以开始实现？",
+        "header": "确认方案",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "确认，开始实现",
+                "description": "设计方案正确，可以开始执行实现"
+            },
+            {
+                "label": "需要修改",
+                "description": "设计方案需要调整，请说明修改要求"
+            }
+        ]
+    }]
 )
 ```
-
-### 支持的文档类型
-
-| doc_type | 说明 |
-|----------|------|
-| `plan` | 设计方案文档 |
-| `update` | 更新方案文档 |
-| `summary` | 实现总结文档 |
-| `review` | 审查报告文档 |
 
 ## 完整工作流示例
 
@@ -767,13 +725,41 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 1.4
-**最后更新**: 2026-02-07
+**版本**: 1.4.1
+**最后更新**: 2026-02-09
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v1.4.1 (2026-02-09) - 用户确认机制优化
+
+**核心改进**：
+
+1. **废弃 MCP 确认插件，改用 Claude Code 原生特性**：
+   - `obsidian-spec-confirm` MCP 插件目前存在 Bug，暂时废弃
+   - 所有 Spec 确认流程改用 Claude Code 原生 `AskUserQuestion` 工具
+   - 后续 MCP 插件完善后再投入使用
+
+2. **更新所有 Skill 的确认机制**：
+   - spec-writer：plan.md 确认改用 `AskUserQuestion`
+   - spec-executor：summary.md 确认改用 `AskUserQuestion`
+   - spec-updater：update-xxx.md 和 review.md 确认改用 `AskUserQuestion`
+   - spec-reviewer：review.md 确认改用 `AskUserQuestion`
+   - spec-debugger：debug-xxx.md 和 debug-xxx-fix.md 确认改用 `AskUserQuestion`
+
+3. **用户确认节点**：
+   - 方案确认：spec-writer 创建 plan.md 后
+   - 实现确认：spec-executor 创建 summary.md 后
+   - 更新方案确认：spec-writer 创建 update-xxx.md 后
+   - 审查确认：spec-reviewer 创建 review.md 后
+   - 诊断确认：spec-debugger 创建 debug-xxx.md 后
+   - 修复确认：spec-debugger 创建 debug-xxx-fix.md 后
+
+**文档更新**：
+- README.md：删除 MCP 插件章节，新增"用户确认机制"章节
+- obsidian-spec-confirm/README.md：添加废弃警告
 
 ### v1.4 (2026-02-07) - Claude Code 原生特性集成
 

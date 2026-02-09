@@ -41,17 +41,29 @@ allowed-tools: Read, Grep, Glob, Edit, Write, Bash, LSP
 - ❌ 直接修改 plan.md 添加遗漏的内容
 - ❌ 删除 plan.md 中"有问题"的设计
 
-### 2. MCP 确认工具（必须使用）
+### 2. 用户确认（必须执行）
 
-> [!important] 必须使用 MCP 工具等待用户确认
-> 完成诊断文档后，**必须**调用 `spec_confirm` MCP 工具等待用户确认诊断结果。
+> [!important] 必须使用 AskUserQuestion 工具等待用户确认
+> 完成诊断文档后，**必须**使用 `AskUserQuestion` 工具等待用户确认诊断结果。
 
 ```python
 # 生成 debug-xxx.md 后调用
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/debug-001.md",
-    doc_type="debug",
-    title="问题诊断 - 问题简述"
+AskUserQuestion(
+    questions=[{
+        "question": "问题诊断文档已创建，诊断结果是否正确？",
+        "header": "确认诊断",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "诊断正确，继续修复",
+                "description": "诊断结果准确，可以开始执行修复"
+            },
+            {
+                "label": "诊断有误",
+                "description": "诊断结果需要调整，请说明问题"
+            }
+        ]
+    }]
 )
 ```
 
@@ -275,19 +287,31 @@ tags:
 ### 步骤 6：等待用户确认诊断
 
 **操作**：
-1. 使用 MCP 工具等待用户确认诊断文档
+1. 使用 `AskUserQuestion` 工具等待用户确认诊断文档
 
 ```python
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/03-功能实现/20260122-xxx/debug-001.md",
-    doc_type="debug",
-    title="问题诊断 - 问题简述"
+AskUserQuestion(
+    questions=[{
+        "question": "问题诊断文档已创建，诊断结果是否正确？",
+        "header": "确认诊断",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "诊断正确，继续修复",
+                "description": "诊断结果准确，可以开始执行修复"
+            },
+            {
+                "label": "诊断有误",
+                "description": "诊断结果需要调整，请说明问题"
+            }
+        ]
+    }]
 )
 ```
 
 **响应处理**：
-- `action: "continue"` - 用户确认诊断正确，继续执行修复
-- `action: "modify"` - 用户认为诊断有误，根据反馈修改后重新确认
+- 用户选择"诊断正确，继续修复" - 继续执行修复
+- 用户选择"诊断有误"或"Other" - 根据反馈修改后重新确认
 
 ### 步骤 7：设计修复方案
 
@@ -427,13 +451,25 @@ pytest tests/ -v
 ### 步骤 11：等待用户确认修复
 
 **操作**：
-1. 使用 MCP 工具等待用户确认修复总结
+1. 使用 `AskUserQuestion` 工具等待用户确认修复总结
 
 ```python
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/03-功能实现/20260122-xxx/debug-001-fix.md",
-    doc_type="debug-fix",
-    title="修复总结 - 问题简述"
+AskUserQuestion(
+    questions=[{
+        "question": "修复总结已创建，修复结果是否满意？",
+        "header": "确认修复",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "修复完成",
+                "description": "修复结果满意，问题已解决"
+            },
+            {
+                "label": "需要调整",
+                "description": "修复需要进一步调整，请说明要求"
+            }
+        ]
+    }]
 )
 ```
 

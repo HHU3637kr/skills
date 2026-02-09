@@ -7,15 +7,27 @@ description: 撰写技术规格文档（Spec）。当需要创建设计方案、
 
 ## 核心规则
 
-### MCP 确认工具（必须使用）
+### 用户确认（必须执行）
 
-> [!important] 完成 plan.md 撰写后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
+> [!important] 完成 plan.md 撰写后，**必须**使用 `AskUserQuestion` 工具等待用户确认。
 
 ```python
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/plan.md",
-    doc_type="plan",
-    title="文档标题"
+AskUserQuestion(
+    questions=[{
+        "question": "plan.md 已创建完成，请确认设计方案是否可以开始实现？",
+        "header": "确认方案",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "确认，开始实现",
+                "description": "设计方案正确，可以开始执行实现"
+            },
+            {
+                "label": "需要修改",
+                "description": "设计方案需要调整，请说明修改要求"
+            }
+        ]
+    }]
 )
 ```
 
@@ -58,7 +70,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 | 6 | 撰写 plan.md | Frontmatter + 正文，详见 [references/plan-template.md](references/plan-template.md) |
 | 7 | 验证路径和命名 | 分类目录正确、日期时间当前、任务描述中文 |
 | 8 | 保存文件 | `Write` 工具保存到目标路径 |
-| 9 | 等待用户确认 | **必须**调用 `spec_confirm` MCP 工具 |
+| 9 | 等待用户确认 | **必须**使用 `AskUserQuestion` 工具 |
 
 ### 步骤 5.5：Agent Teams 适用性评估
 
@@ -87,12 +99,12 @@ mcp__obsidian-spec-confirm__spec_confirm(
 
 Frontmatter 格式和字段说明详见 [references/plan-template.md](references/plan-template.md)。
 
-### 步骤 9：MCP 确认响应处理
+### 步骤 9：用户确认响应处理
 
 | 响应 | 含义 | 后续操作 |
 |------|------|----------|
-| `action: "continue"` | 用户确认 | 可以开始实现 |
-| `action: "modify"` | 需要修改 | 根据 `userMessage` 调整 Spec |
+| "确认，开始实现" | 用户确认 | 可以开始实现 |
+| "需要修改" 或 "Other" | 需要修改 | 根据用户反馈调整 Spec |
 
 ## 禁止与推荐
 
@@ -100,7 +112,7 @@ Frontmatter 格式和字段说明详见 [references/plan-template.md](references
 - ❌ Spec 确认前开始编写代码
 - ❌ 直接在 `spec/` 下创建文件夹（必须放入分类目录）
 - ❌ 任务描述使用英文
-- ❌ 跳过 MCP 确认步骤
+- ❌ 跳过用户确认步骤
 - ❌ 手动移动到 `06-已归档`（由 spec-executor 完成）
 
 **推荐**：

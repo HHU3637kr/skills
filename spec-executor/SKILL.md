@@ -15,7 +15,7 @@ description: >
 ## 核心原则
 
 1. **Spec 优先**：只实现 plan.md 中明确定义的功能，不添加、不偏离、不"优化"
-2. **MCP 确认必须使用**：完成 summary.md 后必须调用 `spec_confirm` MCP 工具，不要直接询问用户
+2. **用户确认必须执行**：完成 summary.md 后必须使用 `AskUserQuestion` 工具向用户确认
 3. **经验反思必须执行**：归档前必须调用 `/exp-reflect` 进行经验反思
 
 ## 工作流程
@@ -79,19 +79,33 @@ description: >
 - 使用双链建立文档关联：`[[plan|设计方案]]`
 - 添加标签：`#spec/已完成` `#summary`
 
-### 步骤 A10：等待用户确认（MCP 工具）
+### 步骤 A10：等待用户确认
+
+使用 `AskUserQuestion` 工具向用户确认 summary.md：
 
 ```python
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/summary.md",
-    doc_type="summary",
-    title="实现总结 - 功能名称"
+AskUserQuestion(
+    questions=[{
+        "question": "summary.md 已创建完成，请确认是否可以继续归档？",
+        "header": "确认归档",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "确认，继续归档",
+                "description": "summary.md 内容正确，可以归档到 06-已归档"
+            },
+            {
+                "label": "需要修改",
+                "description": "summary.md 需要调整，请说明修改要求"
+            }
+        ]
+    }]
 )
 ```
 
 响应处理：
-- `action: "continue"` → 用户确认，继续归档
-- `action: "modify"` → 根据 `userMessage` 修复后重新确认
+- 用户选择"确认，继续归档" → 继续归档
+- 用户选择"需要修改"或"Other" → 根据用户反馈修复后重新确认
 
 ### 步骤 A11：经验反思与沉淀
 
@@ -176,7 +190,7 @@ Task(
 
 ### 步骤 B9：等待用户确认
 
-同路径 A 步骤 A10。
+同路径 A 步骤 A10，使用 `AskUserQuestion` 工具向用户确认。
 
 ### 步骤 B10：经验反思与沉淀
 
@@ -232,6 +246,6 @@ spec-writer 创建 plan.md → spec-executor 执行实现 → 创建 summary.md
 
 ### 常见陷阱
 - 添加了 plan.md 中未定义的额外功能
-- 忘记调用 MCP 工具确认 summary.md
+- 忘记使用 AskUserQuestion 确认 summary.md
 - 未等待用户确认就归档
 - 归档前忘记调用 exp-reflect

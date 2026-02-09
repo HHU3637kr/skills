@@ -1,5 +1,10 @@
 # Obsidian Spec Confirm
 
+> [!warning] 已废弃
+> 本插件已不再使用。项目现在使用 Claude Code 的原生 `AskUserQuestion` 工具进行用户确认，无需额外的 MCP Server。
+>
+> 保留此文件仅供参考。
+
 Obsidian 插件，用于与 Claude Code 集成，实现 Spec 文档的一键确认工作流。
 
 ## 功能
