@@ -2,7 +2,6 @@
 name: exp-search
 description: 经验检索 Skill，根据关键词搜索项目历史记忆（经验记忆+知识记忆+程序记忆SOP+工具记忆+Auto Memory只读）。触发场景：开始复杂任务前、遇到问题时、需要查找历史解决方案、查找项目理解文档。
 allowed-tools: Read, Glob, Grep
-model: claude-haiku-4
 ---
 
 # exp-search - 经验检索 Skill

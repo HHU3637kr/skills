@@ -2,7 +2,6 @@
 name: exp-write
 description: 记忆写入 Skill，将重大经验写入 spec/context/experience/ 或知识记忆写入 spec/context/knowledge/，并更新对应索引（不写 MEMORY.md）。触发场景：exp-reflect 确认后、手动添加经验或知识。仅处理经验记忆和知识记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
 allowed-tools: Read, Write, Edit, Glob
-model: claude-haiku-4
 ---
 
 # exp-write - 记忆写入 Skill

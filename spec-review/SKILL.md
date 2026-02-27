@@ -1,9 +1,9 @@
 ---
-name: spec-reviewer
-description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-executor 完成 summary.md 后、用户确认归档前使用。触发词：审查 Spec、检查实现、Spec Review。
+name: spec-review
+description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-execute 完成 summary.md 后、用户确认归档前使用。触发词：审查 Spec、检查实现、Spec Review。
 ---
 
-# Spec Reviewer
+# Spec Review
 
 ## 核心规则
 

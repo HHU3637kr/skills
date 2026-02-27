@@ -1,9 +1,9 @@
 ---
-name: spec-updater
-description: 执行已有功能的更新迭代。支持双轨工作流——根据 update-xxx.md 的 execution_mode 字段选择单 Agent（路径 A）或 Agent Teams（路径 B）。触发条件：(1) 修改已有功能（目录下已有 plan.md + summary.md），(2) 根据 update-xxx.md 执行更新，(3) 功能迭代/Bug修复/性能优化。与 spec-executor 的区别：spec-executor 用于新功能开发并归档，spec-updater 用于功能更新且不归档。
+name: spec-update
+description: 执行已有功能的更新迭代。触发条件：(1) 修改已有功能（目录下已有 plan.md + summary.md），(2) 根据 update-xxx.md 执行更新，(3) 功能迭代/Bug修复/性能优化。与 spec-execute 的区别：spec-execute 用于新功能开发并归档，spec-update 用于功能更新且不归档。
 ---
 
-# Spec Updater
+# Spec Update
 
 ## 核心原则
 
@@ -72,9 +72,9 @@ AskUserQuestion(
 
 ### 公共步骤（步骤 1-4.5）
 
-1. **确认原 Spec 目录**：找到目录，确认 `plan.md` 和 `summary.md` 都存在。若缺少 summary.md，先用 spec-executor 完成原功能
+1. **确认原 Spec 目录**：找到目录，确认 `plan.md` 和 `summary.md` 都存在。若缺少 summary.md，先用 spec-execute 完成原功能
 2. **确定更新编号**：检查目录下已有的 `update-*.md`，确定下一个编号
-3. **创建 update-xxx.md**：由 spec-writer 在同一目录创建，参照 update-template.md
+3. **创建 update-xxx.md**：由 spec-write 在同一目录创建，参照 update-template.md
 4. **等待用户确认**：使用 `AskUserQuestion` 工具（节点 1）
 5. **读取 execution_mode**：
    - `single-agent` 或字段不存在 → **路径 A**
@@ -91,7 +91,7 @@ AskUserQuestion(
 | A9 | 编写/更新测试 | 新增测试 + 修改测试 + 回归测试 |
 | A10 | 运行测试验证 | 全部通过才能继续 |
 | A11 | 创建 update-xxx-summary.md | 参照 summary-template.md，应用 Obsidian 格式 |
-| A12 | 使用 spec-reviewer 审查 | 生成 update-xxx-review.md |
+| A12 | 使用 spec-review 审查 | 生成 update-xxx-review.md |
 | A13 | 等待用户确认审查报告 | 使用 `AskUserQuestion` 工具（节点 2），完成后不归档 |
 
 ### 路径 B：Agent Teams 工作流
@@ -106,7 +106,7 @@ AskUserQuestion(
 | B6 | 监控执行进度 | 接收队友消息，检查 TaskList，协调问题 |
 | B7 | 汇总结果，运行回归测试 | 全量测试，失败则通知队友修复 |
 | B8 | 创建 update-xxx-summary.md | 同路径 A 步骤 A11，额外记录 Agent Teams 模式和各队友完成情况 |
-| B9 | 使用 spec-reviewer 审查 | 同路径 A 步骤 A12 |
+| B9 | 使用 spec-review 审查 | 同路径 A 步骤 A12 |
 | B10 | 等待用户确认审查报告 | 同路径 A 步骤 A13，使用 `AskUserQuestion` 工具 |
 | B11 | 经验反思与沉淀 | 调用 `/exp-reflect`，以 summary 中的问题和方案为素材 |
 | B12 | 关闭团队 | SendMessage shutdown_request → TeamDelete |
@@ -116,8 +116,8 @@ AskUserQuestion(
 
 | 场景 | 解决方案 |
 |------|----------|
-| 原 Spec 目录不存在 | 确认路径；若为新功能，用 spec-writer + spec-executor |
-| 缺少 summary.md | 先用 spec-executor 完成原功能 |
+| 原 Spec 目录不存在 | 确认路径；若为新功能，用 spec-write + spec-execute |
+| 缺少 summary.md | 先用 spec-execute 完成原功能 |
 | 回归测试失败 | 分析原因 → 修复回归代码 → 重新测试 → 全部通过后才能继续 |
 
 ## 后续动作
