@@ -120,7 +120,7 @@ v2.0 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent Tea
 
 ### 初始化
 
-项目首次使用时，调用 `spec-init` 初始化基础设施（创建 spec/ 目录、记忆系统、Obsidian Vault）。
+项目首次使用时，调用 `spec-init` 搭建完整项目骨架（CLAUDE.md、.claude/rules/、.claude/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
 
 每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
@@ -139,7 +139,7 @@ TeamCreate(
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | 项目基础设施搭建（spec/ 目录 + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-init` | TeamLead | 完整项目骨架搭建（CLAUDE.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 plan.md（纯代码实现计划，不含测试） | 创建新功能 Spec |
@@ -863,7 +863,7 @@ created: YYYY-MM-DD
    - `spec-updater` → `spec-update`（Skill）
 
 4. **新增 Skill**：
-   - `spec-init`：项目基础设施搭建（spec/ 目录 + Obsidian Vault）
+   - `spec-init`：完整项目骨架搭建（CLAUDE.md + .claude/rules/ + .claude/skills/ + spec/ + Obsidian Vault）
    - `spec-start`：启动 Agent Teams，创建 6 个专职角色（与 spec-end 对应）
    - `spec-explore`：Spec 前置信息收集（经验检索 + 代码探索 + 外部资源）
    - `spec-test`：测试计划撰写（test-plan.md）+ 测试执行（test-report.md）
