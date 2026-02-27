@@ -120,7 +120,9 @@ v2.0 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent Tea
 
 ### 初始化
 
-使用 `spec-init` Skill 初始化 Agent Teams：
+项目首次使用时，调用 `spec-init` 初始化基础设施（创建 spec/ 目录、记忆系统、Obsidian Vault）。
+
+每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
 ```python
 TeamCreate(
@@ -137,7 +139,8 @@ TeamCreate(
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 开始新的开发任务 |
+| `spec-init` | TeamLead | 项目基础设施搭建（spec/ 目录 + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-start` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 plan.md（纯代码实现计划，不含测试） | 创建新功能 Spec |
 | `spec-test` | spec-tester | 撰写 test-plan.md + 执行测试产出 test-report.md | 测试计划和测试执行 |
@@ -439,13 +442,13 @@ AskUserQuestion(
 
 ### 示例：使用 Agent Teams 实现「专业评价 Agent」
 
-#### 步骤 1：初始化 Agent Teams（spec-init）
+#### 步骤 1：启动 Agent Teams（spec-start）
 
 ```bash
 用户：我需要实现一个专业评价 Agent
 
 TeamLead（当前 Agent）：
-调用 spec-init，创建 Agent Teams "spec-20260109-1430-专业评价Agent"
+调用 spec-start，创建 Agent Teams "spec-20260109-1430-专业评价Agent"
 初始化 6 个专职角色...
 使用 intent-confirmation 与用户对齐需求...
 ```
@@ -761,16 +764,17 @@ created: YYYY-MM-DD
    - 打开项目根目录作为 Vault
 
 4. **开始第一个 Spec**
-   - 使用 `spec-init` 初始化 Agent Teams
-   - 经历完整的 5 阶段流程
-   - 体验门禁机制和多角色协作
+   - 使用 `spec-init` 初始化项目基础设施
+   - 使用 `spec-start` 启动 Agent Teams
+   - 经历完整的 5 阶段流程，体验门禁机制和多角色协作
 
 ### 常见命令速查
 
 ```bash
 # 在 Claude Code 中调用 Skills
 
-/spec-init        # 初始化 Agent Teams
+/spec-init        # 项目初始化（一次性）
+/spec-start       # 启动 Agent Teams
 /spec-explore     # 前置信息收集
 /spec-write       # 撰写设计方案
 /spec-test        # 撰写测试计划 / 执行测试
@@ -859,7 +863,8 @@ created: YYYY-MM-DD
    - `spec-updater` → `spec-update`（Skill）
 
 4. **新增 Skill**：
-   - `spec-init`：初始化 Agent Teams，创建 6 个专职角色
+   - `spec-init`：项目基础设施搭建（spec/ 目录 + Obsidian Vault）
+   - `spec-start`：启动 Agent Teams，创建 6 个专职角色（与 spec-end 对应）
    - `spec-explore`：Spec 前置信息收集（经验检索 + 代码探索 + 外部资源）
    - `spec-test`：测试计划撰写（test-plan.md）+ 测试执行（test-report.md）
    - `spec-end`：收尾工作（多角色讨论 + 经验沉淀 + 归档 + git 提交）
