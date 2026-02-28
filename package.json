@@ -1,0 +1,44 @@
+{
+  "name": "@rnking3637/rk-flow",
+  "version": "2.1.0",
+  "description": "R&K Flow - Spec 驱动式开发 Skills 体系，支持 Claude Code Agent Teams 工作流",
+  "bin": {
+    "rk-flow": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "agent-browser/",
+    "exp-reflect/",
+    "exp-search/",
+    "exp-write/",
+    "find-skills/",
+    "git-workflow-sop/",
+    "intent-confirmation/",
+    "json-canvas/",
+    "obsidian-bases/",
+    "obsidian-markdown/",
+    "obsidian-plugin-dev/",
+    "skill-creator/",
+    "spec-debug/",
+    "spec-end/",
+    "spec-execute/",
+    "spec-explore/",
+    "spec-init/",
+    "spec-review/",
+    "spec-start/",
+    "spec-test/",
+    "spec-update/",
+    "spec-write/"
+  ],
+  "keywords": [
+    "claude-code",
+    "agent-teams",
+    "spec-driven",
+    "workflow",
+    "skills"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=16"
+  }
+}
