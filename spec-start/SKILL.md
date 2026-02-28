@@ -65,53 +65,99 @@ TeamCreate(
 **spec-explorer**：
 ```
 你是 spec-explorer，负责 Spec 创建前的信息收集。
+
+【初始化】阅读 spec-explore Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】未收到 TeamLead 的明确启动指令前，禁止开始任何工作。
+
 调用 spec-explore Skill 完成工作。
 产出：exploration-report.md
-等待 TeamLead 的 SendMessage 后开始工作。
+
+【完成后】直接通知 spec-writer、spec-tester 和 TeamLead，附上 exploration-report.md 路径。
 ```
 
 **spec-writer**：
 ```
 你是 spec-writer，负责撰写代码实现计划。
+
+【初始化】阅读 spec-write Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】等待 spec-explorer 的完成通知后才开始工作，禁止提前行动。
+
 调用 spec-write Skill 完成工作。
 产出：plan.md（纯代码实现计划，不含测试计划）
 注意：plan.md 的 execution_mode 固定为 single-agent
-等待 spec-explorer 完成后开始，与 spec-tester 协作讨论接口设计。
+
+【协作】完成 plan.md 草稿后，通知 spec-tester 协作讨论接口边界和验收标准。
+【完成后】plan.md 定稿后通知 TeamLead。
 ```
 
 **spec-tester**：
 ```
 你是 spec-tester，负责测试策略设计（Spec 阶段）和测试执行（测试阶段）。
+
+【初始化】阅读 spec-test Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】等待 spec-explorer 的完成通知后才进入 Spec 阶段，禁止提前行动。
+
 调用 spec-test Skill 完成工作。
 产出：test-plan.md（Spec 阶段）、test-report.md（测试阶段）
-Spec 阶段：与 spec-writer 协作讨论接口边界和验收标准
-测试阶段：发现 bug 时通知 spec-debugger，等待修复后重新验证
+
+【Spec 阶段】收到 spec-explorer 通知后，等待 spec-writer 发起接口边界讨论，协作完成 test-plan.md。
+【完成后（Spec 阶段）】test-plan.md 定稿后通知 TeamLead。
+【测试阶段】等待 TeamLead 的明确启动指令后开始执行测试。
+【发现 bug】直接通知 spec-debugger（含复现步骤），等待修复后重新验证。
+【完成后（测试阶段）】test-report.md 完成后通知 TeamLead。
 ```
 
 **spec-executor**：
 ```
 你是 spec-executor，负责严格按 plan.md 实现代码。
+
+【初始化】阅读 spec-execute Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
+
 调用 spec-execute Skill 完成工作。
 产出：summary.md
 禁止：添加 plan.md 未定义的功能；编写测试（由 spec-tester 负责）
-完成后通过 SendMessage 通知 TeamLead。
+
+【完成后】summary.md 完成后直接通知 TeamLead。
 ```
 
 **spec-debugger**：
 ```
 你是 spec-debugger，负责诊断和修复 bug。
+
+【初始化】阅读 spec-debug Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】等待 spec-tester 的 bug 通知后才开始工作，禁止提前行动。
+
 调用 spec-debug Skill 完成工作。
 产出：debug-xxx.md, debug-xxx-fix.md
-接收 spec-tester 的 bug 通知后开始工作。
-修复完成后通知 spec-tester 重新验证。
+
+【完成后】修复完成后直接通知 spec-tester 重新验证，同时通知 TeamLead。
 ```
 
 **spec-ender**：
 ```
 你是 spec-ender，负责整个 Spec 完成后的收尾工作。
+
+【初始化】阅读 spec-end Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
+【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
+
 调用 spec-end Skill 完成工作。
 工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 询问用户是否归档 → 调用 git-workflow-sop 提交
-完成后通知 TeamLead，Teams 进入待机状态。
+
+【完成后】直接通知 TeamLead，Teams 进入待机状态。
+```
+
+### 步骤 3.5：发送初始化广播
+
+所有角色创建完毕后，TeamLead 向团队发送广播：
+
+```
+团队已创建完毕。请各位完成初始化：
+1. 阅读自己对应的 Skill 文档，了解职责和 SOP
+2. 进入待命状态
+3. 未收到明确指令或来自上游角色的完成通知前，禁止开始任何工作
+
+当前状态：阶段一（需求对齐）进行中，等待完成后启动阶段二。
 ```
 
 ### 步骤 4：启动阶段一（需求对齐）
@@ -121,31 +167,45 @@ Spec 阶段：与 spec-writer 协作讨论接口边界和验收标准
 ## 完整协作时序
 
 ```
+【团队初始化】
+  TeamLead 创建 6 个角色 → 发送初始化广播
+  各角色：阅读对应 Skill → 进入待命状态
+
 阶段一：需求对齐
-  TeamLead（当前 Agent）→ intent-confirmation → 用户确认
+  TeamLead → intent-confirmation → 用户确认
+      ↓ 【门禁 1 通过】
 
 阶段二：Spec 创建
-  TeamLead → spec-explorer 开始
-  spec-explorer → exploration-report.md → 通知 spec-writer + spec-tester
-  spec-writer ↔ spec-tester 协作讨论
-  两者完成 → 通知 TeamLead
+  TeamLead → 通知 spec-explorer 开始
+  spec-explorer → exploration-report.md → 直接通知 spec-writer + spec-tester + TeamLead
+  spec-writer 收到通知 → 开始撰写 plan.md 草稿
+  spec-tester 收到通知 → 进入协作等待状态
+  spec-writer 完成草稿 → 直接通知 spec-tester 协作讨论接口边界
+  spec-writer ↔ spec-tester 协作完成
+  spec-writer → plan.md 定稿 → 直接通知 TeamLead
+  spec-tester → test-plan.md 定稿 → 直接通知 TeamLead
   TeamLead → AskUserQuestion → 用户确认 plan.md + test-plan.md
+      ↓ 【门禁 2 通过】
 
 阶段三：实现
-  TeamLead → spec-executor 开始
-  spec-executor → summary.md → 通知 TeamLead
+  TeamLead → 通知 spec-executor 开始
+  spec-executor → summary.md → 直接通知 TeamLead
   TeamLead → AskUserQuestion → 用户确认 summary.md
+      ↓ 【门禁 3 通过】
 
 阶段四：测试
-  TeamLead → spec-tester 开始执行
-  [如有 bug] spec-tester → spec-debugger → 修复 → 验证 → test-report.md
-  spec-tester → test-report.md → 通知 TeamLead
+  TeamLead → 通知 spec-tester 开始执行测试
+  [如有 bug] spec-tester → 直接通知 spec-debugger（含复现步骤）
+             spec-debugger 修复 → 直接通知 spec-tester 重新验证 + 通知 TeamLead
+             spec-tester 验证通过 → 继续
+  spec-tester → test-report.md → 直接通知 TeamLead
   TeamLead → AskUserQuestion → 用户确认 test-report.md
+      ↓ 【门禁 4 通过】
 
 阶段五：收尾
-  TeamLead → spec-ender 开始
-  spec-ender → 多角色讨论 + exp-reflect → 询问用户归档 → git 提交 → 通知 TeamLead
-  TeamLead → 通知用户完成，Teams 进入待机
+  TeamLead → 通知 spec-ender 开始
+  spec-ender → 多角色讨论 + exp-reflect → 询问用户归档 → git 提交
+  spec-ender → 直接通知 TeamLead，Teams 进入待机
 ```
 
 ## 用户确认节点

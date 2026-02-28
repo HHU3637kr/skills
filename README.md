@@ -18,6 +18,7 @@
 > - 角色（Who）与 Skill（How）分离
 > - 5 阶段流程，每个阶段转换有用户确认门禁
 
+
 ## 架构概览
 
 ```
@@ -217,12 +218,12 @@ spec-tester 验证通过 → 记录到 test-report.md
 
 #### 功能更新流程
 
+适用场景：已有功能完成并归档后，原有需求发生变化或设计过时，需要对已有 Spec 进行迭代更新。
+
 ```
-发现需要修改已有功能
+已有功能的需求/设计发生变化（原 plan.md + summary.md 已存在）
     ↓
-【intent-confirmation】确认更新意图 ⚠️
-    ↓
-spec-write 创建 update-xxx.md（放在原 Spec 目录）
+spec-update 创建 update-xxx.md（放在原 Spec 目录）
     ↓
 用户确认更新方案
     ↓
@@ -514,6 +515,14 @@ spec-ender：
 spec-ender → 移动到 06-已归档 → 调用 git-workflow-sop 提交
 spec-ender → 通知 TeamLead，Teams 进入待机
 ```
+
+## 灵活使用
+
+完整的 Agent Teams 流程适合复杂需求，但并非所有场景都需要走全套。以下两种轻量用法同样有效：
+
+**小需求 / 快速迭代**：直接单独调用某个 Skill，例如只用 `spec-write` 写方案、只用 `spec-update` 做小改动，无需启动完整的 Agent Teams 流程。
+
+**非 Claude Code 用户**（Cursor、Windsurf 等）：这套 Skills 同样适用。将 `spec-start` 的流程交给单 Agent 按顺序执行，实测效果同样理想。每个 Skill 文件都是独立的 Markdown 提示词，可以直接粘贴到任意 AI 编辑器中使用。
 
 ## 记忆系统
 
@@ -831,13 +840,21 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.0
-**最后更新**: 2026-02-27
+**版本**: 2.1
+**最后更新**: 2026-02-28
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.1 (2026-02-28) - spec-update 职责收敛
+
+**核心改进**：
+
+1. **spec-update 独立化**：移除对 spec-write 的依赖，update-xxx.md 的创建由 spec-update 自身负责
+2. **spec-update 单 Agent 化**：移除路径 B（Agent Teams），更新流程统一为单 Agent；若更新规模需要多角色协作，应新建 Spec 走 spec-start 流程
+3. **update-template.md 精简**：去掉 `execution_mode` 字段
 
 ### v2.0 (2026-02-27) - Agent Teams 架构重构
 
