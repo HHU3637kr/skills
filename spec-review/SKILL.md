@@ -1,21 +1,33 @@
 ---
-name: spec-reviewer
-description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-executor 完成 summary.md 后、用户确认归档前使用。触发词：审查 Spec、检查实现、Spec Review。
+name: spec-review
+description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-execute 完成 summary.md 后、用户确认归档前使用。触发词：审查 Spec、检查实现、Spec Review。
 ---
 
-# Spec Reviewer
+# Spec Review
 
 ## 核心规则
 
-### MCP 确认工具（必须使用）
+### 用户确认（必须执行）
 
-> [!important] 完成审查报告后，**必须**调用 `spec_confirm` MCP 工具等待用户确认，不要直接询问用户。
+> [!important] 完成审查报告后，**必须**使用 `AskUserQuestion` 工具等待用户确认。
 
 ```python
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/分类目录/YYYYMMDD-HHMM-任务描述/review.md",
-    doc_type="review",
-    title="Spec 审查报告 - 功能名称"
+AskUserQuestion(
+    questions=[{
+        "question": "审查报告已创建完成，审查结果是否准确？",
+        "header": "确认审查",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "审查准确",
+                "description": "审查报告准确，可以根据结果进行后续操作"
+            },
+            {
+                "label": "需要调整",
+                "description": "审查报告需要调整，请说明问题"
+            }
+        ]
+    }]
 )
 ```
 
@@ -50,7 +62,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 | 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
 | 5 | 对比分析 | 按三个维度（完成度、一致性、额外实现）识别差异 |
 | 6 | 生成审查报告 | 在 Spec 目录下创建 review.md，模板见 [references/review-template.md](references/review-template.md) |
-| 7 | MCP 确认 | **必须**调用 `spec_confirm` 等待用户确认 |
+| 7 | 用户确认 | **必须**使用 `AskUserQuestion` 工具等待用户确认 |
 
 ### 步骤 5：对比分析要点
 
@@ -66,12 +78,12 @@ mcp__obsidian-spec-confirm__spec_confirm(
 - 使用 Obsidian Callout 标注结果：`> [!success]`、`> [!failure]`、`> [!warning]`、`> [!tip]`
 - 使用 `[[]]` 双链关联 plan.md 和 summary.md
 
-### 步骤 7：MCP 确认响应处理
+### 步骤 7：用户确认响应处理
 
 | 响应 | 含义 | 后续操作 |
 |------|------|----------|
-| `action: "continue"` | 用户确认 | 审查通过 → 可归档；需修复 → 等待修复后重新审查 |
-| `action: "modify"` | 需要修改 | 根据 `userMessage` 调整审查报告 |
+| "审查准确" | 用户确认 | 审查通过 → 可归档；需修复 → 等待修复后重新审查 |
+| "需要调整" 或 "Other" | 需要修改 | 根据用户反馈调整审查报告 |
 
 ## 审查结果与后续
 
@@ -86,7 +98,7 @@ mcp__obsidian-spec-confirm__spec_confirm(
 **禁止**：
 - ❌ 只检查完成度，忽略一致性和额外实现检查
 - ❌ 审查报告缺少具体代码位置引用
-- ❌ 跳过 MCP 确认步骤
+- ❌ 跳过用户确认步骤
 
 **推荐**：
 - ✅ 每个检查项标注 Spec 位置 + 代码位置

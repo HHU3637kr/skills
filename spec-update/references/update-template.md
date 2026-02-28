@@ -5,7 +5,6 @@ update_number: 1
 category: 03-功能实现
 status: 未确认
 update_type: 功能增强
-execution_mode: single-agent
 created: YYYY-MM-DD
 plan: "[[plan]]"
 tags:
@@ -116,7 +115,6 @@ tags:
 | `category` | 是 | 分类目录 | 继承自原 plan.md |
 | `status` | 是 | 当前状态 | `未确认`/`已确认`/`已归档` |
 | `update_type` | 是 | 更新类型 | `功能增强`/`Bug修复`/`性能优化`/`重构`/`安全修复` |
-| `execution_mode` | 是 | 执行模式 | `single-agent`/`agent-teams` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` |
 | `plan` | 是 | 关联 plan | `"[[plan]]"` |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `update` |

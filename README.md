@@ -1,8 +1,29 @@
-# Spec 驱动式开发 - Skills 体系指南
+# R&K Flow - Spec 驱动式开发 Skills 体系
 
 ## 概述
 
-本项目构建了一套完整的 Skills 体系，旨在通过 **Obsidian** 实现 **Spec 驱动式开发**方法论。这套体系将 AI Agent 的能力、结构化的文档管理、和可追溯的开发流程融为一体，形成了一个高效、可维护的开发工作流。
+**R&K Flow** 是一套完整的 Spec 驱动式开发 Skills 体系，通过 **Obsidian** 管理文档，用 **Agent Teams 多角色协作架构** 驱动开发流程。v2.0 将开发拆分为 5 个阶段，由 6 个专职角色分工协作，融合结构化文档、可追溯流程和双层记忆系统。
+
+
+如果你对该工作流感兴趣,或者有疑问,欢迎加入我们的社群讨论!
+
+![alt text](微信图片_20260228232027_175_93.jpg)
+
+
+## 安装
+
+```bash
+npm install -g @rnking3637/rk-flow
+rk-flow init
+```
+
+在任意项目目录执行 `rk-flow init`，所有 Skills 会自动复制到 `.claude/skills/`。
+
+然后在项目的 `CLAUDE.md` 中添加：
+
+```
+@import .claude/skills/
+```
 
 ## 核心理念
 
@@ -12,48 +33,51 @@
 > - 每个实现都可追溯到 Spec 文档
 > - 完整的开发过程记录在 Obsidian 中
 
+> **Agent Teams** - 多角色协作，各司其职
+> - TeamLead（当前 Agent）统一协调全局
+> - 6 个专职角色：探索、设计、测试、实现、调试、收尾
+> - 角色（Who）与 Skill（How）分离
+> - 5 阶段流程，每个阶段转换有用户确认门禁
+
+
 ## 架构概览
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                        Spec 驱动式开发工作流 v1.4                          │
+│                    Spec 驱动式开发工作流 v2.0                              │
+│                     Agent Teams 多角色协作架构                             │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
 │  用户需求                                                                  │
 │      ↓                                                                    │
-│  intent-confirmation ←── AI 帮助明确需求                                   │
-│      ↓                                                                    │
-│  【开发者确认】 ←─────────── 门禁 1：确认理解正确                             │
-│      ↓                                                                    │
-│  spec-writer ←───────── AI 生成设计方案 + 评估执行模式                      │
-│      ↓                                                                    │
-│  plan.md（含 execution_mode: single-agent / agent-teams）                  │
-│      ↓                                                                    │
-│  【开发者确认】 ←─────────── 门禁 2：确认设计合理                             │
-│      ↓                                                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │ exp-search ←───────── 检索历史经验，避免重复踩坑                      │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-│      ↓                                                                    │
-│  spec-executor 读取 execution_mode                                        │
-│      │                                                                    │
-│      ├─ single-agent ──→ 路径 A：单 Agent 逐步实现                         │
-│      │                                                                    │
-│      └─ agent-teams ───→ 路径 B：Agent Teams 并行实现                      │
-│                          TeamCreate → TaskCreate → 生成队友                 │
-│                          → 并行开发 → 监控汇总 → TeamDelete                 │
-│      ↓                                                                    │
-│  代码 + summary.md                                                        │
-│      ↓                                                                    │
-│  【开发者确认】 ←─────────── 门禁 3：确认实现正确                             │
-│      ↓                                                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐  │
-│  │ exp-reflect ←──────── 反思本次开发，按权重分流经验                     │  │
-│  │     ├─ 重大经验 → exp-write（结构化记录到 Obsidian）                   │  │
-│  │     └─ 轻量经验 → Auto Memory（Claude 自动管理）                       │  │
-│  └─────────────────────────────────────────────────────────────────────┘  │
-│      ↓                                                                    │
-│  归档到 06-已归档                                                          │
+│  ┌─────────────────────────────────────────────────────────┐              │
+│  │ 阶段一：需求对齐                                         │              │
+│  │ TeamLead + intent-confirmation → 用户确认                │              │
+│  └────────────────────────┬────────────────────────────────┘              │
+│      ↓ 【门禁 1：需求理解正确】                                             │
+│  ┌─────────────────────────────────────────────────────────┐              │
+│  │ 阶段二：Spec 创建                                        │              │
+│  │ spec-explorer → exploration-report.md                    │              │
+│  │ spec-writer ↔ spec-tester 协作讨论                        │              │
+│  │ → plan.md + test-plan.md                                 │              │
+│  └────────────────────────┬────────────────────────────────┘              │
+│      ↓ 【门禁 2：设计方案 + 测试计划确认】                                   │
+│  ┌─────────────────────────────────────────────────────────┐              │
+│  │ 阶段三：实现                                              │              │
+│  │ spec-executor → summary.md                               │              │
+│  └────────────────────────┬────────────────────────────────┘              │
+│      ↓ 【门禁 3：实现确认】                                                │
+│  ┌─────────────────────────────────────────────────────────┐              │
+│  │ 阶段四：测试                                              │              │
+│  │ spec-tester 执行测试 → test-report.md                     │              │
+│  │ [如有 bug] spec-tester ↔ spec-debugger 修复闭环           │              │
+│  └────────────────────────┬────────────────────────────────┘              │
+│      ↓ 【门禁 4：测试报告确认】                                             │
+│  ┌─────────────────────────────────────────────────────────┐              │
+│  │ 阶段五：收尾                                              │              │
+│  │ spec-ender → 多角色讨论 + exp-reflect                     │              │
+│  │ → 用户确认归档 → git 提交                                  │              │
+│  └─────────────────────────────────────────────────────────┘              │
 │                                                                           │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                      双层互补记忆系统（复利工程）                             │
@@ -67,16 +91,16 @@
 │  │  └─────────────────────────────────────────────────────────────┘    │  │
 │  │                                                                     │  │
 │  │  ┌─────────────────────────────────────────────────────────────┐    │  │
-│  │  │  exp-* 系统（显式层）— 项目级结构化经验                       │    │  │
+│  │  │  exp-* 系统（显式层）— 项目级结构化记忆                       │    │  │
 │  │  │                                                              │    │  │
 │  │  │    ┌──────────┐      ┌──────────┐      ┌──────────┐         │    │  │
-│  │  │    │ 经验记忆  │      │ 程序记忆  │      │ 工具记忆  │         │    │  │
-│  │  │    │ 困境-策略 │      │   SOP    │      │ 后续动作  │         │    │  │
+│  │  │    │ 经验记忆  │      │ 知识记忆  │      │ 程序记忆  │         │    │  │
+│  │  │    │ 困境-策略 │      │ 项目理解  │      │   SOP    │         │    │  │
 │  │  │    └────┬─────┘      └────┬─────┘      └────┬─────┘         │    │  │
 │  │  │         └─────────────────┼─────────────────┘               │    │  │
 │  │  │                           ↓                                  │    │  │
 │  │  │  • 重大困境-策略对，需要 Obsidian 双链关联                    │    │  │
-│  │  │  • 存储：spec/context/experience/                            │    │  │
+│  │  │  • 存储：spec/context/experience/ + knowledge/               │    │  │
 │  │  └─────────────────────────────────────────────────────────────┘    │  │
 │  │                                                                     │  │
 │  │         开发前检索 ←─────────────→ 开发后分流沉淀                     │  │
@@ -100,73 +124,110 @@
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
+## Agent Teams 架构
+
+### 角色与 Skill 对照
+
+v2.0 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent Teams 中的成员身份，Skill 是角色调用的工作流程。
+
+| 角色（Agent 成员） | 调用的 Skill | 产出物 | 活跃阶段 |
+|-------------------|------------|--------|---------|
+| **TeamLead（当前 Agent）** | `intent-confirmation` | 全局协调 | 全程 |
+| spec-explorer | `spec-explore` | `exploration-report.md` | 阶段二（前置） |
+| spec-writer | `spec-write` | `plan.md` | 阶段二 |
+| spec-tester | `spec-test` | `test-plan.md`, `test-report.md` | 阶段二 + 阶段四 |
+| spec-executor | `spec-execute` | `summary.md` | 阶段三 |
+| spec-debugger | `spec-debug` | `debug-xxx.md`, `debug-xxx-fix.md` | 阶段三/四（按需） |
+| spec-ender | `spec-end` | 经验沉淀 + 归档 + git 提交 | 阶段五 |
+
+### 初始化
+
+项目首次使用时，调用 `spec-init` 搭建完整项目骨架（CLAUDE.md、.claude/rules/、.claude/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
+
+每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
+
+```python
+TeamCreate(
+    team_name="spec-{YYYYMMDD-HHMM}-{任务简称}",
+    description="Spec 驱动开发: {任务描述}"
+)
+```
+
+当前 Agent 自动成为 TeamLead，无需创建额外的 TeamLead 角色。
+
 ## Skills 体系组成
 
 ### 1. Spec 核心工作流 Skills
 
-这套 Skills 实现了完整的 Spec 驱动开发流程：
+| Skill | 对应角色 | 功能 | 使用场景 |
+|-------|---------|------|----------|
+| `spec-init` | TeamLead | 完整项目骨架搭建（CLAUDE.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-start` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
+| `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
+| `spec-write` | spec-writer | 撰写 plan.md（纯代码实现计划，不含测试） | 创建新功能 Spec |
+| `spec-test` | spec-tester | 撰写 test-plan.md + 执行测试产出 test-report.md | 测试计划和测试执行 |
+| `spec-execute` | spec-executor | 严格按 plan.md 实现代码，产出 summary.md | 新功能开发 |
+| `spec-debug` | spec-debugger | 诊断并修复 bug，产出 debug 文档 | 测试发现问题时 |
+| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 归档 + git 提交 | 开发周期收尾 |
+| `spec-update` | — | 执行功能更新 | 修改已有功能（不归档） |
+| `spec-review` | — | 审查实现情况 | 可选：验证是否严格遵循 Spec |
 
-| Skill | 功能 | 使用场景 |
-|-------|------|----------|
-| `spec-writer` | 撰写技术规格文档（plan.md），含执行模式评估 | 创建新功能 Spec，决定单 Agent 或 Agent Teams |
-| `spec-executor` | 执行新功能开发（支持双轨工作流） | 基于 plan.md 首次实现，自动选择单 Agent 或 Agent Teams 路径 |
-| `spec-updater` | 执行功能更新（支持双轨工作流） | 修改已有功能（不归档） |
-| `spec-debugger` | 诊断并修复问题 | 执行后发现问题时，创建 debug 文档 |
-| `spec-reviewer` | 审查实现情况 | 可选：用户需要时调用，验证是否严格遵循 Spec |
-
-#### 新功能开发流程
+#### 新功能开发流程（5 阶段）
 
 ```
-用户提出需求
-    ↓
-【intent-confirmation】确认用户意图 ⚠️
-- 需求描述是否清晰？
-- 技术方案是否明确？
-- 是否有多种理解方式？
-    ↓
-spec-writer 创建 plan.md
-（放入 spec/01-05 分类目录）
-（含执行模式评估：单 Agent / Agent Teams）
-    ↓
-用户确认 Spec
-    ↓
-spec-executor 读取 execution_mode
-    ├─ single-agent → 路径 A：单 Agent 逐步实现
-    └─ agent-teams  → 路径 B：创建团队并行实现
-    ↓
-spec-executor 创建 summary.md
-    ↓
-用户确认 summary.md
-    ↓
-【exp-reflect】经验反思（建议性）💡
-- 有值得结构化记录的重大经验？→ exp-write
-- 日常小经验？→ Auto Memory 自动处理
-- 如有经验沉淀，更新 summary.md 添加经验引用（双链）
-    ↓
-移动到 spec/06-已归档
-（Agent Teams 模式会自动关闭团队）
+阶段一：需求对齐
+  TeamLead（当前 Agent）→ intent-confirmation → 用户确认
+      ↓ 【门禁 1】
 
-可选：用户可在任意时刻调用 spec-reviewer 进行详细审查
+阶段二：Spec 创建
+  TeamLead → spec-explorer 开始
+  spec-explorer → exploration-report.md → 通知 spec-writer + spec-tester
+  spec-writer ↔ spec-tester 协作讨论接口边界
+  两者完成 → 通知 TeamLead
+  TeamLead → 用户确认 plan.md + test-plan.md
+      ↓ 【门禁 2】
+
+阶段三：实现
+  TeamLead → spec-executor 开始
+  spec-executor → summary.md → 通知 TeamLead
+  TeamLead → 用户确认 summary.md
+      ↓ 【门禁 3】
+
+阶段四：测试
+  TeamLead → spec-tester 执行测试
+  [如有 bug] spec-tester → spec-debugger → 修复 → 重新验证
+  spec-tester → test-report.md → 通知 TeamLead
+  TeamLead → 用户确认 test-report.md
+      ↓ 【门禁 4】
+
+阶段五：收尾
+  TeamLead → spec-ender 开始
+  spec-ender → 多角色讨论 + exp-reflect → 用户确认归档 → git 提交
+  spec-ender → 通知 TeamLead，Teams 进入待机
+
+可选：用户可在任意时刻调用 spec-review 进行详细审查
 ```
 
 #### 问题修复流程
 
 ```
-执行后发现问题
+spec-tester 发现 bug
+    ↓
+SendMessage 通知 spec-debugger（含复现步骤）
     ↓
 spec-debugger 诊断问题
     ↓
 创建 debug-xxx.md（诊断文档）
     ↓
-用户确认诊断
+TeamLead 向用户确认诊断
     ↓
 执行修复
     ↓
 创建 debug-xxx-fix.md（修复总结）
     ↓
-用户确认修复
+SendMessage 通知 spec-tester 重新验证
     ↓
-完成（考虑记录到 memory）
+spec-tester 验证通过 → 记录到 test-report.md
 ```
 
 > **⚠️ 为什么不直接修改 plan.md？**
@@ -174,46 +235,39 @@ spec-debugger 诊断问题
 > plan.md 是已经用户确认的设计文档，不应因为执行问题而被修改。通过创建 debug 文档：
 > - 保持设计的完整性和可追溯性
 > - 记录问题和修复历史，形成知识库
-> - 与 spec-updater 区分（updater 用于主动迭代，debugger 用于被动修复）
-
-> **⚠️ 为什么需要 intent-confirmation？**
->
-> 在执行非简单任务前，必须先确认用户意图，避免因理解偏差导致的无效工作。触发条件包括：
-> - **抽象需求**：需求描述较为模糊（如"优化一下这个功能"）
-> - **设计决策**：涉及架构变更或设计选择
-> - **多义表达**：用户表达可能有多种理解
-> - **大范围影响**：任务影响范围较大
+> - 与 spec-update 区分（update 用于主动迭代，debug 用于被动修复）
 
 #### 功能更新流程
 
+适用场景：已有功能完成并归档后，原有需求发生变化或设计过时，需要对已有 Spec 进行迭代更新。
+
 ```
-发现需要修改已有功能
+已有功能的需求/设计发生变化（原 plan.md + summary.md 已存在）
     ↓
-【intent-confirmation】确认更新意图 ⚠️
-- 更新范围是否明确？
-- 是否影响现有功能？
-- 是否需要回归测试？
-    ↓
-spec-writer 创建 update-xxx.md
-（放在原 Spec 目录，含执行模式评估）
+spec-update 创建 update-xxx.md（放在原 Spec 目录）
     ↓
 用户确认更新方案
     ↓
-spec-updater 读取 execution_mode
-    ├─ single-agent → 路径 A：单 Agent 逐步更新
-    └─ agent-teams  → 路径 B：创建团队并行更新
+spec-update 执行更新
     ↓
-spec-updater 创建 update-xxx-summary.md
+spec-update 创建 update-xxx-summary.md
     ↓
 用户确认
     ↓
 完成（不归档，保留在原目录）
-（Agent Teams 模式会自动关闭团队）
 
-可选：用户可在任意时刻调用 spec-reviewer 进行详细审查
+可选：用户可在任意时刻调用 spec-review 进行详细审查
 ```
 
-### 2. Obsidian 支持 Skills
+### 2. 经验管理 Skills
+
+| Skill | 功能 | 在 Spec 流程中的作用 |
+|-------|------|---------------------|
+| `exp-search` | 记忆检索 | 检索五层记忆（经验+知识+SOP+工具记忆+Auto Memory 只读） |
+| `exp-reflect` | 记忆反思 | 分析对话提取记忆，自动识别类型（经验/知识），按权重分流 |
+| `exp-write` | 记忆写入 | 将经验写入 experience/ 或知识写入 knowledge/，更新索引 |
+
+### 3. Obsidian 支持 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
@@ -221,22 +275,20 @@ spec-updater 创建 update-xxx-summary.md
 | `obsidian-bases` | 创建和管理数据库视图 | 动态 Spec 索引、状态跟踪 |
 | `json-canvas` | 创建可视化 Canvas | Spec 依赖关系图、架构图 |
 
-### 3. Obsidian 插件
+### 4. Obsidian 插件开发支持
 
-| 插件 | 功能 | 在 Spec 流程中的作用 |
-|------|------|---------------------|
-| `obsidian-spec-confirm` | Spec 文档一键确认工作流 | 用户在 Obsidian 侧边栏确认 Spec，自动更新 frontmatter 状态 |
+| Skill | 功能 | 使用场景 |
+|-------|------|----------|
+| `obsidian-plugin-dev` | Obsidian 插件开发指南 | 开发 Obsidian 插件时参考 |
 
-### 4. 辅助 Skills
+### 5. 辅助 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `intent-confirmation` | 确认用户意图 | **在执行任务前**避免理解偏差，确保 Agent 正确理解需求 |
 | `git-workflow-sop` | Git 操作规范 | 提交代码、同步仓库 |
-| `exp-search` | 经验检索 | 检索四层记忆（经验+SOP+工具记忆+Auto Memory 只读） |
-| `exp-reflect` | 经验反思 | 分析对话提取经验，按权重分流到 exp-write 或 Auto Memory |
-| `exp-write` | 经验写入 | 将重大经验写入 exp/ 文件并更新索引（不写 MEMORY.md） |
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
+| `find-skills` | 搜索和安装开源 Skill | 从 skills.sh 生态发现新能力 |
 
 ## Spec 目录结构
 
@@ -249,9 +301,12 @@ spec/
 ├── 05-测试文档/          # 测试计划、测试报告
 ├── 06-已归档/           # 已完成的 Spec（自动移动）
 └── context/             # 记忆系统（与 Spec 工作流一致）
-    └── experience/      # 经验记忆存储（显式层）
-        ├── index.md     # 经验索引
-        └── exp-xxx-标题.md  # 经验详情
+    ├── experience/      # 经验记忆存储（显式层）
+    │   ├── index.md     # 经验索引
+    │   └── exp-xxx-标题.md  # 经验详情
+    └── knowledge/       # 知识记忆存储（显式层）
+        ├── index.md     # 知识索引
+        └── know-xxx-标题.md  # 知识详情
 
 ~/.claude/projects/*/memory/   # Auto Memory（自动层，Claude 自主管理）
     ├── MEMORY.md              # 自动加载到系统提示
@@ -261,14 +316,17 @@ spec/
 每个 Spec 目录遵循以下命名规范：
 ```
 spec/分类目录/YYYYMMDD-HHMM-任务描述/
-├── plan.md                    # 设计方案（spec-writer 创建，含 execution_mode）
-├── summary.md                 # 实现总结（spec-executor 创建）
-├── review.md                  # 审查报告（可选，spec-reviewer 创建）
-├── debug-001.md               # 问题诊断（spec-debugger 创建）
-├── debug-001-fix.md           # 修复总结（spec-debugger 创建）
-├── update-001.md              # 更新方案（spec-writer 创建，含 execution_mode）
-├── update-001-summary.md      # 更新总结（spec-updater 创建）
-└── update-001-review.md       # 更新审查（可选，spec-reviewer 创建）
+├── plan.md                    # 设计方案（spec-write 创建）
+├── exploration-report.md      # 探索报告（spec-explore 创建）
+├── test-plan.md               # 测试计划（spec-test 创建）
+├── summary.md                 # 实现总结（spec-execute 创建）
+├── test-report.md             # 测试报告（spec-test 创建）
+├── review.md                  # 审查报告（可选，spec-review 创建）
+├── debug-001.md               # 问题诊断（spec-debug 创建）
+├── debug-001-fix.md           # 修复总结（spec-debug 创建）
+├── update-001.md              # 更新方案（spec-write 创建）
+├── update-001-summary.md      # 更新总结（spec-update 创建）
+└── update-001-review.md       # 更新审查（可选，spec-review 创建）
 ```
 
 ## Obsidian 在 Spec 流程中的关键作用
@@ -281,7 +339,10 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 ## 文档关联
 
 - 设计文档: [[plan|设计方案]]
+- 探索报告: [[exploration-report|探索报告]]
+- 测试计划: [[test-plan|测试计划]]
 - 实现总结: [[summary|实现总结]]
+- 测试报告: [[test-report|测试报告]]
 - 审查报告: [[review|审查报告]]
 ```
 
@@ -302,7 +363,7 @@ category: 03-功能实现
 status: 未确认
 priority: 高
 created: 2026-01-09
-execution_mode: single-agent / agent-teams
+execution_mode: single-agent
 tags:
   - spec
   - plan
@@ -350,165 +411,139 @@ views:
       - priority
 ```
 
-## Obsidian Spec Confirm 插件
+## 门禁设计：用户确认机制
 
 ### 概述
 
-`obsidian-spec-confirm` 是专为本项目开发的 Obsidian 插件，实现了 Claude Code 与 Obsidian 之间的 Spec 确认工作流集成。
+本项目使用 Claude Code 的原生 `AskUserQuestion` 工具实现用户确认工作流。v2.0 中每个阶段转换前都设有**门禁节点**，由 TeamLead 统一发起，确保用户始终掌控开发方向。
 
-### 工作流程
+### 门禁节点
 
-```
-Claude Code 生成 Spec 文档
-       ↓
-调用 spec_confirm MCP 工具
-       ↓
-Obsidian 侧边栏自动打开，显示文档信息
-       ↓
-用户在 Obsidian 中审阅文档
-       ↓
-点击"✓ 确认"按钮
-       ↓
-文档 frontmatter status 自动更新为"已确认"
-       ↓
-Claude Code 收到响应，继续执行
-```
+| 门禁 | 触发时机 | 由谁发起 | 确认内容 |
+|------|---------|---------|---------|
+| **门禁 1：需求对齐** | 阶段一完成 | TeamLead | 需求理解正确 |
+| **门禁 2：Spec 审阅** | 阶段二完成 | TeamLead | plan.md + test-plan.md |
+| **门禁 3：实现确认** | 阶段三完成 | TeamLead | summary.md |
+| **门禁 4：测试确认** | 阶段四完成 | TeamLead | test-report.md |
+| **诊断确认** | bug 诊断完成 | TeamLead | debug-xxx.md（如有） |
+| **归档确认** | 阶段五 | spec-ender | 是否归档 + git 提交 |
 
-![alt text](image.png)
+### 确认示例
 
-### 核心功能
-
-| 功能 | 说明 |
-|------|------|
-| **侧边栏面板** | 在右侧边栏显示等待确认的 Spec 文档，不打断用户审阅 |
-| **一键确认** | 在侧边栏直接点击确认按钮，无需切换窗口 |
-| **状态同步** | 确认后自动更新文档 frontmatter 的 `status` 字段为"已确认" |
-| **MCP Server** | 内置 MCP Server，接收 Claude Code 的确认请求 |
-
-### 安装步骤
-
-1. **构建插件**：
-```bash
-cd .claude/skills/obsidian-spec-confirm
-npm install
-npm run build
-```
-
-2. **复制到 Obsidian**：
-将以下文件复制到 Obsidian vault 的 `.obsidian/plugins/obsidian-spec-confirm/` 目录：
-   - `main.js`
-   - `manifest.json`
-   - `styles.css`
-
-3. **启用插件**：
-在 Obsidian 设置 → 第三方插件 中启用 `Spec Confirm`
-
-### MCP 配置
-
-在 Claude Code 的 MCP 配置中添加：
-
-```json
-{
-  "mcpServers": {
-    "obsidian-spec-confirm": {
-      "type": "http",
-      "url": "http://localhost:5300"
-    }
-  }
-}
-```
-
-### MCP 工具
-
-插件提供以下 MCP 工具供 Claude Code 调用：
-
-| 工具 | 参数 | 说明 |
-|------|------|------|
-| `spec_confirm` | `file_path`, `doc_type`, `title` | 请求用户确认 Spec 文档 |
-| `get_status` | 无 | 获取当前 MCP Server 状态 |
-
-**调用示例**：
-```
-mcp__obsidian-spec-confirm__spec_confirm(
-    file_path="spec/03-功能实现/20260115-xxx/plan.md",
-    doc_type="plan",
-    title="功能设计方案"
+```python
+AskUserQuestion(
+    questions=[{
+        "question": "plan.md 已创建完成，请确认设计方案是否可以开始实现？",
+        "header": "确认方案",
+        "multiSelect": false,
+        "options": [
+            {
+                "label": "确认，开始实现",
+                "description": "设计方案正确，可以开始执行实现"
+            },
+            {
+                "label": "需要修改",
+                "description": "设计方案需要调整，请说明修改要求"
+            }
+        ]
+    }]
 )
 ```
 
-### 支持的文档类型
+### intent-confirmation 前置确认
 
-| doc_type | 说明 |
-|----------|------|
-| `plan` | 设计方案文档 |
-| `update` | 更新方案文档 |
-| `summary` | 实现总结文档 |
-| `review` | 审查报告文档 |
+> **⚠️ 为什么需要 intent-confirmation？**
+>
+> 在执行非简单任务前，必须先确认用户意图，避免因理解偏差导致的无效工作。触发条件包括：
+> - **抽象需求**：需求描述较为模糊（如"优化一下这个功能"）
+> - **设计决策**：涉及架构变更或设计选择
+> - **多义表达**：用户表达可能有多种理解
+> - **大范围影响**：任务影响范围较大
 
 ## 完整工作流示例
 
-### 示例：实现「专业评价 Agent」
+### 示例：使用 Agent Teams 实现「专业评价 Agent」
 
-#### 步骤 1：创建 Spec（spec-writer）
+#### 步骤 1：启动 Agent Teams（spec-start）
 
 ```bash
 用户：我需要实现一个专业评价 Agent
 
-Claude（调用 spec-writer）：
-正在创建 plan.md...
-路径：spec/03-功能实现/20260109-1430-专业评价Agent设计/plan.md
-
-Spec 已创建，内容包括：
-- 需求分析
-- 数据模型设计
-- 接口定义
-- 实现步骤
-- 测试计划
-
-请审阅并确认后开始实现。
+TeamLead（当前 Agent）：
+调用 spec-start，创建 Agent Teams "spec-20260109-1430-专业评价Agent"
+初始化 6 个专职角色...
+使用 intent-confirmation 与用户对齐需求...
 ```
 
-#### 步骤 2：用户确认
+#### 步骤 2：Spec 创建（阶段二）
+
+```bash
+TeamLead → spec-explorer 开始
+
+spec-explorer：
+  调用 exp-search 检索历史经验...
+  探索项目代码库，产出 exploration-report.md
+
+spec-explorer → 通知 spec-writer + spec-tester
+
+spec-writer ↔ spec-tester 协作讨论接口边界
+spec-writer：创建 plan.md（设计方案）
+spec-tester：创建 test-plan.md（测试计划）
+
+TeamLead → 用户确认 plan.md + test-plan.md
+```
+
+#### 步骤 3：实现（阶段三）
 
 ```bash
 用户：确认，开始实现
 
-Claude（调用 spec-executor）：
-开始执行实现...
-- [x] 实现 IndicatorParser 类
-- [x] 实现 MaterialAnalyzer 类
-- [x] 实现 EvaluationAgent 类
-- [x] 编写单元测试
-- [x] 运行测试验证
+TeamLead → spec-executor 开始
+spec-executor：
+  读取 plan.md，检索历史经验
+  按计划逐步实现
+  创建 summary.md
 
-已创建 summary.md，记录实现总结。
+TeamLead → 用户确认 summary.md
 ```
 
-#### 步骤 3：审查实现（spec-reviewer）
+#### 步骤 4：测试（阶段四）
 
 ```bash
-Claude（调用 spec-reviewer）：
-正在审查实现...
+TeamLead → spec-tester 开始执行测试
 
-审查结果：
-- ✅ 已完成：8/8 项功能
-- ❌ 未完成：0 项
-- ⚠️ 不符项：0 项
-- ➕ 额外项：0 项
+spec-tester：
+  按 test-plan.md 执行测试用例
+  发现 bug → SendMessage 通知 spec-debugger
+  spec-debugger 修复 → 通知 spec-tester 重新验证
+  产出 test-report.md
 
-已生成 review.md 审查报告。
-请确认后归档到 06-已归档。
+TeamLead → 用户确认 test-report.md
 ```
 
-#### 步骤 4：用户确认并归档
+#### 步骤 5：收尾（阶段五）
 
 ```bash
+TeamLead → spec-ender 开始
+
+spec-ender：
+  向各角色发起讨论，收集经验素材
+  调用 exp-reflect 分流沉淀
+  询问用户：是否归档并提交 git？
+
 用户：确认归档
 
-Claude（调用 spec-executor 归档流程）：
-正在移动 Spec 文件夹到 06-已归档...
-归档完成！
+spec-ender → 移动到 06-已归档 → 调用 git-workflow-sop 提交
+spec-ender → 通知 TeamLead，Teams 进入待机
 ```
+
+## 灵活使用
+
+完整的 Agent Teams 流程适合复杂需求，但并非所有场景都需要走全套。以下两种轻量用法同样有效：
+
+**小需求 / 快速迭代**：直接单独调用某个 Skill，例如只用 `spec-write` 写方案、只用 `spec-update` 做小改动，无需启动完整的 Agent Teams 流程。
+
+**非 Claude Code 用户**（Cursor、Windsurf 等）：这套 Skills 同样适用。将 `spec-start` 的流程交给单 Agent 按顺序执行，实测效果同样理想。每个 Skill 文件都是独立的 Markdown 提示词，可以直接粘贴到任意 AI 编辑器中使用。
 
 ## 记忆系统
 
@@ -528,11 +563,12 @@ Claude（调用 spec-executor 归档流程）：
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  ┌───────────────────────────────────────────────────────────────┐  │
-│  │  exp-* 系统（显式层）— 项目级结构化经验                       │  │
+│  │  exp-* 系统（显式层）— 项目级结构化记忆                       │  │
 │  │  ├─ 经验记忆：重大困境-策略对 → spec/context/experience/      │  │
+│  │  ├─ 知识记忆：项目理解/技术调研 → spec/context/knowledge/     │  │
 │  │  ├─ 程序记忆：可复用 SOP → sop-xxx Skill                     │  │
 │  │  ├─ 工具记忆：Skill 后续动作 → Skill 末尾                    │  │
-│  │  └─ 覆盖 ~20% 的重要经验，需要 Obsidian 双链关联到 Spec      │  │
+│  │  └─ 覆盖 ~20% 的重要记忆，需要 Obsidian 双链关联到 Spec      │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  职责边界：                                                          │
@@ -595,7 +631,44 @@ created: YYYY-MM-DD
 
 **管理 Skill**：`exp-search`、`exp-reflect`、`exp-write`
 
-#### 2. 程序记忆 → SOP Skill
+#### 2. 知识记忆 → spec/context/knowledge/
+
+**存储位置**：`spec/context/knowledge/know-xxx-标题.md`
+
+**索引位置**：`spec/context/knowledge/index.md`
+
+**加载方式**：索引全量加载，详情按需检索
+
+**存储格式**：
+```markdown
+---
+id: KNOW-xxx
+title: 标题
+type: 项目理解 / 技术调研 / 代码分析
+keywords: [关键词1, 关键词2]
+created: YYYY-MM-DD
+---
+
+# 标题
+
+## 概述
+[简要说明核心内容]
+
+## 详细内容
+[根据类型组织内容：项目理解/技术调研/代码分析]
+
+## 相关文件
+[涉及的文件路径]
+```
+
+**写入时机**：
+- 探索项目架构、数据流后
+- 完成技术调研、框架对比后
+- 深入分析某个模块的设计后
+
+**管理 Skill**：`exp-search`、`exp-reflect`、`exp-write`
+
+#### 3. 程序记忆 → SOP Skill
 
 **存储位置**：`.claude/skills/sop-xxx-名称/SKILL.md`
 
@@ -613,7 +686,7 @@ created: YYYY-MM-DD
 - 完成了可重复执行的操作流程
 - 发现了固定的操作模式
 
-#### 3. 工具记忆 → Skill 末尾
+#### 4. 工具记忆 → Skill 末尾
 
 **存储位置**：每个 Skill 文件的末尾「后续动作」章节
 
@@ -624,11 +697,12 @@ created: YYYY-MM-DD
 - 工具调用有固定的检查或验证模式
 - 一个 Skill 执行后经常需要调用另一个 Skill
 
-### 经验记忆与 SOP 的边界
+### 记忆类型边界
 
 | 类型 | 核心问题 | 内容特征 | 示例 |
 |------|---------|---------|------|
-| **经验记忆** | 为什么 | 知识点、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
+| **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
+| **知识记忆** | 是什么 | 项目理解、技术调研、代码分析 | TeachingAnalyzer 架构、AgentScope 框架对比 |
 | **程序记忆（SOP）** | 怎么做 | 可机械执行的步骤序列 | Docker 部署流程、数据库迁移流程 |
 
 ### 经验权重分流
@@ -642,17 +716,21 @@ created: YYYY-MM-DD
 | 共享性 | 团队/项目级别需要共享的经验 | 个人编码习惯和偏好 |
 | 持久性 | 长期有效的架构决策和设计模式 | 临时性的调试技巧 |
 
-### 使用经验管理 Skills
+### 使用记忆管理 Skills
 
 **手动触发**：
 ```bash
-/exp-search <关键词>   # 检索相关经验（含 Auto Memory 只读搜索）
-/exp-reflect           # 反思对话，按权重分流到 exp-write 或 Auto Memory
-/exp-write             # 写入经验（通常由 exp-reflect 调用）
+/exp-search <关键词>        # 检索相关记忆（含 Auto Memory 只读搜索）
+/exp-reflect               # 反思对话，自动识别记忆类型并分流
+/exp-reflect 记录数据流     # 带提示词，引导识别为知识记忆
+/exp-write type=experience # 写入经验记忆（通常由 exp-reflect 调用）
+/exp-write type=knowledge  # 写入知识记忆（通常由 exp-reflect 调用）
 ```
 
 **自动提示**：
 - 解决了反复出现的困难问题 → 经验记忆（exp-write）
+- 探索了项目架构、数据流 → 知识记忆（exp-write）
+- 完成了技术调研、框架对比 → 知识记忆（exp-write）
 - 完成了一个可重复的操作流程 → 程序记忆（SOP）
 - 发现某个操作后总是需要特定的后续步骤 → 工具记忆
 - 日常编码技巧和调试经验 → Auto Memory（自动处理）
@@ -675,7 +753,7 @@ created: YYYY-MM-DD
 
 ### 3. 文档管理
 
-- **命名规范**：`YYYYMMDD-HHMM-任务描述`
+- **命名规范**：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
 - **分类存放**：必须放入对应的分类目录（01-05）
 - **双链关联**：使用 `[[wikilink]]` 建立文档关系
 - **元数据完整**：每个文档都有完整的 frontmatter
@@ -685,9 +763,17 @@ created: YYYY-MM-DD
 - **意图确认**：**第一步**就使用 `intent-confirmation` 避免理解偏差
   - 触发条件：抽象需求、设计决策、多义表达、大范围影响
   - 确认方式：复述用户意图、列出关键理解点、询问"是这个意思吗？"
-- **用户确认**：每个关键节点都等待用户确认
-- **审查机制**：`spec-reviewer` 验证实现是否符合 Spec
+- **门禁机制**：每个阶段转换都等待用户确认
+- **审查机制**：`spec-review` 验证实现是否符合 Spec
 - **防止重复**：`exp-search` 检索是否已存在相似经验
+- **测试闭环**：spec-tester 与 spec-debugger 的 bug 修复闭环
+
+### 5. Agent Teams 协作规范
+
+- **角色职责清晰**：不越权操作（如 spec-executor 不写测试）
+- **闭环通知**：完成工作后必须通知相关角色
+- **不跳过门禁**：阶段转换必须经过用户确认
+- **TeamLead 统一协调**：所有用户交互由 TeamLead 发起
 
 ## 快速上手
 
@@ -697,10 +783,10 @@ created: YYYY-MM-DD
    - 阅读 CLAUDE.md 了解项目背景
    - 阅读 spec/ 目录下现有 Spec 了解文档风格
 
-2. **熟悉 Skills 工作流**
-   - 阅读 spec-writer 了解如何创建 Spec
-   - 阅读 spec-executor 了解如何执行实现
-   - 阅读 spec-reviewer 了解如何审查实现
+2. **熟悉 Agent Teams 工作流**
+   - 了解 6 个角色的分工和协作方式
+   - 了解 5 个阶段和门禁机制
+   - 阅读各 Skill 的 SKILL.md 了解具体流程
 
 3. **配置 Obsidian**
    - 安装 Obsidian（如需要本地查看）
@@ -708,22 +794,29 @@ created: YYYY-MM-DD
    - 打开项目根目录作为 Vault
 
 4. **开始第一个 Spec**
-   - 使用 spec-writer 创建 plan.md
-   - 等待用户确认
-   - 使用 spec-executor 执行实现
-   - 使用 spec-reviewer 审查实现
+   - 使用 `spec-init` 初始化项目基础设施
+   - 使用 `spec-start` 启动 Agent Teams
+   - 经历完整的 5 阶段流程，体验门禁机制和多角色协作
 
 ### 常见命令速查
 
 ```bash
 # 在 Claude Code 中调用 Skills
 
-/spec-writer      # 创建 Spec 文档
-/spec-executor    # 执行新功能开发
-/spec-updater     # 执行功能更新
-/spec-reviewer    # 审查实现情况
+/spec-init        # 项目初始化（一次性）
+/spec-start       # 启动 Agent Teams
+/spec-explore     # 前置信息收集
+/spec-write       # 撰写设计方案
+/spec-test        # 撰写测试计划 / 执行测试
+/spec-execute     # 执行新功能开发
+/spec-debug       # 诊断并修复问题
+/spec-end         # 收尾（经验沉淀 + 归档）
+/spec-update      # 执行功能更新
+/spec-review      # 审查实现情况
 
-/memory           # 进入记忆管理模式
+/exp-search       # 检索历史经验
+/exp-reflect      # 反思并沉淀经验
+/find-skills      # 搜索开源 Skill
 /intent-confirmation  # 确认用户意图
 ```
 
@@ -749,6 +842,7 @@ created: YYYY-MM-DD
 - [Obsidian Bases Syntax](https://help.obsidian.md/bases/syntax)
 - [JSON Canvas Spec](https://jsoncanvas.org/spec/1.0/)
 - [Claude Code Documentation](https://claude.ai/code)
+- [Skills CLI & Ecosystem](https://skills.sh/)
 
 ## 维护说明
 
@@ -767,13 +861,127 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 1.4
-**最后更新**: 2026-02-07
+**版本**: 2.1
+**最后更新**: 2026-02-28
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.1 (2026-02-28) - spec-update 职责收敛
+
+**核心改进**：
+
+1. **spec-update 独立化**：移除对 spec-write 的依赖，update-xxx.md 的创建由 spec-update 自身负责
+2. **spec-update 单 Agent 化**：移除路径 B（Agent Teams），更新流程统一为单 Agent；若更新规模需要多角色协作，应新建 Spec 走 spec-start 流程
+3. **update-template.md 精简**：去掉 `execution_mode` 字段
+
+### v2.0 (2026-02-27) - Agent Teams 架构重构
+
+**核心改进**：
+
+1. **Agent Teams 多角色协作架构**：
+   - 引入 TeamLead + 6 专职角色的协作模型
+   - 当前 Agent 即 TeamLead，统一协调全局
+   - 明确区分角色（Who）与 Skill（How）
+
+2. **5 阶段开发流程**：
+   - 阶段一：需求对齐（TeamLead + intent-confirmation）
+   - 阶段二：Spec 创建（spec-explorer → spec-writer ↔ spec-tester 协作）
+   - 阶段三：实现（spec-executor）
+   - 阶段四：测试（spec-tester ↔ spec-debugger 闭环）
+   - 阶段五：收尾（spec-ender：多角色讨论 + 经验沉淀 + 归档）
+
+3. **Skill 重命名（角色 vs Skill 分离）**：
+   - `spec-writer` → `spec-write`（Skill）
+   - `spec-executor` → `spec-execute`（Skill）
+   - `spec-debugger` → `spec-debug`（Skill）
+   - `spec-reviewer` → `spec-review`（Skill）
+   - `spec-updater` → `spec-update`（Skill）
+
+4. **新增 Skill**：
+   - `spec-init`：完整项目骨架搭建（CLAUDE.md + .claude/rules/ + .claude/skills/ + spec/ + Obsidian Vault）
+   - `spec-start`：启动 Agent Teams，创建 6 个专职角色（与 spec-end 对应）
+   - `spec-explore`：Spec 前置信息收集（经验检索 + 代码探索 + 外部资源）
+   - `spec-test`：测试计划撰写（test-plan.md）+ 测试执行（test-report.md）
+   - `spec-end`：收尾工作（多角色讨论 + 经验沉淀 + 归档 + git 提交）
+   - `find-skills`：搜索和安装开源 Skill（npx skills）
+
+5. **职责拆分**：
+   - plan.md 不再包含测试计划章节（由 spec-tester 单独创建 test-plan.md）
+   - spec-execute 移除路径 B（agent-teams）和测试步骤
+   - spec-debug 修复后必须通知 spec-tester 重新验证，不自行判断
+
+6. **新增文档类型**：
+   - `exploration-report.md`：探索报告（spec-explore 产出）
+   - `test-plan.md`：测试计划（spec-test 阶段一产出）
+   - `test-report.md`：测试报告（spec-test 阶段二产出）
+
+### v1.4.2 (2026-02-09) - 知识记忆支持
+
+**核心改进**：
+
+1. **扩展记忆类型，支持知识记忆**：
+   - 原有经验记忆（困境-策略对）→ `spec/context/experience/`
+   - 新增知识记忆（项目理解/技术调研）→ `spec/context/knowledge/`
+   - 统一入口，自动分类：用户只需调用 `/exp-reflect`，Skill 自动识别类型
+
+2. **exp-reflect 增强**：
+   - 支持用户提示词参数（如 `/exp-reflect 记录数据流`）
+   - 自动识别记忆类型：困境-策略对 vs 项目理解/技术调研
+   - 根据类型调用 `exp-write type=experience` 或 `type=knowledge`
+   - 新增知识记忆草稿格式模板
+
+3. **exp-search 扩展搜索范围**：
+   - 从 4 层扩展到 5 层记忆检索
+   - 新增知识记忆搜索（`spec/context/knowledge/`）
+   - 同时搜索 `experience/index.md` 和 `knowledge/index.md`
+   - 搜索结果按类型分组展示（经验记忆、知识记忆、程序记忆、工具记忆、Auto Memory）
+
+4. **exp-write 支持知识记忆写入**：
+   - 支持 `type=experience` 和 `type=knowledge` 参数
+   - 根据类型选择文件名前缀（`exp-` 或 `know-`）
+   - 根据类型选择 ID 格式（`EXP-xxx` 或 `KNOW-xxx`）
+   - 提供知识记忆文档模板（项目理解/技术调研/代码分析）
+   - 支持写入和更新 `spec/context/knowledge/` 目录
+
+**文件命名规范**：
+- 经验记忆：`exp-001-中文标题.md` → `spec/context/experience/`
+- 知识记忆：`know-001-中文标题.md` → `spec/context/knowledge/`
+
+**使用场景**：
+- 探索项目数据流、架构后，使用 `/exp-reflect 记录数据流` 自动识别为知识记忆
+- 技术选型、框架对比后，使用 `/exp-reflect 记录技术调研` 自动识别为知识记忆
+- 解决困难问题后，使用 `/exp-reflect` 自动识别为经验记忆
+
+### v1.4.1 (2026-02-09) - 用户确认机制优化
+
+**核心改进**：
+
+1. **废弃 MCP 确认插件，改用 Claude Code 原生特性**：
+   - `obsidian-spec-confirm` MCP 插件目前存在 Bug，暂时废弃
+   - 所有 Spec 确认流程改用 Claude Code 原生 `AskUserQuestion` 工具
+   - 后续 MCP 插件完善后再投入使用
+
+2. **更新所有 Skill 的确认机制**：
+   - spec-writer：plan.md 确认改用 `AskUserQuestion`
+   - spec-executor：summary.md 确认改用 `AskUserQuestion`
+   - spec-updater：update-xxx.md 和 review.md 确认改用 `AskUserQuestion`
+   - spec-reviewer：review.md 确认改用 `AskUserQuestion`
+   - spec-debugger：debug-xxx.md 和 debug-xxx-fix.md 确认改用 `AskUserQuestion`
+
+3. **用户确认节点**：
+   - 方案确认：spec-writer 创建 plan.md 后
+   - 实现确认：spec-executor 创建 summary.md 后
+   - 更新方案确认：spec-writer 创建 update-xxx.md 后
+   - 审查确认：spec-reviewer 创建 review.md 后
+   - 诊断确认：spec-debugger 创建 debug-xxx.md 后
+   - 修复确认：spec-debugger 创建 debug-xxx-fix.md 后
+
+**文档更新**：
+- README.md：删除 MCP 插件章节，新增"用户确认机制"章节
+- obsidian-spec-confirm/README.md：添加废弃警告
 
 ### v1.4 (2026-02-07) - Claude Code 原生特性集成
 
@@ -920,3 +1128,5 @@ skills/            → 工作流程定义（按需加载）
 - 初始版本
 - Spec 驱动式开发工作流
 - 三层记忆架构（memory Skill）
+
+

@@ -1,8 +1,7 @@
 ---
 name: exp-search
-description: 经验检索 Skill，根据关键词搜索项目历史经验（经验记忆+程序记忆SOP+工具记忆+Auto Memory只读）。触发场景：开始复杂任务前、遇到问题时、需要查找历史解决方案。
+description: 经验检索 Skill，根据关键词搜索项目历史记忆（经验记忆+知识记忆+程序记忆SOP+工具记忆+Auto Memory只读）。触发场景：开始复杂任务前、遇到问题时、需要查找历史解决方案、查找项目理解文档。
 allowed-tools: Read, Glob, Grep
-model: claude-haiku-4
 ---
 
 # exp-search - 经验检索 Skill
@@ -11,11 +10,12 @@ model: claude-haiku-4
 
 快速检索项目积累的多层记忆，在正确的时刻加载相关知识，避免重复踩坑。
 
-**四层记忆检索范围**：
+**五层记忆检索范围**：
 1. **经验记忆**：困境-策略对 → `spec/context/experience/exp-xxx-标题.md`
-2. **程序记忆**：SOP 流程 → `.claude/skills/sop-xxx/SKILL.md`
-3. **工具记忆**：Skill 后续动作 → 各 Skill 末尾「后续动作」章节
-4. **Auto Memory（只读）**：跨会话记忆 → `~/.claude/projects/*/memory/*.md`
+2. **知识记忆**：项目理解、技术调研 → `spec/context/knowledge/know-xxx-标题.md`
+3. **程序记忆**：SOP 流程 → `.claude/skills/sop-xxx/SKILL.md`
+4. **工具记忆**：Skill 后续动作 → 各 Skill 末尾「后续动作」章节
+5. **Auto Memory（只读）**：跨会话记忆 → `~/.claude/projects/*/memory/*.md`
 
 **职责边界**：exp-search **只读**所有记忆源，不写入任何文件。
 
@@ -23,12 +23,15 @@ model: claude-haiku-4
 
 - 开始复杂任务前，检索相关经验
 - 遇到问题时，搜索历史解决方案
+- 查找项目理解文档（架构、数据流）
 - 用户主动搜索：`/exp-search <关键词>`
 
 ## 核心文件
 
-- **经验索引**：`spec/context/experience/index.md`（包含三层记忆的索引）
+- **经验索引**：`spec/context/experience/index.md`（包含经验记忆索引）
+- **知识索引**：`spec/context/knowledge/index.md`（包含知识记忆索引）
 - **经验详情**：`spec/context/experience/exp-xxx-标题.md`
+- **知识详情**：`spec/context/knowledge/know-xxx-标题.md`
 - **SOP Skill**：`.claude/skills/sop-xxx-名称/SKILL.md`
 - **Auto Memory**：`~/.claude/projects/*/memory/*.md`（只读）
 
@@ -38,10 +41,11 @@ model: claude-haiku-4
 
 ```
 检索流程：
-- [ ] 步骤 1：读取经验索引（扩展）
-      1. 读取 spec/context/experience/index.md（原有）
-      2. 【新增】读取 MEMORY.md（只读，作为补充搜索源）
-      3. 【新增】扫描 ~/.claude/projects/*/memory/*.md 文件名列表（只读）
+- [ ] 步骤 1：读取记忆索引（扩展）
+      1. 读取 spec/context/experience/index.md（经验记忆）
+      2. 读取 spec/context/knowledge/index.md（知识记忆）
+      3. 【新增】读取 MEMORY.md（只读，作为补充搜索源）
+      4. 【新增】扫描 ~/.claude/projects/*/memory/*.md 文件名列表（只读）
 
 - [ ] 步骤 2：关键词匹配
       在索引中搜索匹配的条目
@@ -49,6 +53,7 @@ model: claude-haiku-4
 
       匹配范围：
       - 经验记忆表（EXP-xxx）
+      - 知识记忆表（KNOW-xxx）
       - 程序记忆表（sop-xxx）
       - 工具记忆表（Skill 后续动作）
       - 【新增】MEMORY.md 中的摘要行（只读）
@@ -59,6 +64,7 @@ model: claude-haiku-4
 
 - [ ] 步骤 4：加载详情（可选）
       - 经验记忆 → 读取 spec/context/experience/exp-xxx-标题.md
+      - 知识记忆 → 读取 spec/context/knowledge/know-xxx-标题.md
       - 程序记忆 → 提示用户调用对应 SOP Skill
       - 工具记忆 → 读取对应 Skill 的后续动作章节
 ```
@@ -91,11 +97,19 @@ model: claude-haiku-4
 一句话策略：通过 msg.id 检测新消息，重置状态保留进度
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📖 知识记忆（项目理解/技术调研）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[KNOW-001] TeachingAnalyzer 数据流与架构
+关键词：数据流, 架构, MainAnalyzer
+一句话概述：完整的视频分析流水线，从 ASR 到结果上传
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📋 程序记忆（SOP）
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-[sop-001] AgentScope Hook 状态管理 SOP
-触发场景：使用 Hook 追踪多轮 reasoning 状态
+[sop-001] Docker 部署流程
+触发场景：项目代码更新后需要重新部署到服务器
 调用方式：直接使用该 Skill 的流程
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -173,5 +187,6 @@ model: claude-haiku-4
 
 | 场景 | 协作 Skill |
 |------|-----------|
-| 搜索无结果，问题已解决 | → `/exp-reflect` 沉淀新经验 |
-| 需要添加新经验 | → `/exp-write` 写入经验 |
+| 搜索无结果，问题已解决 | → `/exp-reflect` 沉淀新经验或知识 |
+| 需要添加新经验 | → `/exp-write type=experience` 写入经验 |
+| 需要添加新知识 | → `/exp-write type=knowledge` 写入知识 |
