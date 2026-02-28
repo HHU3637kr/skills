@@ -10,6 +10,21 @@
 ![alt text](微信图片_20260228232027_175_93.jpg)
 
 
+## 安装
+
+```bash
+npm install -g @rnking3637/rk-flow
+rk-flow init
+```
+
+在任意项目目录执行 `rk-flow init`，所有 Skills 会自动复制到 `.claude/skills/`。
+
+然后在项目的 `CLAUDE.md` 中添加：
+
+```
+@import .claude/skills/
+```
+
 ## 核心理念
 
 > **Spec First** - 一切从 Spec 开始
