@@ -85,7 +85,7 @@ TeamLead 使用 `AskUserQuestion` 向用户确认。如用户需要修改则根�
 ```markdown
 ## 文档关联
 - 设计文档: [[plan|设计方案]]
-- 沉淀经验: [[spec/context/experience/exp-007-异步任务超时处理|EXP-007 异步任务超时处理]]
+- 沉淀经验: [[context/experience/exp-007-异步任务超时处理|EXP-007 异步任务超时处理]]
 ```
 
 ### 步骤 11：归档
