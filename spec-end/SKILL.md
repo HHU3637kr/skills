@@ -14,7 +14,7 @@ description: >
 1. **多角色视角**：通过 SendMessage 向团队成员收集各自视角的经验素材，不只是 spec-ender 的独角戏
 2. **分流沉淀**：调用 exp-reflect 按权重分流（重大经验 → exp-write，轻量 → Auto Memory）
 3. **用户确认归档**：归档前必须使用 AskUserQuestion 询问用户
-4. **git 提交**：归档确认后调用 git-workflow-sop 完成提交
+4. **git 提交**：归档确认后调用 git-work 完成提交
 
 ## 工作流程
 
@@ -61,10 +61,10 @@ SendMessage(
 
 ### 步骤 4：调用 exp-reflect 分流沉淀
 
-以讨论结果 + spec 目录文档为素材，调用 `/exp-reflect`：
+以当前 Spec 目录文档为素材（exp-reflect 会直接读取文档，无需手动整理素材），调用 `/exp-reflect` 并传递目录路径：
 
 ```bash
-/exp-reflect
+/exp-reflect spec/当前任务目录路径
 ```
 
 exp-reflect 会根据经验的重要性分流：
@@ -82,7 +82,7 @@ AskUserQuestion(
         "options": [
             {
                 "label": "确认归档并提交 git",
-                "description": "将 Spec 目录移动到 06-已归档，并调用 git-workflow-sop 提交"
+                "description": "将 Spec 目录移动到 06-已归档，并调用 git-work 提交"
             },
             {
                 "label": "暂不归档",
@@ -98,7 +98,7 @@ AskUserQuestion(
 用户选择"确认归档并提交 git"：
 
 1. 将 Spec 目录移动到 `spec/06-已归档/`
-2. 调用 `/git-workflow-sop` 提交本次开发的所有变更
+2. 调用 `/git-work` 提交本次开发的所有变更
 
 用户选择"暂不归档"：
 - 跳过归档步骤，直接执行步骤 7
@@ -121,7 +121,7 @@ spec-ender → SendMessage 向各角色发起讨论
 各角色 → 回复经验素材
 spec-ender → 汇总 + 调用 exp-reflect → 沉淀经验
 spec-ender → AskUserQuestion → 用户确认归档
-[如归档] spec-ender → 移动目录 → git-workflow-sop 提交
+[如归档] spec-ender → 移动目录 → git-work 提交
 spec-ender → 通知 TeamLead 完成
 TeamLead → 通知用户整个流程完成，Teams 进入待机
 ```
@@ -132,7 +132,7 @@ TeamLead → 通知用户整个流程完成，Teams 进入待机
 1. 已向所有相关角色发起讨论并收到回复
 2. 已调用 exp-reflect 完成分流沉淀
 3. 已询问用户是否归档
-4. 如归档：已移动目录 + 已调用 git-workflow-sop 提交
+4. 如归档：已移动目录 + 已调用 git-work 提交
 5. 已通知 TeamLead
 
 ### 常见陷阱

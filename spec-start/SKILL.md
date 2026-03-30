@@ -54,7 +54,16 @@ ls spec/context/experience/index.md
 ```python
 TeamCreate(
     team_name="spec-{YYYYMMDD-HHMM}-{任务简称}",
-    description="Spec 驱动开发: {任务描述}"
+    description="""Spec 驱动开发: {任务描述}
+
+各角色调用对应 Skill 完成工作：
+- spec-explorer  → 调用 spec-explore  Skill，产出 exploration-report.md
+- spec-writer    → 调用 spec-write    Skill，产出 plan.md
+- spec-tester    → 调用 spec-test     Skill，产出 test-plan.md / test-report.md
+- spec-executor  → 调用 spec-execute  Skill，产出 summary.md
+- spec-debugger  → 调用 spec-debug    Skill，产出 debug-xxx.md / debug-xxx-fix.md
+- spec-ender     → 调用 spec-end      Skill，完成经验沉淀 + 归档 + git 提交
+"""
 )
 ```
 
@@ -142,7 +151,7 @@ TeamCreate(
 【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
 
 调用 spec-end Skill 完成工作。
-工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 询问用户是否归档 → 调用 git-workflow-sop 提交
+工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 询问用户是否归档 → 调用 git-work 提交
 
 【完成后】直接通知 TeamLead，Teams 进入待机状态。
 ```

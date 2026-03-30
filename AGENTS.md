@@ -23,7 +23,7 @@
 
 ### 编码规范
 
-@import .claude/rules/
+@import .agents/rules/
 
 ### 文档规范
 

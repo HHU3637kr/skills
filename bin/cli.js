@@ -5,7 +5,7 @@ const readline = require('readline')
 
 const SKILLS = [
   'agent-browser', 'exp-reflect', 'exp-search', 'exp-write',
-  'find-skills', 'git-workflow-sop', 'intent-confirmation',
+  'find-skills', 'git-work', 'intent-confirmation',
   'json-canvas', 'obsidian-bases', 'obsidian-markdown',
   'obsidian-plugin-dev', 'skill-creator', 'spec-debug',
   'spec-end', 'spec-execute', 'spec-explore', 'spec-init',
@@ -30,7 +30,7 @@ function copyDirSync(src, dest) {
 
 function doInit() {
   const pkgRoot = path.join(__dirname, '..')
-  const targetBase = path.join(process.cwd(), '.claude', 'skills')
+  const targetBase = path.join(process.cwd(), '.agents', 'skills')
   const installed = []
   const skipped = []
 
@@ -45,17 +45,17 @@ function doInit() {
     installed.push(skill)
   }
 
-  console.log(`\n✓ R&K Flow skills installed to .claude/skills/`)
+  console.log(`\n✓ R&K Flow skills installed to .agents/skills/`)
   console.log(`  Installed: ${installed.length} skills`)
   if (skipped.length) console.log(`  Skipped:   ${skipped.join(', ')}`)
-  console.log(`\nNext: add .claude/skills/ to your CLAUDE.md @import`)
+  console.log(`\nNext: add .agents/skills/ to your AGENTS.md @import`)
 }
 
 if (cmd === 'init') {
-  const targetBase = path.join(process.cwd(), '.claude', 'skills')
+  const targetBase = path.join(process.cwd(), '.agents', 'skills')
   if (!force && fs.existsSync(targetBase)) {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
-    rl.question(`.claude/skills/ already exists. Overwrite? (y/N) `, (answer) => {
+    rl.question(`.agents/skills/ already exists. Overwrite? (y/N) `, (answer) => {
       rl.close()
       if (answer.toLowerCase() === 'y') {
         doInit()
@@ -72,7 +72,7 @@ if (cmd === 'init') {
 rk-flow - R&K Flow Skills installer
 
 Usage:
-  rk-flow init           Copy all skills to .claude/skills/
+  rk-flow init           Copy all skills to .agents/skills/
   rk-flow init --force   Overwrite without confirmation
 `)
 }

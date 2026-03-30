@@ -13,7 +13,7 @@ allowed-tools: Read, Glob, Grep
 **五层记忆检索范围**：
 1. **经验记忆**：困境-策略对 → `spec/context/experience/exp-xxx-标题.md`
 2. **知识记忆**：项目理解、技术调研 → `spec/context/knowledge/know-xxx-标题.md`
-3. **程序记忆**：SOP 流程 → `.claude/skills/sop-xxx/SKILL.md`
+3. **程序记忆**：SOP 流程 → `.agents/skills/sop-xxx/SKILL.md`
 4. **工具记忆**：Skill 后续动作 → 各 Skill 末尾「后续动作」章节
 5. **Auto Memory（只读）**：跨会话记忆 → `~/.claude/projects/*/memory/*.md`
 
@@ -32,7 +32,7 @@ allowed-tools: Read, Glob, Grep
 - **知识索引**：`spec/context/knowledge/index.md`（包含知识记忆索引）
 - **经验详情**：`spec/context/experience/exp-xxx-标题.md`
 - **知识详情**：`spec/context/knowledge/know-xxx-标题.md`
-- **SOP Skill**：`.claude/skills/sop-xxx-名称/SKILL.md`
+- **SOP Skill**：`.agents/skills/sop-xxx-名称/SKILL.md`
 - **Auto Memory**：`~/.claude/projects/*/memory/*.md`（只读）
 
 ---

@@ -17,7 +17,7 @@ allowed-tools: Read, Write, Edit, Glob
 - ✅ 写入 `spec/context/experience/` 目录（经验详情 + 索引）
 - ✅ 写入 `spec/context/knowledge/` 目录（知识详情 + 索引）
 - ❌ 不写入 MEMORY.md（由 Claude Code Auto Memory 自主管理）
-- ❌ 不写入 `.claude/rules/`（由 skill-creator 管理）
+- ❌ 不写入 `.agents/rules/`（由 skill-creator 管理）
 
 **注意**：本 Skill 仅处理经验记忆和知识记忆的写入。
 - 程序记忆（SOP）→ 使用 `/skill-creator` 创建

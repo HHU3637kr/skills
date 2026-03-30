@@ -2,11 +2,11 @@
 name: spec-init
 description: >
   初始化项目的 Spec 驱动开发完整基础设施。新项目首次使用 Spec 工作流时调用，
-  负责搭建完整的项目骨架：CLAUDE.md、.claude/rules/、.claude/skills/、spec/ 目录、
+  负责搭建完整的项目骨架：AGENTS.md、.agents/rules/、.agents/skills/、spec/ 目录、
   记忆系统和 Obsidian Vault。整个项目生命周期只需执行一次。
   触发条件：(1) 用户说"初始化项目"/"搭建 Spec 环境"/"创建开发环境"，
   (2) 新项目首次使用 Spec 工作流，
-  (3) 项目根目录下不存在 CLAUDE.md 或 spec/ 目录。
+  (3) 项目根目录下不存在 AGENTS.md 或 spec/ 目录。
   注意：本 Skill 只做项目基础设施搭建。启动开发任务请使用 spec-start。
 ---
 
@@ -24,17 +24,17 @@ description: >
 
 ```bash
 # 检查项目是否已初始化
-ls CLAUDE.md
+ls AGENTS.md
 ls spec/
-ls .claude/
+ls .agents/
 ```
 
-如果 CLAUDE.md 和 spec/ 都已存在，告知用户无需重复初始化，建议直接使用 `spec-start` 启动开发任务。
+如果 AGENTS.md 和 spec/ 都已存在，告知用户无需重复初始化，建议直接使用 `spec-start` 启动开发任务。
 如果部分存在，只补充缺失部分。
 
 ### 步骤 2：询问项目基本信息
 
-使用 `AskUserQuestion` 收集项目信息（用于生成 CLAUDE.md）：
+使用 `AskUserQuestion` 收集项目信息（用于生成 AGENTS.md）：
 
 ```python
 AskUserQuestion(
@@ -47,9 +47,9 @@ AskUserQuestion(
 )
 ```
 
-### 步骤 3：创建 CLAUDE.md
+### 步骤 3：创建 AGENTS.md
 
-在项目根目录创建 `CLAUDE.md`，这是项目的身份文件和路由入口：
+在项目根目录创建 `AGENTS.md`，这是项目的身份文件和路由入口：
 
 ```markdown
 # {项目名称}
@@ -74,7 +74,7 @@ AskUserQuestion(
 
 ### 编码规范
 
-@import .claude/rules/
+@import .agents/rules/
 
 ### 文档规范
 
@@ -98,18 +98,18 @@ AskUserQuestion(
 - 索引文件始终加载，详情按需检索
 ```
 
-> [!important] CLAUDE.md 是模板
+> [!important] AGENTS.md 是模板
 > 根据用户提供的项目信息填充模板。如果用户有额外的项目规范需求，在此文件中补充。
 
-### 步骤 4：创建 .claude/ 配置目录
+### 步骤 4：创建 .agents/ 配置目录
 
 #### 4.1 创建 rules/ 目录
 
 ```bash
-mkdir -p ".claude/rules"
+mkdir -p ".agents/rules"
 ```
 
-创建 `.claude/rules/coding-style.md`（编码风格模板，根据技术栈调整）：
+创建 `.agents/rules/coding-style.md`（编码风格模板，根据技术栈调整）：
 ```markdown
 # 编码风格
 
@@ -119,7 +119,7 @@ mkdir -p ".claude/rules"
 - 注释：关键逻辑必须注释，勿注释显而易见的代码
 ```
 
-创建 `.claude/rules/spec-workflow.md`（Spec 工作流规范）：
+创建 `.agents/rules/spec-workflow.md`（Spec 工作流规范）：
 ```markdown
 # Spec 工作流规范
 
@@ -130,12 +130,12 @@ mkdir -p ".claude/rules"
 ```
 
 > [!tip] rules/ 每文件 ≤ 20 行
-> `.claude/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。
+> `.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。
 
 #### 4.2 创建 skills/ 目录并安装 Skills
 
 ```bash
-mkdir -p ".claude/skills"
+mkdir -p ".agents/skills"
 ```
 
 引导用户安装 Skills 体系：
@@ -153,7 +153,7 @@ AskUserQuestion(
             },
             {
                 "label": "手动安装",
-                "description": "从 GitHub 仓库手动复制 Skills 到 .claude/skills/"
+                "description": "从 GitHub 仓库手动复制 Skills 到 .agents/skills/"
             },
             {
                 "label": "跳过",
@@ -261,7 +261,7 @@ mkdir -p ".obsidian"
 ```python
 AskUserQuestion(
     questions=[{
-        "question": "项目 Spec 开发环境已初始化完成：\n\n✅ CLAUDE.md（项目身份 + 规范）\n✅ .claude/rules/（编码规范）\n✅ .claude/skills/（Skills 体系）\n✅ spec/（Spec 目录 + 记忆系统）\n✅ .obsidian/（Obsidian Vault）\n\n是否需要立即启动一个开发任务？",
+        "question": "项目 Spec 开发环境已初始化完成：\n\n✅ AGENTS.md（项目身份 + 规范）\n✅ .agents/rules/（编码规范）\n✅ .agents/skills/（Skills 体系）\n✅ spec/（Spec 目录 + 记忆系统）\n✅ .obsidian/（Obsidian Vault）\n\n是否需要立即启动一个开发任务？",
         "header": "初始化完成",
         "multiSelect": false,
         "options": [
@@ -284,8 +284,8 @@ AskUserQuestion(
 
 ```
 项目根目录/
-├── CLAUDE.md                        # 项目身份 + 规范 + 路由
-├── .claude/
+├── AGENTS.md                        # 项目身份 + 规范 + 路由
+├── .agents/
 │   ├── rules/                       # 永久性编码规范（每文件 ≤ 20 行）
 │   │   ├── coding-style.md          # 编码风格
 │   │   └── spec-workflow.md         # Spec 工作流规范
@@ -304,7 +304,7 @@ AskUserQuestion(
 │       ├── exp-reflect/SKILL.md
 │       ├── exp-write/SKILL.md
 │       ├── intent-confirmation/SKILL.md
-│       ├── git-workflow-sop/SKILL.md
+│       ├── git-work/SKILL.md
 │       ├── skill-creator/SKILL.md
 │       ├── find-skills/SKILL.md
 │       ├── obsidian-markdown/SKILL.md
@@ -331,18 +331,18 @@ AskUserQuestion(
 ## 后续动作
 
 初始化完成后确认：
-1. CLAUDE.md 已创建（项目身份 + 规范 + 路由）
-2. .claude/rules/ 已创建（编码规范模板）
-3. .claude/skills/ 已安装或引导安装
+1. AGENTS.md 已创建（项目身份 + 规范 + 路由）
+2. .agents/rules/ 已创建（编码规范模板）
+3. .agents/skills/ 已安装或引导安装
 4. spec/ 目录结构已创建（6 个分类目录 + context/）
 5. 经验/知识索引文件已创建
 6. Obsidian Vault 已注册（.obsidian/ + app.json）
 7. 已询问用户是否启动开发任务（spec-start）
 
 ### 常见陷阱
-- 已有 CLAUDE.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）
-- 已有 .claude/rules/ 时覆盖已有规范（应先检查）
+- 已有 AGENTS.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）
+- 已有 .agents/rules/ 时覆盖已有规范（应先检查）
 - 已有 spec/ 目录时重复创建（应先检查）
 - 覆盖已有的 .obsidian/ 自定义配置（应先检查）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段
-- CLAUDE.md 中的技术栈信息与实际项目不符（应根据用户回答填充）
+- AGENTS.md 中的技术栈信息与实际项目不符（应根据用户回答填充）

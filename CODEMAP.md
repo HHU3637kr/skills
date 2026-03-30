@@ -73,7 +73,7 @@ skills/                              # 仓库根目录
 ├── intent-confirmation/             # ⚠️ 意图确认
 │   └── SKILL.md                     #    前置确认机制
 │
-├── git-workflow-sop/                # 📦 Git 工作流
+├── git-work/                        # 📦 Git 工作流
 │   ├── SKILL.md                     #    标准 Git 操作
 │   ├── examples.md                  #    示例
 │   └── reference.md                 #    命令参考
@@ -191,7 +191,7 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
            ▼
     ┌─────────────┐
     │  spec-end   │ ─── 调用 ──→ exp-reflect ──→ exp-write
-    │  调用:       │ ─── 调用 ──→ git-workflow-sop
+    │  调用:       │ ─── 调用 ──→ git-work
     └─────────────┘
 ```
 
@@ -206,14 +206,14 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
 | **spec-test** | `spec-debug`(通知) | `spec-write`(协作), `spec-debug`(验证) |
 | **spec-execute** | `exp-search` | `spec-start`(TeamLead) |
 | **spec-debug** | `spec-test`(通知) | `spec-test`(通知) |
-| **spec-end** | `exp-reflect`, `git-workflow-sop` | `spec-start`(TeamLead) |
+| **spec-end** | `exp-reflect`, `git-work` | `spec-start`(TeamLead) |
 | **spec-update** | `obsidian-markdown` | — (独立调用) |
 | **spec-review** | `obsidian-markdown` | — (独立调用) |
 | **exp-search** | — | `spec-explore`, `spec-execute`, `spec-end` |
 | **exp-reflect** | `exp-write` | `spec-end` |
 | **exp-write** | — | `exp-reflect` |
 | **intent-confirmation** | — | `spec-start` |
-| **git-workflow-sop** | — | `spec-end` |
+| **git-work** | — | `spec-end` |
 | **find-skills** | — | `spec-init` |
 | **skill-creator** | — | — (独立调用) |
 | **obsidian-markdown** | — | 所有生成 .md 的 Skill |
@@ -238,7 +238,7 @@ spec-debug     → debug-xxx.md, debug-xxx-fix.md
 spec-review    → review.md
 spec-update    → update-xxx.md, update-xxx-summary.md
 exp-write      → exp-xxx-标题.md / know-xxx-标题.md
-spec-init      → CLAUDE.md, .claude/rules/*.md
+spec-init      → AGENTS.md, .agents/rules/*.md
 ```
 
 ### 记忆数据流
@@ -290,7 +290,7 @@ spec-init      → CLAUDE.md, .claude/rules/*.md
 | 文档格式 | Obsidian Flavored Markdown | wikilinks, callouts, frontmatter |
 | 数据库视图 | Obsidian Bases (.base) | 动态索引、过滤 |
 | 可视化 | JSON Canvas (.canvas) | 关系图、架构图 |
-| 版本控制 | Git | git-workflow-sop 管理 |
+| 版本控制 | Git | git-work 管理 |
 | AI Agent | Claude Code (Anthropic) | TeamCreate, SendMessage API |
 | 废弃组件 | obsidian-spec-confirm (TypeScript) | MCP 插件，已废弃 |
 

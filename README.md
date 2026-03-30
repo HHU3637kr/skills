@@ -14,12 +14,12 @@ npm install -g @rnking3637/rk-flow
 rk-flow init
 ```
 
-在任意项目目录执行 `rk-flow init`，所有 Skills 会自动复制到 `.claude/skills/`。
+在任意项目目录执行 `rk-flow init`，所有 Skills 会自动复制到 `.agents/skills/`。
 
-然后在项目的 `CLAUDE.md` 中添加：
+然后在项目的 `AGENTS.md` 中添加：
 
 ```
-@import .claude/skills/
+@import .agents/skills/
 ```
 
 ## 核心理念
@@ -112,8 +112,8 @@ rk-flow init
 ├───────────────────────────────────────────────────────────────────────────┤
 │                         信息分层架构                                        │
 │                                                                           │
-│  CLAUDE.md           → 项目身份 + 路由（@import .claude/rules/）           │
-│  .claude/rules/      → 永久性编码规范（每文件 ≤ 20 行）                     │
+│  AGENTS.md           → 项目身份 + 路由（@import .agents/rules/）           │
+│  .agents/rules/      → 永久性编码规范（每文件 ≤ 20 行）                     │
 │  MEMORY.md           → Auto Memory 跨会话记忆（Claude 自主管理）            │
 │  exp/                → 项目级结构化经验（显式层）                            │
 │  skills/             → 工作流程定义（精简核心 + references/ 按需加载）        │
@@ -139,7 +139,7 @@ v2.0 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent Tea
 
 ### 初始化
 
-项目首次使用时，调用 `spec-init` 搭建完整项目骨架（CLAUDE.md、.claude/rules/、.claude/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
+项目首次使用时，调用 `spec-init` 搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
 
 每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
@@ -158,7 +158,7 @@ TeamCreate(
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | 完整项目骨架搭建（CLAUDE.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-init` | TeamLead | 完整项目骨架搭建（AGENTS.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 plan.md（纯代码实现计划，不含测试） | 创建新功能 Spec |
@@ -283,7 +283,7 @@ spec-update 创建 update-xxx-summary.md
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `intent-confirmation` | 确认用户意图 | **在执行任务前**避免理解偏差，确保 Agent 正确理解需求 |
-| `git-workflow-sop` | Git 操作规范 | 提交代码、同步仓库 |
+| `git-work` | Git 操作规范 | 提交代码、同步仓库 |
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
 | `find-skills` | 搜索和安装开源 Skill | 从 skills.sh 生态发现新能力 |
 
@@ -530,7 +530,7 @@ spec-ender：
 
 用户：确认归档
 
-spec-ender → 移动到 06-已归档 → 调用 git-workflow-sop 提交
+spec-ender → 移动到 06-已归档 → 调用 git-work 提交
 spec-ender → 通知 TeamLead，Teams 进入待机
 ```
 
@@ -667,7 +667,7 @@ created: YYYY-MM-DD
 
 #### 3. 程序记忆 → SOP Skill
 
-**存储位置**：`.claude/skills/sop-xxx-名称/SKILL.md`
+**存储位置**：`.agents/skills/sop-xxx-名称/SKILL.md`
 
 **加载方式**：
 - Skill 的 `description` 作为索引（始终可见）
@@ -777,7 +777,7 @@ created: YYYY-MM-DD
 ### 新成员入门流程
 
 1. **理解 Spec 驱动开发理念**
-   - 阅读 CLAUDE.md 了解项目背景
+   - 阅读 AGENTS.md 了解项目背景
    - 阅读 spec/ 目录下现有 Spec 了解文档风格
 
 2. **熟悉 Agent Teams 工作流**
@@ -829,9 +829,9 @@ created: YYYY-MM-DD
 
 ### 内部文档
 
-- `CLAUDE.md` - 项目总体指南
+- `AGENTS.md` - 项目总体指南
 - `spec/` - 所有 Spec 文档
-- `.claude/skills/*/SKILL.md` - 各 Skill 的详细说明
+- `.agents/skills/*/SKILL.md` - 各 Skill 的详细说明
 
 ### 外部资源
 
@@ -846,7 +846,7 @@ created: YYYY-MM-DD
 ### 添加新 Skill
 
 1. 参考 `skill-creator/SKILL.md` 的指南
-2. 在 `.claude/skills/` 下创建新目录
+2. 在 `.agents/skills/` 下创建新目录
 3. 编写 SKILL.md 文件
 4. 更新本 README 的 Skills 列表
 
@@ -898,7 +898,7 @@ created: YYYY-MM-DD
    - `spec-updater` → `spec-update`（Skill）
 
 4. **新增 Skill**：
-   - `spec-init`：完整项目骨架搭建（CLAUDE.md + .claude/rules/ + .claude/skills/ + spec/ + Obsidian Vault）
+   - `spec-init`：完整项目骨架搭建（AGENTS.md + .agents/rules/ + .agents/skills/ + spec/ + Obsidian Vault）
    - `spec-start`：启动 Agent Teams，创建 6 个专职角色（与 spec-end 对应）
    - `spec-explore`：Spec 前置信息收集（经验检索 + 代码探索 + 外部资源）
    - `spec-test`：测试计划撰写（test-plan.md）+ 测试执行（test-report.md）
@@ -1018,7 +1018,7 @@ created: YYYY-MM-DD
    - 路径 B 增加回归测试和 spec-reviewer 审查
 
 8. **skill-creator 增强**：
-   - 创建 Skill 时评估是否需要 `.claude/rules/` 摘要文件
+   - 创建 Skill 时评估是否需要 `.agents/rules/` 摘要文件
    - 规范摘要不超过 20 行，引用 Skill 获取详情
 
 9. **Skill 模块化重构**（遵循 skill-creator 渐进式披露原则）：
@@ -1032,8 +1032,8 @@ created: YYYY-MM-DD
 **信息分层架构**：
 
 ```
-CLAUDE.md          → 项目身份 + 路由（@import .claude/rules/）
-.claude/rules/     → 永久性编码规范（每文件 ≤ 20 行）
+AGENTS.md          → 项目身份 + 路由（@import .agents/rules/）
+.agents/rules/     → 永久性编码规范（每文件 ≤ 20 行）
 MEMORY.md          → Auto Memory 跨会话记忆（Claude 自主管理）
 exp/               → 项目级结构化经验（显式层）
 skills/            → 工作流程定义（按需加载）
@@ -1091,7 +1091,7 @@ skills/            → 工作流程定义（按需加载）
    - `exp-write` - 经验写入，将经验写入文件并更新索引
 
 2. **新增 context/experience/ 目录**：
-   - 经验记忆从 CLAUDE.md 迁移到独立文件
+   - 经验记忆从 AGENTS.md 迁移到独立文件
    - 索引全量加载，详情按需检索，避免上下文膨胀
    - 文件使用中文命名：`exp-xxx-标题.md`
 

@@ -1,5 +1,5 @@
 ---
-name: git-workflow-sop
+name: git-work
 description: Git 工作流标准操作规程，包括提交信息生成和远程仓库同步
 ---
 
