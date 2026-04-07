@@ -858,13 +858,31 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.1
-**最后更新**: 2026-02-28
+**版本**: 2.2
+**最后更新**: 2026-04-07
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.2 (2026-04-07) - 通用化改造 + exp-reflect 质量提升
+
+**核心改进**：
+
+1. **跨工具通用化**：将所有 Claude Code 专属路径改为通用命名
+   - `CLAUDE.md` → `AGENTS.md`（与 GitHub AGENTS.md 标准对齐）
+   - `.claude/rules/` → `.agents/rules/`
+   - `.claude/skills/` → `.agents/skills/`
+   - `bin/cli.js` 安装目标同步更新
+
+2. **Skill 重命名**：`git-workflow-sop` → `git-work`（更简洁的调用名）
+
+3. **exp-reflect 状态外置**：从读取"对话历史"改为读取 Spec 文档（`plan.md`、`summary.md`、`debug-*.md`）作为反思素材，对齐 Harness 哲学中"状态外置、不依赖对话"原则
+
+4. **spec-start 角色描述增强**：TeamCreate 的 agent description 中明确角色与 Skill 的映射关系
+
+5. **spec-end 信息传递优化**：启动 exp-reflect 时传入当前 Spec 目录路径，避免 Agent 依赖记忆
 
 ### v2.1 (2026-02-28) - spec-update 职责收敛
 
