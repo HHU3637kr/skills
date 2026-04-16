@@ -1,97 +1,108 @@
 ---
 name: git-work
-description: Git 工作流标准操作规程，包括提交信息生成和远程仓库同步
+description: 基于 GitHub Flow 的 Git 工作流标准操作规程
 ---
 
-# Git 工作流 SOP
+# Git 工作流 SOP（GitHub Flow）
 
 ## 概述
 
-本 Skill 提供标准化的 Git 操作工作流，包括：
-1. 检查 git 状态并审查变更
-2. 生成合适的提交信息
-3. 使用规范的信息提交变更
-4. 与远程仓库同步
-5. 创建可复用的 SOP 文档
+本 Skill 采用 **GitHub Flow** —— 一种轻量级、以分支为基础的工作流：
+- 只有一个永久分支 `main`，始终保持可部署状态
+- 所有工作（功能、修复、文档）都通过**短生命周期分支 + Pull Request** 完成
+- 合并到 `main` 即意味着发布
 
 ## 使用场景
 
-当需要执行 Git 操作或记录标准工作流程时，调用此 Skill 以遵循最佳实践。
+当需要执行 Git 操作时，调用此 Skill 以遵循 GitHub Flow 最佳实践。
+
+## 核心原则
+
+1. **`main` 分支始终可部署** —— 任何时候 main 中的代码都是生产就绪的
+2. **所有工作在分支上进行** —— 从 main 创建描述性命名的分支
+3. **频繁推送到远程** —— 及时备份工作，便于协作
+4. **通过 Pull Request 合并** —— 代码审查后才合并到 main
+5. **合并后立即删除分支** —— 保持仓库整洁
 
 ## 操作步骤
 
-### 1. 检查 Git 状态
+### 1. 同步 main 分支
 
-首先，检查仓库的当前状态：
+开始任何工作前，确保本地 main 是最新的：
 ```bash
-git status
+git checkout main
+git pull origin main
 ```
 
-### 2. 审查变更
+### 2. 创建工作分支
 
-查看工作目录与上次提交之间的差异：
+从 main 分出一个描述性命名的分支：
 ```bash
-git diff
+git checkout -b <分支名>
 ```
 
-### 3. 暂存变更
+**分支命名规范**（使用类型前缀 + 简短描述）：
+- `feat/user-auth` — 新功能
+- `fix/login-timeout` — Bug 修复
+- `docs/api-reference` — 文档更新
+- `refactor/db-queries` — 代码重构
+- `chore/update-deps` — 构建/工具相关
 
-将所有变更添加到暂存区：
+### 3. 开发与提交
+
+在分支上进行开发，频繁做小而专注的提交：
 ```bash
-git add .
+git status                    # 检查状态
+git diff                      # 审查变更
+git add .                     # 暂存变更
+git commit -m "<提交信息>"     # 提交
 ```
 
-### 4. 生成提交信息
-
-创建描述性的提交信息，说明做了什么变更以及为什么：
-```bash
-git commit -m "<描述性提交信息>"
-```
-
-**提交信息最佳实践**：
-- 使用祈使句（"添加功能" 而不是 "添加了功能"）
+**提交信息规范**：
+- 使用类型前缀：`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
 - 第一行限制在 72 个字符以内
-- 如需要，在正文中提供详细说明
-- 如适用，引用相关的 issue 编号
+- 如需要，空一行后在正文中提供详细说明
+- 如适用，引用相关的 issue 编号（如 `closes #42`）
 
-**提交信息类型前缀**：
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档更新
-- `refactor`: 代码重构
-- `test`: 测试相关
-- `chore`: 构建/工具相关
+### 4. 推送分支到远程
 
-### 5. 推送到远程仓库
-
-将本地变更同步到远程仓库：
+定期推送到远程，备份工作并为 PR 做准备：
 ```bash
 git push origin <分支名>
 ```
 
-### 6. 记录 SOP
+### 5. 创建 Pull Request
 
-创建文档，为后续参考和团队成员记录操作流程。
+在 GitHub 上创建 PR：
+- 填写变更说明和解决的问题
+- 关联相关 Issue
+- 请求团队成员 Review
+
+### 6. 代码审查与合并
+
+- 审查者提出问题、建议
+- 根据反馈继续提交修复到同一分支
+- 审批通过后合并到 main
+
+### 7. 删除分支
+
+合并后立即删除远程和本地分支：
+```bash
+git checkout main
+git pull origin main
+git branch -d <分支名>
+```
 
 ## 示例
 
-### 示例 1：标准提交工作流
+### 示例 1：功能开发
 
-常规变更：
 ```bash
-git status
-git diff
-git add .
-git commit -m "docs: 更新文档并修复小问题"
-git push origin main
-```
+git checkout main
+git pull origin main
+git checkout -b feat/user-auth
 
-### 示例 2：功能开发
-
-带详细提交信息的功能开发：
-```bash
-git status
-git diff
+# 开发...
 git add .
 git commit -m "feat: 实现用户认证功能
 
@@ -99,40 +110,78 @@ git commit -m "feat: 实现用户认证功能
 - 集成数据库进行用户存储
 - 包含密码哈希以确保安全
 - 添加 JWT 令牌生成用于会话管理"
-git push origin feature/user-auth
+
+git push origin feat/user-auth
+# → 在 GitHub 上创建 PR → Review → Merge
+
+git checkout main
+git pull origin main
+git branch -d feat/user-auth
 ```
 
-### 示例 3：Bug 修复
+### 示例 2：Bug 修复
 
 ```bash
-git status
-git diff
+git checkout main
+git pull origin main
+git checkout -b fix/websocket-disconnect
+
 git add .
 git commit -m "fix: 修复 WebSocket 连接断开问题
 
 - 添加心跳机制保持连接
 - 增加重连逻辑
 - 优化错误处理"
-git push origin main
+
+git push origin fix/websocket-disconnect
+# → 创建 PR → Review → Merge
+
+git checkout main
+git pull origin main
+git branch -d fix/websocket-disconnect
+```
+
+### 示例 3：文档更新
+
+```bash
+git checkout main
+git pull origin main
+git checkout -b docs/update-readme
+
+git add .
+git commit -m "docs: 更新 README 和 API 文档"
+
+git push origin docs/update-readme
+# → 创建 PR → Merge
+
+git checkout main
+git pull origin main
+git branch -d docs/update-readme
 ```
 
 ## 最佳实践
 
-1. **频繁提交**：进行小而专注的提交，而不是大范围的变更
-2. **描述性信息**：编写清晰的提交信息，说明"做了什么"和"为什么"
-3. **一致的工作流**：每次提交都遵循相同的步骤以保持一致性
-4. **远程同步**：定期推送变更以避免丢失工作
-5. **文档记录**：保持 SOP 文档与当前实践同步更新
+1. **原子提交**：每个 commit 包含一个独立完整的变更，便于回滚
+2. **短生命周期分支**：分支应尽快合并，避免长期偏离 main
+3. **描述性命名**：分支名和提交信息都要清晰表达意图
+4. **先拉后推**：推送前先 `git pull origin main` 避免冲突
+5. **PR 即文档**：在 PR 中详细描述变更内容，便于追溯
 
 ## 故障排除
 
 ### 问题：合并冲突
 
-如果遇到合并冲突：
-1. 拉取最新变更：`git pull origin main`
-2. 在受影响的文件中手动解决冲突
-3. 暂存已解决的文件：`git add <已解决的文件>`
-4. 完成合并：`git commit`
+分支落后于 main 时：
+```bash
+git checkout main
+git pull origin main
+git checkout <你的分支>
+git merge main                # 将 main 合并到你的分支
+# 解决冲突后
+git add <已解决的文件>
+git commit
+git push origin <你的分支>
+```
 
 ### 问题：大文件
 
@@ -151,11 +200,12 @@ git push origin main
 
 | 命令 | 说明 |
 |------|------|
+| `git checkout main && git pull` | 同步最新 main |
+| `git checkout -b <分支名>` | 从当前分支创建新分支 |
 | `git log --oneline -10` | 查看最近 10 条提交历史 |
 | `git diff --staged` | 查看已暂存的变更 |
-| `git reset HEAD <文件>` | 取消暂存文件 |
-| `git checkout -- <文件>` | 丢弃工作目录中的变更 |
-| `git stash` | 临时保存当前修改 |
-| `git stash pop` | 恢复临时保存的修改 |
+| `git stash` / `git stash pop` | 临时保存/恢复修改 |
+| `git branch -d <分支名>` | 删除本地分支 |
+| `git push origin --delete <分支名>` | 删除远程分支 |
 | `git branch -a` | 查看所有分支 |
 | `git remote -v` | 查看远程仓库信息 |
