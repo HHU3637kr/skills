@@ -1,0 +1,11 @@
+{
+  "id": "dff22a08-5276-4cab-8fda-e401f9b0c1a1",
+  "role": "TeamLead",
+  "engine": "claude-code",
+  "model": "default",
+  "workspaceUri": "c:\\Users\\18735\\.claude\\skills",
+  "specDir": "spec/02-技术设计/20260428-1658-RoleChat对话体验与运行产物展示优化",
+  "gitBranch": "feat/spec-20260428-1335-rk-flow-vscode-extension",
+  "createdAt": "2026-04-28T10:09:25.286Z",
+  "updatedAt": "2026-04-28T10:09:25.286Z"
+}

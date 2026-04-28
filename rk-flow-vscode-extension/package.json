@@ -2,7 +2,7 @@
   "name": "rk-flow-vscode-extension",
   "displayName": "R&K Flow",
   "description": "Spec-driven Agent Team orchestration for VS Code using Claude Code.",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "publisher": "rnking3637",
   "license": "MIT",
   "repository": {
@@ -18,12 +18,15 @@
   ],
   "activationEvents": [
     "onStartupFinished",
+    "onCommand:rkFlow.createSpec",
     "onCommand:rkFlow.openAgentTeamCanvas",
     "onCommand:rkFlow.checkoutSpecBranch",
     "onCommand:rkFlow.sendTeamMessage",
     "onCommand:rkFlow.selectAgentRole",
+    "onCommand:rkFlow.showAdapterStatus",
+    "onCommand:rkFlow.refresh",
     "onView:rkFlow.specExplorer",
-    "onView:rkFlow.agentAdapters",
+    "onView:rkFlow.currentSpecFiles",
     "onView:rkFlow.agentChat",
     "onView:rkFlow.teamChatroom"
   ],
@@ -54,11 +57,11 @@
       "rk-flow": [
         {
           "id": "rkFlow.specExplorer",
-          "name": "Spec Explorer"
+          "name": "Spec Directory"
         },
         {
-          "id": "rkFlow.agentAdapters",
-          "name": "Agent Adapters"
+          "id": "rkFlow.currentSpecFiles",
+          "name": "Current Spec Files"
         }
       ],
       "rk-flow-agent": [
@@ -78,6 +81,11 @@
     },
     "commands": [
       {
+        "command": "rkFlow.createSpec",
+        "title": "R&K Flow: Create Spec",
+        "icon": "$(add)"
+      },
+      {
         "command": "rkFlow.openAgentTeamCanvas",
         "title": "R&K Flow: Open AgentTeam Canvas"
       },
@@ -92,8 +100,31 @@
       {
         "command": "rkFlow.selectAgentRole",
         "title": "R&K Flow: Select Agent Role"
+      },
+      {
+        "command": "rkFlow.showAdapterStatus",
+        "title": "R&K Flow: Show Adapter Status"
+      },
+      {
+        "command": "rkFlow.refresh",
+        "title": "R&K Flow: Refresh",
+        "icon": "$(refresh)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "rkFlow.createSpec",
+          "when": "view == rkFlow.specExplorer",
+          "group": "navigation@1"
+        },
+        {
+          "command": "rkFlow.refresh",
+          "when": "view == rkFlow.specExplorer || view == rkFlow.currentSpecFiles",
+          "group": "navigation@2"
+        }
+      ]
+    }
   },
   "scripts": {
     "compile": "tsc -p .",

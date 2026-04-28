@@ -19,6 +19,46 @@ export class GitBindingManager {
     await this.git(["switch", branch]);
   }
 
+  async createAndCheckoutBranch(branch: string, baseBranch?: string): Promise<void> {
+    if (!branch) {
+      throw new Error("Branch name is required.");
+    }
+
+    if (await this.branchExists(branch)) {
+      await this.checkoutBranch(branch);
+      return;
+    }
+
+    const args = ["switch", "-c", branch];
+    if (baseBranch) {
+      args.push(baseBranch);
+    }
+    await this.git(args);
+  }
+
+  async branchExists(branch: string): Promise<boolean> {
+    if (!branch) {
+      return false;
+    }
+
+    try {
+      await this.git(["rev-parse", "--verify", branch]);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async defaultBaseBranch(): Promise<string> {
+    for (const branch of ["main", "master"]) {
+      if (await this.branchExists(branch)) {
+        return branch;
+      }
+    }
+
+    return this.currentBranch();
+  }
+
   async statusShort(): Promise<string> {
     return this.git(["status", "--short", "--branch"]);
   }

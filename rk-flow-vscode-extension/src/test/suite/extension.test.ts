@@ -17,6 +17,7 @@ import { redactSensitiveText, truncateOutput } from "../../roleChat/sanitize";
 import { mapAgentEventToTimelineItems } from "../../roleChat/timelineMapper";
 import { appendTimelineItems, readTimelineForRole } from "../../roleChat/timelineStore";
 import type { RoleTimelineItem } from "../../roleChat/timelineTypes";
+import { createSpec, createSpecBranchName } from "../../specs/specCreator";
 import { SpecRepository } from "../../specs/specRepository";
 import type { SpecBinding } from "../../specs/types";
 import { FileTeamBus } from "../../teamBus/fileTeamBus";
@@ -30,26 +31,36 @@ suite("R&K Flow extension host", () => {
     await extension.activate();
 
     const commands = await vscode.commands.getCommands(true);
+    assert.ok(commands.includes("rkFlow.createSpec"));
     assert.ok(commands.includes("rkFlow.openAgentTeamCanvas"));
     assert.ok(commands.includes("rkFlow.checkoutSpecBranch"));
     assert.ok(commands.includes("rkFlow.sendTeamMessage"));
     assert.ok(commands.includes("rkFlow.selectAgentRole"));
+    assert.ok(commands.includes("rkFlow.showAdapterStatus"));
     assert.ok(commands.includes("rkFlow.refresh"));
   });
 
-  test("contributes Role Chat as a side view and Team Chatroom as a panel view", async () => {
+  test("contributes Spec Directory, Current Spec Files, Role Chat, and Team Chatroom views", async () => {
     const manifestPath = path.join(workspaceRoot().fsPath, "rk-flow-vscode-extension", "package.json");
     const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")) as {
       contributes: {
         viewsContainers: Record<string, Array<{ id: string }>>;
-        views: Record<string, Array<{ id: string; type?: string }>>;
+        views: Record<string, Array<{ id: string; name?: string; type?: string }>>;
+        menus: Record<string, Array<{ command: string; when?: string }>>;
       };
     };
 
     assert.ok(manifest.contributes.viewsContainers.activitybar.some(container => container.id === "rk-flow-agent"));
     assert.ok(manifest.contributes.viewsContainers.panel.some(container => container.id === "rk-flow-team"));
+    assert.strictEqual(
+      manifest.contributes.views["rk-flow"].find(view => view.id === "rkFlow.specExplorer")?.name,
+      "Spec Directory"
+    );
+    assert.ok(manifest.contributes.views["rk-flow"].some(view => view.id === "rkFlow.currentSpecFiles"));
+    assert.ok(!manifest.contributes.views["rk-flow"].some(view => view.id === "rkFlow.agentAdapters"));
     assert.ok(manifest.contributes.views["rk-flow-agent"].some(view => view.id === "rkFlow.agentChat"));
     assert.ok(manifest.contributes.views["rk-flow-team"].some(view => view.id === "rkFlow.teamChatroom"));
+    assert.ok(manifest.contributes.menus["view/title"].some(item => item.command === "rkFlow.createSpec" && item.when === "view == rkFlow.specExplorer"));
     assert.strictEqual(
       manifest.contributes.views["rk-flow-agent"].find(view => view.id === "rkFlow.agentChat")?.type,
       "webview"
@@ -58,6 +69,49 @@ suite("R&K Flow extension host", () => {
       manifest.contributes.views["rk-flow-team"].find(view => view.id === "rkFlow.teamChatroom")?.type,
       "webview"
     );
+  });
+
+  test("creates a full Spec scaffold for Create Spec", async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-create-spec-"));
+    const created = await createSpec({
+      workspaceRootFsPath: workspace,
+      title: "CreateSpec入口",
+      category: "02-技术设计",
+      gitBranch: "feat/spec-20260428-1825-createspec",
+      baseBranch: "master",
+      now: new Date(2026, 3, 28, 18, 25)
+    });
+
+    assert.strictEqual(created.id, "20260428-1825");
+    assert.ok(created.specDir.endsWith("spec/02-技术设计/20260428-1825-CreateSpec入口"));
+    assert.strictEqual(createSpecBranchName(created.id, created.title), "feat/spec-20260428-1825-createspec");
+
+    const expectedFiles = [
+      "README.md",
+      "plan.md",
+      "test-plan.md",
+      "team-context.md",
+      "AgentTeam.canvas",
+      "team-chat.jsonl",
+      "agent-chat.jsonl",
+      "agent-timeline.jsonl",
+      "audit-log.jsonl"
+    ];
+    for (const fileName of expectedFiles) {
+      await fs.stat(path.join(created.specDirFsPath, fileName));
+    }
+
+    const plan = await fs.readFile(created.planPathFsPath, "utf8");
+    assert.ok(plan.includes("title: CreateSpec入口"));
+    assert.ok(plan.includes("git_branch: feat/spec-20260428-1825-createspec"));
+  });
+
+  test("creates stable ASCII branch names for Chinese-only Spec titles", () => {
+    const first = createSpecBranchName("20260428-1830", "用户权限管理优化");
+    const second = createSpecBranchName("20260428-1830", "用户权限管理优化");
+
+    assert.strictEqual(first, second);
+    assert.match(first, /^feat\/spec-20260428-1830-spec-[a-z0-9]+$/);
   });
 
   test("discovers the active Spec and reads Git branch binding", async () => {

@@ -11,6 +11,8 @@ import { mapAgentEventToTimelineItems } from "./roleChat/timelineMapper";
 import { renderRoleChatHtml } from "./roleChat/renderRoleChatHtml";
 import { appendTimelineItems, readTimelineForRole } from "./roleChat/timelineStore";
 import type { PrivateRoleChatMessage, RoleTimelineItem } from "./roleChat/timelineTypes";
+import { createSpec, createSpecBranchName, createSpecId, specCategories, validateSpecTitle } from "./specs/specCreator";
+import type { CreatedSpec } from "./specs/specCreator";
 import { SpecRepository } from "./specs/specRepository";
 import type { SpecBinding } from "./specs/types";
 import { FileTeamBus } from "./teamBus/fileTeamBus";
@@ -52,34 +54,65 @@ class SpecExplorerProvider implements vscode.TreeDataProvider<SpecItem> {
   }
 }
 
-class AgentAdaptersProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
-  private readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<vscode.TreeItem | undefined>();
+class SpecFileItem extends vscode.TreeItem {
+  constructor(
+    readonly uri: vscode.Uri,
+    readonly workspaceRoot: vscode.Uri,
+    readonly isDirectory: boolean
+  ) {
+    super(path.basename(uri.fsPath), isDirectory ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None);
+    this.resourceUri = uri;
+    this.contextValue = isDirectory ? "rkFlowSpecFolder" : "rkFlowSpecFile";
+    this.tooltip = path.relative(workspaceRoot.fsPath, uri.fsPath).replace(/\\/g, "/");
+    this.iconPath = new vscode.ThemeIcon(isDirectory ? "folder" : "file");
+
+    if (!isDirectory) {
+      this.command = {
+        command: "vscode.open",
+        title: "Open File",
+        arguments: [uri]
+      };
+    }
+  }
+}
+
+class CurrentSpecFilesProvider implements vscode.TreeDataProvider<SpecFileItem> {
+  private readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<SpecFileItem | undefined>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
-  constructor(private readonly adapters: AgentAdapter[]) {}
+  constructor(
+    private readonly workspaceRoot: vscode.Uri,
+    private readonly getActiveSpec: () => Promise<SpecBinding | undefined>
+  ) {}
 
   refresh(): void {
     this.onDidChangeTreeDataEmitter.fire(undefined);
   }
 
-  getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
+  getTreeItem(element: SpecFileItem): vscode.TreeItem {
     return element;
   }
 
-  async getChildren(): Promise<vscode.TreeItem[]> {
-    const items = await Promise.all(this.adapters.map(async adapter => {
-      const available = await adapter.detect();
-      const item = new vscode.TreeItem(adapter.engine, vscode.TreeItemCollapsibleState.None);
-      item.description = available ? "available" : "missing";
-      item.iconPath = new vscode.ThemeIcon(available ? "check" : "warning");
-      return item;
-    }));
+  async getChildren(element?: SpecFileItem): Promise<SpecFileItem[]> {
+    const spec = await this.getActiveSpec();
+    if (!spec) {
+      return [];
+    }
 
-    const terminal = new vscode.TreeItem("vscode-terminal", vscode.TreeItemCollapsibleState.None);
-    terminal.description = "native bridge";
-    terminal.iconPath = new vscode.ThemeIcon("terminal");
-
-    return [...items, terminal];
+    const parent = element?.uri.fsPath ?? spec.specDirFsPath;
+    const entries = await fs.readdir(parent, { withFileTypes: true });
+    return entries
+      .filter(entry => !entry.name.startsWith("."))
+      .sort((left, right) => {
+        if (left.isDirectory() !== right.isDirectory()) {
+          return left.isDirectory() ? -1 : 1;
+        }
+        return left.name.localeCompare(right.name);
+      })
+      .map(entry => {
+        const uri = vscode.Uri.file(path.join(parent, entry.name));
+        return new SpecFileItem(uri, this.workspaceRoot, entry.isDirectory());
+      });
   }
 }
 
@@ -719,16 +752,42 @@ export function activate(context: vscode.ExtensionContext): void {
     return spec?.specDirFsPath;
   });
   const specExplorer = new SpecExplorerProvider(repository);
-  const adaptersProvider = new AgentAdaptersProvider(adapters);
+  const specFilesProvider = new CurrentSpecFilesProvider(workspaceRoot, getActiveSpec);
   const chatProvider = new AgentChatViewProvider(teamBus, getActiveSpec, adapters, workspaceRoot);
   const teamChatProvider = new TeamChatroomViewProvider(teamBus, getActiveSpec, chatProvider);
+  const adapterStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   chatProvider.setTeamMessagesChangedHandler(() => teamChatProvider.refresh());
+  const refreshAdapterStatus = async (): Promise<void> => {
+    await updateAdapterStatusBar(adapterStatusBar, adapters);
+  };
+  void refreshAdapterStatus();
 
   context.subscriptions.push(
     vscode.window.registerTreeDataProvider("rkFlow.specExplorer", specExplorer),
-    vscode.window.registerTreeDataProvider("rkFlow.agentAdapters", adaptersProvider),
+    vscode.window.registerTreeDataProvider("rkFlow.currentSpecFiles", specFilesProvider),
     vscode.window.registerWebviewViewProvider(AgentChatViewProvider.viewType, chatProvider),
     vscode.window.registerWebviewViewProvider(TeamChatroomViewProvider.viewType, teamChatProvider),
+    adapterStatusBar,
+    vscode.commands.registerCommand("rkFlow.createSpec", async () => {
+      let created: CreatedSpec | undefined;
+      try {
+        created = await promptAndCreateSpec(workspaceRoot, gitBinding);
+      } catch (error) {
+        await vscode.window.showErrorMessage(`Failed to create Spec: ${String(error)}`);
+        return;
+      }
+      if (!created) {
+        return;
+      }
+
+      specExplorer.refresh();
+      activeSpec = await repository.findById(created.specDir) ?? createdSpecToBinding(created);
+      specFilesProvider.refresh();
+      await chatProvider.refresh();
+      await teamChatProvider.refresh();
+      await vscode.window.showInformationMessage(`Created Spec: ${created.title}`);
+      await openAgentTeamCanvas(context, activeSpec, gitBinding, teamBus, chatProvider, teamChatProvider);
+    }),
     vscode.commands.registerCommand("rkFlow.openAgentTeamCanvas", async (spec?: SpecBinding) => {
       activeSpec = spec ?? await getActiveSpec();
       if (!activeSpec) {
@@ -736,6 +795,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
+      specFilesProvider.refresh();
       await chatProvider.refresh();
       await teamChatProvider.refresh();
       await openAgentTeamCanvas(context, activeSpec, gitBinding, teamBus, chatProvider, teamChatProvider);
@@ -785,17 +845,106 @@ export function activate(context: vscode.ExtensionContext): void {
       await teamChatProvider.reveal();
       await vscode.window.showInformationMessage("R&K Flow team message saved.");
     }),
+    vscode.commands.registerCommand("rkFlow.showAdapterStatus", async () => {
+      await showAdapterStatus(adapters);
+      await refreshAdapterStatus();
+    }),
     vscode.commands.registerCommand("rkFlow.refresh", () => {
       specExplorer.refresh();
-      adaptersProvider.refresh();
+      specFilesProvider.refresh();
       void chatProvider.refresh();
       void teamChatProvider.refresh();
+      void refreshAdapterStatus();
     })
   );
 }
 
 export function deactivate(): void {
   return;
+}
+
+async function promptAndCreateSpec(
+  workspaceRoot: vscode.Uri,
+  gitBinding: GitBindingManager
+): Promise<CreatedSpec | undefined> {
+  const title = await vscode.window.showInputBox({
+    title: "Create Spec",
+    prompt: "Spec title",
+    placeHolder: "用户权限管理优化",
+    validateInput: validateSpecTitle
+  });
+  if (!title?.trim()) {
+    return undefined;
+  }
+
+  const categoryPick = await vscode.window.showQuickPick(
+    specCategories.map(category => ({ label: category })),
+    { title: "Create Spec", placeHolder: "Select Spec directory", canPickMany: false }
+  );
+  if (!categoryPick) {
+    return undefined;
+  }
+
+  const now = new Date();
+  const id = createSpecId(now);
+  const currentBranch = await safeCurrentBranch(gitBinding);
+  const baseBranch = await safeDefaultBaseBranch(gitBinding);
+  const suggestedBranch = createSpecBranchName(id, title);
+  const gitAction = await vscode.window.showQuickPick([
+    {
+      label: `Create and checkout ${suggestedBranch}`,
+      description: "recommended",
+      action: "create" as const
+    },
+    {
+      label: `Bind current branch ${currentBranch || "unknown"}`,
+      description: "no branch switch",
+      action: "bind-current" as const
+    },
+    {
+      label: "Do not bind a Git branch",
+      description: "Spec metadata keeps git_branch empty",
+      action: "none" as const
+    }
+  ], { title: "Create Spec", placeHolder: "Select Git binding strategy", canPickMany: false });
+  if (!gitAction) {
+    return undefined;
+  }
+
+  let gitBranch = "";
+  let specBaseBranch = "";
+  if (gitAction.action === "create") {
+    await gitBinding.createAndCheckoutBranch(suggestedBranch, baseBranch);
+    gitBranch = suggestedBranch;
+    specBaseBranch = baseBranch;
+  } else if (gitAction.action === "bind-current") {
+    gitBranch = currentBranch;
+    specBaseBranch = baseBranch;
+  }
+
+  return createSpec({
+    workspaceRootFsPath: workspaceRoot.fsPath,
+    title,
+    category: categoryPick.label,
+    gitBranch,
+    baseBranch: specBaseBranch,
+    now
+  });
+}
+
+function createdSpecToBinding(created: CreatedSpec): SpecBinding {
+  return {
+    id: created.id,
+    title: created.title,
+    category: created.category,
+    status: "草稿",
+    phase: "草稿",
+    specDir: created.specDir,
+    specDirFsPath: created.specDirFsPath,
+    planPathFsPath: created.planPathFsPath,
+    gitBranch: created.gitBranch,
+    baseBranch: created.baseBranch
+  };
 }
 
 async function openAgentTeamCanvas(
@@ -858,6 +1007,50 @@ async function safeCurrentBranch(gitBinding: GitBindingManager): Promise<string>
   } catch {
     return "unknown";
   }
+}
+
+async function safeDefaultBaseBranch(gitBinding: GitBindingManager): Promise<string> {
+  try {
+    return await gitBinding.defaultBaseBranch();
+  } catch {
+    return "";
+  }
+}
+
+async function updateAdapterStatusBar(statusBar: vscode.StatusBarItem, adapters: AgentAdapter[]): Promise<void> {
+  const statuses = await detectAdapterStatuses(adapters);
+  const claudeCode = statuses.find(status => status.engine === "claude-code");
+  const available = claudeCode?.available === true;
+  statusBar.text = `${available ? "$(check)" : "$(warning)"} Claude Code`;
+  statusBar.command = "rkFlow.showAdapterStatus";
+  statusBar.tooltip = [
+    "R&K Flow Adapter Status",
+    "",
+    ...statuses.map(status => `${status.available ? "OK" : "MISSING"} ${status.engine}: ${status.available ? "available" : "missing"}`),
+    "OK vscode-terminal: native bridge"
+  ].join("\n");
+  statusBar.show();
+}
+
+async function showAdapterStatus(adapters: AgentAdapter[]): Promise<void> {
+  const statuses = await detectAdapterStatuses(adapters);
+  await vscode.window.showQuickPick([
+    ...statuses.map(status => ({
+      label: `${status.available ? "$(check)" : "$(warning)"} ${status.engine}`,
+      description: status.available ? "available" : "missing"
+    })),
+    {
+      label: "$(terminal) vscode-terminal",
+      description: "native bridge"
+    }
+  ], { title: "R&K Flow Adapter Status", canPickMany: false });
+}
+
+async function detectAdapterStatuses(adapters: AgentAdapter[]): Promise<Array<{ engine: AgentEngine; available: boolean }>> {
+  return Promise.all(adapters.map(async adapter => ({
+    engine: adapter.engine,
+    available: await adapter.detect()
+  })));
 }
 
 function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
