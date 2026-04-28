@@ -21,10 +21,10 @@ skills/                              # 仓库根目录
 ├── .gitignore
 │
 ├── spec-init/                       # 🏗️ 项目初始化（一次性）
-│   └── SKILL.md                     #    创建完整项目骨架
+│   └── SKILL.md                     #    检查 Git + 创建完整项目骨架
 │
 ├── spec-start/                      # 🚀 启动 Agent Teams（每次任务）
-│   └── SKILL.md                     #    创建 6 个专职角色
+│   └── SKILL.md                     #    创建 Spec 分支 + 6 个专职角色
 │
 ├── spec-explore/                    # 🔍 前置探索
 │   └── SKILL.md                     #    信息收集 → exploration-report.md
@@ -35,7 +35,9 @@ skills/                              # 仓库根目录
 │       └── plan-template.md         #    plan.md 模板
 │
 ├── spec-test/                       # 🧪 测试
-│   └── SKILL.md                     #    test-plan.md + test-report.md
+│   ├── SKILL.md                     #    test-plan.md + test-report.md
+│   └── references/
+│       └── web-e2e-testing.md       #    Web 端侧 E2E 测试策略
 │
 ├── spec-execute/                    # ⚙️ 实现
 │   ├── SKILL.md                     #    按 plan.md 编码 → summary.md
@@ -48,7 +50,7 @@ skills/                              # 仓库根目录
 │       └── debug-template.md        #    debug 文档模板
 │
 ├── spec-end/                        # 🏁 收尾
-│   └── SKILL.md                     #    经验沉淀 + 归档 + git
+│   └── SKILL.md                     #    经验沉淀 + 归档 + PR
 │
 ├── spec-update/                     # 🔄 功能更新
 │   ├── SKILL.md                     #    update-xxx.md（不归档）
@@ -74,7 +76,7 @@ skills/                              # 仓库根目录
 │   └── SKILL.md                     #    前置确认机制
 │
 ├── git-work/                        # 📦 Git 工作流
-│   ├── SKILL.md                     #    标准 Git 操作
+│   ├── SKILL.md                     #    GitHub Flow 分支 + PR
 │   ├── examples.md                  #    示例
 │   └── reference.md                 #    命令参考
 │
@@ -138,8 +140,8 @@ skills/                              # 仓库根目录
 ### 一、Spec 核心工作流（按执行顺序）
 
 ```
-spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
-(一次性)      (每次任务)                        (每次任务)
+spec-init ──→ spec-start ──→ git-work ──→ [5 阶段流程] ──→ spec-end ──→ git-work
+(一次性)      (每次任务)       (创建分支)        (开发测试)        (收尾)       (PR)
 
 5 阶段流程：
 ┌─────────────────────────────────────────────────────────────┐
@@ -153,7 +155,7 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
 └─────────────────────────────────────────────────────────────┘
 
 独立流程：
-  spec-update ──→ (不归档，不走 5 阶段)
+  spec-update ──→ git-work 校验当前 Spec 分支 + update-summary + review + exp-reflect + 规范维护（不归档）
   spec-review ──→ (可选，任意时刻调用)
 ```
 
@@ -168,6 +170,7 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
                            ▼
                     ┌──────────────┐
                     │  spec-start  │ ─── 调用 ──→ intent-confirmation
+                    │              │ ─── 调用 ──→ git-work (创建分支)
                     │ (启动团队)    │
                     └──────┬───────┘
                            │ 通知
@@ -191,7 +194,7 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
            ▼
     ┌─────────────┐
     │  spec-end   │ ─── 调用 ──→ exp-reflect ──→ exp-write
-    │  调用:       │ ─── 调用 ──→ git-work
+    │  调用:       │ ─── 调用 ──→ git-work (提交/推送/PR)
     └─────────────┘
 ```
 
@@ -200,20 +203,20 @@ spec-init ──→ spec-start ──→ [5 阶段流程] ──→ spec-end
 | Skill | 调用/依赖 | 被调用/被依赖 |
 |-------|----------|-------------|
 | **spec-init** | `find-skills`, `spec-start` | — |
-| **spec-start** | `intent-confirmation` | `spec-init` |
+| **spec-start** | `intent-confirmation`, `git-work` | `spec-init` |
 | **spec-explore** | `exp-search` | `spec-start`(TeamLead) |
 | **spec-write** | `obsidian-markdown` | `spec-explore`, `spec-test`(协作) |
 | **spec-test** | `spec-debug`(通知) | `spec-write`(协作), `spec-debug`(验证) |
 | **spec-execute** | `exp-search` | `spec-start`(TeamLead) |
 | **spec-debug** | `spec-test`(通知) | `spec-test`(通知) |
 | **spec-end** | `exp-reflect`, `git-work` | `spec-start`(TeamLead) |
-| **spec-update** | `obsidian-markdown` | — (独立调用) |
+| **spec-update** | `git-work`, `obsidian-markdown`, `exp-reflect` | — (独立调用) |
 | **spec-review** | `obsidian-markdown` | — (独立调用) |
 | **exp-search** | — | `spec-explore`, `spec-execute`, `spec-end` |
 | **exp-reflect** | `exp-write` | `spec-end` |
 | **exp-write** | — | `exp-reflect` |
 | **intent-confirmation** | — | `spec-start` |
-| **git-work** | — | `spec-end` |
+| **git-work** | — | `spec-start`, `spec-end`, `spec-update` |
 | **find-skills** | — | `spec-init` |
 | **skill-creator** | — | — (独立调用) |
 | **obsidian-markdown** | — | 所有生成 .md 的 Skill |
@@ -236,9 +239,23 @@ spec-test      → test-report.md (阶段四)
 spec-execute   → summary.md
 spec-debug     → debug-xxx.md, debug-xxx-fix.md
 spec-review    → review.md
-spec-update    → update-xxx.md, update-xxx-summary.md
+spec-update    → update-xxx.md, update-xxx-summary.md, update-xxx-review.md
 exp-write      → exp-xxx-标题.md / know-xxx-标题.md
-spec-init      → AGENTS.md, .agents/rules/*.md
+spec-init      → Git 仓库检查, AGENTS.md, .agents/rules/*.md
+```
+
+### Git 数据流
+
+```
+新 Spec：
+  spec-start → git-work → 创建 <type>/spec-<timestamp>-<slug>
+             → spec-write → plan.md 记录 git_branch / base_branch / pr_url
+             → spec-end → git-work → commit + push + PR → 写回 pr_url
+
+已有 Spec 更新：
+  spec-update → git-work → 校验当前分支等于 plan.md 的 git_branch
+              → update-xxx.md 继承 git_branch / base_branch / pr_url
+              → update 收尾 → git-work → commit + push；必要时创建/更新 PR
 ```
 
 ### 记忆数据流
@@ -248,22 +265,23 @@ spec-init      → AGENTS.md, .agents/rules/*.md
   exp-search ──→ 搜索 5 层记忆 ──→ 返回相关经验
 
 开发后：
-  spec-end ──→ exp-reflect ──→ 分析对话
+  spec-end ──→ exp-reflect ──→ 分析当前 Spec 文档
                   │
                   ├─ 重大经验 → exp-write → spec/context/experience/
                   ├─ 项目理解 → exp-write → spec/context/knowledge/
                   ├─ 可复用SOP → skill-creator → 新 Skill
+                  ├─ 项目规范 → AGENTS.md / .agents/rules/
                   └─ 轻量经验 → Auto Memory（Claude 自动处理）
 ```
 
 ### 门禁数据流
 
 ```
-阶段一完成 → TeamLead → AskUserQuestion → 用户确认 → 阶段二
-阶段二完成 → TeamLead → AskUserQuestion → 用户确认 → 阶段三
-阶段三完成 → TeamLead → AskUserQuestion → 用户确认 → 阶段四
-阶段四完成 → TeamLead → AskUserQuestion → 用户确认 → 阶段五
-阶段五      → spec-ender → AskUserQuestion → 用户确认归档
+阶段一完成 → TeamLead → 请求用户确认 → 用户确认 → 阶段二
+阶段二完成 → TeamLead → 请求用户确认 → 用户确认 → 阶段三
+阶段三完成 → TeamLead → 请求用户确认 → 用户确认 → 阶段四
+阶段四完成 → TeamLead → 请求用户确认 → 用户确认 → 阶段五
+阶段五      → spec-ender → 请求用户确认 → 用户确认归档/提交/推送/创建 PR
 ```
 
 ---
@@ -290,8 +308,8 @@ spec-init      → AGENTS.md, .agents/rules/*.md
 | 文档格式 | Obsidian Flavored Markdown | wikilinks, callouts, frontmatter |
 | 数据库视图 | Obsidian Bases (.base) | 动态索引、过滤 |
 | 可视化 | JSON Canvas (.canvas) | 关系图、架构图 |
-| 版本控制 | Git | git-work 管理 |
-| AI Agent | Claude Code (Anthropic) | TeamCreate, SendMessage API |
+| 版本控制 | Git / GitHub Flow | git-work 管理 Spec 分支、PR、合并后清理 |
+| AI Agent | Claude Code / compatible AI coding agents | 团队、消息、确认能力按运行环境映射 |
 | 废弃组件 | obsidian-spec-confirm (TypeScript) | MCP 插件，已废弃 |
 
 ---

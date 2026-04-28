@@ -4,13 +4,16 @@
 
 ```yaml
 ---
-title: 功能名称
+title: Spec 标题
 type: plan
-category: 03-功能实现
+category: 选择 01-05 工作类型目录
 status: 未确认
 priority: 高
 created: YYYY-MM-DD
 execution_mode: single-agent
+git_branch: feat/spec-YYYYMMDD-HHMM-ascii-slug
+base_branch: main
+pr_url:
 tags:
   - spec
   - plan
@@ -24,16 +27,22 @@ related: []
 |------|------|------|--------|
 | `title` | 是 | Spec 标题 | - |
 | `type` | 是 | 文档类型 | `plan` |
-| `category` | 是 | 分类目录 | `01-项目规划`/`02-架构设计`/`03-功能实现`/`04-问题修复`/`05-测试文档` |
+| `category` | 是 | 工作类型目录，必须按 spec-write 的分类决策顺序选择，不能默认写 03 | `01-产品规划`/`02-技术设计`/`03-能力交付`/`04-系统改进`/`05-验证工程` |
 | `status` | 是 | 当前状态 | `未确认`/`已确认`/`已归档` |
 | `priority` | 是 | 优先级 | `高`/`中`/`低` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` 格式 |
 | `execution_mode` | 是 | 执行模式，v2.0 固定 `single-agent` | `single-agent` |
+| `git_branch` | 是 | 当前 Spec 对应的 GitHub Flow 工作分支，由 spec-start 创建 | ASCII 分支名，如 `feat/spec-20260428-1430-user-auth` |
+| `base_branch` | 是 | 工作分支的基准分支 | 通常为 `main` |
+| `pr_url` | 否 | spec-end 创建 PR 后写回 | GitHub PR URL，创建前留空 |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `plan` |
 | `related` | 否 | 关联的其他 Spec | 双链列表 |
 
 > [!important] v2.0 变更：execution_mode 固定为 single-agent
 > Teams 架构取代了原来的 agent-teams 路径 B，plan.md 中不再使用 agent-teams 模式。
+
+> [!important] GitHub Flow 元数据
+> `git_branch` / `base_branch` 由 spec-start 通过 git-work 创建并传入。不要手写一个不存在的分支；如果项目不是 Git 仓库，写 `git_branch: none` 并在正文说明原因。
 
 ---
 
@@ -86,4 +95,4 @@ plan.md 必须包含以下章节：
 
 1. **文档关联**：使用 `[[]]` 双链建立文档间关系
 2. **Callout**：`> [!warning]` 风险、`> [!tip]` 建议、`> [!important]` 关键决策、`> [!note]` 补充
-3. **标签**：在 frontmatter 或正文中添加标签（如 `#spec/功能实现`）
+3. **标签**：在 frontmatter 或正文中添加标签（如 `#spec/能力交付`）

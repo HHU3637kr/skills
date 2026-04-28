@@ -2,7 +2,7 @@
 
 ## 概述
 
-**R&K Flow** 是一套完整的 Spec 驱动式开发 Skills 体系，通过 **Obsidian** 管理文档，用 **Agent Teams 多角色协作架构** 驱动开发流程。v2.0 将开发拆分为 5 个阶段，由 6 个专职角色分工协作，融合结构化文档、可追溯流程和双层记忆系统。
+**R&K Flow** 是一套完整的 Spec 驱动式开发 Skills 体系，通过 **Obsidian** 管理文档，用 **Agent Teams 多角色协作架构** 驱动开发流程。当前版本将开发拆分为 5 个阶段，由 6 个专职角色分工协作，融合结构化文档、可追溯流程和双层记忆系统。
 
 
 如果你对该工作流感兴趣,或者有疑问,欢迎加入我们的社群讨论
@@ -14,7 +14,7 @@ npm install -g @rnking3637/rk-flow
 rk-flow init
 ```
 
-在任意项目目录执行 `rk-flow init`，所有 Skills 会自动复制到 `.agents/skills/`。
+在任意项目目录执行 `rk-flow init`，核心 R&K Flow Skills 会自动复制到 `.agents/skills/`。
 
 然后在项目的 `AGENTS.md` 中添加：
 
@@ -41,7 +41,7 @@ rk-flow init
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                    Spec 驱动式开发工作流 v2.0                              │
+│                    Spec 驱动式开发工作流 v2.3                              │
 │                     Agent Teams 多角色协作架构                             │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
@@ -52,6 +52,8 @@ rk-flow init
 │  │ TeamLead + intent-confirmation → 用户确认                │              │
 │  └────────────────────────┬────────────────────────────────┘              │
 │      ↓ 【门禁 1：需求理解正确】                                             │
+│  GitHub Flow：git-work 从 main 创建 Spec 工作分支                           │
+│      ↓                                                                    │
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段二：Spec 创建                                        │              │
 │  │ spec-explorer → exploration-report.md                    │              │
@@ -73,7 +75,7 @@ rk-flow init
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段五：收尾                                              │              │
 │  │ spec-ender → 多角色讨论 + exp-reflect                     │              │
-│  │ → 用户确认归档 → git 提交                                  │              │
+│  │ → 规范维护审查 → 归档 → 推送 PR                            │              │
 │  └─────────────────────────────────────────────────────────┘              │
 │                                                                           │
 ├───────────────────────────────────────────────────────────────────────────┤
@@ -115,13 +117,40 @@ rk-flow init
 │  AGENTS.md           → 项目身份 + 路由（@import .agents/rules/）           │
 │  .agents/rules/      → 永久性编码规范（每文件 ≤ 20 行）                     │
 │  MEMORY.md           → Auto Memory 跨会话记忆（Claude 自主管理）            │
-│  exp/                → 项目级结构化经验（显式层）                            │
+│  spec/context/       → 项目级结构化经验与知识（显式层）                       │
 │  skills/             → 工作流程定义（精简核心 + references/ 按需加载）        │
+│  spec-end            → 每个 Spec 收尾时审查并维护项目规范                     │
 │                                                                           │
 └───────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Agent Teams 架构
+
+### 运行时约定
+
+R&K Flow 文档中的“创建团队、创建角色、通知角色、请求用户确认”都是**抽象协作动作**，不是跨平台固定 API。
+
+| 抽象动作 | 含义 | 不支持多 Agent 时 |
+|----------|------|------------------|
+| 创建团队 | 为一个 Spec 周期建立协作上下文 | 由当前 Agent 记录阶段状态 |
+| 创建角色 | 初始化 spec-explorer / writer / tester 等职责 | 当前 Agent 按角色顺序执行对应 Skill |
+| 通知角色 | 把上游产物路径和下一步任务交给对应角色 | 在对话或任务清单中显式记录交接 |
+| 请求用户确认 | 阶段门禁，等待用户批准后继续 | 直接向用户提问并等待回复 |
+
+如果运行环境提供子代理、消息或确认工具，可以映射到平台原生能力；如果没有，则按同一阶段顺序由单 Agent 串行执行。
+
+### GitHub Flow 约定
+
+R&K Flow 把 GitHub Flow 作为 Spec 生命周期的一部分，而不是最后一步提交动作。
+
+| 时机 | Git 动作 | 记录位置 |
+|------|----------|----------|
+| `spec-start` | 从 `main` 创建 Spec 工作分支 | `plan.md` 的 `git_branch` / `base_branch` |
+| `spec-update` | 复用并校验当前 Spec 工作分支 | `update-xxx.md` 继承 plan.md 的 `git_branch` / `base_branch` |
+| `spec-end` | 归档后提交、推送、创建 PR | `plan.md` / `summary.md` 的 `pr_url` |
+| update 收尾 | 提交、推送当前 Spec 分支；必要时创建/更新 PR，不归档 | `update-xxx.md` / `update-xxx-summary.md` 的 `pr_url` |
+
+分支命名使用 `<type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>`，例如 `feat/spec-20260109-1430-evaluator-agent`。多个 Spec 并发开发时使用 `git worktree`，每个 Spec 独占工作目录和分支。
 
 ### 角色与 Skill 对照
 
@@ -135,19 +164,19 @@ v2.0 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent Tea
 | spec-tester | `spec-test` | `test-plan.md`, `test-report.md` | 阶段二 + 阶段四 |
 | spec-executor | `spec-execute` | `summary.md` | 阶段三 |
 | spec-debugger | `spec-debug` | `debug-xxx.md`, `debug-xxx-fix.md` | 阶段三/四（按需） |
-| spec-ender | `spec-end` | 经验沉淀 + 归档 + git 提交 | 阶段五 |
+| spec-ender | `spec-end` | 经验沉淀 + 规范维护 + 归档 + 推送 PR | 阶段五 |
 
 ### 初始化
 
-项目首次使用时，调用 `spec-init` 搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
+项目首次使用时，调用 `spec-init` 检查/初始化 Git 仓库，并搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、spec/ 目录、记忆系统、Obsidian Vault）。
 
 每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
-```python
-TeamCreate(
-    team_name="spec-{YYYYMMDD-HHMM}-{任务简称}",
-    description="Spec 驱动开发: {任务描述}"
-)
+```text
+创建分支：<type>/spec-{YYYYMMDD-HHMM}-{ascii-slug}
+创建团队：spec-{YYYYMMDD-HHMM}-{任务简称}
+团队说明：Spec 驱动开发: {任务描述}
+初始化角色：spec-explorer / spec-writer / spec-tester / spec-executor / spec-debugger / spec-ender
 ```
 
 当前 Agent 自动成为 TeamLead，无需创建额外的 TeamLead 角色。
@@ -158,15 +187,15 @@ TeamCreate(
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | 完整项目骨架搭建（AGENTS.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
-| `spec-start` | TeamLead | 初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
+| `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-start` | TeamLead | 创建 Spec 工作分支，初始化 Agent Teams，创建 6 个专职角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 plan.md（纯代码实现计划，不含测试） | 创建新功能 Spec |
-| `spec-test` | spec-tester | 撰写 test-plan.md + 执行测试产出 test-report.md | 测试计划和测试执行 |
+| `spec-test` | spec-tester | 按场景策略撰写 test-plan.md + 执行测试产出 test-report.md | 测试计划和测试执行 |
 | `spec-execute` | spec-executor | 严格按 plan.md 实现代码，产出 summary.md | 新功能开发 |
 | `spec-debug` | spec-debugger | 诊断并修复 bug，产出 debug 文档 | 测试发现问题时 |
-| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 归档 + git 提交 | 开发周期收尾 |
-| `spec-update` | — | 执行功能更新 | 修改已有功能（不归档） |
+| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 规范维护 + 归档 + 推送 PR | 开发周期收尾 |
+| `spec-update` | — | 在当前 Spec 分支内执行小更新 | 修改同一活跃 Spec 的既有功能（不归档） |
 | `spec-review` | — | 审查实现情况 | 可选：验证是否严格遵循 Spec |
 
 #### 新功能开发流程（5 阶段）
@@ -175,6 +204,11 @@ TeamCreate(
 阶段一：需求对齐
   TeamLead（当前 Agent）→ intent-confirmation → 用户确认
       ↓ 【门禁 1】
+
+GitHub Flow 准备
+  TeamLead → git-work → 从 main 创建 Spec 工作分支
+  TeamLead → 记录 git_branch / base_branch / pr_url
+      ↓
 
 阶段二：Spec 创建
   TeamLead → spec-explorer 开始
@@ -199,7 +233,8 @@ TeamCreate(
 
 阶段五：收尾
   TeamLead → spec-ender 开始
-  spec-ender → 多角色讨论 + exp-reflect → 用户确认归档 → git 提交
+  spec-ender → 多角色讨论 + exp-reflect → 规范维护审查 → 用户确认归档
+  spec-ender → git-work 提交 + 推送 + 创建 PR
   spec-ender → 通知 TeamLead，Teams 进入待机
 
 可选：用户可在任意时刻调用 spec-review 进行详细审查
@@ -210,7 +245,7 @@ TeamCreate(
 ```
 spec-tester 发现 bug
     ↓
-SendMessage 通知 spec-debugger（含复现步骤）
+通知 spec-debugger（含复现步骤）
     ↓
 spec-debugger 诊断问题
     ↓
@@ -222,7 +257,7 @@ TeamLead 向用户确认诊断
     ↓
 创建 debug-xxx-fix.md（修复总结）
     ↓
-SendMessage 通知 spec-tester 重新验证
+通知 spec-tester 重新验证
     ↓
 spec-tester 验证通过 → 记录到 test-report.md
 ```
@@ -236,10 +271,12 @@ spec-tester 验证通过 → 记录到 test-report.md
 
 #### 功能更新流程
 
-适用场景：已有功能完成并归档后，原有需求发生变化或设计过时，需要对已有 Spec 进行迭代更新。
+适用场景：同一个活跃 Spec 在当前工作分支内需要小迭代、补充需求、修正方案或优化实现。若原 Spec 分支已合并/关闭，后续需求默认新建 Spec。
 
 ```
-已有功能的需求/设计发生变化（原 plan.md + summary.md 已存在）
+同一活跃 Spec 的需求/设计发生小变化（原 plan.md + summary.md 已存在）
+    ↓
+git-work 确认当前分支等于 plan.md 的 git_branch
     ↓
 spec-update 创建 update-xxx.md（放在原 Spec 目录）
     ↓
@@ -249,7 +286,11 @@ spec-update 执行更新
     ↓
 spec-update 创建 update-xxx-summary.md
     ↓
-用户确认
+spec-review 审查 + 用户确认
+    ↓
+exp-reflect 经验反思 + 规范维护审查
+    ↓
+git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
     ↓
 完成（不归档，保留在原目录）
 
@@ -261,7 +302,7 @@ spec-update 创建 update-xxx-summary.md
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `exp-search` | 记忆检索 | 检索五层记忆（经验+知识+SOP+工具记忆+Auto Memory 只读） |
-| `exp-reflect` | 记忆反思 | 分析对话提取记忆，自动识别类型（经验/知识），按权重分流 |
+| `exp-reflect` | 记忆反思 | 分析 Spec 文档提取经验、知识、SOP、工具记忆、项目规范/规则，按类型分流 |
 | `exp-write` | 记忆写入 | 将经验写入 experience/ 或知识写入 knowledge/，更新索引 |
 
 ### 3. Obsidian 支持 Skills
@@ -283,7 +324,7 @@ spec-update 创建 update-xxx-summary.md
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `intent-confirmation` | 确认用户意图 | **在执行任务前**避免理解偏差，确保 Agent 正确理解需求 |
-| `git-work` | Git 操作规范 | 提交代码、同步仓库 |
+| `git-work` | GitHub Flow 分支/PR 规范 | Spec 开始时创建工作分支，收尾时提交、推送、创建 PR |
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
 | `find-skills` | 搜索和安装开源 Skill | 从 skills.sh 生态发现新能力 |
 
@@ -291,12 +332,12 @@ spec-update 创建 update-xxx-summary.md
 
 ```
 spec/
-├── 01-项目规划/          # PRD、流程设计、项目规划
-├── 02-架构设计/          # 架构、数据模型、服务层
-├── 03-功能实现/          # 功能、API、集成
-├── 04-问题修复/          # Bug修复、重构
-├── 05-测试文档/          # 测试计划、测试报告
-├── 06-已归档/           # 已完成的 Spec（自动移动）
+├── 01-产品规划/          # PRD、路线图、需求拆解、用户流程、里程碑
+├── 02-技术设计/          # 架构、数据模型、模块边界、技术选型、迁移方案
+├── 03-能力交付/          # 新功能、新接口、新页面、新集成、新工作流
+├── 04-系统改进/          # Bug、回归、性能/安全问题、配置依赖、无新能力的重构
+├── 05-验证工程/          # 独立测试策略、回归验证、覆盖率提升、审计日志方案
+├── 06-已归档/           # 已完成的 Spec（由 spec-end 移动）
 └── context/             # 记忆系统（与 Spec 工作流一致）
     ├── experience/      # 经验记忆存储（显式层）
     │   ├── index.md     # 经验索引
@@ -321,10 +362,12 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 ├── review.md                  # 审查报告（可选，spec-review 创建）
 ├── debug-001.md               # 问题诊断（spec-debug 创建）
 ├── debug-001-fix.md           # 修复总结（spec-debug 创建）
-├── update-001.md              # 更新方案（spec-write 创建）
+├── update-001.md              # 更新方案（spec-update 创建）
 ├── update-001-summary.md      # 更新总结（spec-update 创建）
 └── update-001-review.md       # 更新审查（可选，spec-review 创建）
 ```
+
+外层目录分类的是“这个 Spec 作为一件工作的主意图”；目录内部文档分类的是“这个 Spec 的生命周期产物”。`03-能力交付` 只用于新增用户可感知能力；修复、优化、重构、技术债默认优先考虑 `04-系统改进`；架构和数据模型优先考虑 `02-技术设计`；独立测试工作优先考虑 `05-验证工程`。同一活跃 Spec 分支内的小变化使用 `spec-update` 留在原目录；已合并/已关闭后的新需求默认新建 Spec。
 
 ## Obsidian 在 Spec 流程中的关键作用
 
@@ -356,11 +399,14 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 ---
 title: 功能名称
 type: plan
-category: 03-功能实现
+category: 选择 01-05 工作类型目录
 status: 未确认
 priority: 高
 created: 2026-01-09
 execution_mode: single-agent
+git_branch: feat/spec-20260109-1430-evaluator-agent
+base_branch: main
+pr_url:
 tags:
   - spec
   - plan
@@ -412,7 +458,10 @@ views:
 
 ### 概述
 
-本项目使用 Claude Code 的原生 `AskUserQuestion` 工具实现用户确认工作流。v2.0 中每个阶段转换前都设有**门禁节点**，由 TeamLead 统一发起，确保用户始终掌控开发方向。
+本项目使用当前运行环境可用的确认方式实现用户确认工作流。v2.0 起每个阶段转换前都设有**门禁节点**，由 TeamLead 统一发起，确保用户始终掌控开发方向。
+
+> [!note] 平台映射
+> 如果环境支持原生确认工具（如 `AskUserQuestion`），优先使用工具；如果不支持，TeamLead 直接向用户提问并等待明确回复。
 
 ### 门禁节点
 
@@ -423,35 +472,22 @@ views:
 | **门禁 3：实现确认** | 阶段三完成 | TeamLead | summary.md |
 | **门禁 4：测试确认** | 阶段四完成 | TeamLead | test-report.md |
 | **诊断确认** | bug 诊断完成 | TeamLead | debug-xxx.md（如有） |
-| **归档确认** | 阶段五 | spec-ender | 是否归档 + git 提交 |
+| **归档确认** | 阶段五 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
 
 ### 确认示例
 
-```python
-AskUserQuestion(
-    questions=[{
-        "question": "plan.md 已创建完成，请确认设计方案是否可以开始实现？",
-        "header": "确认方案",
-        "multiSelect": false,
-        "options": [
-            {
-                "label": "确认，开始实现",
-                "description": "设计方案正确，可以开始执行实现"
-            },
-            {
-                "label": "需要修改",
-                "description": "设计方案需要调整，请说明修改要求"
-            }
-        ]
-    }]
-)
+```text
+确认目标：plan.md 已创建完成，设计方案是否可以开始实现？
+确认选项：
+- 确认，开始实现
+- 需要修改（请说明修改要求）
 ```
 
 ### intent-confirmation 前置确认
 
 > **⚠️ 为什么需要 intent-confirmation？**
 >
-> 在执行非简单任务前，必须先确认用户意图，避免因理解偏差导致的无效工作。触发条件包括：
+> 当请求存在理解风险时，先确认用户意图，避免因理解偏差导致的无效工作。触发条件包括：
 > - **抽象需求**：需求描述较为模糊（如"优化一下这个功能"）
 > - **设计决策**：涉及架构变更或设计选择
 > - **多义表达**：用户表达可能有多种理解
@@ -467,9 +503,10 @@ AskUserQuestion(
 用户：我需要实现一个专业评价 Agent
 
 TeamLead（当前 Agent）：
-调用 spec-start，创建 Agent Teams "spec-20260109-1430-专业评价Agent"
-初始化 6 个专职角色...
+调用 spec-start，建立协作上下文 "spec-20260109-1430-专业评价Agent"
 使用 intent-confirmation 与用户对齐需求...
+调用 git-work，从 main 创建分支 feat/spec-20260109-1430-evaluator-agent
+初始化 6 个专职角色...
 ```
 
 #### 步骤 2：Spec 创建（阶段二）
@@ -511,7 +548,7 @@ TeamLead → spec-tester 开始执行测试
 
 spec-tester：
   按 test-plan.md 执行测试用例
-  发现 bug → SendMessage 通知 spec-debugger
+  发现 bug → 通知 spec-debugger
   spec-debugger 修复 → 通知 spec-tester 重新验证
   产出 test-report.md
 
@@ -526,11 +563,12 @@ TeamLead → spec-ender 开始
 spec-ender：
   向各角色发起讨论，收集经验素材
   调用 exp-reflect 分流沉淀
-  询问用户：是否归档并提交 git？
+  审查是否需要维护 AGENTS.md / .agents/rules/
+  询问用户：是否归档、提交、推送并创建 PR？
 
 用户：确认归档
 
-spec-ender → 移动到 06-已归档 → 调用 git-work 提交
+spec-ender → 移动到 06-已归档 → 调用 git-work 提交、推送、创建 PR
 spec-ender → 通知 TeamLead，Teams 进入待机
 ```
 
@@ -701,6 +739,7 @@ created: YYYY-MM-DD
 | **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
 | **知识记忆** | 是什么 | 项目理解、技术调研、代码分析 | TeachingAnalyzer 架构、AgentScope 框架对比 |
 | **程序记忆（SOP）** | 怎么做 | 可机械执行的步骤序列 | Docker 部署流程、数据库迁移流程 |
+| **项目规范/规则** | 必须遵守什么 | 长期项目约束、编码/安全/测试/日志/审计规则 | AGENTS.md、.agents/rules/*.md |
 
 ### 经验权重分流
 
@@ -718,7 +757,7 @@ created: YYYY-MM-DD
 **手动触发**：
 ```bash
 /exp-search <关键词>        # 检索相关记忆（含 Auto Memory 只读搜索）
-/exp-reflect               # 反思对话，自动识别记忆类型并分流
+/exp-reflect               # 反思当前 Spec 文档，自动识别记忆类型并分流
 /exp-reflect 记录数据流     # 带提示词，引导识别为知识记忆
 /exp-write type=experience # 写入经验记忆（通常由 exp-reflect 调用）
 /exp-write type=knowledge  # 写入知识记忆（通常由 exp-reflect 调用）
@@ -729,8 +768,23 @@ created: YYYY-MM-DD
 - 探索了项目架构、数据流 → 知识记忆（exp-write）
 - 完成了技术调研、框架对比 → 知识记忆（exp-write）
 - 完成了一个可重复的操作流程 → 程序记忆（SOP）
+- 形成长期编码、安全、测试、日志或审计约束 → 项目规范/规则（AGENTS.md 或 rules）
 - 发现某个操作后总是需要特定的后续步骤 → 工具记忆
 - 日常编码技巧和调试经验 → Auto Memory（自动处理）
+
+## 规范演进闭环
+
+`spec-init` 负责创建 `AGENTS.md` 和 `.agents/rules/`，`spec-end` 负责让它们在每个 Spec 收尾时被轻量审查。审查问题是：本次是否产生了以后都要遵守的项目规范？
+
+| 发现内容 | 维护位置 |
+|----------|----------|
+| 项目身份、技术栈、启动/部署方式、开发流程变化 | `AGENTS.md` |
+| 长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范 | `.agents/rules/*.md` |
+| 可复用操作流程（部署、发布、迁移等） | `.agents/skills/sop-xxx/SKILL.md` |
+| 项目架构、数据流、模块理解 | `spec/context/knowledge/` |
+| 困境-策略、踩坑经验 | `spec/context/experience/` |
+
+原则：只写长期规则，不写一次性实现细节；优先更新已有 rules 文件，必要时再创建新规则文件；规范文件每次会话都会加载，必须短、明确、可执行。
 
 ## 最佳实践
 
@@ -751,13 +805,13 @@ created: YYYY-MM-DD
 ### 3. 文档管理
 
 - **命名规范**：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
-- **分类存放**：必须放入对应的分类目录（01-05）
+- **分类存放**：必须按任务主意图放入对应工作类型目录，不要默认放入 `03-能力交付`
 - **双链关联**：使用 `[[wikilink]]` 建立文档关系
 - **元数据完整**：每个文档都有完整的 frontmatter
 
 ### 4. 质量把关
 
-- **意图确认**：**第一步**就使用 `intent-confirmation` 避免理解偏差
+- **意图确认**：满足触发条件时使用 `intent-confirmation` 避免理解偏差
   - 触发条件：抽象需求、设计决策、多义表达、大范围影响
   - 确认方式：复述用户意图、列出关键理解点、询问"是这个意思吗？"
 - **门禁机制**：每个阶段转换都等待用户确认
@@ -801,14 +855,14 @@ created: YYYY-MM-DD
 # 在 Claude Code 中调用 Skills
 
 /spec-init        # 项目初始化（一次性）
-/spec-start       # 启动 Agent Teams
+/spec-start       # 创建 Spec 分支并启动 Agent Teams
 /spec-explore     # 前置信息收集
 /spec-write       # 撰写设计方案
 /spec-test        # 撰写测试计划 / 执行测试
 /spec-execute     # 执行新功能开发
 /spec-debug       # 诊断并修复问题
-/spec-end         # 收尾（经验沉淀 + 归档）
-/spec-update      # 执行功能更新
+/spec-end         # 收尾（经验沉淀 + 归档 + 推送 PR）
+/spec-update      # 在当前 Spec 分支内执行小更新
 /spec-review      # 审查实现情况
 
 /exp-search       # 检索历史经验
@@ -858,13 +912,25 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.2
-**最后更新**: 2026-04-07
+**版本**: 2.3
+**最后更新**: 2026-04-28
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.3 (2026-04-28) - 运行时边界收敛 + 文档同步
+
+**核心改进**：
+
+1. **运行时抽象化**：将创建团队、通知角色、请求确认等描述统一为抽象协作动作，避免把示例写成固定平台 API
+2. **归档职责收敛**：`spec-execute` 只负责实现和 `summary.md`，归档与 PR 收尾统一交给 `spec-end`
+3. **确认策略收敛**：`intent-confirmation` 改为风险触发式确认，而不是所有任务第一步强制确认
+4. **路径口径统一**：显式记忆统一指向 `spec/context/experience/` 与 `spec/context/knowledge/`
+5. **规范演进闭环**：`spec-end` 在归档前审查 `AGENTS.md` / `.agents/rules/` 是否需要维护，`exp-reflect` 支持项目规范/规则分流
+6. **GitHub Flow 贯穿 Spec 生命周期**：`spec-start` 创建工作分支，`spec-update` 复用当前 Spec 分支，`spec-end` 收尾创建 PR，update 收尾提交推送并在整体交付时创建/更新 PR
+7. **版本同步**：README 与 npm package 版本同步到 2.3.0
 
 ### v2.2 (2026-04-07) - 通用化改造 + exp-reflect 质量提升
 
@@ -880,7 +946,7 @@ created: YYYY-MM-DD
 
 3. **exp-reflect 状态外置**：从读取"对话历史"改为读取 Spec 文档（`plan.md`、`summary.md`、`debug-*.md`）作为反思素材，对齐 Harness 哲学中"状态外置、不依赖对话"原则
 
-4. **spec-start 角色描述增强**：TeamCreate 的 agent description 中明确角色与 Skill 的映射关系
+4. **spec-start 角色描述增强**：团队初始化说明中明确角色与 Skill 的映射关系
 
 5. **spec-end 信息传递优化**：启动 exp-reflect 时传入当前 Spec 目录路径，避免 Agent 依赖记忆
 
@@ -976,15 +1042,15 @@ created: YYYY-MM-DD
 
 1. **废弃 MCP 确认插件，改用 Claude Code 原生特性**：
    - `obsidian-spec-confirm` MCP 插件目前存在 Bug，暂时废弃
-   - 所有 Spec 确认流程改用 Claude Code 原生 `AskUserQuestion` 工具
+   - 所有 Spec 确认流程改用运行环境提供的原生确认能力
    - 后续 MCP 插件完善后再投入使用
 
 2. **更新所有 Skill 的确认机制**：
-   - spec-writer：plan.md 确认改用 `AskUserQuestion`
-   - spec-executor：summary.md 确认改用 `AskUserQuestion`
-   - spec-updater：update-xxx.md 和 review.md 确认改用 `AskUserQuestion`
-   - spec-reviewer：review.md 确认改用 `AskUserQuestion`
-   - spec-debugger：debug-xxx.md 和 debug-xxx-fix.md 确认改用 `AskUserQuestion`
+   - spec-writer：plan.md 确认改用原生确认能力
+   - spec-executor：summary.md 确认改用原生确认能力
+   - spec-updater：update-xxx.md 和 review.md 确认改用原生确认能力
+   - spec-reviewer：review.md 确认改用原生确认能力
+   - spec-debugger：debug-xxx.md 和 debug-xxx-fix.md 确认改用原生确认能力
 
 3. **用户确认节点**：
    - 方案确认：spec-writer 创建 plan.md 后
@@ -1028,7 +1094,7 @@ created: YYYY-MM-DD
 
 6. **spec-executor 双轨工作流**：
    - 路径 A（单 Agent）：保持现有流程不变
-   - 路径 B（Agent Teams）：TeamCreate → TaskCreate → 生成队友 → 监控 → 汇总 → TeamDelete
+   - 路径 B（Agent Teams）：创建团队 → 创建任务 → 生成队友 → 监控 → 汇总 → 关闭团队
    - 根据 plan.md 的 execution_mode 自动选择路径
 
 7. **spec-updater 双轨工作流**：
@@ -1053,7 +1119,7 @@ created: YYYY-MM-DD
 AGENTS.md          → 项目身份 + 路由（@import .agents/rules/）
 .agents/rules/     → 永久性编码规范（每文件 ≤ 20 行）
 MEMORY.md          → Auto Memory 跨会话记忆（Claude 自主管理）
-exp/               → 项目级结构化经验（显式层）
+spec/context/      → 项目级结构化经验与知识（显式层）
 skills/            → 工作流程定义（按需加载）
 ```
 

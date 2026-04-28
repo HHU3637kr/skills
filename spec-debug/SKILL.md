@@ -21,12 +21,12 @@ description: >
 
 ```
 spec-tester 发现 bug
-    → SendMessage 通知 spec-debugger（含复现步骤）
+    → 通知 spec-debugger（含复现步骤）
     → spec-debugger 调用 spec-debug
     → 诊断 → debug-xxx.md
     → TeamLead 向用户确认诊断
     → 修复 → debug-xxx-fix.md
-    → SendMessage 通知 spec-tester 重新验证
+    → 通知 spec-tester 重新验证
     → spec-tester 验证通过 → 记录到 test-report.md
 ```
 
@@ -34,7 +34,7 @@ spec-tester 发现 bug
 
 ### 步骤 1：收集问题信息
 
-从 spec-tester 的 SendMessage 中获取：
+从 spec-tester 的 bug 通知中获取：
 - 问题现象和复现步骤
 - 预期行为 vs 实际行为
 - 相关测试用例编号
@@ -88,14 +88,11 @@ tags:
 
 ### 步骤 6：通知 TeamLead 等待用户确认诊断
 
-```python
-SendMessage(
-    recipient="TeamLead",
-    content="debug-001.md 已创建，请向用户确认诊断结果。路径：{路径}"
-)
+```text
+通知 TeamLead：debug-001.md 已创建，请向用户确认诊断结果。路径：{路径}
 ```
 
-TeamLead 使用 AskUserQuestion 向用户确认。等待确认通过后继续修复。
+TeamLead 使用当前运行环境的确认方式向用户确认。等待确认通过后继续修复。
 
 ### 步骤 7：执行修复
 
@@ -126,19 +123,16 @@ tags:
 
 ### 步骤 9：通知 spec-tester 重新验证
 
-```python
-SendMessage(
-    recipient="spec-tester",
-    content="bug 已修复，请重新验证测试用例 TC-XXX。修复详情见 debug-001-fix.md"
-)
+```text
+通知 spec-tester：bug 已修复，请重新验证测试用例 TC-XXX。修复详情见 debug-001-fix.md
 ```
 
 ## 与其他角色的协作
 
 ```
-spec-tester → SendMessage → spec-debugger（本角色）
+spec-tester → 通知 spec-debugger（本角色）
 spec-debugger → 诊断 → 通知 TeamLead（用户确认）→ 修复
-spec-debugger → SendMessage → spec-tester（重新验证）
+spec-debugger → 通知 spec-tester（重新验证）
 ```
 
 - 不直接修改 plan.md

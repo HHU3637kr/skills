@@ -29,7 +29,7 @@ description: >
 
 ### 步骤 1：接收任务
 
-从 TeamLead 的 SendMessage 中获取：
+从 TeamLead 的启动指令中获取：
 - 当前任务描述
 - 需要探索的范围（项目代码、外部库、文档等）
 - exploration-report.md 的保存路径
@@ -84,15 +84,9 @@ description: >
 
 ### 步骤 6：通知 spec-writer 和 spec-tester
 
-```python
-SendMessage(
-    recipient="spec-writer",
-    content="exploration-report.md 已完成，请阅读后开始撰写 plan.md。路径：{路径}"
-)
-SendMessage(
-    recipient="spec-tester",
-    content="exploration-report.md 已完成，请阅读后与 spec-writer 协作撰写 test-plan.md。路径：{路径}"
-)
+```text
+通知 spec-writer：exploration-report.md 已完成，请阅读后开始撰写 plan.md。路径：{路径}
+通知 spec-tester：exploration-report.md 已完成，请阅读后与 spec-writer 协作撰写 test-plan.md。路径：{路径}
 ```
 
 ## 与其他角色的协作

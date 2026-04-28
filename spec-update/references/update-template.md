@@ -2,11 +2,14 @@
 title: 功能名称-更新XXX
 type: update
 update_number: 1
-category: 03-功能实现
+category: 与 plan.md 相同
 status: 未确认
 update_type: 功能增强
 created: YYYY-MM-DD
 plan: "[[plan]]"
+git_branch: 与 plan.md 相同
+base_branch: 与 plan.md 相同
+pr_url: 与 plan.md 相同
 tags:
   - spec
   - update
@@ -117,4 +120,7 @@ tags:
 | `update_type` | 是 | 更新类型 | `功能增强`/`Bug修复`/`性能优化`/`重构`/`安全修复` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` |
 | `plan` | 是 | 关联 plan | `"[[plan]]"` |
+| `git_branch` | 是 | 当前 Spec 的 GitHub Flow 工作分支 | 与 plan.md 相同 |
+| `base_branch` | 是 | 工作分支的基准分支 | 与 plan.md 相同 |
+| `pr_url` | 否 | 当前 Spec 的 PR 链接 | 与 plan.md 相同；创建前留空 |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `update` |

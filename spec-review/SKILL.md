@@ -1,6 +1,6 @@
 ---
 name: spec-review
-description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-execute 完成 summary.md 后、用户确认归档前使用。触发词：审查 Spec、检查实现、Spec Review。
+description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-execute 完成 summary.md 后、spec-end 归档前使用。触发词：审查 Spec、检查实现、Spec Review。
 ---
 
 # Spec Review
@@ -9,26 +9,13 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 ### 用户确认（必须执行）
 
-> [!important] 完成审查报告后，**必须**使用 `AskUserQuestion` 工具等待用户确认。
+> [!important] 完成审查报告后，**必须**使用当前运行环境的确认方式等待用户确认。
 
-```python
-AskUserQuestion(
-    questions=[{
-        "question": "审查报告已创建完成，审查结果是否准确？",
-        "header": "确认审查",
-        "multiSelect": false,
-        "options": [
-            {
-                "label": "审查准确",
-                "description": "审查报告准确，可以根据结果进行后续操作"
-            },
-            {
-                "label": "需要调整",
-                "description": "审查报告需要调整，请说明问题"
-            }
-        ]
-    }]
-)
+```text
+确认目标：审查报告已创建完成，审查结果是否准确？
+确认选项：
+- 审查准确
+- 需要调整（请说明问题）
 ```
 
 ### 审查文件命名
@@ -62,7 +49,7 @@ AskUserQuestion(
 | 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
 | 5 | 对比分析 | 按三个维度（完成度、一致性、额外实现）识别差异 |
 | 6 | 生成审查报告 | 在 Spec 目录下创建 review.md，模板见 [references/review-template.md](references/review-template.md) |
-| 7 | 用户确认 | **必须**使用 `AskUserQuestion` 工具等待用户确认 |
+| 7 | 用户确认 | **必须**使用当前运行环境的确认方式等待用户确认 |
 
 ### 步骤 5：对比分析要点
 
@@ -82,14 +69,14 @@ AskUserQuestion(
 
 | 响应 | 含义 | 后续操作 |
 |------|------|----------|
-| "审查准确" | 用户确认 | 审查通过 → 可归档；需修复 → 等待修复后重新审查 |
+| "审查准确" | 用户确认 | 审查通过 → 交给 spec-end 归档；需修复 → 等待修复后重新审查 |
 | "需要调整" 或 "Other" | 需要修改 | 根据用户反馈调整审查报告 |
 
 ## 审查结果与后续
 
 | result 值 | 后续操作 |
 |-----------|----------|
-| `通过` | 新功能 → 归档到 `06-已归档`；更新 → 保留原目录 |
+| `通过` | 新功能 → 交给 spec-end 归档；更新 → 保留原目录 |
 | `需修复` | 列出问题清单 → 等待修复 → 重新审查 |
 | `严重不符` | 需要重新实现 |
 

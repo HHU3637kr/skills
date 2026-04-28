@@ -1,12 +1,9 @@
 ---
 name: spec-start
 description: >
-  启动 Spec 驱动开发的 Agent Teams 工作流。当用户开始一个新的开发任务、需要创建结构化的
-  多角色协作团队时使用。与 spec-end 对应，spec-start 启动团队，spec-end 收尾团队。
-  触发条件：(1) 用户说"开始新任务"/"创建开发团队"/"启动工作流"，
-  (2) 需要启动完整的 Spec 驱动开发流程（含探索→撰写→实现→测试→收尾），
-  (3) 用户希望使用 Agent Teams 架构管理一个开发任务。
-  注意：本 Skill 假设项目已完成 spec-init 初始化。如果 spec/ 目录不存在，应先调用 spec-init。
+  当用户开始新的开发任务、需要启动完整 Spec 流程（需求对齐→探索→设计→实现→测试→收尾），
+  或需要为一个新 Spec 创建协作上下文和 GitHub Flow 工作分支时使用。
+  不要用于已有完成 Spec 的小迭代（用 spec-update）或项目首次初始化（用 spec-init）。
 ---
 
 # Spec Start
@@ -17,6 +14,7 @@ description: >
 2. **Teams 贯穿整个周期**：创建后不提前销毁，所有角色随时可被唤起
 3. **角色 vs Skill 区分**：角色（spec-writer）是 Who，Skill（spec-write）是 How
 4. **TeamLead 统一协调**：所有阶段转换和用户确认节点均由 TeamLead（当前 Agent）主导
+5. **分支隔离**：每个 Spec 默认从 `main` 创建独立工作分支，禁止直接在 `main` 上实现
 
 ## 前置检查
 
@@ -28,6 +26,15 @@ ls spec/context/experience/index.md
 
 如果 spec/ 目录不存在，提示用户先执行 `/spec-init` 完成项目初始化。
 
+同时检查 Git 状态：
+
+```bash
+git rev-parse --is-inside-work-tree
+git status --short
+```
+
+如果不是 Git 仓库，询问用户是否继续无分支模式；如果工作区有无关改动，先让用户处理或使用 `git worktree`，不要直接切换到 `main`。
+
 ## 角色总览
 
 | 角色 | 调用的 Skill | 产出物 | 活跃阶段 |
@@ -38,7 +45,7 @@ ls spec/context/experience/index.md
 | spec-tester | `spec-test` | `test-plan.md`, `test-report.md` | 阶段二 + 阶段四 |
 | spec-executor | `spec-execute` | `summary.md` | 阶段三 |
 | spec-debugger | `spec-debug` | `debug-xxx.md`, `debug-xxx-fix.md` | 阶段三/四（按需） |
-| spec-ender | `spec-end` | 无（写入 context/ + git 提交） | 阶段五 |
+| spec-ender | `spec-end` | 无（写入 context/ + PR 收尾） | 阶段五 |
 
 ## 工作流程
 
@@ -49,25 +56,50 @@ ls spec/context/experience/index.md
 - 是否需要完整的 5 阶段流程，还是部分阶段
 - 是否有已有的 Spec（若有，直接进入对应阶段）
 
-### 步骤 2：创建 Agent Teams 并初始化 6 个专职角色
+### 步骤 2：创建 Spec 工作分支
 
-```python
-TeamCreate(
-    team_name="spec-{YYYYMMDD-HHMM}-{任务简称}",
-    description="""Spec 驱动开发: {任务描述}
+需求对齐后，调用 `/git-work` 的“启动 Spec 分支”模式：
 
-各角色调用对应 Skill 完成工作：
+```text
+base_branch: main
+branch_name: <type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
+```
+
+分支类型按任务主意图选择：
+- 新能力、新集成 → `feat`
+- Bug / 回归 / 安全修复 → `fix`
+- 不改行为的重构 → `refactor`
+- 独立测试、审计证据建设 → `test`
+- 文档、规则、Skill 文案 → `docs`
+- 依赖、配置、仓库维护 → `chore`
+
+输出以下 Git 元数据，并在后续传给 spec-writer：
+
+```yaml
+git_branch: <branch-name>
+base_branch: main
+pr_url:
+```
+
+如果用户确认无分支模式，记录 `git_branch: none`，并在 plan.md 中说明原因。
+
+### 步骤 3：创建 Agent Teams 并初始化 6 个专职角色
+
+```text
+创建团队：spec-{YYYYMMDD-HHMM}-{任务简称}
+团队说明：Spec 驱动开发: {任务描述}
+初始化角色：
 - spec-explorer  → 调用 spec-explore  Skill，产出 exploration-report.md
 - spec-writer    → 调用 spec-write    Skill，产出 plan.md
 - spec-tester    → 调用 spec-test     Skill，产出 test-plan.md / test-report.md
 - spec-executor  → 调用 spec-execute  Skill，产出 summary.md
 - spec-debugger  → 调用 spec-debug    Skill，产出 debug-xxx.md / debug-xxx-fix.md
-- spec-ender     → 调用 spec-end      Skill，完成经验沉淀 + 归档 + git 提交
-"""
-)
+- spec-ender     → 调用 spec-end      Skill，完成经验沉淀 + 规范维护 + 归档 + PR
 ```
 
-### 步骤 3：初始化各专职角色
+如果运行环境没有团队/子代理能力，由当前 Agent 按同一角色顺序串行执行。
+
+### 步骤 4：初始化各专职角色
 
 按以下 prompt 模板创建 6 个专职角色，各角色通过调用对应 Skill 完成工作：
 
@@ -94,6 +126,7 @@ TeamCreate(
 调用 spec-write Skill 完成工作。
 产出：plan.md（纯代码实现计划，不含测试计划）
 注意：plan.md 的 execution_mode 固定为 single-agent
+注意：将 TeamLead 提供的 git_branch / base_branch / pr_url 写入 plan.md frontmatter
 
 【协作】完成 plan.md 草稿后，通知 spec-tester 协作讨论接口边界和验收标准。
 【完成后】plan.md 定稿后通知 TeamLead。
@@ -151,12 +184,12 @@ TeamCreate(
 【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
 
 调用 spec-end Skill 完成工作。
-工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 询问用户是否归档 → 调用 git-work 提交
+工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 规范维护审查 → 询问用户是否归档 → 调用 git-work 提交、推送、创建 PR
 
 【完成后】直接通知 TeamLead，Teams 进入待机状态。
 ```
 
-### 步骤 3.5：发送初始化广播
+### 步骤 4.5：发送初始化广播
 
 所有角色创建完毕后，TeamLead 向团队发送广播：
 
@@ -166,23 +199,27 @@ TeamCreate(
 2. 进入待命状态
 3. 未收到明确指令或来自上游角色的完成通知前，禁止开始任何工作
 
-当前状态：阶段一（需求对齐）进行中，等待完成后启动阶段二。
+当前状态：阶段二（Spec 创建）即将开始，等待 TeamLead 通知 spec-explorer。
 ```
 
-### 步骤 4：启动阶段一（需求对齐）
+### 步骤 5：启动阶段二（探索）
 
-作为 TeamLead，直接使用 `intent-confirmation` 与用户确认需求，完成后通知 spec-explorer 开始阶段二。
+需求对齐、分支准备、团队初始化都完成后，通知 spec-explorer 开始阶段二。
 
 ## 完整协作时序
 
 ```
-【团队初始化】
-  TeamLead 创建 6 个角色 → 发送初始化广播
-  各角色：阅读对应 Skill → 进入待命状态
-
 阶段一：需求对齐
   TeamLead → intent-confirmation → 用户确认
       ↓ 【门禁 1 通过】
+
+GitHub Flow 准备
+  TeamLead → git-work → 从 main 创建 Spec 工作分支
+  TeamLead → 记录 git_branch / base_branch / pr_url，后续传给 spec-writer
+
+【团队初始化】
+  TeamLead 创建 6 个角色 → 发送初始化广播
+  各角色：阅读对应 Skill → 进入待命状态
 
 阶段二：Spec 创建
   TeamLead → 通知 spec-explorer 开始
@@ -193,13 +230,13 @@ TeamCreate(
   spec-writer ↔ spec-tester 协作完成
   spec-writer → plan.md 定稿 → 直接通知 TeamLead
   spec-tester → test-plan.md 定稿 → 直接通知 TeamLead
-  TeamLead → AskUserQuestion → 用户确认 plan.md + test-plan.md
+  TeamLead → 用户确认 plan.md + test-plan.md
       ↓ 【门禁 2 通过】
 
 阶段三：实现
   TeamLead → 通知 spec-executor 开始
   spec-executor → summary.md → 直接通知 TeamLead
-  TeamLead → AskUserQuestion → 用户确认 summary.md
+  TeamLead → 用户确认 summary.md
       ↓ 【门禁 3 通过】
 
 阶段四：测试
@@ -208,12 +245,13 @@ TeamCreate(
              spec-debugger 修复 → 直接通知 spec-tester 重新验证 + 通知 TeamLead
              spec-tester 验证通过 → 继续
   spec-tester → test-report.md → 直接通知 TeamLead
-  TeamLead → AskUserQuestion → 用户确认 test-report.md
+  TeamLead → 用户确认 test-report.md
       ↓ 【门禁 4 通过】
 
 阶段五：收尾
   TeamLead → 通知 spec-ender 开始
-  spec-ender → 多角色讨论 + exp-reflect → 询问用户归档 → git 提交
+  spec-ender → 多角色讨论 + exp-reflect → 规范维护审查 → 询问用户归档
+  spec-ender → git-work 提交、推送、创建 PR
   spec-ender → 直接通知 TeamLead，Teams 进入待机
 ```
 
@@ -222,22 +260,27 @@ TeamCreate(
 | 节点 | 由谁发起 | 确认内容 |
 |------|---------|---------|
 | 需求对齐 | TeamLead | 需求理解正确 |
+| 分支准备 | TeamLead | 仅在工作区不干净、无 Git 仓库或需使用 worktree 时询问 |
 | Spec 审阅 | TeamLead | plan.md + test-plan.md |
 | 实现确认 | TeamLead | summary.md |
 | 诊断确认 | TeamLead | debug-xxx.md（如有） |
 | 测试报告确认 | TeamLead | test-report.md |
-| 归档确认 | spec-ender | 是否归档 + git 提交 |
+| 归档确认 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
 
 ## 后续动作
 
 启动完成后确认：
-1. TeamCreate 已成功执行
+1. 团队协作上下文已成功建立
 2. 6 个专职角色已创建（spec-explorer/writer/tester/executor/debugger/ender）
-3. 阶段一（需求对齐）已启动
-4. 用户已了解整体流程
+3. 已创建或确认当前 Spec 工作分支
+4. 阶段二（探索）已启动
+5. 用户已了解整体流程
 
 ### 常见陷阱
 - spec/ 目录不存在就启动（应先 spec-init）
+- 跳过 git-work，直接在 `main` 上开发
+- 工作区有无关改动时切换分支
+- 多个并发 Spec 共用同一个 working tree（应使用 `git worktree`）
 - 创建角色时混淆角色名（spec-writer）和 Skill 名（spec-write）
 - 尝试创建 TeamLead 角色（当前 Agent 本身就是 TeamLead）
 - 阶段转换时未等待用户确认就继续

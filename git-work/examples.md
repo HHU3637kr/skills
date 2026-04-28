@@ -1,183 +1,96 @@
-# GitHub Flow 工作流示例
+# GitHub Flow 示例（R&K Flow）
 
-以下所有示例遵循统一的 GitHub Flow 流程：
-**同步 main → 创建分支 → 开发提交 → 推送 → 创建 PR → Review → 合并 → 删除分支**
+## 示例 1：新功能 Spec
 
-## Example 1: 功能开发
+场景：实现用户认证能力。
 
-### 场景
-实现用户认证功能，包含登录、注册和会话管理。
-
-### 完整流程
 ```bash
-# 1. 同步 main
-git checkout main
-git pull origin main
-
-# 2. 创建工作分支
-git checkout -b feat/user-auth
-
-# 3. 开发并提交（可多次提交）
-git add src/auth/
-git commit -m "feat: 添加用户认证模块
-
-- 实现登录和注册接口
-- 集成数据库用户存储
-- 添加密码哈希处理
-- 实现 JWT 令牌会话管理
-
-closes #15"
-
-# 4. 推送到远程
-git push origin feat/user-auth
-
-# 5. 在 GitHub 上创建 PR → 等待 Review → 审批后合并
-
-# 6. 清理
-git checkout main
-git pull origin main
-git branch -d feat/user-auth
+# spec-start 阶段
+git status --short
+git switch main
+git pull --ff-only origin main
+git switch -c feat/spec-20260428-1430-user-auth
+git push -u origin feat/spec-20260428-1430-user-auth
 ```
 
-## Example 2: Bug 修复
+`plan.md` frontmatter：
 
-### 场景
-用户反馈 WebSocket 连接在空闲 5 分钟后会断开。
+```yaml
+git_branch: feat/spec-20260428-1430-user-auth
+base_branch: main
+pr_url:
+```
 
-### 完整流程
+开发、测试、文档都在该分支完成。
+
 ```bash
-# 1. 同步 main
-git checkout main
-git pull origin main
-
-# 2. 创建工作分支
-git checkout -b fix/websocket-disconnect
-
-# 3. 修复并提交
+# spec-end 阶段
+git branch --show-current
+git diff --stat
 git add .
-git commit -m "fix: 修复 WebSocket 空闲断开问题
-
-- 添加心跳机制保持连接（30s 间隔）
-- 增加自动重连逻辑（最多 3 次）
-- 优化错误处理和日志输出
-
-fixes #28"
-
-# 4. 推送
-git push origin fix/websocket-disconnect
-
-# 5. 创建 PR → Review → Merge
-
-# 6. 清理
-git checkout main
-git pull origin main
-git branch -d fix/websocket-disconnect
+git commit -m "feat: implement user auth spec"
+git push
+gh pr create --base main --head feat/spec-20260428-1430-user-auth --title "feat: user auth" --body-file pr-body.md
 ```
 
-## Example 3: 代码重构
+拿到 PR URL 后写回 `plan.md` / `summary.md` 的 `pr_url`，再补充提交：
 
-### 场景
-将聊天存储从 localStorage 迁移到 IndexedDB。
-
-### 完整流程
 ```bash
-# 1. 同步 main
-git checkout main
-git pull origin main
-
-# 2. 创建工作分支
-git checkout -b refactor/chat-storage
-
-# 3. 分多个原子提交
-git add src/storage/indexeddb.ts
-git commit -m "refactor: 新增 IndexedDB 存储实现"
-
-git add src/storage/migration.ts
-git commit -m "refactor: 添加 localStorage 到 IndexedDB 迁移逻辑"
-
-git add src/chat/
-git commit -m "refactor: 切换聊天模块使用 IndexedDB 存储"
-
-# 4. 推送
-git push origin refactor/chat-storage
-
-# 5. 创建 PR → Review → Merge
-
-# 6. 清理
-git checkout main
-git pull origin main
-git branch -d refactor/chat-storage
+git add spec/
+git commit -m "docs: record PR link for user auth spec"
+git push
 ```
 
-## Example 4: 文档更新
+## 示例 2：活跃 Spec 的小更新
 
-### 场景
-更新项目 README 和 API 文档。
+场景：用户认证 Spec 还在当前分支开发中，发现需要补一个登录超时处理。
 
-### 完整流程
 ```bash
-# 1. 同步 main
-git checkout main
-git pull origin main
+git branch --show-current
+# 输出应为 feat/spec-20260428-1430-user-auth
+git status --short
+```
 
-# 2. 创建工作分支
-git checkout -b docs/update-api-docs
+在同一个 Spec 目录创建 `update-001.md`，继承 plan.md 的 Git 元数据：
 
-# 3. 提交
+```yaml
+type: update
+update_number: 1
+git_branch: feat/spec-20260428-1430-user-auth
+base_branch: main
+pr_url:
+```
+
+完成 update、回归测试和 review 后，仍提交到同一分支：
+
+```bash
 git add .
-git commit -m "docs: 更新 API 文档和 README
-
-- 补充认证接口文档
-- 更新安装和部署说明
-- 添加贡献指南"
-
-# 4. 推送
-git push origin docs/update-api-docs
-
-# 5. 创建 PR → Merge（文档变更可简化 Review）
-
-# 6. 清理
-git checkout main
-git pull origin main
-git branch -d docs/update-api-docs
+git commit -m "fix: resolve login timeout update"
+git push
 ```
 
-## 最佳实践模式
+只有当整个 Spec 准备交付时，才创建或更新 PR。
 
-### 1. 原子提交
-每个 commit 聚焦一个变更，便于单独回滚：
+## 示例 3：多个 Spec 并发
+
+同一仓库并发做两个 Spec 时，不要在同一个目录来回切分支。
+
 ```bash
-git add src/components/Button.jsx
-git commit -m "feat: 添加主按钮组件及悬停效果"
-
-git add src/styles/buttons.css
-git commit -m "style: 添加按钮变体样式"
+git switch main
+git pull --ff-only origin main
+git worktree add ../project-user-auth -b feat/spec-20260428-1430-user-auth main
+git worktree add ../project-audit-log -b feat/spec-20260428-1500-audit-log main
 ```
 
-### 2. 分支命名
-使用 `类型/简短描述` 格式：
+每个 worktree 中独立运行对应的 Spec 流程。
+
+## 示例 4：PR 合并后清理
+
 ```bash
-git checkout -b feat/user-authentication
-git checkout -b fix/login-error-handling
-git checkout -b docs/api-documentation
-git checkout -b refactor/database-connection-pool
+git switch main
+git pull --ff-only origin main
+git branch -d feat/spec-20260428-1430-user-auth
+git push origin --delete feat/spec-20260428-1430-user-auth
 ```
 
-### 3. Conventional Commits
-```bash
-git commit -m "feat: 添加用户认证模块"
-git commit -m "fix: 修复登录超时问题"
-git commit -m "docs: 更新 API 参考文档"
-git commit -m "refactor: 优化数据库查询"
-git commit -m "test: 添加支付模块单元测试"
-```
-
-### 4. 处理 Review 反馈
-审查者提出修改意见后，在同一分支继续提交：
-```bash
-# 根据 Review 意见修改
-git add .
-git commit -m "fix: 根据 Review 反馈修复边界检查"
-git push origin feat/user-auth
-# PR 自动更新，无需重建
-```
+如果分支无法删除，先确认 PR 是否已经合并。

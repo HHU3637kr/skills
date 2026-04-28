@@ -1,211 +1,287 @@
 ---
 name: git-work
-description: 当用户需要按 GitHub Flow 执行 Git 工作流时使用，包括创建或同步分支、提交、推送、发起或合并 PR、清理分支。不要用于单次查看 git 状态或无需 GitHub Flow 的简单 git 查询。
+description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
 ---
 
 # Git 工作流 SOP（GitHub Flow）
 
-## 概述
+详细示例见 [examples.md](examples.md)，命令速查见 [reference.md](reference.md)。
 
-本 Skill 采用 **GitHub Flow** —— 一种轻量级、以分支为基础的工作流：
-- 只有一个永久分支 `main`，始终保持可部署状态
-- 所有工作（功能、修复、文档）都通过**短生命周期分支 + Pull Request** 完成
-- 合并到 `main` 即意味着发布
+## 核心约定
 
-## 使用场景
+R&K Flow 默认采用 **GitHub Flow**：
 
-当需要执行 Git 操作时，调用此 Skill 以遵循 GitHub Flow 最佳实践。
+1. `main` 是唯一长期分支，始终保持可部署
+2. 每个 Spec 使用一条短生命周期分支
+3. 同一活跃 Spec 的 update 默认复用该 Spec 分支
+4. 所有开发、测试、文档、归档都在该分支完成
+5. 收尾时提交、推送并创建 Pull Request
+6. PR 合并后删除本地和远程分支
 
-## 核心原则
+## 在 Spec 生命周期中的位置
 
-1. **`main` 分支始终可部署** —— 任何时候 main 中的代码都是生产就绪的
-2. **所有工作在分支上进行** —— 从 main 创建描述性命名的分支
-3. **频繁推送到远程** —— 及时备份工作，便于协作
-4. **通过 Pull Request 合并** —— 代码审查后才合并到 main
-5. **合并后立即删除分支** —— 保持仓库整洁
+```text
+spec-start
+  → git-work：从 main 创建 Spec 工作分支
+  → plan.md 记录 git_branch、base_branch、pr_url
 
-## 操作步骤
+spec-update
+  → git-work：确认当前分支与 plan.md 的 git_branch 一致
+  → update-xxx.md 继承 plan.md 的 git_branch、base_branch、pr_url
 
-### 1. 同步 main 分支
+开发与测试阶段
+  → 始终留在当前 Spec 分支
+  → 必要时推送远程分支，方便团队协作
 
-开始任何工作前，确保本地 main 是最新的：
-```bash
-git checkout main
-git pull origin main
+spec-end / spec-update 收尾
+  → git-work：提交、推送当前 Spec 分支
+  → spec-end 创建 PR；spec-update 仅在 Spec 准备整体交付时创建/更新 PR
+  → 如有 PR，记录 PR URL
+
+PR 合并后
+  → git-work：同步 main，删除本地和远程工作分支
 ```
 
-### 2. 创建工作分支
+## 分支命名
 
-从 main 分出一个描述性命名的分支：
-```bash
-git checkout -b <分支名>
+格式：
+
+```text
+<type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
 ```
 
-**分支命名规范**（使用类型前缀 + 简短描述）：
-- `feat/user-auth` — 新功能
-- `fix/login-timeout` — Bug 修复
-- `docs/api-reference` — 文档更新
-- `refactor/db-queries` — 代码重构
-- `chore/update-deps` — 构建/工具相关
+示例：
 
-### 3. 开发与提交
-
-在分支上进行开发，频繁做小而专注的提交：
-```bash
-git status                    # 检查状态
-git diff                      # 审查变更
-git add .                     # 暂存变更
-git commit -m "<提交信息>"     # 提交
+```text
+feat/spec-20260428-1430-user-auth
+fix/spec-20260428-1530-login-timeout
+docs/spec-20260428-1600-rk-flow-docs
+refactor/spec-20260428-1700-db-layer
+test/spec-20260428-1800-audit-log
 ```
 
-**提交信息规范**：
-- 使用类型前缀：`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
-- 第一行限制在 72 个字符以内
-- 如需要，空一行后在正文中提供详细说明
-- 如适用，引用相关的 issue 编号（如 `closes #42`）
+类型映射：
 
-### 4. 推送分支到远程
+| 类型 | 何时使用 |
+|------|----------|
+| `feat` | 新功能、新接口、新页面、新集成 |
+| `fix` | Bug、回归、安全修复 |
+| `docs` | 纯文档、规则、Skill 文案 |
+| `refactor` | 不改变行为的重构、技术债 |
+| `test` | 测试覆盖、测试基础设施、审计证据 |
+| `chore` | 构建、依赖、配置、仓库维护 |
 
-定期推送到远程，备份工作并为 PR 做准备：
+规则：
+- 分支名必须 ASCII，中文任务名保留在 Spec 目录名
+- slug 使用小写短横线，不能包含空格
+- 同一个活跃 Spec 的所有提交和 update 留在同一分支
+- 如果原 Spec 分支已合并/删除，后续需求默认新建 Spec；只有用户明确要求独立 PR 时才创建新分支承接 update
+
+## 模式一：启动 Spec 分支
+
+由 `spec-start` 在正式写文档前调用。`spec-update` 默认不调用本模式，除非用户明确要求为该 update 创建独立 PR。
+
+### 1. 检查仓库
+
 ```bash
-git push origin <分支名>
+git rev-parse --is-inside-work-tree
+git remote -v
+git status --short
 ```
 
-### 5. 创建 Pull Request
+如果不是 Git 仓库：向用户说明无法执行 GitHub Flow，询问是否继续无分支模式。
 
-在 GitHub 上创建 PR：
-- 填写变更说明和解决的问题
-- 关联相关 Issue
-- 请求团队成员 Review
+如果工作区不干净：
+- 若改动属于当前即将启动的 Spec，先让用户确认是否纳入本分支
+- 若改动无关，先提交、stash 或切换到干净工作区
+- 不要在脏工作区直接切换到 `main`
 
-### 6. 代码审查与合并
+### 2. 同步 base 分支
 
-- 审查者提出问题、建议
-- 根据反馈继续提交修复到同一分支
-- 审批通过后合并到 main
+默认 base 分支为 `main`。如果仓库没有 `main`，读取远程默认分支：
 
-### 7. 删除分支
-
-合并后立即删除远程和本地分支：
 ```bash
-git checkout main
-git pull origin main
-git branch -d <分支名>
+git symbolic-ref refs/remotes/origin/HEAD
 ```
 
-## 示例
-
-### 示例 1：功能开发
+同步：
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b feat/user-auth
+git switch main
+git pull --ff-only origin main
+```
 
-# 开发...
+### 3. 创建工作分支
+
+```bash
+git switch -c <branch-name>
+```
+
+团队协作或并发开发时，立即推送远程分支：
+
+```bash
+git push -u origin <branch-name>
+```
+
+### 4. 输出给 Spec 文档
+
+把以下元数据传给 `spec-write`：
+
+```yaml
+git_branch: <branch-name>
+base_branch: main
+pr_url:
+```
+
+## 模式二：并发开发使用 worktree
+
+当同一仓库需要同时开发多个 Spec，不要在同一个 working tree 里来回切分支。使用 worktree：
+
+```bash
+git switch main
+git pull --ff-only origin main
+git worktree add ../<repo>-<spec-slug> -b <branch-name> main
+```
+
+进入新 worktree 后再运行对应的 Spec 流程。每个并行 Spec 独占一个目录和一条分支。
+
+## 模式三：复用 Spec 分支
+
+由 `spec-update` 在创建 update 文档前调用。
+
+### 1. 读取 plan.md Git 元数据
+
+```yaml
+git_branch: <branch-name>
+base_branch: main
+pr_url:
+```
+
+### 2. 校验当前分支
+
+```bash
+git branch --show-current
+git status --short
+```
+
+规则：
+- 当前分支必须等于 plan.md 的 `git_branch`
+- 如果当前分支是 `main`，停止并切回 Spec 分支
+- 如果原分支已合并或不存在，默认不继续 spec-update；应新建 Spec 或让用户明确选择独立 update 分支
+- update-xxx.md 继承 plan.md 的 `git_branch` / `base_branch` / `pr_url`
+
+## 模式四：完成 Spec 分支
+
+由 `spec-end` 或 `spec-update` 收尾时调用。
+
+### 1. 确认当前分支
+
+```bash
+git branch --show-current
+git status --short
+```
+
+禁止直接在 `main` 上提交 Spec 成果。若当前分支不是 plan/update 文档记录的 `git_branch`，先确认原因。
+
+### 2. 审查变更
+
+```bash
+git diff --stat
+git diff
+```
+
+确认包含：
+- 代码实现
+- 测试与日志/审计证据
+- Spec 文档、summary/test-report/review/debug/update 文档
+- 必要的 `AGENTS.md` / `.agents/rules/` 规范更新
+- 归档目录移动（新 Spec 完成时）
+
+### 3. 提交
+
+```bash
 git add .
-git commit -m "feat: 实现用户认证功能
-
-- 添加登录和注册接口
-- 集成数据库进行用户存储
-- 包含密码哈希以确保安全
-- 添加 JWT 令牌生成用于会话管理"
-
-git push origin feat/user-auth
-# → 在 GitHub 上创建 PR → Review → Merge
-
-git checkout main
-git pull origin main
-git branch -d feat/user-auth
+git commit -m "<type>: <summary>"
 ```
 
-### 示例 2：Bug 修复
+提交信息规则：
+- 使用 `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- 第一行不超过 72 字符
+- 正文写清 Spec 路径、测试结果、关键决策
+
+### 4. 推送
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b fix/websocket-disconnect
-
-git add .
-git commit -m "fix: 修复 WebSocket 连接断开问题
-
-- 添加心跳机制保持连接
-- 增加重连逻辑
-- 优化错误处理"
-
-git push origin fix/websocket-disconnect
-# → 创建 PR → Review → Merge
-
-git checkout main
-git pull origin main
-git branch -d fix/websocket-disconnect
+git push -u origin <branch-name>
 ```
 
-### 示例 3：文档更新
+### 5. 创建或更新 Pull Request
+
+`spec-end` 默认创建 PR。`spec-update` 默认只提交并推送当前 Spec 分支；如果该 Spec 已准备整体交付，或用户明确要求，则创建/更新 PR。
+
+如果可用，优先使用 GitHub CLI：
 
 ```bash
-git checkout main
-git pull origin main
-git checkout -b docs/update-readme
-
-git add .
-git commit -m "docs: 更新 README 和 API 文档"
-
-git push origin docs/update-readme
-# → 创建 PR → Merge
-
-git checkout main
-git pull origin main
-git branch -d docs/update-readme
+gh pr create --base main --head <branch-name> --title "<PR title>" --body-file <pr-body.md>
 ```
 
-## 最佳实践
+如果没有 `gh`，输出 GitHub compare URL，让用户手动创建 PR：
 
-1. **原子提交**：每个 commit 包含一个独立完整的变更，便于回滚
-2. **短生命周期分支**：分支应尽快合并，避免长期偏离 main
-3. **描述性命名**：分支名和提交信息都要清晰表达意图
-4. **先拉后推**：推送前先 `git pull origin main` 避免冲突
-5. **PR 即文档**：在 PR 中详细描述变更内容，便于追溯
+```text
+https://github.com/<owner>/<repo>/compare/main...<branch-name>
+```
 
-## 故障排除
+PR 内容至少包含：
+- Spec 路径
+- 实现摘要
+- 测试结果
+- 风险与回滚方式
+- 关联的经验/规范更新
 
-### 问题：合并冲突
+### 6. 记录 PR URL
 
-分支落后于 main 时：
+如果拿到 PR URL，写回对应文档：
+
+```yaml
+pr_url: https://github.com/<owner>/<repo>/pull/<number>
+```
+
+写回后再补一个轻量提交并推送：
+
 ```bash
-git checkout main
-git pull origin main
-git checkout <你的分支>
-git merge main                # 将 main 合并到你的分支
-# 解决冲突后
-git add <已解决的文件>
-git commit
-git push origin <你的分支>
+git add <spec-docs>
+git commit -m "docs: record PR link for spec"
+git push
 ```
 
-### 问题：大文件
+## 模式五：PR 合并后清理
 
-如果 git 因大文件而变慢：
-1. 检查文件大小：`git ls-files | xargs ls -l | sort -k5 -n -r | head`
-2. 考虑将大文件添加到 `.gitignore`
-3. 如需要，使用 Git LFS 处理大型二进制文件
+只有在 PR 已合并后执行：
 
-### 问题：撤销操作
+```bash
+git switch main
+git pull --ff-only origin main
+git branch -d <branch-name>
+git push origin --delete <branch-name>
+```
 
-- 撤销未暂存的修改：`git checkout -- <文件>`
-- 撤销已暂存的文件：`git reset HEAD <文件>`
-- 撤销最近一次提交（保留修改）：`git reset --soft HEAD~1`
+如果本地分支无法删除，先确认 PR 是否已合并，避免误删未合并成果。
 
-## 常用命令参考
+## 常见阻塞
 
-| 命令 | 说明 |
+| 场景 | 处理 |
 |------|------|
-| `git checkout main && git pull` | 同步最新 main |
-| `git checkout -b <分支名>` | 从当前分支创建新分支 |
-| `git log --oneline -10` | 查看最近 10 条提交历史 |
-| `git diff --staged` | 查看已暂存的变更 |
-| `git stash` / `git stash pop` | 临时保存/恢复修改 |
-| `git branch -d <分支名>` | 删除本地分支 |
-| `git push origin --delete <分支名>` | 删除远程分支 |
-| `git branch -a` | 查看所有分支 |
-| `git remote -v` | 查看远程仓库信息 |
+| 不在 Git 仓库 | 询问是否继续无分支模式，并在 Spec 文档中记录 `git_branch: none` |
+| 工作区已有无关改动 | 先提交、stash 或使用 worktree |
+| 当前在 `main` 且已有开发改动 | 立即创建分支承接当前改动，不要继续在 `main` 上开发 |
+| 分支落后 `main` | 在工作分支中合并或 rebase 最新 `main`，解决冲突后继续 |
+| 多个 Spec 并发 | 使用 `git worktree`，每个 Spec 独占分支和目录 |
+| 无法创建 PR | 推送分支并给出 compare URL |
+
+## 禁止事项
+
+- 不要在 `main` 上实现 Spec
+- 不要在脏工作区切换分支
+- 不要把多个无关 Spec 混在同一分支
+- 不要在测试失败时创建 PR，除非 PR 明确标记为 Draft
+- 不要自动合并 PR，除非用户明确要求

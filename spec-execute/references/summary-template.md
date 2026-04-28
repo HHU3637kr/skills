@@ -1,10 +1,13 @@
 ---
 title: 功能名称-实现总结
 type: summary
-category: 03-功能实现
+category: 与 plan.md 相同
 status: 未确认
 created: YYYY-MM-DD
 plan: "[[plan]]"
+git_branch: 与 plan.md 相同
+base_branch: 与 plan.md 相同
+pr_url:
 tags:
   - spec
   - summary
@@ -81,6 +84,9 @@ tests/
 | `status` | 是 | 当前状态 | `未确认`/`已确认`/`已归档` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` 格式 |
 | `plan` | 是 | 关联的 plan | `"[[plan]]"` |
+| `git_branch` | 是 | 当前 Spec 工作分支 | 与 plan.md 相同 |
+| `base_branch` | 是 | 工作分支的基准分支 | 与 plan.md 相同 |
+| `pr_url` | 否 | spec-end 创建 PR 后写回 | GitHub PR URL，创建前留空 |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `summary` |
 
 ## status 状态变更规则

@@ -1,13 +1,10 @@
 ---
 name: spec-init
 description: >
-  初始化项目的 Spec 驱动开发完整基础设施。新项目首次使用 Spec 工作流时调用，
-  负责搭建完整的项目骨架：AGENTS.md、.agents/rules/、.agents/skills/、spec/ 目录、
-  记忆系统和 Obsidian Vault。整个项目生命周期只需执行一次。
-  触发条件：(1) 用户说"初始化项目"/"搭建 Spec 环境"/"创建开发环境"，
-  (2) 新项目首次使用 Spec 工作流，
-  (3) 项目根目录下不存在 AGENTS.md 或 spec/ 目录。
-  注意：本 Skill 只做项目基础设施搭建。启动开发任务请使用 spec-start。
+  当项目首次接入 Spec 驱动开发 / R&K Flow，需要创建 AGENTS.md、.agents/rules/、
+  .agents/skills/、spec/ 目录、记忆系统和 Obsidian Vault 时使用。
+  典型信号：用户说"初始化项目"/"搭建 Spec 环境"/"创建开发环境"，或项目根目录缺少 AGENTS.md / spec/。
+  不要用于已有项目的单个 Spec 开发、功能更新或少量规范修改。
 ---
 
 # Spec Init
@@ -27,24 +24,39 @@ description: >
 ls AGENTS.md
 ls spec/
 ls .agents/
+
+# 检查 Git 仓库状态
+git rev-parse --is-inside-work-tree
+git branch --show-current
+git remote -v
 ```
 
 如果 AGENTS.md 和 spec/ 都已存在，告知用户无需重复初始化，建议直接使用 `spec-start` 启动开发任务。
 如果部分存在，只补充缺失部分。
 
+Git 检查规则：
+- 如果已经是 Git 仓库，记录当前分支和远程仓库；不要重新 `git init`
+- 如果不是 Git 仓库，询问用户是否初始化 Git 仓库
+- 用户确认后执行：
+
+```bash
+git init
+git branch -M main
+```
+
+- 如果没有远程仓库，提示用户稍后添加 `origin`，但不阻塞 Spec 基础设施初始化
+- 如果当前分支不是 `main`，只记录现状，不强制切换；后续 `spec-start` 会按 GitHub Flow 创建工作分支
+
 ### 步骤 2：询问项目基本信息
 
-使用 `AskUserQuestion` 收集项目信息（用于生成 AGENTS.md）：
+使用当前运行环境的确认/提问方式收集项目信息（用于生成 AGENTS.md）：
 
-```python
-AskUserQuestion(
-    questions=[
-        {
-            "question": "请提供项目基本信息：\n1. 项目名称\n2. 项目简介（一句话描述）\n3. 主要技术栈（如 Python/FastAPI、TypeScript/React 等）\n4. 项目类型（如 Web 应用、CLI 工具、库等）",
-            "header": "项目初始化"
-        }
-    ]
-)
+```text
+请提供项目基本信息：
+1. 项目名称
+2. 项目简介（一句话描述）
+3. 主要技术栈（如 Python/FastAPI、TypeScript/React 等）
+4. 项目类型（如 Web 应用、CLI 工具、库等）
 ```
 
 ### 步骤 3：创建 AGENTS.md
@@ -75,6 +87,8 @@ AskUserQuestion(
 ### 编码规范
 
 @import .agents/rules/
+
+> AGENTS.md 与 .agents/rules/ 是活文档。每个 Spec 收尾时由 spec-end 审查是否需要维护项目规范。
 
 ### 文档规范
 
@@ -117,6 +131,7 @@ mkdir -p ".agents/rules"
 - 函数/方法：简短、单一职责
 - 文件长度：建议不超过 300 行
 - 注释：关键逻辑必须注释，勿注释显而易见的代码
+- 本文件只记录长期规则，临时实现细节不要写入
 ```
 
 创建 `.agents/rules/spec-workflow.md`（Spec 工作流规范）：
@@ -126,11 +141,24 @@ mkdir -p ".agents/rules"
 - 实现前必须有已确认的 plan.md
 - 不添加 Spec 未定义的功能
 - 每个关键节点等待用户确认
-- 完成后使用 exp-reflect 沉淀经验
+- 收尾时使用 exp-reflect 沉淀经验，并由 spec-end 审查是否维护 AGENTS.md / rules
+- rules 只记录长期项目约束，避免写入一次性任务细节
+```
+
+创建 `.agents/rules/git-workflow.md`（GitHub Flow 规范）：
+```markdown
+# GitHub Flow 规范
+
+- 每个新 Spec 从 main 创建短生命周期分支
+- 同一活跃 Spec 的 update 复用原 Spec 分支
+- 禁止直接在 main 上实现、测试或归档 Spec
+- plan.md / update-xxx.md 必须记录 git_branch、base_branch、pr_url
+- 收尾时提交、推送当前分支并创建 PR
+- PR 合并后同步 main 并删除本地/远程工作分支
 ```
 
 > [!tip] rules/ 每文件 ≤ 20 行
-> `.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。
+> `.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。新增长期规则时优先更新已有文件，必要时再创建新的规则文件。
 
 #### 4.2 创建 skills/ 目录并安装 Skills
 
@@ -140,44 +168,27 @@ mkdir -p ".agents/skills"
 
 引导用户安装 Skills 体系：
 
-```python
-AskUserQuestion(
-    questions=[{
-        "question": "需要安装 Spec 驱动开发的 Skills 体系。请选择安装方式：",
-        "header": "安装 Skills",
-        "multiSelect": false,
-        "options": [
-            {
-                "label": "通过 Skills CLI 安装",
-                "description": "运行 npx skills install HHU3637kr/skills 自动安装所有 Skill"
-            },
-            {
-                "label": "手动安装",
-                "description": "从 GitHub 仓库手动复制 Skills 到 .agents/skills/"
-            },
-            {
-                "label": "跳过",
-                "description": "稍后手动安装，先完成其他初始化"
-            }
-        ]
-    }]
-)
+```text
+请选择 Skills 安装方式：
+- 通过 R&K Flow CLI 安装：运行 rk-flow init 安装核心 Skills
+- 手动安装：从 GitHub 仓库手动复制 Skills 到 .agents/skills/
+- 跳过：稍后手动安装，先完成其他初始化
 ```
 
 如果用户选择 CLI 安装：
 ```bash
-npx skills install HHU3637kr/skills
+rk-flow init
 ```
 
 ### 步骤 5：创建 Spec 目录结构
 
 ```bash
 # 创建分类目录
-mkdir -p "spec/01-项目规划"
-mkdir -p "spec/02-架构设计"
-mkdir -p "spec/03-功能实现"
-mkdir -p "spec/04-问题修复"
-mkdir -p "spec/05-测试文档"
+mkdir -p "spec/01-产品规划"
+mkdir -p "spec/02-技术设计"
+mkdir -p "spec/03-能力交付"
+mkdir -p "spec/04-系统改进"
+mkdir -p "spec/05-验证工程"
 mkdir -p "spec/06-已归档"
 
 # 创建记忆系统目录
@@ -258,24 +269,17 @@ mkdir -p ".obsidian"
 
 展示初始化摘要，并询问下一步：
 
-```python
-AskUserQuestion(
-    questions=[{
-        "question": "项目 Spec 开发环境已初始化完成：\n\n✅ AGENTS.md（项目身份 + 规范）\n✅ .agents/rules/（编码规范）\n✅ .agents/skills/（Skills 体系）\n✅ spec/（Spec 目录 + 记忆系统）\n✅ .obsidian/（Obsidian Vault）\n\n是否需要立即启动一个开发任务？",
-        "header": "初始化完成",
-        "multiSelect": false,
-        "options": [
-            {
-                "label": "启动开发任务",
-                "description": "调用 spec-start 初始化 Agent Teams 并开始 5 阶段流程"
-            },
-            {
-                "label": "暂不启动",
-                "description": "先熟悉项目结构，稍后手动调用 /spec-start"
-            }
-        ]
-    }]
-)
+```text
+项目 Spec 开发环境已初始化完成：
+- AGENTS.md（项目身份 + 规范）
+- .agents/rules/（编码规范）
+- .agents/skills/（Skills 体系）
+- spec/（Spec 目录 + 记忆系统）
+- .obsidian/（Obsidian Vault）
+
+是否需要立即启动一个开发任务？
+- 启动开发任务：调用 spec-start 初始化 Agent Teams 并开始 5 阶段流程
+- 暂不启动：先熟悉项目结构，稍后手动调用 /spec-start
 ```
 
 用户选择"启动开发任务"时，调用 `/spec-start`。
@@ -288,7 +292,8 @@ AskUserQuestion(
 ├── .agents/
 │   ├── rules/                       # 永久性编码规范（每文件 ≤ 20 行）
 │   │   ├── coding-style.md          # 编码风格
-│   │   └── spec-workflow.md         # Spec 工作流规范
+│   │   ├── spec-workflow.md         # Spec 工作流规范
+│   │   └── git-workflow.md          # GitHub Flow 规范
 │   └── skills/                      # Skills 体系（通过 CLI 或手动安装）
 │       ├── spec-init/SKILL.md
 │       ├── spec-start/SKILL.md
@@ -312,11 +317,11 @@ AskUserQuestion(
 │       ├── obsidian-plugin-dev/SKILL.md
 │       └── json-canvas/SKILL.md
 ├── spec/
-│   ├── 01-项目规划/
-│   ├── 02-架构设计/
-│   ├── 03-功能实现/
-│   ├── 04-问题修复/
-│   ├── 05-测试文档/
+│   ├── 01-产品规划/
+│   ├── 02-技术设计/
+│   ├── 03-能力交付/
+│   ├── 04-系统改进/
+│   ├── 05-验证工程/
 │   ├── 06-已归档/
 │   └── context/
 │       ├── experience/
@@ -331,13 +336,14 @@ AskUserQuestion(
 ## 后续动作
 
 初始化完成后确认：
-1. AGENTS.md 已创建（项目身份 + 规范 + 路由）
-2. .agents/rules/ 已创建（编码规范模板）
-3. .agents/skills/ 已安装或引导安装
-4. spec/ 目录结构已创建（6 个分类目录 + context/）
-5. 经验/知识索引文件已创建
-6. Obsidian Vault 已注册（.obsidian/ + app.json）
-7. 已询问用户是否启动开发任务（spec-start）
+1. Git 仓库状态已检查；如用户确认，已完成 `git init` + `main` 分支初始化
+2. AGENTS.md 已创建（项目身份 + 规范 + 路由）
+3. .agents/rules/ 已创建（编码规范 + Spec 工作流 + GitHub Flow）
+4. .agents/skills/ 已安装或引导安装
+5. spec/ 目录结构已创建（6 个分类目录 + context/）
+6. 经验/知识索引文件已创建
+7. Obsidian Vault 已注册（.obsidian/ + app.json）
+8. 已询问用户是否启动开发任务（spec-start）
 
 ### 常见陷阱
 - 已有 AGENTS.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）

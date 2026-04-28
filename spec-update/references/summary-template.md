@@ -2,11 +2,14 @@
 title: 功能名称-更新XXX-实现总结
 type: update-summary
 update_number: 1
-category: 03-功能实现
+category: 与 plan.md 相同
 status: 已完成
 created: YYYY-MM-DD
 plan: "[[plan]]"
 update: "[[update-XXX]]"
+git_branch: 与 update-XXX.md 相同
+base_branch: 与 update-XXX.md 相同
+pr_url: 与 update-XXX.md 相同
 tags:
   - spec
   - update
@@ -110,6 +113,12 @@ tests/
 
 ### 6.2 后续优化（可选）
 
+### 6.3 规范维护审查
+
+- **是否需要更新 AGENTS.md**: 否/是（说明）
+- **是否需要更新 .agents/rules/**: 否/是（说明）
+- **规则性质**: 长期规则 / 一次性实现细节（一次性细节不写入规范）
+
 ---
 
 ## 7. 文档关联
@@ -133,4 +142,7 @@ tests/
 | `created` | 是 | `YYYY-MM-DD` |
 | `plan` | 是 | `"[[plan]]"` |
 | `update` | 是 | `"[[update-XXX]]"` |
+| `git_branch` | 是 | 当前 Spec 工作分支，与 update-XXX.md 相同 |
+| `base_branch` | 是 | 工作分支的基准分支，与 update-XXX.md 相同 |
+| `pr_url` | 否 | 当前 Spec 的 PR 链接，与 update-XXX.md 相同 |
 | `tags` | 是 | 至少包含 `spec`、`update`、`summary` |

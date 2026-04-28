@@ -1,28 +1,30 @@
 ---
 name: spec-end
 description: >
-  整个 Spec 完成后的收尾工作。由角色 spec-ender 调用。
-  触发条件：(1) 角色 spec-ender 需要在阶段五发起团队讨论、沉淀经验、询问用户归档并提交 git，
-  (2) TeamLead 通知 spec-ender 开始工作（所有其他阶段已完成），
-  (3) 一个完整的开发周期（计划→实现→测试）结束后需要收尾。
+  当一个完整 Spec 的计划、实现、测试阶段都已完成，且角色 spec-ender 进入阶段五收尾时使用：
+  收集角色经验、触发 exp-reflect、审查项目规范、询问归档，并完成提交、推送、创建 PR。
+  不要用于功能实现中途、测试未完成时，或 spec-update 的小迭代收尾。
 ---
 
 # Spec End
 
 ## 核心原则
 
-1. **多角色视角**：通过 SendMessage 向团队成员收集各自视角的经验素材，不只是 spec-ender 的独角戏
+1. **多角色视角**：向团队成员收集各自视角的经验素材，不只是 spec-ender 的独角戏
 2. **分流沉淀**：调用 exp-reflect 按权重分流（重大经验 → exp-write，轻量 → Auto Memory）
-3. **用户确认归档**：归档前必须使用 AskUserQuestion 询问用户
-4. **git 提交**：归档确认后调用 git-work 完成提交
+3. **规范维护审查**：判断本次 Spec 是否产生需要长期遵守的项目规范，必要时更新 AGENTS.md 或 .agents/rules/
+4. **用户确认归档**：归档前必须使用当前运行环境的确认方式询问用户
+5. **GitHub Flow 收尾**：归档确认后调用 git-work 提交、推送当前 Spec 分支并创建 PR
 
 ## 工作流程
 
 ### 步骤 1：接收任务
 
-从 TeamLead 的 SendMessage 中获取：
+从 TeamLead 的启动指令中获取：
 - 当前 Spec 的目录路径
 - 确认所有阶段（计划/实现/测试）已完成
+- 当前工作分支（应与 plan.md 的 `git_branch` 一致）
+- base 分支（通常为 `main`）
 
 ### 步骤 2：扫描 Spec 目录
 
@@ -34,27 +36,22 @@ description: >
 - `test-report.md`：测试过程和结果
 - `debug-xxx.md` / `debug-xxx-fix.md`：问题和修复（如有）
 
+同时读取 `plan.md` frontmatter：
+- `git_branch`
+- `base_branch`
+- `pr_url`
+
+如果 `git_branch` 为空或为 `none`，说明本 Spec 没有使用 GitHub Flow 分支；收尾时仍可归档文档，但提交/PR 步骤需要先询问用户。
+
 ### 步骤 3：向团队成员发起讨论
 
 向各角色询问本次开发的经验素材：
 
-```python
-SendMessage(
-    recipient="spec-writer",
-    content="请分享本次撰写 plan.md 时遇到的困难、踩过的坑、值得记录的发现？"
-)
-SendMessage(
-    recipient="spec-tester",
-    content="请分享本次测试过程中的发现、边界情况、改进建议？"
-)
-SendMessage(
-    recipient="spec-executor",
-    content="请分享本次实现过程中遇到的技术挑战、解决方案、值得复用的模式？"
-)
-SendMessage(
-    recipient="spec-debugger",
-    content="请分享本次调试的根因分析、修复思路、预防建议？（如有 debug 文档）"
-)
+```text
+询问 spec-writer：本次撰写 plan.md 时遇到的困难、踩过的坑、值得记录的发现？
+询问 spec-tester：本次测试过程中的发现、边界情况、改进建议？
+询问 spec-executor：本次实现过程中遇到的技术挑战、解决方案、值得复用的模式？
+询问 spec-debugger：本次调试的根因分析、修复思路、预防建议？（如有 debug 文档）
 ```
 
 等待各角色回复，汇总讨论结果。
@@ -70,46 +67,58 @@ SendMessage(
 exp-reflect 会根据经验的重要性分流：
 - 重大经验（解决了重要问题、有高复用价值）→ `exp-write` 写入正式经验文件
 - 轻量知识（小技巧、上下文记忆）→ Auto Memory
+- 项目规范或规则变化 → 建议更新 `AGENTS.md` / `.agents/rules/`
 
-### 步骤 5：询问用户是否归档
+### 步骤 5：项目规范维护审查
 
-```python
-AskUserQuestion(
-    questions=[{
-        "question": "所有阶段已完成，经验沉淀也已完成。是否可以将本 Spec 归档到 06-已归档，并提交 git？",
-        "header": "确认归档",
-        "multiSelect": False,
-        "options": [
-            {
-                "label": "确认归档并提交 git",
-                "description": "将 Spec 目录移动到 06-已归档，并调用 git-work 提交"
-            },
-            {
-                "label": "暂不归档",
-                "description": "先保留在当前目录，稍后手动归档"
-            }
-        ]
-    }]
-)
+归档前轻量审查本次 Spec 是否产生长期规则。只在命中明确规则时更新，不为了“有动作”而改规范。
+
+| 发现内容 | 维护位置 |
+|----------|----------|
+| 项目身份、技术栈、启动/部署方式、开发流程变化 | `AGENTS.md` |
+| 长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范 | `.agents/rules/*.md` |
+| 可复用操作流程（部署、发布、迁移等） | `.agents/skills/sop-xxx/SKILL.md` |
+| 项目架构、数据流、模块理解 | `spec/context/knowledge/` |
+| 困境-策略、踩坑经验 | `spec/context/experience/` |
+
+审查问题：
+- 本次是否形成了以后都要遵守的编码/安全/测试/日志/审计规则？
+- 本次是否改变了项目技术栈、目录结构、模块边界、启动或部署方式？
+- 本次是否暴露了反复出现的问题，需要写入 rules 防止复发？
+- 本次是否形成了可机械复用的 SOP，应创建或更新 Skill？
+
+如需更新，先向用户说明将修改哪些规范文件，得到确认后再编辑。
+
+### 步骤 6：询问用户是否归档并创建 PR
+
+```text
+确认目标：所有阶段已完成，经验沉淀与规范审查也已完成。是否可以将本 Spec 归档到 06-已归档，并提交、推送当前分支、创建 PR？
+确认选项：
+- 确认归档并创建 PR
+- 暂不归档
 ```
 
-### 步骤 6：归档（用户确认后）
+### 步骤 7：归档（用户确认后）
 
-用户选择"确认归档并提交 git"：
+用户选择"确认归档并创建 PR"：
 
 1. 将 Spec 目录移动到 `spec/06-已归档/`
-2. 调用 `/git-work` 提交本次开发的所有变更
+2. 调用 `/git-work` 的“完成 Spec 分支”模式：
+   - 确认当前分支不是 `main`
+   - 确认当前分支等于 plan.md 的 `git_branch`
+   - 审查 diff
+   - commit
+   - push
+   - 创建 PR 或输出 compare URL
+3. 如果获得 PR URL，写回归档后 `plan.md` / `summary.md` 的 `pr_url` 字段，并补充提交推送
 
 用户选择"暂不归档"：
-- 跳过归档步骤，直接执行步骤 7
+- 跳过归档步骤，直接执行步骤 8
 
-### 步骤 7：通知 TeamLead 完成
+### 步骤 8：通知 TeamLead 完成
 
-```python
-SendMessage(
-    recipient="TeamLead",
-    content="收尾工作完成，Teams 可以进入待机状态。"
-)
+```text
+通知 TeamLead：收尾工作完成，Teams 可以进入待机状态。
 ```
 
 ## 与其他角色的协作
@@ -117,11 +126,12 @@ SendMessage(
 ```
 [所有其他阶段完成]
 TeamLead → spec-ender 开始
-spec-ender → SendMessage 向各角色发起讨论
+spec-ender → 向各角色发起讨论
 各角色 → 回复经验素材
 spec-ender → 汇总 + 调用 exp-reflect → 沉淀经验
-spec-ender → AskUserQuestion → 用户确认归档
-[如归档] spec-ender → 移动目录 → git-work 提交
+spec-ender → 规范维护审查 → 必要时更新 AGENTS.md / .agents/rules/
+spec-ender → 用户确认归档
+[如归档] spec-ender → 移动目录 → git-work 提交 + 推送 + 创建 PR
 spec-ender → 通知 TeamLead 完成
 TeamLead → 通知用户整个流程完成，Teams 进入待机
 ```
@@ -131,11 +141,17 @@ TeamLead → 通知用户整个流程完成，Teams 进入待机
 完成收尾后确认：
 1. 已向所有相关角色发起讨论并收到回复
 2. 已调用 exp-reflect 完成分流沉淀
-3. 已询问用户是否归档
-4. 如归档：已移动目录 + 已调用 git-work 提交
-5. 已通知 TeamLead
+3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
+4. 已询问用户是否归档
+5. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR
+6. 如有 PR URL：已写回 plan.md / summary.md
+7. 已通知 TeamLead
 
 ### 常见陷阱
 - 跳过多角色讨论，只用自己的视角沉淀经验（会遗漏各角色的独特发现）
+- 把一次性实现细节写进 AGENTS.md 或 rules，导致规范膨胀
+- 本次形成了长期安全/日志/测试约束，却忘记更新 .agents/rules/
+- 在 `main` 上直接提交 Spec 成果
+- 创建 PR 前没有确认当前分支与 plan.md 的 `git_branch` 一致
 - 未询问用户直接归档
 - 沉淀完成后忘记通知 TeamLead

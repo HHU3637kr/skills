@@ -8,7 +8,7 @@
 ---
 title: 功能名称-审查报告
 type: review
-category: 03-功能实现
+category: 与 plan.md 相同
 status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD
@@ -27,7 +27,7 @@ tags:
 title: 功能名称-更新XXX-审查报告
 type: review
 update_number: 1
-category: 03-功能实现
+category: 与 plan.md 相同
 status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD

@@ -1,7 +1,7 @@
 {
   "name": "@rnking3637/rk-flow",
-  "version": "2.1.0",
-  "description": "R&K Flow - Spec 驱动式开发 Skills 体系，支持 Claude Code Agent Teams 工作流",
+  "version": "2.3.0",
+  "description": "R&K Flow - Spec 驱动式开发 Skills 体系，支持可映射的 Agent Teams 工作流",
   "bin": {
     "rk-flow": "bin/cli.js"
   },
