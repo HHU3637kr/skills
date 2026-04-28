@@ -12,6 +12,7 @@ import type { AgentSession } from "../../agentAdapters/types";
 import { GitBindingManager } from "../../git/gitBinding";
 import { renderSafeMarkdown } from "../../roleChat/markdown";
 import { renderRoleChatHtml } from "../../roleChat/renderRoleChatHtml";
+import { renderTurnItems } from "../../roleChat/renderers";
 import { redactSensitiveText, truncateOutput } from "../../roleChat/sanitize";
 import { mapAgentEventToTimelineItems } from "../../roleChat/timelineMapper";
 import { appendTimelineItems, readTimelineForRole } from "../../roleChat/timelineStore";
@@ -181,6 +182,21 @@ suite("R&K Flow extension host", () => {
         result: assistantText
       }
     }), "");
+
+    assert.strictEqual(readableEventText({
+      id: "event-tool-result",
+      sessionId: "session-1",
+      role: "TeamLead",
+      type: "message",
+      timestamp: "2026-04-28T00:00:00.000Z",
+      payload: {
+        type: "user",
+        message: {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: "toolu-1", content: "stdout should not become assistant text" }]
+        }
+      }
+    }), "");
   });
 
   test("parses and strips Agent TeamBus protocol blocks", () => {
@@ -263,6 +279,7 @@ suite("R&K Flow extension host", () => {
           message: {
             content: [
               { type: "tool_use", name: "Bash", input: { command: "npm test" } },
+              { type: "tool_use", id: "toolu-extra", name: "Read", input: { file_path: "README.md" } },
               { type: "text", text: "Running tests." }
             ]
           }
@@ -271,6 +288,38 @@ suite("R&K Flow extension host", () => {
     });
     assert.ok(toolItems.some(item => item.type === "tool_call"));
     assert.ok(toolItems.some(item => item.type === "assistant_message"));
+
+    const toolResultItems = mapAgentEventToTimelineItems({
+      spec,
+      role: "TeamLead",
+      turnId,
+      sessionId,
+      event: {
+        id: "event-tool-result",
+        sessionId,
+        role: "TeamLead",
+        type: "message",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        payload: {
+          type: "user",
+          message: {
+            role: "user",
+            content: [
+              {
+                type: "tool_result",
+                tool_use_id: "toolu-extra",
+                content: "README.md contents",
+                is_error: false
+              }
+            ]
+          }
+        }
+      }
+    });
+    assert.strictEqual(toolResultItems.filter(item => item.type === "tool_result").length, 1);
+    assert.strictEqual(toolResultItems.some(item => item.type === "assistant_message"), false);
+    const toolResult = toolResultItems.find(item => item.type === "tool_result");
+    assert.ok(toolResult && toolResult.toolUseId === "toolu-extra");
   });
 
   test("maps TeamBus protocol blocks without exposing raw JSON as assistant text", () => {
@@ -410,6 +459,62 @@ suite("R&K Flow extension host", () => {
     assert.ok(html.includes("compactSelect"));
     assert.ok(!html.includes("<label for=\"role\">Agent Role</label>"));
     assert.ok(html.includes("command: \"openFile\""));
+  });
+
+  test("renders paired tool call and result as one tool card", () => {
+    const items: RoleTimelineItem[] = [
+      {
+        id: "timeline-call",
+        specId: "spec",
+        role: "TeamLead",
+        turnId: "turn",
+        type: "tool_call",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        source: "agent",
+        toolUseId: "toolu-1",
+        toolName: "Bash",
+        title: "Tool call: Bash",
+        inputSummary: "npm test",
+        rawInput: { command: "npm test" },
+        collapsed: true
+      },
+      {
+        id: "timeline-result",
+        specId: "spec",
+        role: "TeamLead",
+        turnId: "turn",
+        type: "tool_result",
+        timestamp: "2026-04-28T00:00:01.000Z",
+        source: "agent",
+        toolUseId: "toolu-1",
+        toolName: "Bash",
+        title: "Tool result: Bash",
+        status: "success",
+        outputSummary: "18 passing",
+        outputPreview: "18 passing",
+        collapsed: true
+      },
+      {
+        id: "timeline-duplicate",
+        specId: "spec",
+        role: "TeamLead",
+        turnId: "turn",
+        type: "assistant_message",
+        timestamp: "2026-04-28T00:00:02.000Z",
+        source: "agent",
+        body: "18 passing",
+        format: "markdown",
+        final: false
+      }
+    ];
+
+    const html = renderTurnItems(items);
+    assert.strictEqual((html.match(/<details/g) ?? []).length, 1);
+    assert.ok(html.includes("Tool success"));
+    assert.ok(html.includes("Input"));
+    assert.ok(html.includes("Output"));
+    assert.ok(html.includes("18 passing"));
+    assert.strictEqual(html.includes("message assistant"), false);
   });
 
   test("renders Team Chatroom as a read-only TeamBus log", () => {

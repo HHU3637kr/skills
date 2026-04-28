@@ -17,8 +17,8 @@ tags:
 
 ## 测试概况
 
-- 测试用例总数：18
-- 通过：18
+- 测试用例总数：19
+- 通过：19
 - 失败：0
 - 代码覆盖率：未启用覆盖率统计；本轮以 TypeScript 编译、VS Code Extension Host 集成测试和 VSIX 打包验证为准。
 
@@ -39,12 +39,13 @@ npm.cmd --prefix rk-flow-vscode-extension run package
 | TeamBus 持久化 | 通过 | `team-chat.jsonl` 和 `audit-log.jsonl` 写入正常 |
 | Claude Code adapter | 通过 | CLI 可检测，resume 参数构造正确 |
 | `result` 聚合事件去重 | 通过 | Claude Code 最终 `result` 不再生成重复可见回复 |
-| Timeline mapper | 通过 | `system/init`、assistant text、tool_use、TeamBus block 均可映射 |
+| Timeline mapper | 通过 | `system/init`、assistant text、tool_use、tool_result、TeamBus block 均可映射 |
 | Timeline store | 通过 | `agent-timeline.jsonl` 可读写，旧 `agent-chat.jsonl` 可兼容转换 |
 | Markdown / XSS / 脱敏 / 截断 | 通过 | HTML escape、token 脱敏、长输出截断正常 |
 | Role Chat UI | 通过 | 结构化 timeline、过滤、Retry、Continue、紧凑 composer 可渲染 |
+| 工具调用成组展示 | 通过 | `tool_use` 与 `tool_result` 按 `toolUseId` 合并为一个工具卡片 |
 | Team Chatroom UI | 通过 | 只读 TeamBus 日志，不再出现手动发送表单 |
-| VSIX 打包 | 通过 | 生成 `rk-flow-vscode-extension-0.0.10.vsix` |
+| VSIX 打包 | 通过 | 生成 `rk-flow-vscode-extension-0.0.11.vsix` |
 
 ## 测试过程中的修改记录
 
@@ -53,6 +54,7 @@ npm.cmd --prefix rk-flow-vscode-extension run package
 | 微小调整 | Team Chatroom 改为只读 TeamBus 日志面板，移除手动发送表单 | [[summary\|实现总结]] |
 | 微小调整 | Role Chat 输入区改为紧凑底部 composer，减少侧边栏空间占用 | [[summary\|实现总结]] |
 | Bug 修复 | Claude Code `result` 聚合事件导致重复回复，已在前置 debug 中修复并纳入本轮 mapper 去重策略 | [[../../06-已归档/20260428-1621-自研RoleChat与ClaudeCode单后端设计/debug-001\|debug-001]] |
+| Bug 修复 | Claude Code `tool_result` 同时生成工具结果和 TeamLead 回复，且未与 `tool_use` 成组 | [[debug-001\|debug-001]] |
 
 ## 日志与审计证据
 
@@ -71,8 +73,9 @@ npm.cmd --prefix rk-flow-vscode-extension run package
 | Claude Code raw event 映射 | TC-004 至 TC-010 | 单元测试 | `extension.test.ts` | 通过 |
 | Markdown / XSS / 脱敏 | TC-014 至 TC-017 | 单元测试 | `extension.test.ts` | 通过 |
 | Role Chat UI 渲染 | TC-018 / TC-021 至 TC-023 | HTML 渲染断言 | `extension.test.ts` | 通过 |
+| 工具结果去重与成组 | TC-008 / TC-009 | 单元测试 + HTML 渲染断言 | `extension.test.ts` | 通过 |
 | Team Chatroom 只读 | US-002 | HTML 渲染断言 | `extension.test.ts` | 通过 |
-| VSIX 打包 | TC-026 | 打包产物 | `rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.10.vsix` | 通过 |
+| VSIX 打包 | TC-026 | 打包产物 | `rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.11.vsix` | 通过 |
 
 ### 端侧审计留存
 
@@ -84,6 +87,7 @@ npm.cmd --prefix rk-flow-vscode-extension run package
 ## 发现的 Bug
 
 - [[../../06-已归档/20260428-1621-自研RoleChat与ClaudeCode单后端设计/debug-001|ClaudeCode 回复重复显示]] - 已修复并纳入本轮回归测试。
+- [[debug-001|工具结果重复显示且未与工具调用成组]] - 已修复并纳入本轮回归测试。
 
 ## 最终测试结果
 

@@ -62,6 +62,7 @@ export interface PlanItem extends RoleTimelineItemBase {
 export interface ToolCallItem extends RoleTimelineItemBase {
   type: "tool_call";
   source: "agent";
+  toolUseId?: string;
   toolName: string;
   title: string;
   inputSummary: string;
@@ -72,6 +73,7 @@ export interface ToolCallItem extends RoleTimelineItemBase {
 export interface ToolResultItem extends RoleTimelineItemBase {
   type: "tool_result";
   source: "agent";
+  toolUseId?: string;
   toolName: string;
   title: string;
   status: "success" | "failed" | "canceled";

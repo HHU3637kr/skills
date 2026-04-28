@@ -30,7 +30,7 @@ tags:
 - [x] 将底部 Team Chatroom 调整为只读 TeamBus 日志面板，移除手动发送表单，避免与右侧 Role Chat 职责混淆。
 - [x] 将右侧 Role Chat 输入区改为紧凑底部 composer，移除垂直 label 和大面积控件占用。
 - [x] 增加 workspace 文件打开入口，并拒绝打开 workspace 外路径。
-- [x] 版本升级到 `0.0.10`，已生成 VSIX。
+- [x] 版本升级到 `0.0.11`，已生成 VSIX。
 
 ## 2. 实现的文件
 
@@ -49,18 +49,18 @@ rk-flow-vscode-extension/
 │   │   ├── timelineStore.ts
 │   │   └── timelineTypes.ts
 │   └── test/suite/extension.test.ts
-└── rk-flow-vscode-extension-0.0.10.vsix
+└── rk-flow-vscode-extension-0.0.11.vsix
 ```
 
 > [!note]
-> VSIX 产物位于 `rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.10.vsix`，该文件受 `.gitignore` 忽略，默认不进入提交。
+> VSIX 产物位于 `rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.11.vsix`，该文件受 `.gitignore` 忽略，默认不进入提交。
 
 ## 3. 测试结果
 
 ### 自动化测试
 
 - 测试命令：`npm.cmd --prefix rk-flow-vscode-extension test`
-- 测试用例数：18
+- 测试用例数：19
 - 通过率：100%
 
 覆盖内容：
@@ -78,12 +78,13 @@ rk-flow-vscode-extension/
 - Role Chat timeline 控件渲染
 - Team Chatroom 只读日志渲染，不再出现手动 TeamBus 发送表单
 - Role Chat 紧凑 composer 渲染，避免大面积占用右侧侧边栏空间
+- 工具结果去重，且 `tool_use` / `tool_result` 成组渲染为一个工具卡片
 
 ### 编译与打包
 
 - `npm.cmd --prefix rk-flow-vscode-extension run compile`：通过
 - `npm.cmd --prefix rk-flow-vscode-extension run package`：通过
-- 打包产物：`rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.10.vsix`
+- 打包产物：`rk-flow-vscode-extension/rk-flow-vscode-extension-0.0.11.vsix`
 
 ## 4. 遇到的问题
 

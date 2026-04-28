@@ -1657,6 +1657,11 @@ function extractText(value: unknown): string {
   }
 
   const record = value as Record<string, unknown>;
+  const blockType = typeof record.type === "string" ? record.type : undefined;
+  if (blockType === "tool_use" || blockType === "tool_result" || blockType === "thinking") {
+    return "";
+  }
+
   for (const key of ["text", "output_text", "result", "message", "content"]) {
     const candidate = record[key];
     if (typeof candidate === "string") {

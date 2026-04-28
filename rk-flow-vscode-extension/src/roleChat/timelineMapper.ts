@@ -68,6 +68,11 @@ export function extractText(value: unknown): string {
   }
 
   const record = value as Record<string, unknown>;
+  const blockType = stringValue(record.type);
+  if (blockType === "tool_use" || blockType === "tool_result" || blockType === "thinking") {
+    return "";
+  }
+
   for (const key of ["text", "output_text", "result", "message", "content"]) {
     const candidate = record[key];
     if (typeof candidate === "string") {
@@ -181,11 +186,13 @@ function assistantMessage(input: MapAgentEventInput, body: string): AssistantMes
 
 function toolCall(input: MapAgentEventInput, item: Record<string, unknown>): ToolCallItem {
   const toolName = stringValue(item.name) ?? stringValue(item.tool_name) ?? "tool";
+  const toolUseId = stringValue(item.id) ?? stringValue(item.tool_use_id);
   const rawInput = item.input ?? item.parameters ?? item;
   return {
     ...base(input),
     type: "tool_call",
     source: "agent",
+    toolUseId,
     toolName,
     title: `Tool call: ${toolName}`,
     inputSummary: summarizeToolInput(toolName, rawInput),
@@ -196,6 +203,7 @@ function toolCall(input: MapAgentEventInput, item: Record<string, unknown>): Too
 
 function toolResult(input: MapAgentEventInput, item: Record<string, unknown>): ToolResultItem {
   const toolName = stringValue(item.name) ?? stringValue(item.tool_name) ?? "tool";
+  const toolUseId = stringValue(item.tool_use_id) ?? stringValue(item.id);
   const rawOutput = item.content ?? item.output ?? item.result ?? item;
   const output = readablePayload(rawOutput);
   const preview = truncateOutput(output);
@@ -205,6 +213,7 @@ function toolResult(input: MapAgentEventInput, item: Record<string, unknown>): T
     ...base(input),
     type: "tool_result",
     source: "agent",
+    toolUseId,
     toolName,
     title: `Tool result: ${toolName}`,
     status: failed ? "failed" : "success",

@@ -220,18 +220,78 @@ export function renderRoleChatHtml(
       return html.join('');
     }
 
+    function toolInputHtml(item) {
+      return '<div class="toolBlock"><div class="codeLabel">Input</div><pre>' + escapeText(JSON.stringify(item.rawInput ?? item.inputSummary, null, 2)) + '</pre></div>';
+    }
+
+    function toolOutputHtml(item) {
+      return '<div class="toolBlock"><div class="codeLabel">Output</div><pre>' + escapeText(item.outputPreview ?? '') + '</pre></div>';
+    }
+
+    function toolPairHtml(call, result) {
+      return '<details class="timelineItem tool toolPair ' + escapeText(result.status) + '" data-kind="tools"><summary><span>Tool ' + escapeText(result.status) + '</span><b>' + escapeText(call.toolName) + '</b><em>' + escapeText(call.inputSummary) + '</em></summary>' + toolInputHtml(call) + toolOutputHtml(result) + '</details>';
+    }
+
     function itemHtml(item) {
       if (item.type === "turn_start") return '<div class="timelineItem system" data-kind="system">' + escapeText(item.title) + '</div>';
       if (item.type === "turn_end") return '<div class="timelineItem system" data-kind="system">Turn ' + escapeText(item.status) + '</div>';
       if (item.type === "user_message") return '<article class="timelineItem message user" data-kind="replies"><div class="itemTitle">You</div><div class="markdown">' + renderMarkdown(item.body) + '</div></article>';
       if (item.type === "assistant_message") return '<article class="timelineItem message assistant" data-kind="replies"><div class="itemTitle">' + escapeText(item.role) + '</div><div class="markdown">' + renderMarkdown(item.body) + '</div></article>';
-      if (item.type === "tool_call") return '<details class="timelineItem tool" data-kind="tools"><summary><span>Tool</span><b>' + escapeText(item.toolName) + '</b><em>' + escapeText(item.inputSummary) + '</em></summary><pre>' + escapeText(JSON.stringify(item.rawInput ?? item.inputSummary, null, 2)) + '</pre></details>';
-      if (item.type === "tool_result") return '<details class="timelineItem tool ' + escapeText(item.status) + '" data-kind="tools"><summary><span>' + escapeText(item.status) + '</span><b>' + escapeText(item.toolName) + '</b><em>' + escapeText(item.outputSummary) + '</em></summary><pre>' + escapeText(item.outputPreview ?? '') + '</pre></details>';
+      if (item.type === "tool_call") return '<details class="timelineItem tool" data-kind="tools"><summary><span>Tool</span><b>' + escapeText(item.toolName) + '</b><em>' + escapeText(item.inputSummary) + '</em></summary>' + toolInputHtml(item) + '</details>';
+      if (item.type === "tool_result") return '<details class="timelineItem tool ' + escapeText(item.status) + '" data-kind="tools"><summary><span>' + escapeText(item.status) + '</span><b>' + escapeText(item.toolName) + '</b><em>' + escapeText(item.outputSummary) + '</em></summary>' + toolOutputHtml(item) + '</details>';
       if (item.type === "team_bus") return '<details class="timelineItem teamBus" data-kind="team"><summary><span>TeamBus</span><b>' + escapeText(item.role) + ' -> ' + escapeText(item.to) + '</b><em>' + escapeText(item.subject) + '</em></summary><div class="teamBody">' + renderMarkdown(item.body) + '</div><div class="meta">type: ' + escapeText(item.messageType) + ' · response: ' + (item.requiresResponse ? 'required' : 'not required') + '</div></details>';
       if (item.type === "artifact") return '<article class="timelineItem artifact" data-kind="files"><div class="itemTitle">' + escapeText(item.title) + '</div>' + (item.path ? '<button class="fileLink" data-open-file="' + escapeText(item.path) + '">' + escapeText(item.path) + '</button>' : '') + '<div>' + escapeText(item.summary ?? '') + '</div></article>';
       if (item.type === "system_status") return '<div class="timelineItem system ' + escapeText(item.status) + '" data-kind="system">' + escapeText(item.message) + '</div>';
       if (item.type === "error") return '<article class="timelineItem error" data-kind="errors"><div class="itemTitle">' + escapeText(item.severity) + '</div><div>' + escapeText(item.message) + '</div></article>';
       return '';
+    }
+
+    function findPairedToolResult(items, call, startIndex, consumed) {
+      for (let index = startIndex; index < items.length; index += 1) {
+        if (consumed.has(index)) continue;
+        const candidate = items[index];
+        if (candidate.type !== "tool_result") continue;
+        if (call.toolUseId && candidate.toolUseId === call.toolUseId) return index;
+        if (!call.toolUseId && !candidate.toolUseId && candidate.toolName === call.toolName) return index;
+      }
+      return -1;
+    }
+
+    function normalizedPrefix(value) {
+      return String(value ?? '').replace(/\\s+/g, ' ').trim().slice(0, 180);
+    }
+
+    function isDuplicateToolResultAssistant(items, assistant, assistantIndex) {
+      const body = normalizedPrefix(assistant.body);
+      if (!body) return false;
+      for (let index = assistantIndex - 1; index >= 0; index -= 1) {
+        const candidate = items[index];
+        if (candidate.type === "assistant_message" || candidate.type === "user_message") return false;
+        if (candidate.type !== "tool_result") continue;
+        const output = normalizedPrefix(candidate.outputPreview ?? candidate.outputSummary);
+        return Boolean(output && (body === output || body.startsWith(output) || output.startsWith(body)));
+      }
+      return false;
+    }
+
+    function turnItemsHtml(items) {
+      const consumed = new Set();
+      const html = [];
+      for (let index = 0; index < items.length; index += 1) {
+        if (consumed.has(index)) continue;
+        const item = items[index];
+        if (item.type === "assistant_message" && isDuplicateToolResultAssistant(items, item, index)) continue;
+        if (item.type === "tool_call") {
+          const resultIndex = findPairedToolResult(items, item, index + 1, consumed);
+          if (resultIndex >= 0) {
+            consumed.add(resultIndex);
+            html.push(toolPairHtml(item, items[resultIndex]));
+            continue;
+          }
+        }
+        html.push(itemHtml(item));
+      }
+      return html.join('');
     }
 
     function renderTimeline() {
@@ -246,7 +306,7 @@ export function renderRoleChatHtml(
         }
         byTurn.get(item.turnId).items.push(item);
       }
-      timeline.innerHTML = groups.map(group => '<section class="turn" data-turn="' + escapeText(group.turnId) + '">' + group.items.map(itemHtml).join('') + '</section>').join('');
+      timeline.innerHTML = groups.map(group => '<section class="turn" data-turn="' + escapeText(group.turnId) + '">' + turnItemsHtml(group.items) + '</section>').join('');
       applyFilter();
       document.querySelector("#activeRole").textContent = selectedRole;
       document.querySelector("#role").value = selectedRole;
