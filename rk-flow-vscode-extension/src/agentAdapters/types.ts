@@ -1,4 +1,4 @@
-export type AgentEngine = "claude-code" | "codex-cli";
+export type AgentEngine = "claude-code" | "external-cli";
 
 export type AgentRole =
   | "TeamLead"

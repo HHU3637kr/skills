@@ -17,6 +17,7 @@ updated: 2026-04-28
 |----|------|--------|----------|-----------|
 | EXP-001 | Windows下CLI调用避免Shell拼接 | Windows, CLI, spawn, Claude Code, Codex, shim | VS Code 扩展或 Node.js 进程需要在 Windows 下稳定调用 Claude Code / Codex CLI | 解析真实可执行文件并用 `spawn(..., shell:false)` 传参 |
 | EXP-002 | Agent私聊与团队通信日志分离 | AgentTeam, TeamBus, agent-chat, team-chat, audit-log | 多角色 Agent 产品同时支持用户私聊和角色间协作 | 私聊写 `agent-chat.jsonl`，团队通信写 `team-chat.jsonl`，审计写 `audit-log.jsonl` |
+| EXP-003 | 第三方扩展不可作为编排协议 | VS Code Extension, Claude Code, Chat API, TeamBus, Role Chat, 编排协议 | 需要把第三方 Agent 工具接入自有多角色编排产品时 | 只依赖公开 API；编排、审计和会话边界保留在自有协议中 |
 
 ## 分类索引
 
@@ -27,3 +28,4 @@ updated: 2026-04-28
 ### AgentTeam 架构
 
 - [EXP-002] Agent私聊与团队通信日志分离
+- [EXP-003] 第三方扩展不可作为编排协议

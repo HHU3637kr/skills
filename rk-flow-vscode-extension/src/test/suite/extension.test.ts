@@ -4,9 +4,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import {
   buildClaudeCodeResumeArgs,
-  buildCodexResumeArgs,
-  ClaudeCodeAdapter,
-  CodexAdapter
+  ClaudeCodeAdapter
 } from "../../agentAdapters/cliAdapters";
 import type { AgentSession } from "../../agentAdapters/types";
 import { GitBindingManager } from "../../git/gitBinding";
@@ -28,6 +26,29 @@ suite("R&K Flow extension host", () => {
     assert.ok(commands.includes("rkFlow.sendTeamMessage"));
     assert.ok(commands.includes("rkFlow.selectAgentRole"));
     assert.ok(commands.includes("rkFlow.refresh"));
+  });
+
+  test("contributes Role Chat as a side view and Team Chatroom as a panel view", async () => {
+    const manifestPath = path.join(workspaceRoot().fsPath, "rk-flow-vscode-extension", "package.json");
+    const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8")) as {
+      contributes: {
+        viewsContainers: Record<string, Array<{ id: string }>>;
+        views: Record<string, Array<{ id: string; type?: string }>>;
+      };
+    };
+
+    assert.ok(manifest.contributes.viewsContainers.activitybar.some(container => container.id === "rk-flow-agent"));
+    assert.ok(manifest.contributes.viewsContainers.panel.some(container => container.id === "rk-flow-team"));
+    assert.ok(manifest.contributes.views["rk-flow-agent"].some(view => view.id === "rkFlow.agentChat"));
+    assert.ok(manifest.contributes.views["rk-flow-team"].some(view => view.id === "rkFlow.teamChatroom"));
+    assert.strictEqual(
+      manifest.contributes.views["rk-flow-agent"].find(view => view.id === "rkFlow.agentChat")?.type,
+      "webview"
+    );
+    assert.strictEqual(
+      manifest.contributes.views["rk-flow-team"].find(view => view.id === "rkFlow.teamChatroom")?.type,
+      "webview"
+    );
   });
 
   test("discovers the active Spec and reads Git branch binding", async () => {
@@ -103,14 +124,11 @@ suite("R&K Flow extension host", () => {
     assert.ok(senderMessages.some(candidate => candidate.id === message.id));
   });
 
-  test("detects local Claude Code and Codex adapter availability", async () => {
+  test("detects local Claude Code adapter availability", async () => {
     const claudeAvailable = await new ClaudeCodeAdapter().detect();
-    const codexAvailable = await new CodexAdapter().detect();
 
     assert.strictEqual(typeof claudeAvailable, "boolean");
-    assert.strictEqual(typeof codexAvailable, "boolean");
     assert.ok(claudeAvailable, "claude CLI should be available on this machine");
-    assert.ok(codexAvailable, "codex CLI should be available on this machine");
   });
 
   test("builds resumable CLI arguments for private Role sessions", () => {
@@ -125,18 +143,6 @@ suite("R&K Flow extension host", () => {
       session.id,
       "继续"
     ]);
-
-    const codexArgs = buildCodexResumeArgs({ ...session, engine: "codex-cli", model: "gpt-5.3-codex" }, "继续");
-    assert.deepStrictEqual(codexArgs, [
-      "exec",
-      "resume",
-      "--json",
-      "--model",
-      "gpt-5.3-codex",
-      session.id,
-      "继续"
-    ]);
-    assert.ok(!codexArgs.includes("-C"), "codex exec resume does not support -C; cwd is supplied by spawn()");
   });
 
   test("parses and strips Agent TeamBus protocol blocks", () => {

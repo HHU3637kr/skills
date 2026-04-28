@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { readFileSync } from "fs";
 import * as path from "path";
 import * as readline from "readline";
 import { createId, nowIso } from "../common/id";
@@ -18,26 +18,6 @@ export class ClaudeCodeAdapter implements AgentAdapter {
 
   resume(session: AgentSession, prompt: string): AsyncIterable<AgentEvent> {
     return runCliAsEvents("claude", buildClaudeCodeResumeArgs(session, prompt), session);
-  }
-
-  async stop(_session: AgentSession): Promise<void> {
-    return;
-  }
-}
-
-export class CodexAdapter implements AgentAdapter {
-  readonly engine = "codex-cli" as const;
-
-  detect(): Promise<boolean> {
-    return commandAvailable("codex", ["--help"]);
-  }
-
-  start(session: AgentSession, prompt: string): AsyncIterable<AgentEvent> {
-    return runCliAsEvents("codex", buildCodexStartArgs(session, prompt), session);
-  }
-
-  resume(session: AgentSession, prompt: string): AsyncIterable<AgentEvent> {
-    return runCliAsEvents("codex", buildCodexResumeArgs(session, prompt), session);
   }
 
   async stop(_session: AgentSession): Promise<void> {
@@ -67,32 +47,6 @@ export function buildClaudeCodeResumeArgs(session: AgentSession, prompt: string)
     session.id,
     prompt
   ];
-}
-
-export function buildCodexStartArgs(session: AgentSession, prompt: string): string[] {
-  return [
-    "exec",
-    "--json",
-    ...codexModelArgs(session),
-    "-C",
-    session.workspaceUri,
-    prompt
-  ];
-}
-
-export function buildCodexResumeArgs(session: AgentSession, prompt: string): string[] {
-  return [
-    "exec",
-    "resume",
-    "--json",
-    ...codexModelArgs(session),
-    session.id,
-    prompt
-  ];
-}
-
-function codexModelArgs(session: AgentSession): string[] {
-  return session.model && session.model !== "default" ? ["--model", session.model] : [];
 }
 
 async function commandAvailable(command: string, args: string[]): Promise<boolean> {
@@ -164,14 +118,6 @@ function resolveCliInvocation(command: string, args: string[]): { command: strin
     if (match) {
       return { command: path.resolve(path.dirname(shimPath), match[1].replace("%dp0%\\", "")), args };
     }
-  }
-
-  if (command === "codex") {
-    const shimDir = path.dirname(shimPath);
-    const localNode = path.join(shimDir, "node.exe");
-    const nodeCommand = existsSync(localNode) ? localNode : findWindowsExecutable("node.exe");
-    const codexScript = path.join(shimDir, "node_modules", "@openai", "codex", "bin", "codex.js");
-    return { command: nodeCommand, args: [codexScript, ...args] };
   }
 
   return { command: shimPath, args };

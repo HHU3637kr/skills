@@ -15,7 +15,7 @@ updated: 2026-04-28
 
 | ID | 标题 | 类型 | 关键词 | 一句话概述 |
 |----|------|------|--------|-----------|
-| KNOW-001 | RKFlowVSCode扩展MVP架构 | 项目理解 | R&K Flow, VS Code Extension, AgentTeam, TeamBus, CLI Adapter, Spec | 在 VS Code 扩展中承载 Spec Explorer、AgentTeam Canvas、Role Chat、TeamBus、CLI Adapter 和 Git Binding |
+| KNOW-001 | RKFlowVSCode扩展MVP架构 | 项目理解 | R&K Flow, VS Code Extension, AgentTeam, TeamBus, CLI Adapter, Spec | 在 VS Code 扩展中承载 Spec Explorer、AgentTeam Canvas、Role Chat、TeamBus、ClaudeCodeAdapter 和 Git Binding |
 
 ## 分类索引
 

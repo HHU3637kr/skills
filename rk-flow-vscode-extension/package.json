@@ -1,8 +1,8 @@
 {
   "name": "rk-flow-vscode-extension",
   "displayName": "R&K Flow",
-  "description": "Spec-driven Agent Team orchestration for VS Code using Claude Code and Codex CLI.",
-  "version": "0.0.5",
+  "description": "Spec-driven Agent Team orchestration for VS Code using Claude Code.",
+  "version": "0.0.8",
   "publisher": "rnking3637",
   "license": "MIT",
   "repository": {
@@ -23,7 +23,9 @@
     "onCommand:rkFlow.sendTeamMessage",
     "onCommand:rkFlow.selectAgentRole",
     "onView:rkFlow.specExplorer",
-    "onView:rkFlow.agentAdapters"
+    "onView:rkFlow.agentAdapters",
+    "onView:rkFlow.agentChat",
+    "onView:rkFlow.teamChatroom"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -32,6 +34,18 @@
         {
           "id": "rk-flow",
           "title": "R&K Flow",
+          "icon": "resources/rk-flow.svg"
+        },
+        {
+          "id": "rk-flow-agent",
+          "title": "R&K Agent",
+          "icon": "resources/rk-flow.svg"
+        }
+      ],
+      "panel": [
+        {
+          "id": "rk-flow-team",
+          "title": "R&K Team",
           "icon": "resources/rk-flow.svg"
         }
       ]
@@ -45,6 +59,20 @@
         {
           "id": "rkFlow.agentAdapters",
           "name": "Agent Adapters"
+        }
+      ],
+      "rk-flow-agent": [
+        {
+          "id": "rkFlow.agentChat",
+          "name": "Role Chat",
+          "type": "webview"
+        }
+      ],
+      "rk-flow-team": [
+        {
+          "id": "rkFlow.teamChatroom",
+          "name": "Team Chatroom",
+          "type": "webview"
         }
       ]
     },
