@@ -2,7 +2,7 @@
   "name": "rk-flow-vscode-extension",
   "displayName": "R&K Flow",
   "description": "Spec-driven Agent Team orchestration for VS Code using Claude Code.",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "publisher": "rnking3637",
   "license": "MIT",
   "repository": {

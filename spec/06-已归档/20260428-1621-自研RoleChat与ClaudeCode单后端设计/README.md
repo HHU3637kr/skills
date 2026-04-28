@@ -1,8 +1,8 @@
 ---
 title: 自研RoleChat与ClaudeCode单后端设计
 type: spec-index
-category: 02-技术设计
-status: 需求已确认
+category: 06-已归档
+status: 已归档
 created: 2026-04-28
 git_branch: feat/spec-20260428-1335-rk-flow-vscode-extension
 base_branch: master
@@ -28,8 +28,10 @@ tags:
 ## 当前阶段
 
 - 阶段一：需求方向已调整
-- 阶段二：详细设计已同步到自研 Role Chat 路线
-- 阶段三：实现中
+- 阶段二：详细设计已完成
+- 阶段三：实现与测试已完成
+- 阶段四：debug-001 已修复并回归
+- 阶段五：已归档
 
 ## 文档
 
@@ -37,6 +39,10 @@ tags:
 - [[exploration-report|探索报告]]
 - [[plan|详细设计方案]]
 - [[test-plan|测试计划]]
+- [[summary|实现总结]]
+- [[test-report|测试报告]]
+- [[debug-001|问题诊断-ClaudeCode回复重复显示]]
+- [[debug-001-fix|修复总结-ClaudeCode回复重复显示]]
 
 ## 代码范围
 

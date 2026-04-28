@@ -1,13 +1,21 @@
 import * as assert from "assert";
 import * as fs from "fs/promises";
+import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
+import { readableEventText, renderTeamChatroomHtml } from "../../extension";
 import {
   buildClaudeCodeResumeArgs,
   ClaudeCodeAdapter
 } from "../../agentAdapters/cliAdapters";
 import type { AgentSession } from "../../agentAdapters/types";
 import { GitBindingManager } from "../../git/gitBinding";
+import { renderSafeMarkdown } from "../../roleChat/markdown";
+import { renderRoleChatHtml } from "../../roleChat/renderRoleChatHtml";
+import { redactSensitiveText, truncateOutput } from "../../roleChat/sanitize";
+import { mapAgentEventToTimelineItems } from "../../roleChat/timelineMapper";
+import { appendTimelineItems, readTimelineForRole } from "../../roleChat/timelineStore";
+import type { RoleTimelineItem } from "../../roleChat/timelineTypes";
 import { SpecRepository } from "../../specs/specRepository";
 import type { SpecBinding } from "../../specs/types";
 import { FileTeamBus } from "../../teamBus/fileTeamBus";
@@ -145,6 +153,36 @@ suite("R&K Flow extension host", () => {
     ]);
   });
 
+  test("suppresses Claude Code result aggregate text to avoid duplicate Role Chat bubbles", () => {
+    const assistantText = "你好，我是 TeamLead。";
+
+    assert.strictEqual(readableEventText({
+      id: "event-assistant",
+      sessionId: "session-1",
+      role: "TeamLead",
+      type: "message",
+      timestamp: "2026-04-28T00:00:00.000Z",
+      payload: {
+        type: "assistant",
+        message: {
+          content: [{ type: "text", text: assistantText }]
+        }
+      }
+    }), assistantText);
+
+    assert.strictEqual(readableEventText({
+      id: "event-result",
+      sessionId: "session-1",
+      role: "TeamLead",
+      type: "message",
+      timestamp: "2026-04-28T00:00:00.000Z",
+      payload: {
+        type: "result",
+        result: assistantText
+      }
+    }), "");
+  });
+
   test("parses and strips Agent TeamBus protocol blocks", () => {
     const response = [
       "I found a blocker.",
@@ -170,6 +208,217 @@ suite("R&K Flow extension host", () => {
     assert.strictEqual(request.requiresResponse, true);
     assert.deepStrictEqual(request.artifacts, ["logs/extension-host.log"]);
     assert.strictEqual(stripTeamMessageBlocks(response), "I found a blocker.\nI will wait for debugging.");
+  });
+
+  test("maps Claude Code stream events into Role Timeline items", () => {
+    const spec = testSpec(path.join(os.tmpdir(), "rk-flow-timeline-map"));
+    const turnId = "turn-1";
+    const sessionId = "11111111-1111-4111-8111-111111111111";
+
+    const initItems = mapAgentEventToTimelineItems({
+      spec,
+      role: "TeamLead",
+      turnId,
+      sessionId,
+      event: {
+        id: "event-init",
+        sessionId,
+        role: "TeamLead",
+        type: "message",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        payload: { type: "system", subtype: "init", session_id: sessionId, model: "claude" }
+      }
+    });
+    assert.strictEqual(initItems[0].type, "system_status");
+
+    const resultItems = mapAgentEventToTimelineItems({
+      spec,
+      role: "TeamLead",
+      turnId,
+      sessionId,
+      event: {
+        id: "event-result",
+        sessionId,
+        role: "TeamLead",
+        type: "message",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        payload: { type: "result", result: "duplicate aggregate text" }
+      }
+    });
+    assert.deepStrictEqual(resultItems, []);
+
+    const toolItems = mapAgentEventToTimelineItems({
+      spec,
+      role: "TeamLead",
+      turnId,
+      sessionId,
+      event: {
+        id: "event-tool",
+        sessionId,
+        role: "TeamLead",
+        type: "message",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        payload: {
+          type: "assistant",
+          message: {
+            content: [
+              { type: "tool_use", name: "Bash", input: { command: "npm test" } },
+              { type: "text", text: "Running tests." }
+            ]
+          }
+        }
+      }
+    });
+    assert.ok(toolItems.some(item => item.type === "tool_call"));
+    assert.ok(toolItems.some(item => item.type === "assistant_message"));
+  });
+
+  test("maps TeamBus protocol blocks without exposing raw JSON as assistant text", () => {
+    const spec = testSpec(path.join(os.tmpdir(), "rk-flow-timeline-team"));
+    const response = [
+      "I will ask tester.",
+      "```json",
+      JSON.stringify({
+        rkFlowTeamMessage: {
+          to: "spec-tester",
+          type: "handoff",
+          subject: "Validate timeline",
+          body: "Please test the Role Timeline UI.",
+          artifacts: ["agent-timeline.jsonl"],
+          requiresResponse: false
+        }
+      }),
+      "```"
+    ].join("\n");
+
+    const items = mapAgentEventToTimelineItems({
+      spec,
+      role: "TeamLead",
+      turnId: "turn-team",
+      sessionId: "session-team",
+      event: {
+        id: "event-team",
+        sessionId: "session-team",
+        role: "TeamLead",
+        type: "message",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        payload: { type: "assistant", message: { content: [{ type: "text", text: response }] } }
+      }
+    });
+
+    const assistant = items.find(item => item.type === "assistant_message");
+    const team = items.find(item => item.type === "team_bus");
+    assert.ok(assistant && !assistant.body.includes("rkFlowTeamMessage"));
+    assert.ok(team && team.subject === "Validate timeline");
+  });
+
+  test("renders markdown safely and redacts long tool output", () => {
+    const html = renderSafeMarkdown("Hello **world**\n\n<script>alert(1)</script>\n\n```ts\nconst x = 1;\n```");
+    assert.ok(html.includes("<strong>world</strong>"));
+    assert.ok(html.includes("&lt;script&gt;alert(1)&lt;/script&gt;"));
+    assert.ok(!html.includes("<script>"));
+
+    const redacted = redactSensitiveText("Authorization: Bearer abc.def\nOPENAI_API_KEY=sk-12345678901234567890");
+    assert.ok(redacted.includes("Authorization: Bearer [REDACTED]"));
+    assert.ok(!redacted.includes("sk-12345678901234567890"));
+
+    const truncated = truncateOutput(Array.from({ length: 130 }, (_, index) => `line ${index}`).join("\n"), 12, 1024);
+    assert.strictEqual(truncated.truncated, true);
+    assert.ok(truncated.text.includes("[truncated:"));
+  });
+
+  test("persists Role Timeline JSONL and falls back to old private chat history", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-timeline-store-"));
+    const spec = testSpec(dir);
+    const item: RoleTimelineItem = {
+      id: "timeline-1",
+      specId: spec.id,
+      role: "TeamLead",
+      turnId: "turn-1",
+      type: "assistant_message",
+      timestamp: "2026-04-28T00:00:00.000Z",
+      source: "agent",
+      body: "Hello",
+      format: "markdown",
+      final: true
+    };
+
+    await appendTimelineItems(spec, [item]);
+    assert.deepStrictEqual(await readTimelineForRole(spec, "TeamLead"), [item]);
+    assert.deepStrictEqual(await readTimelineForRole(spec, "spec-tester"), []);
+
+    const legacyDir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-legacy-chat-"));
+    const legacySpec = testSpec(legacyDir);
+    await fs.writeFile(path.join(legacyDir, "agent-chat.jsonl"), [
+      JSON.stringify({
+        id: "role-chat-user",
+        specId: legacySpec.id,
+        from: "user",
+        to: "spec-tester",
+        direction: "user_to_agent",
+        body: "请测试",
+        model: "default",
+        artifacts: [],
+        isError: false,
+        timestamp: "2026-04-28T00:00:00.000Z"
+      }),
+      JSON.stringify({
+        id: "role-chat-agent",
+        specId: legacySpec.id,
+        from: "spec-tester",
+        to: "user",
+        direction: "agent_to_user",
+        body: "测试完成",
+        model: "default",
+        artifacts: [],
+        isError: false,
+        timestamp: "2026-04-28T00:00:01.000Z"
+      })
+    ].join("\n"), "utf8");
+
+    const fallback = await readTimelineForRole(legacySpec, "spec-tester");
+    assert.strictEqual(fallback.length, 2);
+    assert.strictEqual(fallback[0].type, "user_message");
+    assert.strictEqual(fallback[1].type, "assistant_message");
+  });
+
+  test("renders Role Chat timeline controls and structured items", () => {
+    const spec = testSpec(path.join(os.tmpdir(), "rk-flow-render"));
+    const html = renderRoleChatHtml(spec, "TeamLead", [
+      {
+        id: "timeline-team",
+        specId: spec.id,
+        role: "TeamLead",
+        turnId: "turn-render",
+        type: "team_bus",
+        timestamp: "2026-04-28T00:00:00.000Z",
+        source: "team_bus",
+        to: "spec-tester",
+        messageType: "handoff",
+        subject: "Run tests",
+        body: "Please test.",
+        artifacts: ["test-plan.md"],
+        requiresResponse: false
+      }
+    ], {});
+
+    assert.ok(html.includes("data-filter=\"tools\""));
+    assert.ok(html.includes("TeamBus"));
+    assert.ok(html.includes("Retry"));
+    assert.ok(html.includes("Continue"));
+    assert.ok(html.includes("composerBox"));
+    assert.ok(html.includes("compactSelect"));
+    assert.ok(!html.includes("<label for=\"role\">Agent Role</label>"));
+    assert.ok(html.includes("command: \"openFile\""));
+  });
+
+  test("renders Team Chatroom as a read-only TeamBus log", () => {
+    const html = renderTeamChatroomHtml(testSpec(path.join(os.tmpdir(), "rk-flow-team-room")), []);
+
+    assert.ok(html.includes("Team Chatroom"));
+    assert.ok(html.includes("No TeamBus messages yet."));
+    assert.ok(!html.includes("Send TeamBus Message"));
+    assert.ok(!html.includes("id=\"composer\""));
   });
 });
 
@@ -197,5 +446,20 @@ function testSession(): AgentSession {
     gitBranch: "feat/spec-20260428-1335-rk-flow-vscode-extension",
     createdAt: "2026-04-28T00:00:00.000Z",
     updatedAt: "2026-04-28T00:00:00.000Z"
+  };
+}
+
+function testSpec(specDirFsPath: string): SpecBinding {
+  return {
+    id: "20260428-test",
+    title: "Timeline Test Spec",
+    category: "02-技术设计",
+    status: "未确认",
+    phase: "draft",
+    specDir: "spec/02-技术设计/20260428-test-Timeline",
+    specDirFsPath,
+    planPathFsPath: path.join(specDirFsPath, "plan.md"),
+    gitBranch: "feat/spec-20260428-1335-rk-flow-vscode-extension",
+    baseBranch: "master"
   };
 }

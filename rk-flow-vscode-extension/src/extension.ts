@@ -7,6 +7,10 @@ import type { AgentAdapter, AgentEngine, AgentEvent, AgentRole, AgentSession } f
 import { appendJsonLine } from "./audit/jsonlStore";
 import { createId, nowIso } from "./common/id";
 import { GitBindingManager } from "./git/gitBinding";
+import { mapAgentEventToTimelineItems } from "./roleChat/timelineMapper";
+import { renderRoleChatHtml } from "./roleChat/renderRoleChatHtml";
+import { appendTimelineItems, readTimelineForRole } from "./roleChat/timelineStore";
+import type { PrivateRoleChatMessage, RoleTimelineItem } from "./roleChat/timelineTypes";
 import { SpecRepository } from "./specs/specRepository";
 import type { SpecBinding } from "./specs/types";
 import { FileTeamBus } from "./teamBus/fileTeamBus";
@@ -82,6 +86,7 @@ class AgentAdaptersProvider implements vscode.TreeDataProvider<vscode.TreeItem> 
 interface AgentRunOptions {
   routeDepth?: number;
   sourceTeamMessage?: TeamMessage;
+  turnId?: string;
 }
 
 interface AgentRunResult {
@@ -105,7 +110,7 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
   resolveWebviewView(webviewView: vscode.WebviewView): void {
     this.webviewView = webviewView;
     webviewView.webview.options = { enableScripts: true };
-    webviewView.webview.html = renderAgentChatHtml(undefined, this.activeRole, [], {});
+    webviewView.webview.html = renderRoleChatHtml(undefined, this.activeRole, [], {});
     webviewView.webview.onDidReceiveMessage(message => this.handleMessage(message));
     void this.refresh();
   }
@@ -120,9 +125,9 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     const spec = await this.getActiveSpec();
-    const messages = spec ? await readPrivateRoleChat(spec) : [];
+    const items = spec ? await readTimelineForRole(spec, this.activeRole) : [];
     const sessions = spec ? await readRoleSessions(spec) : {};
-    this.webviewView.webview.html = renderAgentChatHtml(spec, this.activeRole, messages, sessions);
+    this.webviewView.webview.html = renderRoleChatHtml(spec, this.activeRole, items, sessions);
   }
 
   async selectRole(role: AgentRole): Promise<void> {
@@ -133,10 +138,15 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     this.webviewView?.webview.postMessage({ type: "roleSelected", role });
   }
 
-  private async handleMessage(message: { command?: string; body?: string; role?: AgentRole; model?: string }): Promise<void> {
+  private async handleMessage(message: { command?: string; body?: string; role?: AgentRole; model?: string; path?: string; line?: number }): Promise<void> {
     if (message.command === "selectRole" && isAgentRole(message.role)) {
       this.activeRole = message.role;
       await this.refresh();
+      return;
+    }
+
+    if (message.command === "openFile" && typeof message.path === "string") {
+      await this.openWorkspaceFile(message.path, message.line);
       return;
     }
 
@@ -158,6 +168,27 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
+  private async openWorkspaceFile(filePath: string, line?: number): Promise<void> {
+    const workspacePath = path.resolve(this.workspaceRoot.fsPath);
+    const targetPath = path.isAbsolute(filePath)
+      ? path.resolve(filePath)
+      : path.resolve(workspacePath, filePath);
+    const relative = path.relative(workspacePath, targetPath);
+
+    if (relative.startsWith("..") || path.isAbsolute(relative)) {
+      await vscode.window.showWarningMessage("R&K Flow refused to open a file outside the workspace.");
+      return;
+    }
+
+    const uri = vscode.Uri.file(targetPath);
+    const options: vscode.TextDocumentShowOptions = {};
+    if (typeof line === "number" && Number.isFinite(line) && line > 0) {
+      const position = new vscode.Position(line - 1, 0);
+      options.selection = new vscode.Range(position, position);
+    }
+    await vscode.window.showTextDocument(uri, options);
+  }
+
   async sendRoleMessage(
     spec: SpecBinding,
     role: AgentRole,
@@ -166,6 +197,7 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     postMessage: (payload: unknown) => void | Thenable<void>
   ): Promise<void> {
     this.activeRole = role;
+    const turnId = createId("turn");
     const privateMessage = await appendPrivateRoleChat(spec, {
       from: "user",
       to: role,
@@ -174,6 +206,29 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
       model,
       artifacts: []
     });
+    const userTimelineItems: RoleTimelineItem[] = [
+      {
+        id: createId("timeline"),
+        specId: spec.id,
+        role,
+        turnId,
+        type: "turn_start",
+        timestamp: privateMessage.timestamp,
+        source: "system",
+        title: "User message"
+      },
+      {
+        id: createId("timeline"),
+        specId: spec.id,
+        role,
+        turnId,
+        type: "user_message",
+        timestamp: privateMessage.timestamp,
+        source: "user",
+        body: prompt
+      }
+    ];
+    await appendTimelineItems(spec, userTimelineItems);
     await appendJsonLine(`${spec.specDirFsPath}/audit-log.jsonl`, {
       id: createId("audit"),
       timestamp: nowIso(),
@@ -184,8 +239,9 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
       messageId: privateMessage.id
     });
 
+    await postMessage({ type: "timelineItems", items: userTimelineItems, role });
     await postMessage({ type: "sent", message: privateMessage, model });
-    await this.runAgentMessage(spec, role, prompt, model, postMessage);
+    await this.runAgentMessage(spec, role, prompt, model, postMessage, { turnId });
   }
 
   async routeTeamMessages(
@@ -205,6 +261,28 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     options: AgentRunOptions = {}
   ): Promise<AgentRunResult> {
     const engine = defaultEngineForRole(role);
+    const turnId = options.turnId ?? createId("turn");
+    const postTimelineItems = async (items: RoleTimelineItem[]): Promise<void> => {
+      if (!items.length) {
+        return;
+      }
+      await appendTimelineItems(spec, items);
+      await postMessage({ type: "timelineItems", items, role });
+    };
+
+    if (!options.turnId) {
+      await postTimelineItems([{
+        id: createId("timeline"),
+        specId: spec.id,
+        role,
+        turnId,
+        type: "turn_start",
+        timestamp: nowIso(),
+        source: "team_bus",
+        title: "TeamBus routed message"
+      }]);
+    }
+
     const adapter = this.adapters.find(candidate => candidate.engine === engine);
     if (!adapter) {
       const error = `No adapter registered for ${engine}.`;
@@ -217,6 +295,29 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         artifacts: [],
         isError: true
       });
+      await postTimelineItems([
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "error",
+          timestamp: nowIso(),
+          source: "system",
+          severity: "error",
+          message: error
+        },
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "turn_end",
+          timestamp: nowIso(),
+          source: "system",
+          status: "failed"
+        }
+      ]);
       await postMessage({ type: "agentError", error });
       return { body: error, teamMessages: [] };
     }
@@ -233,6 +334,29 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         model,
         isError: true
       });
+      await postTimelineItems([
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "error",
+          timestamp: nowIso(),
+          source: "system",
+          severity: "error",
+          message: error
+        },
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "turn_end",
+          timestamp: nowIso(),
+          source: "system",
+          status: "failed"
+        }
+      ]);
       await postMessage({ type: "agentError", error });
       return { body: error, teamMessages: [] };
     }
@@ -247,7 +371,20 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     const eventLogPath = `${spec.specDirFsPath}/logs/agent-events.jsonl`;
     const readableText: string[] = [];
     const resumed = Boolean(loadedSession);
+    let assistantTimelineSeen = false;
     await postMessage({ type: "agentStarted", role, engine, sessionId: session.id, resumed });
+    await postTimelineItems([{
+      id: createId("timeline"),
+      specId: spec.id,
+      role,
+      turnId,
+      sessionId: session.id,
+      type: "system_status",
+      timestamp: nowIso(),
+      source: "system",
+      status: resumed ? "resumed" : "started",
+      message: `${resumed ? "Resumed" : "Started"} ${role} via ${engine}.`
+    }]);
 
     try {
       const eventStream = resumed
@@ -267,8 +404,15 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         if (text) {
           readableText.push(text);
         }
-        const visibleText = text.includes("rkFlowTeamMessage") ? stripTeamMessageBlocks(text) : text;
-        await postMessage({ type: "agentEvent", event, text: visibleText });
+        const timelineItems = mapAgentEventToTimelineItems({
+          spec,
+          role,
+          turnId,
+          sessionId: session.id,
+          event
+        });
+        assistantTimelineSeen = assistantTimelineSeen || timelineItems.some(item => item.type === "assistant_message");
+        await postTimelineItems(timelineItems);
       }
 
       const rawBody = readableText.join("\n").trim() || `${role} finished without text output.`;
@@ -299,6 +443,34 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         model,
         artifacts: [eventLogPath]
       });
+      const completionItems: RoleTimelineItem[] = [];
+      if (!assistantTimelineSeen) {
+        completionItems.push({
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          sessionId: session.id,
+          type: "assistant_message",
+          timestamp: responseMessage.timestamp,
+          source: "agent",
+          body,
+          format: "markdown",
+          final: true
+        });
+      }
+      completionItems.push({
+        id: createId("timeline"),
+        specId: spec.id,
+        role,
+        turnId,
+        sessionId: session.id,
+        type: "turn_end",
+        timestamp: responseMessage.timestamp,
+        source: "system",
+        status: "completed"
+      });
+      await postTimelineItems(completionItems);
       await appendJsonLine(`${spec.specDirFsPath}/audit-log.jsonl`, {
         id: createId("audit"),
         timestamp: nowIso(),
@@ -331,6 +503,31 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         artifacts: [eventLogPath],
         isError: true
       });
+      await postTimelineItems([
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          sessionId: session.id,
+          type: "error",
+          timestamp: nowIso(),
+          source: "system",
+          severity: "error",
+          message: errorMessage
+        },
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          sessionId: session.id,
+          type: "turn_end",
+          timestamp: nowIso(),
+          source: "system",
+          status: "failed"
+        }
+      ]);
       await postMessage({ type: "agentError", error: errorMessage });
       return { body: errorMessage, teamMessages: [] };
     }
@@ -1131,168 +1328,7 @@ function renderLegacyCanvasHtml(
 </html>`;
 }
 
-function renderAgentChatHtml(
-  spec: SpecBinding | undefined,
-  activeRole: AgentRole,
-  messages: PrivateRoleChatMessage[],
-  sessions: Partial<Record<AgentRole, AgentSession | undefined>>
-): string {
-  const roleMessages = messages.map(message => ({
-    role: message.direction === "user_to_agent" ? message.to : message.from,
-    speaker: message.from === "user" ? "You" : message.from,
-    body: message.body,
-    kind: message.isError ? "error" : (message.from === "user" ? "" : "assistant")
-  }));
-  const roleMessagesJson = JSON.stringify(roleMessages).replace(/</g, "\\u003c");
-  const roleSessionsJson = JSON.stringify(Object.fromEntries(agentRoles.map(role => [role, Boolean(sessions[role])]))).replace(/</g, "\\u003c");
-
-  return `<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root { color-scheme: dark; --line:#333; --text:#d4d4d4; --muted:#8f8f8f; --panel:#202020; --accent:#4cc2ff; --error:#f0c8c0; }
-    * { box-sizing: border-box; }
-    body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
-    header { padding: 12px; border-bottom: 1px solid var(--line); }
-    h2 { margin: 2px 0 4px; font-size: 16px; }
-    label { display: block; color: var(--muted); font-size: 11px; margin: 8px 0 4px; }
-    select, textarea, button { width: 100%; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 7px; font: inherit; }
-    textarea { min-height: 96px; resize: vertical; }
-    button { margin-top: 8px; cursor: pointer; }
-    .meta { color: var(--muted); overflow-wrap: anywhere; }
-    .mono { font-family: Consolas, monospace; color: var(--accent); overflow-wrap: anywhere; }
-    .transcript { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
-    .bubble { margin: 0 0 10px; padding: 9px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; white-space: pre-wrap; }
-    .bubble b { color: var(--accent); }
-    .assistant { border-color: rgba(76,194,255,.5); }
-    .system { color: var(--muted); }
-    .error { border-color: #a65; color: var(--error); }
-    form { padding: 12px; border-top: 1px solid var(--line); }
-    #status { margin-top: 8px; color: var(--muted); }
-  </style>
-</head>
-<body>
-  <header>
-    <div class="meta">Role Chat</div>
-    <h2 id="activeRole">${escapeHtml(activeRole)}</h2>
-    <div class="meta">${spec ? escapeHtml(spec.title) : "No active Spec"}</div>
-    <div class="mono">${spec ? escapeHtml(spec.gitBranch || "not set") : ""}</div>
-    <div class="meta" id="sessionState"></div>
-  </header>
-  <section class="transcript" id="transcript"></section>
-  <form id="chatForm">
-    <label for="role">Agent Role</label>
-    <select id="role">${renderRoleOptions(activeRole)}</select>
-    <label for="model">Model</label>
-    <select id="model">
-      <option value="default">Default for selected role</option>
-      <option value="claude-default">Claude Code default</option>
-    </select>
-    <label for="body">Message</label>
-    <textarea id="body" placeholder="Chat with selected role..."></textarea>
-    <button id="sendButton">Send to Role</button>
-    <div id="status"></div>
-  </form>
-  <script>
-    const vscode = acquireVsCodeApi();
-    const roleMessages = ${roleMessagesJson};
-    const roleSessions = ${roleSessionsJson};
-    const transcript = document.querySelector("#transcript");
-    const status = document.querySelector("#status");
-    const sendButton = document.querySelector("#sendButton");
-    let selectedRole = ${JSON.stringify(activeRole)};
-    let receivedAgentText = false;
-
-    function escapeText(value) {
-      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
-    }
-
-    function renderTranscript() {
-      transcript.innerHTML = roleMessages
-        .filter(message => message.role === selectedRole)
-        .map(message => '<div class="bubble ' + escapeText(message.kind || '') + '"><b>' + escapeText(message.speaker) + '</b><br>' + escapeText(message.body) + '</div>')
-        .join('');
-      transcript.scrollTop = transcript.scrollHeight;
-      document.querySelector("#activeRole").textContent = selectedRole;
-      document.querySelector("#role").value = selectedRole;
-      document.querySelector("#sessionState").textContent = roleSessions[selectedRole] ? "resumable CLI session" : "new CLI session";
-    }
-
-    function appendBubble(role, speaker, body, kind = '') {
-      roleMessages.push({ role, speaker, body, kind });
-      renderTranscript();
-    }
-
-    document.querySelector("#role").addEventListener("change", event => {
-      selectedRole = event.target.value;
-      renderTranscript();
-      vscode.postMessage({ command: "selectRole", role: selectedRole });
-    });
-
-    document.querySelector("#chatForm").addEventListener("submit", event => {
-      event.preventDefault();
-      const body = document.querySelector("#body");
-      if (!body.value.trim()) return;
-      const prompt = body.value.trim();
-      appendBubble(selectedRole, "You", prompt, "");
-      sendButton.disabled = true;
-      receivedAgentText = false;
-      status.textContent = "Running CLI adapter...";
-      vscode.postMessage({
-        command: "send",
-        role: selectedRole,
-        model: document.querySelector("#model").value,
-        body: prompt
-      });
-      body.value = "";
-    });
-
-    window.addEventListener("message", event => {
-      if (event.data.type === "sent") {
-        status.textContent = "Private role chat saved: " + event.data.message.id;
-      }
-      if (event.data.type === "roleSelected") {
-        selectedRole = event.data.role;
-        renderTranscript();
-      }
-      if (event.data.type === "agentStarted") {
-        appendBubble(event.data.role || selectedRole, "System", (event.data.resumed ? "Resumed " : "Started ") + event.data.role + " via " + event.data.engine, "system");
-      }
-      if (event.data.type === "sessionUpdated") {
-        roleSessions[event.data.role] = true;
-        renderTranscript();
-      }
-      if (event.data.type === "agentEvent" && event.data.text) {
-        const eventRole = event.data.event && event.data.event.role ? event.data.event.role : selectedRole;
-        receivedAgentText = true;
-        appendBubble(eventRole, eventRole, event.data.text, "assistant");
-      }
-      if (event.data.type === "agentDone") {
-        sendButton.disabled = false;
-        if (!receivedAgentText && event.data.message && event.data.message.body) {
-          appendBubble(event.data.message.from || selectedRole, event.data.message.from || selectedRole, event.data.message.body, "assistant");
-        }
-        status.textContent = "Agent response saved: " + event.data.message.id;
-      }
-      if (event.data.type === "agentError") {
-        sendButton.disabled = false;
-        appendBubble(selectedRole, "Error", event.data.error, "error");
-        status.textContent = "Agent run failed";
-      }
-      if (event.data.type === "teamMessage") {
-        status.textContent = "TeamBus message saved: " + event.data.message.id;
-      }
-    });
-
-    renderTranscript();
-  </script>
-</body>
-</html>`;
-}
-
-function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMessage[]): string {
+export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMessage[]): string {
   const messagesJson = JSON.stringify(messages).replace(/</g, "\\u003c");
 
   return `<!doctype html>
@@ -1303,20 +1339,16 @@ function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMes
   <style>
     :root { color-scheme: dark; --line:#333; --text:#d4d4d4; --muted:#8f8f8f; --panel:#202020; --accent:#4cc2ff; }
     * { box-sizing: border-box; }
-    body { margin: 0; height: 100vh; display: grid; grid-template-columns: minmax(300px, 1fr) 360px; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
-    .room { min-width: 0; display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+    body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
+    .room { min-width: 0; min-height: 0; display: flex; flex-direction: column; flex: 1; }
     header { padding: 10px 12px; border-bottom: 1px solid var(--line); }
     .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0; }
     .mono { font-family: Consolas, monospace; overflow-wrap: anywhere; }
     .messages { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
     .message { border: 1px solid #333; background: var(--panel); border-radius: 6px; padding: 8px; margin-bottom: 8px; white-space: pre-wrap; }
     .message b { color: var(--accent); }
-    form { display: grid; gap: 8px; padding: 12px; align-content: start; }
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-    .full { grid-column: 1 / 3; }
-    select, input, button { width: 100%; color: var(--text); background: #2d2d2d; border: 1px solid var(--line); border-radius: 5px; padding: 7px; font: inherit; }
-    button { cursor: pointer; }
-    #status { color: var(--muted); }
+    .empty { color: var(--muted); padding: 10px 0; }
+    #status { color: var(--muted); margin-top: 4px; }
   </style>
 </head>
 <body>
@@ -1324,47 +1356,25 @@ function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMes
     <header>
       <div class="label">Team Chatroom</div>
       <div class="mono">${spec ? escapeHtml(spec.specDir) : "No active Spec"}</div>
+      <div id="status"></div>
     </header>
     <div class="messages" id="messages"></div>
   </section>
-  <form id="composer">
-    <div class="label">TeamBus Message</div>
-    <div class="grid">
-      <select id="teamFrom">${renderRoleOptions("TeamLead")}</select>
-      <select id="teamTo">${renderTeamRecipientOptions()}</select>
-      <select id="teamType">
-        <option value="status">status</option>
-        <option value="handoff">handoff</option>
-        <option value="question">question</option>
-        <option value="blocker">blocker</option>
-        <option value="review_request">review_request</option>
-        <option value="phase_request">phase_request</option>
-      </select>
-      <select id="teamRequiresResponse">
-        <option value="false">no response</option>
-        <option value="true">requires response</option>
-      </select>
-      <input class="full" id="messageSubject" placeholder="Subject" />
-      <input class="full" id="messageBody" placeholder="Message body..." />
-      <button class="full" id="sendButton">Send TeamBus Message</button>
-    </div>
-    <div id="status"></div>
-  </form>
   <script>
-    const vscode = acquireVsCodeApi();
     const messages = ${messagesJson};
     const messagesEl = document.querySelector("#messages");
     const status = document.querySelector("#status");
-    const sendButton = document.querySelector("#sendButton");
 
     function escapeText(value) {
       return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
     }
 
     function renderMessages() {
-      messagesEl.innerHTML = messages
+      messagesEl.innerHTML = messages.length
+        ? messages
         .map(message => '<div class="message"><b>' + escapeText(message.from) + ' -> ' + escapeText(message.to) + '</b><br>' + escapeText(message.subject) + '<br><span>' + escapeText(message.body) + '</span></div>')
-        .join('');
+        .join('')
+        : '<div class="empty">No TeamBus messages yet.</div>';
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
@@ -1374,151 +1384,23 @@ function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMes
       renderMessages();
     }
 
-    document.querySelector("#composer").addEventListener("submit", event => {
-      event.preventDefault();
-      const input = document.querySelector("#messageBody");
-      if (!input.value.trim()) return;
-      sendButton.disabled = true;
-      status.textContent = "Saving TeamBus message...";
-      vscode.postMessage({
-        command: "teamMessage",
-        from: document.querySelector("#teamFrom").value,
-        to: document.querySelector("#teamTo").value,
-        messageType: document.querySelector("#teamType").value,
-        subject: document.querySelector("#messageSubject").value,
-        body: input.value.trim(),
-        requiresResponse: document.querySelector("#teamRequiresResponse").value === "true"
-      });
-      document.querySelector("#messageSubject").value = "";
-      input.value = "";
-    });
-
     window.addEventListener("message", event => {
       if (event.data.type === "teamMessage") {
         appendMessage(event.data.message);
-        sendButton.disabled = false;
-        status.textContent = "TeamBus message saved: " + event.data.message.id;
+        status.textContent = "TeamBus message: " + event.data.message.id;
       }
       if (event.data.type === "agentStarted") {
         status.textContent = "Routing " + event.data.role + " via " + event.data.engine + "...";
       }
       if (event.data.type === "agentDone") {
-        sendButton.disabled = false;
         status.textContent = "Routed response saved.";
       }
       if (event.data.type === "agentError") {
-        sendButton.disabled = false;
         status.textContent = "Routing failed: " + event.data.error;
       }
     });
 
     renderMessages();
-  </script>
-</body>
-</html>`;
-}
-
-function renderLegacyAgentChatHtml(spec: SpecBinding | undefined, activeRole: AgentRole): string {
-  return `<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    :root { color-scheme: dark; --line:#333; --text:#d4d4d4; --muted:#8f8f8f; --panel:#202020; --accent:#4cc2ff; }
-    * { box-sizing: border-box; }
-    body { margin: 0; padding: 12px; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
-    h2 { margin: 0 0 10px; font-size: 13px; }
-    label { display: block; color: var(--muted); font-size: 11px; margin: 10px 0 4px; }
-    select, textarea, button { width: 100%; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 5px; padding: 7px; font: inherit; }
-    textarea { min-height: 96px; resize: vertical; }
-    button { margin-top: 8px; cursor: pointer; }
-    .bubble { margin: 10px 0; padding: 9px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; }
-    .assistant { border-color: rgba(76,194,255,.5); }
-    .error { border-color: #a65; color: #f0c8c0; }
-    .mono { font-family: Consolas, monospace; color: var(--accent); overflow-wrap: anywhere; }
-  </style>
-</head>
-<body>
-  <h2>Agent Chat</h2>
-  <div class="bubble">
-    <div>${spec ? escapeHtml(spec.title) : "No active Spec"}</div>
-    <div class="mono">${spec ? escapeHtml(spec.gitBranch) : ""}</div>
-  </div>
-  <div class="bubble">Current Agent: <span class="mono" id="activeRole">${escapeHtml(activeRole)}</span></div>
-  <form id="chatForm">
-    <label for="role">Current Agent</label>
-    <select id="role">
-      ${renderRoleOptions(activeRole)}
-    </select>
-    <label for="model">Model</label>
-    <select id="model">
-      <option value="default">Default for selected role</option>
-      <option value="claude-default">Claude Code default</option>
-    </select>
-    <label for="body">Message</label>
-    <textarea id="body" placeholder="Ask current Agent..."></textarea>
-    <button id="sendButton">Send</button>
-  </form>
-  <div id="status"></div>
-  <div id="transcript"></div>
-  <script>
-    const vscode = acquireVsCodeApi();
-    const transcript = document.querySelector("#transcript");
-    const status = document.querySelector("#status");
-    const sendButton = document.querySelector("#sendButton");
-
-    function escapeText(value) {
-      return String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
-    }
-
-    function appendBubble(text, className = '') {
-      const node = document.createElement('div');
-      node.className = 'bubble ' + className;
-      node.innerHTML = escapeText(text).replace(/\\n/g, '<br>');
-      transcript.appendChild(node);
-      node.scrollIntoView({ block: 'nearest' });
-    }
-
-    document.querySelector("#chatForm").addEventListener("submit", event => {
-      event.preventDefault();
-      const body = document.querySelector("#body");
-      if (!body.value.trim()) return;
-      appendBubble(body.value, '');
-      sendButton.disabled = true;
-      status.innerHTML = '<div class="bubble">Running real CLI adapter...</div>';
-      vscode.postMessage({
-        command: "send",
-        role: document.querySelector("#role").value,
-        model: document.querySelector("#model").value,
-        body: body.value
-      });
-      body.value = "";
-    });
-    window.addEventListener("message", event => {
-      if (event.data.type === "sent") {
-        status.innerHTML = '<div class="bubble">Saved to Team Bus: <span class="mono">' + event.data.message.id + '</span></div>';
-      }
-      if (event.data.type === "roleSelected") {
-        document.querySelector("#role").value = event.data.role;
-        document.querySelector("#activeRole").textContent = event.data.role;
-      }
-      if (event.data.type === "agentStarted") {
-        status.innerHTML = '<div class="bubble">Started ' + escapeText(event.data.role) + ' via ' + escapeText(event.data.engine) + '</div>';
-      }
-      if (event.data.type === "agentEvent" && event.data.text) {
-        appendBubble(event.data.text, 'assistant');
-      }
-      if (event.data.type === "agentDone") {
-        sendButton.disabled = false;
-        status.innerHTML = '<div class="bubble">Agent response saved: <span class="mono">' + event.data.message.id + '</span></div>';
-      }
-      if (event.data.type === "agentError") {
-        sendButton.disabled = false;
-        appendBubble(event.data.error, 'error');
-        status.innerHTML = '<div class="bubble error">Agent run failed</div>';
-      }
-    });
   </script>
 </body>
 </html>`;
@@ -1601,19 +1483,6 @@ async function appendPrivateRoleChat(
 
   await appendJsonLine(`${spec.specDirFsPath}/agent-chat.jsonl`, message);
   return message;
-}
-
-interface PrivateRoleChatMessage {
-  id: string;
-  specId: string;
-  from: AgentRole | "user";
-  to: AgentRole | "user";
-  direction: "user_to_agent" | "agent_to_user";
-  body: string;
-  model: string;
-  artifacts: string[];
-  isError: boolean;
-  timestamp: string;
 }
 
 async function readPrivateRoleChat(spec: SpecBinding): Promise<PrivateRoleChatMessage[]> {
@@ -1749,8 +1618,12 @@ function buildTeamBusPrompt(spec: SpecBinding, role: AgentRole, message: TeamMes
   ].join("\n"));
 }
 
-function readableEventText(event: AgentEvent): string {
+export function readableEventText(event: AgentEvent): string {
   if (event.type === "done") {
+    return "";
+  }
+
+  if (isClaudeCodeResultPayload(event.payload)) {
     return "";
   }
 
@@ -1764,6 +1637,14 @@ function readableEventText(event: AgentEvent): string {
   }
 
   return "";
+}
+
+function isClaudeCodeResultPayload(value: unknown): boolean {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  return (value as { type?: unknown }).type === "result";
 }
 
 function extractText(value: unknown): string {
