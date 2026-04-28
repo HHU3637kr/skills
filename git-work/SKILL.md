@@ -1,6 +1,6 @@
 ---
 name: git-work
-description: 基于 GitHub Flow 的 Git 工作流标准操作规程
+description: 当用户需要按 GitHub Flow 执行 Git 工作流时使用，包括创建或同步分支、提交、推送、发起或合并 PR、清理分支。不要用于单次查看 git 状态或无需 GitHub Flow 的简单 git 查询。
 ---
 
 # Git 工作流 SOP（GitHub Flow）

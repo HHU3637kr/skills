@@ -1,12 +1,11 @@
 ---
 name: frontend-dev
 description: |
-  Full-stack frontend development combining premium UI design, cinematic animations,
-  AI-generated media assets, persuasive copywriting, and visual art. Builds complete,
-  visually striking web pages with real media, advanced motion, and compelling copy.
-  Use when: building landing pages, marketing sites, product pages, dashboards,
-  generating media assets (image/video/audio/music), writing conversion copy,
-  creating generative art, or implementing cinematic scroll animations.
+  Use when the user asks to build a polished web UI or frontend experience:
+  landing pages, marketing/product sites, dashboards, cinematic scroll animation,
+  generative art, AI media assets, or conversion copy for a web page.
+  Do not use for pure backend/API work, native mobile apps, Obsidian/plugin development,
+  or HTML-only design prototypes that should use huashu-design.
 license: MIT
 metadata:
   version: "1.0.0"

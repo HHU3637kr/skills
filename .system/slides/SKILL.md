@@ -1,6 +1,6 @@
 ---
 name: slides
-description: Build, edit, render, import, and export presentation decks with the preloaded @oai/artifact-tool JavaScript surface through the artifacts tool.
+description: "Use when the user wants to create, edit, render, import, export, or inspect a presentation deck using the artifacts tool. Trigger on slide deck, PPT/PPTX, presentation, Keynote-style deck, or requests to generate slide images. Do not use for plain text outlines unless a deck file or rendered slides are required."
 metadata:
   short-description: Use the artifacts tool to create and edit slide decks in JavaScript
 ---

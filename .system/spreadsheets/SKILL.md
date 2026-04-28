@@ -1,6 +1,6 @@
 ---
 name: spreadsheets
-description: Build, edit, recalculate, import, and export spreadsheet workbooks with the preloaded @oai/artifact-tool JavaScript surface through the artifacts tool.
+description: "Use when the user wants to create, edit, recalculate, import, export, inspect, or format a spreadsheet workbook using the artifacts tool. Trigger on workbook, spreadsheet, Excel/XLSX, CSV/TSV, formulas, sheets, tables, or financial models. Do not use for small inline tables unless a spreadsheet file or workbook operations are required."
 metadata:
   short-description: Use the artifacts tool to create and edit spreadsheets in JavaScript
 ---
