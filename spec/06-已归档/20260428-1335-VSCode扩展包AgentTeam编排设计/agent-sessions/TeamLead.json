@@ -1,0 +1,11 @@
+{
+  "id": "d9352dc4-b150-43ab-a328-d9c09cf3251d",
+  "role": "TeamLead",
+  "engine": "claude-code",
+  "model": "default",
+  "workspaceUri": "c:\\Users\\18735\\.claude\\skills",
+  "specDir": "spec/06-已归档/20260428-1335-VSCode扩展包AgentTeam编排设计",
+  "gitBranch": "feat/spec-20260428-1335-rk-flow-vscode-extension",
+  "createdAt": "2026-04-28T09:16:41.590Z",
+  "updatedAt": "2026-04-28T09:26:54.865Z"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "7e13bd75-9e0d-4715-bac1-a1ac634e1022",
+  "role": "spec-explorer",
+  "engine": "claude-code",
+  "model": "default",
+  "workspaceUri": "c:\\Users\\18735\\.claude\\skills",
+  "specDir": "spec/06-已归档/20260428-1621-自研RoleChat与ClaudeCode单后端设计",
+  "gitBranch": "feat/spec-20260428-1335-rk-flow-vscode-extension",
+  "createdAt": "2026-04-28T09:32:18.225Z",
+  "updatedAt": "2026-04-28T09:32:18.225Z"
+}

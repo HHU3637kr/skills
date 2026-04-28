@@ -13,6 +13,7 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+.obsidian/
 
 # Temporary files
 *.tmp
@@ -21,4 +22,3 @@ Thumbs.db
 
 # SOP skills（由 memory Skill 动态生成）
 sop-**/
-

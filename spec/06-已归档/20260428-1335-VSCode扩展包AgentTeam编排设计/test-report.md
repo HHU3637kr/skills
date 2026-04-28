@@ -111,6 +111,15 @@ tags:
 - 定向 TeamBus 消息读取: 通过，目标 Role 与发送 Role 均可读取
 - 一跳自动路由: 编译通过，逻辑受 `routeDepth >= 1` 限制
 
+## update-006 回归测试
+
+- Extension Host: `11 passing`
+- Canvas 分区: 通过，`AgentTeam.canvas` 不再内嵌 Role Chat / Team Chatroom
+- Role Chat View: 通过，贡献到 `R&K Agent` 侧边栏容器，并声明 `type: webview`
+- Team Chatroom Panel: 通过，贡献到 `R&K Team` 底部 Panel 容器，并声明 `type: webview`
+- 私聊历史隔离: 通过，Role Chat 从 `agent-chat.jsonl` 按 Role 过滤展示
+- VSIX package: 通过，生成 `rk-flow-vscode-extension-0.0.7.vsix`
+
 ## 最终测试结果
 
 > [!success]
