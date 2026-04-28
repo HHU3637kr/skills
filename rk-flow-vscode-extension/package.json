@@ -1,0 +1,85 @@
+{
+  "name": "rk-flow-vscode-extension",
+  "displayName": "R&K Flow",
+  "description": "Spec-driven Agent Team orchestration for VS Code using Claude Code and Codex CLI.",
+  "version": "0.0.5",
+  "publisher": "rnking3637",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/HHU3637kr/skills.git",
+    "directory": "rk-flow-vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:rkFlow.openAgentTeamCanvas",
+    "onCommand:rkFlow.checkoutSpecBranch",
+    "onCommand:rkFlow.sendTeamMessage",
+    "onCommand:rkFlow.selectAgentRole",
+    "onView:rkFlow.specExplorer",
+    "onView:rkFlow.agentAdapters"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "rk-flow",
+          "title": "R&K Flow",
+          "icon": "resources/rk-flow.svg"
+        }
+      ]
+    },
+    "views": {
+      "rk-flow": [
+        {
+          "id": "rkFlow.specExplorer",
+          "name": "Spec Explorer"
+        },
+        {
+          "id": "rkFlow.agentAdapters",
+          "name": "Agent Adapters"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "rkFlow.openAgentTeamCanvas",
+        "title": "R&K Flow: Open AgentTeam Canvas"
+      },
+      {
+        "command": "rkFlow.checkoutSpecBranch",
+        "title": "R&K Flow: Checkout Spec Branch"
+      },
+      {
+        "command": "rkFlow.sendTeamMessage",
+        "title": "R&K Flow: Send Team Message"
+      },
+      {
+        "command": "rkFlow.selectAgentRole",
+        "title": "R&K Flow: Select Agent Role"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "test": "npm run compile && node ./dist/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.11.30",
+    "@types/vscode": "^1.90.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.0.0",
+    "mocha": "^11.7.5",
+    "typescript": "^5.4.5"
+  }
+}

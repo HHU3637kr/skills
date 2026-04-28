@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.vscode-test/
+*.vsix
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

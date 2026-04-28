@@ -1,0 +1,1661 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>R&K Flow Agent IDE Prototype</title>
+  <style>
+    :root {
+      --workbench: #181818;
+      --activity: #181818;
+      --sidebar: #1f1f1f;
+      --sidebar-2: #252526;
+      --editor: #1e1e1e;
+      --editor-2: #222222;
+      --panel: #181818;
+      --panel-2: #202020;
+      --chat: #1b1b1b;
+      --input: #2a2a2a;
+      --line: #2d2d2d;
+      --line-strong: #3c3c3c;
+      --ink: #d4d4d4;
+      --ink-strong: #f2f2f2;
+      --muted: #9a9a9a;
+      --faint: #6e6e6e;
+      --blue: #3794ff;
+      --blue-2: #264f78;
+      --green: #73c991;
+      --gold: #d7ba7d;
+      --red: #f48771;
+      --purple: #c586c0;
+      --mono: Consolas, "SFMono-Regular", "Liberation Mono", monospace;
+      --sans: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--workbench);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    * {
+      scrollbar-color: #6b6b6b transparent;
+      scrollbar-width: thin;
+    }
+
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #555;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #6b6b6b;
+      background-clip: padding-box;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .ide {
+      display: grid;
+      grid-template-columns: 48px 292px minmax(560px, 1fr) 390px;
+      grid-template-rows: 35px minmax(0, 1fr) 206px 22px;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .titlebar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 260px minmax(280px, 640px) 1fr 130px;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px;
+      border-bottom: 1px solid var(--line);
+      background: #181818;
+      color: var(--muted);
+      user-select: none;
+    }
+
+    .traffic {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .nav-arrows {
+      display: flex;
+      gap: 6px;
+      margin-left: auto;
+      color: #858585;
+      font-size: 16px;
+    }
+
+    .command {
+      display: flex;
+      align-items: center;
+      height: 24px;
+      border: 1px solid #3b3b3b;
+      border-radius: 4px;
+      background: #242424;
+      padding: 0 10px;
+      color: #a8a8a8;
+      font-size: 12px;
+    }
+
+    .command input {
+      width: 100%;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #c8c8c8;
+      padding: 0 8px;
+      font-size: 12px;
+    }
+
+    .top-context {
+      display: flex;
+      justify-content: flex-end;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #bdbdbd;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .brand-mark {
+      color: #d6d6d6;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-align: right;
+    }
+
+    .activity {
+      grid-row: 2 / 5;
+      display: grid;
+      grid-template-rows: repeat(7, 44px) 1fr 44px;
+      justify-items: center;
+      padding-top: 5px;
+      border-right: 1px solid var(--line);
+      background: var(--activity);
+    }
+
+    .activity button {
+      width: 48px;
+      height: 44px;
+      border-left: 2px solid transparent;
+      background: transparent;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .activity button.active {
+      border-left-color: var(--ink-strong);
+      color: var(--ink-strong);
+    }
+
+    .explorer {
+      grid-row: 2 / 4;
+      min-height: 0;
+      overflow: hidden;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar);
+      display: grid;
+      grid-template-rows: 35px auto minmax(0, 1fr);
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 35px;
+      padding: 0 12px;
+      color: #cccccc;
+      font-size: 11px;
+      font-weight: 650;
+      text-transform: uppercase;
+    }
+
+    .section-head .more {
+      color: #cccccc;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .workspace {
+      padding: 0 10px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .workspace-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 24px;
+      color: var(--ink-strong);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .workspace-row {
+      display: grid;
+      grid-template-columns: 1fr 62px;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .workspace-row select,
+    .workspace-row button {
+      min-height: 26px;
+      border: 1px solid var(--line-strong);
+      background: #252526;
+      color: var(--ink);
+      padding: 0 7px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .workspace-row button {
+      background: #303030;
+    }
+
+    .extension-card {
+      margin: 8px;
+      padding: 10px;
+      border: 1px solid #333;
+      background: #202020;
+    }
+
+    .extension-card strong {
+      display: block;
+      color: #f0f0f0;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .extension-card span {
+      display: block;
+      margin-top: 5px;
+      color: #9a9a9a;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .explorer-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding-bottom: 10px;
+    }
+
+    .tree-group {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+
+    .tree-label {
+      display: flex;
+      align-items: center;
+      height: 24px;
+      padding: 0 10px;
+      color: #cccccc;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .tree-row,
+    .spec-row {
+      display: grid;
+      grid-template-columns: 18px 1fr auto;
+      align-items: center;
+      gap: 4px;
+      min-height: 22px;
+      padding: 0 8px;
+      color: #cccccc;
+      font-size: 12px;
+      text-align: left;
+      background: transparent;
+      width: 100%;
+    }
+
+    .tree-row.indent {
+      padding-left: 24px;
+    }
+
+    .tree-row.active,
+    .tree-row:hover,
+    .spec-row.active,
+    .spec-row:hover {
+      background: #2a2d2e;
+      color: var(--ink-strong);
+    }
+
+    .twisty {
+      color: #c5c5c5;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .filetype,
+    .badge {
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .spec-row {
+      grid-template-columns: 18px 1fr;
+      align-items: start;
+      min-height: 52px;
+      padding-top: 7px;
+      padding-bottom: 7px;
+    }
+
+    .spec-name {
+      min-width: 0;
+    }
+
+    .spec-name strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .spec-name span {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #858585;
+      font-size: 11px;
+    }
+
+    .spec-name .spec-branch {
+      color: #9cdcfe;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .engine-row {
+      min-height: 28px;
+    }
+
+    .engine-state {
+      color: var(--green);
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .editor {
+      grid-column: 3;
+      grid-row: 2;
+      display: grid;
+      grid-template-rows: 35px 22px minmax(0, 1fr);
+      min-width: 0;
+      min-height: 0;
+      background: var(--editor);
+    }
+
+    .tabs {
+      display: flex;
+      min-width: 0;
+      overflow: hidden;
+      border-bottom: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      min-width: 126px;
+      max-width: 196px;
+      height: 35px;
+      padding: 0 12px;
+      border-right: 1px solid var(--line);
+      background: #2d2d2d;
+      color: #969696;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tab.active {
+      background: var(--editor);
+      color: var(--ink-strong);
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 14px;
+      color: #858585;
+      font-size: 12px;
+      border-bottom: 1px solid #242424;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .breadcrumb code {
+      color: #c5c5c5;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .editor-content {
+      min-height: 0;
+      overflow: auto;
+      position: relative;
+      background: var(--editor);
+    }
+
+    .view {
+      display: none;
+      min-height: 100%;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .canvas-view {
+      min-width: 0;
+      height: 100%;
+      padding: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px),
+        #1d1d1d;
+      background-size: 28px 28px;
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(30, 30, 30, .95);
+      color: #bcbcbc;
+      font-size: 12px;
+    }
+
+    .canvas-toolbar .spacer {
+      flex: 1;
+    }
+
+    .toolbar-chip,
+    .toolbar-btn {
+      height: 24px;
+      border: 1px solid #3b3b3b;
+      background: #242424;
+      color: #c9c9c9;
+      padding: 0 9px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 22px;
+      white-space: nowrap;
+    }
+
+    .toolbar-chip.branch-chip {
+      max-width: 340px;
+      color: #9cdcfe;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .toolbar-btn {
+      font-family: var(--sans);
+    }
+
+    .toolbar-btn.primary {
+      border-color: #2f6fca;
+      background: #243a56;
+      color: #e8f2ff;
+    }
+
+    .canvas-stage {
+      position: relative;
+      height: calc(100% - 34px);
+      min-height: 0;
+      overflow: hidden;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .canvas-stage.dragging {
+      cursor: grabbing;
+    }
+
+    .canvas-board {
+      position: absolute;
+      top: 28px;
+      left: 36px;
+      width: 1120px;
+      min-height: 620px;
+      transform: translate(var(--pan-x, 0px), var(--pan-y, 0px));
+      will-change: transform;
+    }
+
+    .spec-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: start;
+      padding: 16px 18px;
+      border: 1px solid var(--line-strong);
+      background: rgba(37, 37, 38, .92);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .24);
+    }
+
+    .spec-header h2 {
+      margin: 0;
+      color: #f1f1f1;
+      font-size: 20px;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .spec-header p {
+      margin: 7px 0 0;
+      color: #a7a7a7;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .phase-pill {
+      height: 24px;
+      border: 1px solid #4b4b4b;
+      background: #1f1f1f;
+      color: var(--gold);
+      padding: 0 8px;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 22px;
+      white-space: nowrap;
+    }
+
+    .host-map {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .host-card {
+      border: 1px solid #3a3a3a;
+      background: rgba(37, 37, 38, .9);
+      padding: 12px;
+    }
+
+    .host-card strong {
+      display: block;
+      color: #e6e6e6;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .host-card span {
+      display: block;
+      margin-top: 6px;
+      color: #999;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .agent-canvas {
+      margin-top: 18px;
+      border: 1px solid var(--line-strong);
+      background: rgba(30, 30, 30, .9);
+      padding: 20px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, .18);
+    }
+
+    .phase-row {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(112px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .phase-card {
+      min-height: 70px;
+      padding: 10px;
+      border: 1px solid #3a3a3a;
+      background: #252526;
+      text-align: left;
+    }
+
+    .phase-card.active {
+      border-color: var(--blue);
+      box-shadow: inset 0 -2px 0 var(--blue);
+    }
+
+    .phase-card.done {
+      border-color: rgba(115, 201, 145, .38);
+      background: #223028;
+    }
+
+    .phase-card.pending {
+      opacity: .72;
+    }
+
+    .phase-card strong {
+      display: block;
+      color: #dcdcdc;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .phase-card span {
+      color: #999;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .phase-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 8px;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .agent-card {
+      min-height: 132px;
+      padding: 12px;
+      border: 1px solid #3c3c3c;
+      background: #252526;
+      text-align: left;
+    }
+
+    .agent-card.active {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px var(--blue);
+    }
+
+    .agent-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .agent-card h3 {
+      margin: 0;
+      color: #f0f0f0;
+      font-size: 13px;
+      font-weight: 650;
+      line-height: 1.25;
+    }
+
+    .model-chip {
+      max-width: 112px;
+      height: 20px;
+      border: 1px solid #444;
+      background: #1e1e1e;
+      color: #c5c5c5;
+      padding: 0 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .agent-card p {
+      margin: 9px 0 0;
+      color: #a0a0a0;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .agent-foot {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid #333;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .online {
+      color: var(--green);
+    }
+
+    .doc-view,
+    .code-view {
+      padding: 0;
+    }
+
+    .editor-lines {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      min-height: 100%;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+
+    .line-nums {
+      padding: 12px 10px 40px 0;
+      text-align: right;
+      color: #858585;
+      border-right: 1px solid #2a2a2a;
+      user-select: none;
+    }
+
+    .line-nums div,
+    .source-lines div {
+      min-height: 20px;
+    }
+
+    .source-lines {
+      padding: 12px 18px 40px;
+      color: #d4d4d4;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .source-lines .h {
+      color: #4ec9b0;
+    }
+
+    .source-lines .k {
+      color: #569cd6;
+    }
+
+    .source-lines .s {
+      color: #ce9178;
+    }
+
+    .chat {
+      grid-column: 4;
+      grid-row: 2 / 4;
+      display: grid;
+      grid-template-rows: 40px minmax(0, 1fr) auto;
+      min-height: 0;
+      border-left: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .chat-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--line);
+      color: #cccccc;
+      font-size: 12px;
+    }
+
+    .chat-tools {
+      display: flex;
+      gap: 10px;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .chat-scroll {
+      min-height: 0;
+      overflow: auto;
+      padding: 16px;
+    }
+
+    .agent-head {
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .agent-head h2 {
+      margin: 0;
+      color: #f2f2f2;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .agent-head p {
+      margin: 6px 0 0;
+      color: #9d9d9d;
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .bubble {
+      max-width: 92%;
+      margin-bottom: 14px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      color: #d8d8d8;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .bubble.user {
+      margin-left: auto;
+      background: #2b2b2b;
+    }
+
+    .bubble.agent {
+      margin-right: auto;
+      background: #202020;
+      border: 1px solid #303030;
+    }
+
+    .bubble-meta {
+      margin-bottom: 5px;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 10px;
+    }
+
+    .composer {
+      padding: 12px;
+      border-top: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .composer textarea {
+      width: 100%;
+      height: 92px;
+      resize: none;
+      border: 1px solid #333;
+      border-radius: 8px;
+      outline: none;
+      background: #202020;
+      color: #d4d4d4;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .composer-row {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 8px;
+      align-items: center;
+      margin-top: 8px;
+    }
+
+    .composer select {
+      min-height: 30px;
+      border: 1px solid #333;
+      border-radius: 5px;
+      background: #202020;
+      color: #d4d4d4;
+      padding: 0 8px;
+      font-size: 12px;
+      outline: none;
+    }
+
+    .send-btn {
+      height: 30px;
+      border-radius: 5px;
+      background: #2f6fca;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 650;
+    }
+
+    .bottom {
+      grid-column: 3;
+      grid-row: 3;
+      display: grid;
+      grid-template-rows: 35px minmax(0, 1fr);
+      min-height: 0;
+      border-top: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .bottom-tabs {
+      display: flex;
+      align-items: stretch;
+      border-bottom: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .bottom-tab {
+      min-width: 92px;
+      padding: 0 12px;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: #a5a5a5;
+      font-size: 12px;
+    }
+
+    .bottom-tab.active {
+      color: #f0f0f0;
+      background: #1e1e1e;
+    }
+
+    .bottom-action {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-right: 12px;
+      color: #cccccc;
+      font-size: 12px;
+    }
+
+    .bottom-content {
+      min-height: 0;
+      overflow: auto;
+      padding: 10px 12px;
+      color: #c5c5c5;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .pane {
+      display: none;
+    }
+
+    .pane.active {
+      display: block;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 12px;
+      padding: 4px 0;
+      border-bottom: 1px solid #222;
+    }
+
+    .row strong {
+      color: #9cdcfe;
+      font-weight: 400;
+    }
+
+    .git-state {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .git-card {
+      border: 1px solid #333;
+      background: #202020;
+      padding: 9px 10px;
+    }
+
+    .git-card span {
+      display: block;
+      color: #858585;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .git-card strong {
+      display: block;
+      margin-top: 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #dcdcdc;
+      font-weight: 500;
+    }
+
+    .terminal-line {
+      white-space: pre-wrap;
+    }
+
+    .statusbar {
+      grid-column: 2 / -1;
+      grid-row: 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 9px;
+      background: #007acc;
+      color: #fff;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    @media (max-width: 1180px) {
+      .ide {
+        grid-template-columns: 48px 280px minmax(420px, 1fr);
+      }
+
+      .chat {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ide">
+    <header class="titlebar">
+      <div class="traffic">
+        <span class="nav-arrows">← →</span>
+      </div>
+      <label class="command" for="commandCenter">
+        <span>⌕</span>
+        <input id="commandCenter" name="commandCenter" value="skills - spec-workflow-canvas.html" />
+      </label>
+      <div class="top-context" id="branchTop">feat/spec-20260428-1630-agent-ide</div>
+      <div class="brand-mark">W</div>
+    </header>
+
+    <nav class="activity" aria-label="Activity bar">
+      <button title="Explorer">E</button>
+      <button title="Search">S</button>
+      <button title="Source Control">G</button>
+      <button class="active" title="R&K Flow">RK</button>
+      <button title="Agent Teams">AT</button>
+      <button title="Run">R</button>
+      <button title="Extensions">X</button>
+      <span></span>
+      <button title="Settings">C</button>
+    </nav>
+
+    <aside class="explorer">
+      <div class="section-head">
+        <span>R&K Flow</span>
+        <span class="more">...</span>
+      </div>
+      <section class="workspace">
+        <div class="workspace-title"><span class="twisty">⌄</span><span id="workspaceName">skills</span><span class="badge"> VS Code workspace</span></div>
+        <div class="workspace-row">
+          <select id="workspaceSelect" aria-label="Open folder">
+            <option value="skills">skills</option>
+            <option value="demo">demo-app</option>
+            <option value="mobile">mobile-client</option>
+          </select>
+          <button type="button" id="openFolder">Open</button>
+        </div>
+      </section>
+      <section class="extension-card">
+        <strong>VS Code Extension MVP</strong>
+        <span>复用原生 Explorer / Editor / Git / Terminal，R&K Flow 只负责 Spec、AgentTeam 和外部 Agent 编排。</span>
+      </section>
+
+      <div class="explorer-scroll">
+        <section class="tree-group">
+          <div class="tree-label">Native Explorer</div>
+          <button class="tree-row active" data-file="AgentTeam.canvas" type="button"><span class="twisty">◇</span><span>AgentTeam.canvas</span><span class="filetype">canvas</span></button>
+          <button class="tree-row" data-file="README.md" type="button"><span class="twisty">M</span><span>README.md</span><span class="filetype">md</span></button>
+          <button class="tree-row" data-file="plan.md" type="button"><span class="twisty">M</span><span>plan.md</span><span class="filetype">md</span></button>
+          <button class="tree-row" data-file="test-plan.md" type="button"><span class="twisty">M</span><span>test-plan.md</span><span class="filetype">md</span></button>
+          <button class="tree-row" data-file="summary.md" type="button"><span class="twisty">M</span><span>summary.md</span><span class="filetype">md</span></button>
+          <button class="tree-row" data-file="src/App.tsx" type="button"><span class="twisty">T</span><span>src/App.tsx</span><span class="filetype">tsx</span></button>
+          <button class="tree-row indent" data-file="src/agents/team.ts" type="button"><span class="twisty">T</span><span>agents/team.ts</span><span class="filetype">ts</span></button>
+        </section>
+
+        <section class="tree-group">
+          <div class="tree-label">R&K Spec Explorer</div>
+          <div id="specList"></div>
+        </section>
+
+        <section class="tree-group">
+          <div class="tree-label">External Agent Adapters</div>
+          <div class="tree-row engine-row"><span class="twisty">C</span><span>Claude Code CLI</span><span class="engine-state">ready</span></div>
+          <div class="tree-row engine-row"><span class="twisty">X</span><span>Codex CLI</span><span class="engine-state">ready</span></div>
+          <div class="tree-row engine-row"><span class="twisty">T</span><span>VS Code Terminal Bridge</span><span class="engine-state">native</span></div>
+        </section>
+      </div>
+    </aside>
+
+    <main class="editor">
+      <div class="tabs" id="tabs"></div>
+      <div class="breadcrumb" id="breadcrumb">spec / <code>20260428-1630-AgentIDE</code> / AgentTeam.canvas</div>
+      <section class="editor-content">
+        <div class="view canvas-view active" id="canvasView">
+          <div class="canvas-toolbar">
+            <span class="toolbar-chip" id="canvasPosition">x 0 / y 0</span>
+            <button class="toolbar-btn" id="resetCanvas" type="button">Reset</button>
+            <span class="toolbar-chip">VS Code Webview</span>
+            <span class="toolbar-chip branch-chip" id="branchBinding">spec ⇄ feat/spec-20260428-1630-agent-ide</span>
+            <button class="toolbar-btn" id="checkoutBranch" type="button">Checkout</button>
+            <span class="spacer"></span>
+            <span class="toolbar-chip" id="phaseOwner">owner TeamLead</span>
+            <button class="toolbar-btn" id="roleRequestAdvance" type="button">Request</button>
+            <button class="toolbar-btn primary" id="advancePhase" type="button">Advance</button>
+          </div>
+          <div class="canvas-stage" id="canvasStage">
+            <div class="canvas-board" id="canvasBoard">
+              <article class="spec-header">
+                <div>
+                  <h2 id="specTitle">20260428-1630-AgentTeam可视化IDE</h2>
+                  <p id="specDesc">把 R&K Flow 做成 VS Code Extension：Spec 绑定分支，AgentTeam 节点映射到用户已安装的 Claude Code / Codex。</p>
+                </div>
+                <div class="phase-pill" id="specPhase">阶段一 · 需求对齐</div>
+              </article>
+
+              <section class="host-map">
+                <div class="host-card">
+                  <strong>VS Code Host</strong>
+                  <span>文件树、编辑器、Git、Terminal、Diff、Workspace Storage 全部复用 VS Code 原生能力。</span>
+                </div>
+                <div class="host-card">
+                  <strong>R&K Flow Extension</strong>
+                  <span>提供 Spec Explorer、AgentTeam Canvas、Agent Chat、角色 prompt 注入和外部 Agent 会话编排。</span>
+                </div>
+              </section>
+
+              <section class="agent-canvas">
+                <div class="phase-row" id="phaseRow"></div>
+                <div class="agent-grid" id="agentGrid"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+
+        <div class="view doc-view" id="docView">
+          <div class="editor-lines">
+            <div class="line-nums" id="docNums"></div>
+            <div class="source-lines" id="docLines"></div>
+          </div>
+        </div>
+
+        <div class="view code-view" id="codeView">
+          <div class="editor-lines">
+            <div class="line-nums" id="codeNums"></div>
+            <div class="source-lines" id="codeLines"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="chat">
+      <div class="chat-titlebar">
+        <span id="chatPanelTitle">R&K Agent Chat · Webview View</span>
+        <span class="chat-tools">↻ ⚙ ↗</span>
+      </div>
+      <div class="chat-scroll">
+        <div class="agent-head">
+          <h2 id="agentTitle">TeamLead</h2>
+          <p id="agentSubtitle">用户和当前 Agent 的私聊工作界面。</p>
+        </div>
+        <div id="chatMessages"></div>
+      </div>
+      <div class="composer">
+        <textarea id="chatInput" placeholder="Ask, instruct, or refine current Agent..."></textarea>
+        <div class="composer-row">
+          <select id="agentModelSelect" aria-label="Agent model"></select>
+          <button class="send-btn" id="sendButton" type="button">Send</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="bottom">
+      <div class="bottom-tabs">
+        <button class="bottom-tab" data-pane="problems" type="button">Problems</button>
+        <button class="bottom-tab" data-pane="output" type="button">Output</button>
+        <button class="bottom-tab" data-pane="debug" type="button">Debug Console</button>
+        <button class="bottom-tab active" data-pane="terminal" type="button">Terminal</button>
+        <button class="bottom-tab" data-pane="team" type="button">Team Chatroom</button>
+        <button class="bottom-tab" data-pane="models" type="button">Agent Adapters</button>
+        <button class="bottom-tab" data-pane="git" type="button">Git / PR</button>
+        <div class="bottom-action">powershell  +  split  trash  ...</div>
+      </div>
+      <div class="bottom-content">
+        <div class="pane" id="pane-problems"><div class="terminal-line">No problems in current prototype.</div></div>
+        <div class="pane" id="pane-output"><div class="terminal-line">R&K Flow extension host ready. Webviews: Spec Explorer, AgentTeam Canvas, Agent Chat.</div></div>
+        <div class="pane" id="pane-debug"><div class="terminal-line">Debug console is waiting for external Agent adapter events.</div></div>
+        <div class="pane active" id="pane-terminal">
+          <div class="terminal-line">(base) PS C:\workspace&gt; code --extensionDevelopmentPath rk-flow</div>
+          <div class="terminal-line" id="terminalBranch">branch: feat/spec-20260428-1630-agent-ide</div>
+        </div>
+        <div class="pane" id="pane-team"><div id="teamMessages"></div></div>
+        <div class="pane" id="pane-models"><div id="modelRoutes"></div></div>
+        <div class="pane" id="pane-git"><div id="gitBindingPane"></div></div>
+      </div>
+    </section>
+
+    <footer class="statusbar">
+      <span id="statusLeft">master*  0↓ 1↑  0 errors  0 warnings</span>
+      <span id="statusRight">Ln 1, Col 1  Spaces: 2  UTF-8  VS Code Extension</span>
+    </footer>
+  </div>
+
+  <script>
+    const modelOptions = ["gpt-5.2", "gpt-5.3-codex", "claude-sonnet-4.5", "claude-opus-4.5", "deepseek-coder", "qwen3-coder-local"];
+    const phaseNumbers = ["一", "二", "三", "四", "五"];
+    const stages = [
+      { title: "需求对齐", owner: "TeamLead", desc: "TeamLead 确认范围与分支。" },
+      { title: "Spec 创建", owner: "spec-writer", desc: "explorer / writer / tester 协作。" },
+      { title: "实现", owner: "spec-executor", desc: "executor 严格按 plan 编码。" },
+      { title: "测试", owner: "spec-tester", desc: "tester 与 debugger 闭环。" },
+      { title: "收尾", owner: "spec-ender", desc: "ender 归档、PR、沉淀。" }
+    ];
+    const roles = {
+      "TeamLead": {
+        engine: "Claude Code",
+        model: "gpt-5.2",
+        subtitle: "统一协调全局，负责门禁、分支、阶段推进和用户确认。",
+        chat: [["user", "帮我启动这个 Spec，并先确认需求边界。"], ["agent", "收到。我会先完成需求对齐，再创建 Spec 分支和 Agent Team。"], ["user", "每个阶段都需要我确认后再推进。"]]
+      },
+      "spec-explorer": {
+        engine: "Claude Code",
+        model: "claude-sonnet-4.5",
+        subtitle: "读取项目、检索经验、产出 exploration-report.md。",
+        chat: [["user", "先帮我看 README 和 spec-start，确认角色边界。"], ["agent", "已确认：每个 Spec 对应一个 Agent Team。"]]
+      },
+      "spec-writer": {
+        engine: "Claude Code",
+        model: "gpt-5.2",
+        subtitle: "创建 plan.md，定义架构、接口边界和实现范围。",
+        chat: [["user", "把画布里的节点设计成真正的角色 Agent。"], ["agent", "理解。节点应有职责、模型、用户私聊入口和团队通信状态。"]]
+      },
+      "spec-tester": {
+        engine: "Claude Code",
+        model: "claude-sonnet-4.5",
+        subtitle: "创建 test-plan.md，执行测试并沉淀通用测试策略。",
+        chat: [["user", "验证点击角色后是否进入用户和该 Agent 的对话。"], ["agent", "我会把单 Agent 私聊和 Team Chatroom 分开验收。"]]
+      },
+      "spec-executor": {
+        engine: "Codex CLI",
+        model: "gpt-5.3-codex",
+        subtitle: "严格按 plan.md 实现代码，产出 summary.md。",
+        chat: [["user", "先做静态原型，不接真实后端。"], ["agent", "已实现 IDE 框架、文件树、Agent Canvas 和右侧私聊区。"]]
+      },
+      "spec-debugger": {
+        engine: "Codex CLI",
+        model: "deepseek-coder",
+        subtitle: "根据复现信息诊断并修复 bug。",
+        chat: [["user", "帮我检查为什么 executor 模型下拉为空。"], ["agent", "已统一为 gpt-5.3-codex。"]]
+      },
+      "spec-ender": {
+        engine: "Claude Code",
+        model: "claude-opus-4.5",
+        subtitle: "收尾、经验分流、规范审查、归档和 PR。",
+        chat: [["user", "等原型确认后再整理沉淀和归档。"], ["agent", "收到，归档前会区分项目经验和工作流策略资产。"]]
+      }
+    };
+
+    const specs = [
+      {
+        id: "20260428-1630",
+        title: "AgentTeam可视化IDE",
+        category: "03-能力交付",
+        phase: "阶段一 · 需求对齐",
+        phaseIndex: 0,
+        baseBranch: "main",
+        branch: "feat/spec-20260428-1630-agent-ide",
+        remote: "origin/feat/spec-20260428-1630-agent-ide",
+        sync: "0↓ 1↑",
+        pr: "draft PR pending",
+        desc: "把 R&K Flow 做成 VS Code Extension：Spec 绑定分支，AgentTeam 节点映射到用户已安装的 Claude Code / Codex。",
+        agents: ["TeamLead", "spec-explorer", "spec-writer", "spec-tester", "spec-executor", "spec-debugger", "spec-ender"],
+        team: [["spec-explorer → spec-writer", "exploration-report.md 已完成，核心边界是 Agent IDE。"], ["spec-writer → spec-tester", "请一起确认用户私聊与 Team Chatroom 的验收口径。"], ["spec-tester → spec-debugger", "模型路由切换需要验证。"]]
+      },
+      {
+        id: "20260427-2110",
+        title: "Web端侧测试策略",
+        category: "05-验证工程",
+        phase: "阶段四 · 测试",
+        phaseIndex: 3,
+        baseBranch: "main",
+        branch: "test/spec-20260427-2110-web-e2e",
+        remote: "origin/test/spec-20260427-2110-web-e2e",
+        sync: "0↓ 0↑",
+        pr: "#42 review",
+        desc: "为 Web 端侧测试建立可复用策略，覆盖用户场景、浏览器自动化、日志和审计证据。",
+        agents: ["TeamLead", "spec-tester", "spec-debugger", "spec-ender"],
+        team: [["spec-tester → TeamLead", "test-plan.md 已加入用户场景和浏览器自动化要求。"], ["spec-tester → spec-debugger", "后端日志 trace id 缺失，需要补充。"], ["spec-debugger → spec-tester", "已补充 trace id，请重新验证。"]]
+      },
+      {
+        id: "20260426-1820",
+        title: "GitHubFlow分支规范",
+        category: "04-系统改进",
+        phase: "阶段五 · 收尾",
+        phaseIndex: 4,
+        baseBranch: "main",
+        branch: "docs/spec-20260426-1820-github-flow",
+        remote: "origin/docs/spec-20260426-1820-github-flow",
+        sync: "1↓ 0↑",
+        pr: "#39 ready to merge",
+        desc: "把 GitHub Flow 贯彻到 Spec 生命周期：start 创建分支，end 归档并 PR。",
+        agents: ["TeamLead", "spec-writer", "spec-ender"],
+        team: [["TeamLead → spec-writer", "请把 git_branch / base_branch 写入 plan.md。"], ["spec-writer → TeamLead", "已完成模板字段更新。"], ["spec-ender → TeamLead", "归档和 PR 检查项已补齐。"]]
+      }
+    ];
+
+    const docs = {
+      "README.md": ["# R&K Flow VS Code Extension", "", "R&K Flow 不是重新实现 Coding Agent，而是在 VS Code 内编排用户已安装的 Claude Code / Codex。", "", "## Extension Surfaces", "- Activity Bar: R&K Flow 入口", "- Side Bar: Spec Explorer + External Agent Adapters", "- Editor: 原生文件编辑器 + AgentTeam.canvas Webview", "- Secondary Side Bar: 当前角色 Agent Chat", "- Panel: VS Code Terminal / Team Chatroom / Git PR"],
+      "plan.md": ["# plan.md", "", "目标：把 Spec 工作流做成 VS Code Extension，而不是独立 IDE。", "", "## 边界", "1. 复用 VS Code 文件、编辑器、Git、Terminal。", "2. 每个 Spec 绑定一个 Git branch。", "3. 每个 Agent 节点映射到 Claude Code / Codex 外部会话。", "4. R&K Flow 负责角色 prompt、上下文注入、消息路由和审计日志。"],
+      "test-plan.md": ["# test-plan.md", "", "验证：", "- 切换 Spec 时 branch、Webview Canvas、Git/PR 同步更新", "- 点击 Agent 时右侧 Webview Chat 更新", "- Checkout Branch 通过 VS Code Git/Terminal 表达", "- Team Chatroom 只展示 Agent 间通信"],
+      "summary.md": ["# summary.md", "", "已将原型改为 VS Code Extension 思路：原生 IDE 能力由 VS Code 提供，R&K Flow 只做工作流与外部 Agent 编排。"]
+    };
+
+    const code = {
+      "src/App.tsx": ["export function activate(context: vscode.ExtensionContext) {", "  registerSpecExplorer(context);", "  registerAgentTeamCanvas(context);", "  registerAgentChatView(context);", "  registerAgentTerminalBridge(context);", "}"],
+      "src/agents/team.ts": ["export type AgentEngine = 'claude-code' | 'codex-cli';", "", "export type AgentRole =", "  | 'TeamLead'", "  | 'spec-explorer'", "  | 'spec-writer'", "  | 'spec-tester'", "  | 'spec-executor'", "  | 'spec-debugger'", "  | 'spec-ender';"]
+    };
+
+    const tabs = ["AgentTeam.canvas", "README.md", "plan.md", "test-plan.md", "src/App.tsx"];
+    let activeSpec = specs[0];
+    let activeFile = "AgentTeam.canvas";
+    let activeAgent = "TeamLead";
+    const pan = { x: 0, y: 0 };
+    const dragState = { active: false, startX: 0, startY: 0, originX: 0, originY: 0 };
+
+    const $ = (selector) => document.querySelector(selector);
+    const specList = $("#specList");
+    const tabsEl = $("#tabs");
+    const breadcrumb = $("#breadcrumb");
+    const canvasView = $("#canvasView");
+    const docView = $("#docView");
+    const codeView = $("#codeView");
+    const phaseRow = $("#phaseRow");
+    const docNums = $("#docNums");
+    const docLines = $("#docLines");
+    const codeNums = $("#codeNums");
+    const codeLines = $("#codeLines");
+    const agentGrid = $("#agentGrid");
+    const chatMessages = $("#chatMessages");
+    const agentTitle = $("#agentTitle");
+    const agentSubtitle = $("#agentSubtitle");
+    const agentModelSelect = $("#agentModelSelect");
+    const chatInput = $("#chatInput");
+    const canvasStage = $("#canvasStage");
+    const canvasBoard = $("#canvasBoard");
+
+    function html(text) {
+      return text.replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function phaseLabel(spec = activeSpec) {
+      const stage = stages[spec.phaseIndex];
+      return `阶段${phaseNumbers[spec.phaseIndex]} · ${stage.title}`;
+    }
+
+    function stageOwner(index, spec = activeSpec) {
+      const owner = stages[index].owner;
+      return spec.agents.includes(owner) ? owner : "TeamLead";
+    }
+
+    function updatePan() {
+      canvasBoard.style.setProperty("--pan-x", `${pan.x}px`);
+      canvasBoard.style.setProperty("--pan-y", `${pan.y}px`);
+      $("#canvasPosition").textContent = `x ${Math.round(pan.x)} / y ${Math.round(pan.y)}`;
+    }
+
+    function resetPan() {
+      pan.x = 0;
+      pan.y = 0;
+      updatePan();
+    }
+
+    function setStage(index, actor) {
+      const nextIndex = Math.max(0, Math.min(stages.length - 1, index));
+      const before = activeSpec.phaseIndex;
+      activeSpec.phaseIndex = nextIndex;
+      activeSpec.phase = phaseLabel(activeSpec);
+      const stage = stages[nextIndex];
+      if (before !== nextIndex) {
+        const route = actor === "TeamLead" ? "TeamLead → AgentTeam" : `${actor} → TeamLead`;
+        activeSpec.team.push([route, `${actor} 将工作流推进到阶段${phaseNumbers[nextIndex]}：${stage.title}。`]);
+        roles.TeamLead.chat.push(["agent", `已将 ${activeSpec.id}-${activeSpec.title} 推进到${activeSpec.phase}。`]);
+      }
+      renderAll();
+    }
+
+    function renderSpecs() {
+      specList.innerHTML = specs.map(spec => `
+        <button type="button" class="spec-row ${spec.id === activeSpec.id ? "active" : ""}" data-spec="${spec.id}">
+          <span class="twisty">◇</span>
+          <span class="spec-name">
+            <strong>${spec.id}-${spec.title}</strong>
+            <span>${spec.category} · ${phaseLabel(spec)}</span>
+            <span class="spec-branch">git ${spec.branch}</span>
+          </span>
+        </button>
+      `).join("");
+    }
+
+    function renderTabs() {
+      tabsEl.innerHTML = tabs.map(file => `<button type="button" class="tab ${file === activeFile ? "active" : ""}" data-file="${file}">${file}</button>`).join("");
+    }
+
+    function renderSource(lines, numsEl, linesEl) {
+      numsEl.innerHTML = lines.map((_, index) => `<div>${index + 1}</div>`).join("");
+      linesEl.innerHTML = lines.map(line => `<div>${html(line) || " "}</div>`).join("");
+    }
+
+    function renderEditor() {
+      renderTabs();
+      breadcrumb.innerHTML = `${activeSpec.category} / <code>${activeSpec.id}-${activeSpec.title}</code> / ${activeFile}`;
+      canvasView.classList.toggle("active", activeFile === "AgentTeam.canvas");
+      docView.classList.toggle("active", Boolean(docs[activeFile]));
+      codeView.classList.toggle("active", Boolean(code[activeFile]));
+      if (docs[activeFile]) renderSource(docs[activeFile], docNums, docLines);
+      if (code[activeFile]) renderSource(code[activeFile], codeNums, codeLines);
+      document.querySelectorAll(".tree-row").forEach(row => row.classList.toggle("active", row.dataset.file === activeFile));
+    }
+
+    function renderCanvas() {
+      $("#specTitle").textContent = `${activeSpec.id}-${activeSpec.title}`;
+      $("#specDesc").textContent = activeSpec.desc;
+      $("#specPhase").textContent = phaseLabel();
+      $("#branchTop").textContent = activeSpec.branch;
+      $("#terminalBranch").textContent = `branch: ${activeSpec.branch}`;
+      $("#branchBinding").textContent = `${activeSpec.id}-${activeSpec.title} ⇄ ${activeSpec.branch}`;
+      $("#statusLeft").textContent = `${activeSpec.branch}  ${activeSpec.sync}  0 errors  0 warnings`;
+      $("#phaseOwner").textContent = `owner ${stageOwner(activeSpec.phaseIndex)}`;
+      phaseRow.innerHTML = stages.map((stage, index) => {
+        const state = index < activeSpec.phaseIndex ? "done" : index === activeSpec.phaseIndex ? "active" : "pending";
+        const label = index < activeSpec.phaseIndex ? "done" : index === activeSpec.phaseIndex ? "current" : "next";
+        const owner = stageOwner(index);
+        return `
+          <button type="button" class="phase-card ${state}" data-stage="${index}">
+            <strong>${index + 1} ${stage.title}</strong>
+            <span>${stage.desc}</span>
+            <div class="phase-meta"><em>${owner}</em><b>${label}</b></div>
+          </button>
+        `;
+      }).join("");
+      agentGrid.innerHTML = activeSpec.agents.map(role => {
+        const profile = roles[role];
+        return `
+          <button type="button" class="agent-card ${role === activeAgent ? "active" : ""}" data-agent="${role}">
+            <div class="agent-top">
+              <h3>${role}</h3>
+              <span class="model-chip">${profile.engine} · ${profile.model}</span>
+            </div>
+            <p>${profile.subtitle}</p>
+            <div class="agent-foot"><span class="online">online</span><span>private ${profile.chat.length}</span></div>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function renderChat() {
+      const profile = roles[activeAgent];
+      agentTitle.textContent = activeAgent;
+      agentSubtitle.textContent = profile.subtitle;
+      agentModelSelect.innerHTML = modelOptions.map(model => `<option ${model === profile.model ? "selected" : ""}>${model}</option>`).join("");
+      chatMessages.innerHTML = profile.chat.map(([speaker, text]) => `
+        <div class="bubble ${speaker}">
+          <div class="bubble-meta">${speaker === "user" ? "User" : activeAgent}</div>
+          ${html(text)}
+        </div>
+      `).join("");
+    }
+
+    function renderBottom() {
+      $("#teamMessages").innerHTML = activeSpec.team.map(([route, text]) => `<div class="row"><strong>${route}</strong><span>${text}</span></div>`).join("");
+      $("#modelRoutes").innerHTML = activeSpec.agents.map(role => `<div class="row"><strong>${role}</strong><span>${roles[role].engine} / ${roles[role].model}</span></div>`).join("");
+      $("#gitBindingPane").innerHTML = `
+        <div class="git-state">
+          <div class="git-card"><span>Spec</span><strong>${activeSpec.id}-${activeSpec.title}</strong></div>
+          <div class="git-card"><span>Current Branch</span><strong>${activeSpec.branch}</strong></div>
+          <div class="git-card"><span>PR</span><strong>${activeSpec.pr}</strong></div>
+        </div>
+        <div class="row"><strong>base_branch</strong><span>${activeSpec.baseBranch}</span></div>
+        <div class="row"><strong>git_branch</strong><span>${activeSpec.branch}</span></div>
+        <div class="row"><strong>remote_tracking</strong><span>${activeSpec.remote}</span></div>
+        <div class="row"><strong>sync</strong><span>${activeSpec.sync}</span></div>
+      `;
+    }
+
+    function renderAll() {
+      renderSpecs();
+      renderCanvas();
+      renderEditor();
+      renderChat();
+      renderBottom();
+      updatePan();
+    }
+
+    document.addEventListener("click", event => {
+      const stageButton = event.target.closest("[data-stage]");
+      if (stageButton) {
+        const stageIndex = Number(stageButton.dataset.stage);
+        const owner = stageOwner(stageIndex);
+        if (activeAgent === "TeamLead" || activeAgent === owner) {
+          setStage(stageIndex, activeAgent);
+        } else {
+          activeAgent = owner;
+          roles[owner].chat.push(["agent", `我负责阶段${phaseNumbers[stageIndex]}：${stages[stageIndex].title}，可向 TeamLead 请求推进。`]);
+          renderCanvas();
+          renderChat();
+        }
+        return;
+      }
+
+      const specButton = event.target.closest("[data-spec]");
+      if (specButton) {
+        activeSpec = specs.find(spec => spec.id === specButton.dataset.spec);
+        activeAgent = activeSpec.agents[0];
+        activeFile = "AgentTeam.canvas";
+        resetPan();
+        renderAll();
+        return;
+      }
+
+      const fileButton = event.target.closest("[data-file]");
+      if (fileButton) {
+        activeFile = fileButton.dataset.file;
+        if (!tabs.includes(activeFile)) tabs.push(activeFile);
+        renderEditor();
+        return;
+      }
+
+      const agentButton = event.target.closest("[data-agent]");
+      if (agentButton) {
+        activeAgent = agentButton.dataset.agent;
+        renderCanvas();
+        renderChat();
+        return;
+      }
+
+      const paneButton = event.target.closest("[data-pane]");
+      if (paneButton) {
+        document.querySelectorAll(".bottom-tab").forEach(button => button.classList.remove("active"));
+        document.querySelectorAll(".pane").forEach(pane => pane.classList.remove("active"));
+        paneButton.classList.add("active");
+        $(`#pane-${paneButton.dataset.pane}`).classList.add("active");
+      }
+    });
+
+    $("#sendButton").addEventListener("click", () => {
+      const text = chatInput.value.trim();
+      if (!text) return;
+      roles[activeAgent].chat.push(["user", text]);
+      chatInput.value = "";
+      renderChat();
+      renderCanvas();
+    });
+
+    $("#advancePhase").addEventListener("click", () => {
+      activeAgent = "TeamLead";
+      setStage(activeSpec.phaseIndex + 1, "TeamLead");
+    });
+
+    $("#roleRequestAdvance").addEventListener("click", () => {
+      const stage = stages[activeSpec.phaseIndex];
+      const requester = activeAgent;
+      if (requester === "TeamLead") {
+        setStage(activeSpec.phaseIndex + 1, "TeamLead");
+        return;
+      }
+      activeSpec.team.push([`${requester} → TeamLead`, `请求推进当前阶段：${stage.title}。`]);
+      roles.TeamLead.chat.push(["user", `${requester} 请求推进当前阶段：${stage.title}。`]);
+      activeAgent = "TeamLead";
+      renderAll();
+    });
+
+    $("#checkoutBranch").addEventListener("click", () => {
+      activeSpec.team.push(["TeamLead → Git", `已切换到 ${activeSpec.branch}，该分支绑定 ${activeSpec.id}-${activeSpec.title}。`]);
+      roles.TeamLead.chat.push(["agent", `当前工作区已绑定到 ${activeSpec.branch}，后续提交将归属 ${activeSpec.id}-${activeSpec.title}。`]);
+      activeAgent = "TeamLead";
+      renderAll();
+      $("#terminalBranch").textContent = `git checkout ${activeSpec.branch}`;
+    });
+
+    agentModelSelect.addEventListener("change", () => {
+      roles[activeAgent].model = agentModelSelect.value;
+      $("#statusRight").textContent = `Ln 1, Col 1  Spaces: 2  UTF-8  Adapter Model: ${agentModelSelect.value}`;
+      renderCanvas();
+      renderBottom();
+    });
+
+    $("#workspaceSelect").addEventListener("change", event => {
+      const name = event.target.options[event.target.selectedIndex].textContent;
+      $("#workspaceName").textContent = name;
+      $("#commandCenter").value = `${name} - spec-workflow-canvas.html`;
+    });
+
+    $("#openFolder").addEventListener("click", () => $("#workspaceSelect").dispatchEvent(new Event("change")));
+
+    canvasStage.addEventListener("pointerdown", event => {
+      if (event.target.closest("button, input, select, textarea")) return;
+      dragState.active = true;
+      dragState.startX = event.clientX;
+      dragState.startY = event.clientY;
+      dragState.originX = pan.x;
+      dragState.originY = pan.y;
+      canvasStage.classList.add("dragging");
+      try {
+        canvasStage.setPointerCapture(event.pointerId);
+      } catch (error) {
+        // Synthetic pointer events in tests may not have a capturable pointer.
+      }
+    });
+
+    canvasStage.addEventListener("pointermove", event => {
+      if (!dragState.active) return;
+      pan.x = dragState.originX + event.clientX - dragState.startX;
+      pan.y = dragState.originY + event.clientY - dragState.startY;
+      updatePan();
+    });
+
+    canvasStage.addEventListener("pointerup", event => {
+      dragState.active = false;
+      canvasStage.classList.remove("dragging");
+      if (canvasStage.hasPointerCapture(event.pointerId)) canvasStage.releasePointerCapture(event.pointerId);
+    });
+
+    canvasStage.addEventListener("pointercancel", () => {
+      dragState.active = false;
+      canvasStage.classList.remove("dragging");
+    });
+
+    $("#resetCanvas").addEventListener("click", resetPan);
+
+    renderAll();
+  </script>
+</body>
+</html>
