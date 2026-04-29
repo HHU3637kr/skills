@@ -16,3 +16,4 @@
 {"id":"audit-moifjeov-0c82hx","timestamp":"2026-04-28T09:34:37.087Z","type":"role_chat_response","specId":"20260428-1621","from":"TeamLead","to":"user","messageId":"role-chat-moifjeou-zlhxfd","artifacts":["c:\\Users\\18735\\.claude\\skills\\spec\\06-已归档\\20260428-1621-自研RoleChat与ClaudeCode单后端设计/logs/agent-events.jsonl"]}
 {"id":"audit-moigtqog-1gd8ai","timestamp":"2026-04-28T10:10:38.800Z","type":"role_chat_message","specId":"20260428-1621","from":"user","to":"TeamLead","messageId":"role-chat-moigtqoc-cbcfcj"}
 {"id":"audit-moigu3ac-cf9g2j","timestamp":"2026-04-28T10:10:55.140Z","type":"role_chat_response","specId":"20260428-1621","from":"TeamLead","to":"user","messageId":"role-chat-moigu3ab-t8dowf","artifacts":["c:\\Users\\18735\\.claude\\skills\\spec\\06-已归档\\20260428-1621-自研RoleChat与ClaudeCode单后端设计/logs/agent-events.jsonl"]}
+{"type":"runtime_initialized","timestamp":"2026-04-29T05:40:02.144Z","specId":"20260428-1621","state":"archived","activeRole":"TeamLead"}

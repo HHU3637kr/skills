@@ -1,0 +1,16 @@
+[
+  {
+    "messageId": "team-mojr7fp5-3m3a40",
+    "recipient": "spec-tester",
+    "state": "pending",
+    "requiresResponse": true,
+    "updatedAt": "2026-04-29T07:49:00.092Z"
+  },
+  {
+    "messageId": "team-mojro0g0-uabqd3",
+    "recipient": "TeamLead",
+    "state": "pending",
+    "requiresResponse": false,
+    "updatedAt": "2026-04-29T08:01:53.475Z"
+  }
+]

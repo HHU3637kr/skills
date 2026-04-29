@@ -25,6 +25,7 @@ export function renderRoleChatHtml(
   const timelineJson = JSON.stringify(items).replace(/</g, "\\u003c");
   const roleSessionsJson = JSON.stringify(Object.fromEntries(agentRoles.map(role => [role, Boolean(sessions[role])]))).replace(/</g, "\\u003c");
   const runtimeJson = JSON.stringify(runtime?.roles ?? {}).replace(/</g, "\\u003c");
+  const isReadOnly = !spec || spec.lifecycle === "archived";
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -35,11 +36,13 @@ export function renderRoleChatHtml(
     :root { color-scheme: dark; --line:#333; --text:#d4d4d4; --muted:#9a9a9a; --panel:#202020; --panel2:#252525; --accent:#4cc2ff; --good:#7bd88f; --warn:#d7ba7d; --error:#f0c8c0; --danger:#f48771; }
     * { box-sizing: border-box; }
     body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
-    header { padding: 10px 12px; border-bottom: 1px solid var(--line); background: #1d1d1d; }
-    h2 { margin: 2px 0 4px; font-size: 17px; line-height: 1.2; }
+    .chatHeader { min-height: 46px; padding: 7px 12px; border-bottom: 1px solid var(--line); background: #1b1b1b; display: grid; gap: 2px; align-content: center; }
+    .headerLine { display: flex; align-items: center; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .headerLine strong { font-size: 13px; color: var(--text); }
+    .headerLine .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     label { display: block; color: var(--muted); font-size: 11px; margin: 8px 0 4px; }
     select, textarea, button { width: 100%; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 7px; font: inherit; }
-    textarea { min-height: 48px; max-height: 120px; resize: vertical; }
+    textarea { min-height: 88px; max-height: 180px; resize: vertical; }
     button { cursor: pointer; }
     button:disabled { opacity: .55; cursor: default; }
     .meta { color: var(--muted); overflow-wrap: anywhere; }
@@ -51,10 +54,9 @@ export function renderRoleChatHtml(
     .runtimePill.running b { color: var(--accent); }
     .runtimePill.failed b { color: var(--danger); }
     .runtimePill.queued b { color: var(--warn); }
-    .toolbar { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); overflow-x: auto; }
-    .chip { width: auto; min-width: max-content; padding: 4px 8px; color: var(--muted); }
-    .chip.active { color: var(--text); border-color: var(--accent); }
     .timeline { flex: 1; min-height: 0; overflow: auto; padding: 12px; }
+    .emptyState { height: 100%; min-height: 260px; display: grid; place-content: center; text-align: center; color: var(--muted); gap: 4px; }
+    .emptyState b { color: var(--text); font-size: 14px; }
     .turn { border-left: 2px solid #2d2d2d; margin: 0 0 14px; padding-left: 10px; }
     .timelineItem { margin: 0 0 9px; padding: 9px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; overflow-wrap: anywhere; }
     .timelineItem summary { cursor: pointer; display: grid; gap: 2px; }
@@ -76,13 +78,14 @@ export function renderRoleChatHtml(
     pre { max-height: 300px; overflow: auto; background: #161616; border: 1px solid #2d2d2d; border-radius: 5px; padding: 8px; white-space: pre-wrap; }
     .codeLabel { color: var(--muted); font-size: 11px; margin-bottom: 3px; }
     .fileLink { width: auto; margin: 6px 6px 0 0; color: var(--accent); font-family: Consolas, monospace; text-align: left; }
-    form { padding: 8px 10px 10px; border-top: 1px solid var(--line); }
+    form { padding: 8px 10px 8px; border-top: 1px solid var(--line); }
     .composerBox { border: 1px solid var(--line); background: var(--panel); border-radius: 8px; overflow: hidden; }
     #body { display: block; border: 0; border-radius: 0; background: transparent; padding: 10px; }
     #body:focus { outline: 1px solid rgba(76,194,255,.35); outline-offset: -1px; }
     .composerFooter { display: flex; align-items: center; gap: 6px; padding: 7px; border-top: 1px solid var(--line); background: #1d1d1d; }
-    .compactSelect { width: auto; min-width: 0; max-width: 150px; height: 30px; padding: 4px 7px; }
-    #model { max-width: 190px; }
+    .compactSelect { width: auto; min-width: 0; max-width: 132px; height: 30px; padding: 4px 7px; color: var(--muted); }
+    .toolButton, .modePill, .jumpButton { width: 30px; height: 30px; padding: 0; display: inline-flex; align-items: center; justify-content: center; color: var(--muted); }
+    .modePill { width: auto; padding: 0 9px; border: 1px solid var(--line); border-radius: 5px; background: var(--panel2); }
     .spacer { flex: 1; min-width: 8px; }
     .sendIcon { width: 30px; height: 30px; padding: 0; border-radius: 50%; color: #fff; background: #7f5a48; font-size: 17px; line-height: 1; }
     #status { margin-top: 5px; color: var(--muted); min-height: 16px; font-size: 12px; overflow-wrap: anywhere; }
@@ -90,34 +93,36 @@ export function renderRoleChatHtml(
   </style>
 </head>
 <body>
-  <header>
-    <div class="meta">Role Chat</div>
-    <h2 id="activeRole">${escapeHtml(activeRole)}</h2>
-    <div class="meta">${spec ? escapeHtml(spec.title) : "No active Spec"}</div>
-    <div class="mono">${spec ? escapeHtml(spec.gitBranch || "not set") : ""}</div>
-    <div class="meta" id="sessionState"></div>
+  <header class="chatHeader">
+    <div class="headerLine">
+      <span class="meta">Role Chat</span>
+      <strong id="activeRole">${escapeHtml(activeRole)}</strong>
+      <span class="meta">/</span>
+      <span class="meta truncate">${spec ? escapeHtml(spec.title) : "No active Spec"}</span>
+    </div>
+    <div class="headerLine">
+      <span class="meta" id="sessionState"></span>
+      <span class="meta truncate">${spec ? escapeHtml(spec.gitBranch || "not set") : ""}</span>
+    </div>
   </header>
-  <nav class="toolbar" aria-label="Timeline filters">
-    <button type="button" class="chip active" data-filter="all">All</button>
-    <button type="button" class="chip" data-filter="replies">Replies</button>
-    <button type="button" class="chip" data-filter="tools">Tools</button>
-    <button type="button" class="chip" data-filter="errors">Errors</button>
-    <button type="button" class="chip" data-filter="files">Files</button>
-    <button type="button" class="chip" data-filter="team">TeamBus</button>
-    <button type="button" class="chip" id="jumpBottom">Bottom</button>
-  </nav>
   <main class="timeline" id="timeline">${renderTimeline(items)}</main>
   <form id="chatForm" class="composer">
     <div class="composerBox">
-      <textarea id="body" rows="2" aria-label="Message" placeholder="Chat with selected role..."></textarea>
+      <textarea id="body" rows="3" aria-label="Message" placeholder="Chat with selected role..."${isReadOnly ? " disabled" : ""}></textarea>
       <div class="composerFooter">
-        <select id="role" class="compactSelect" aria-label="Agent Role">${renderRoleOptions(activeRole)}</select>
-        <select id="model" class="compactSelect" aria-label="Model">
-          <option value="default">Default model</option>
-          <option value="claude-default">Claude Code default</option>
+        <button type="button" class="toolButton" title="Attach context" aria-label="Attach context">+</button>
+        <span class="modePill">Agent</span>
+        <select id="filterSelect" class="compactSelect" aria-label="Timeline Filter">
+          <option value="all">All</option>
+          <option value="replies">Replies</option>
+          <option value="tools">Tools</option>
+          <option value="errors">Errors</option>
+          <option value="files">Files</option>
+          <option value="team">TeamBus</option>
         </select>
+        <button type="button" class="jumpButton" id="jumpBottom" title="Jump to bottom" aria-label="Jump to bottom">↓</button>
         <span class="spacer"></span>
-        <button id="sendButton" class="sendIcon" title="Send" aria-label="Send">↑</button>
+        <button id="sendButton" class="sendIcon" title="Send" aria-label="Send"${isReadOnly ? " disabled" : ""}>↑</button>
       </div>
     </div>
     <div class="runtimeStrip" id="runtimeState"></div>
@@ -132,7 +137,9 @@ export function renderRoleChatHtml(
     const status = document.querySelector("#status");
     const sendButton = document.querySelector("#sendButton");
     const bodyInput = document.querySelector("#body");
+    const filterSelect = document.querySelector("#filterSelect");
     let selectedRole = ${JSON.stringify(activeRole)};
+    const readOnly = ${JSON.stringify(isReadOnly)};
     let activeFilter = "all";
     let composing = false;
 
@@ -312,10 +319,11 @@ export function renderRoleChatHtml(
         }
         byTurn.get(item.turnId).items.push(item);
       }
-      timeline.innerHTML = groups.map(group => '<section class="turn" data-turn="' + escapeText(group.turnId) + '">' + turnItemsHtml(group.items) + '</section>').join('');
+      timeline.innerHTML = groups.length
+        ? groups.map(group => '<section class="turn" data-turn="' + escapeText(group.turnId) + '">' + turnItemsHtml(group.items) + '</section>').join('')
+        : '<div class="emptyState"><b>Build with Agent</b><span>Chat with ' + escapeText(selectedRole) + '</span></div>';
       applyFilter();
       document.querySelector("#activeRole").textContent = selectedRole;
-      document.querySelector("#role").value = selectedRole;
       renderRuntimeState();
       timeline.scrollTop = timeline.scrollHeight;
     }
@@ -339,7 +347,7 @@ export function renderRoleChatHtml(
     }
 
     function applyFilter() {
-      document.querySelectorAll(".chip[data-filter]").forEach(button => button.classList.toggle("active", button.dataset.filter === activeFilter));
+      filterSelect.value = activeFilter;
       document.querySelectorAll(".timelineItem").forEach(node => {
         const kind = node.getAttribute("data-kind");
         node.hidden = activeFilter !== "all" && kind !== activeFilter;
@@ -357,27 +365,22 @@ export function renderRoleChatHtml(
 
     function sendPrompt(prompt) {
       if (!prompt.trim()) return;
+      if (readOnly) {
+        status.textContent = "Archived Spec is read-only.";
+        return;
+      }
       sendButton.disabled = true;
       status.textContent = "Running Claude Code...";
       vscode.postMessage({
         command: "send",
         role: selectedRole,
-        model: document.querySelector("#model").value,
         body: prompt.trim()
       });
     }
 
-    document.querySelector("#role").addEventListener("change", event => {
-      selectedRole = event.target.value;
-      renderTimeline();
-      vscode.postMessage({ command: "selectRole", role: selectedRole });
-    });
-
-    document.querySelectorAll(".chip[data-filter]").forEach(button => {
-      button.addEventListener("click", () => {
-        activeFilter = button.dataset.filter;
-        applyFilter();
-      });
+    filterSelect.addEventListener("change", event => {
+      activeFilter = event.target.value;
+      applyFilter();
     });
 
     document.querySelector("#jumpBottom").addEventListener("click", () => {
@@ -426,16 +429,16 @@ export function renderRoleChatHtml(
       }
       if (event.data.type === "sessionReset") {
         roleSessions[event.data.role] = false;
-        sendButton.disabled = false;
+        sendButton.disabled = readOnly;
         status.textContent = "Session reset for " + event.data.role;
         renderTimeline();
       }
       if (event.data.type === "agentDone") {
-        sendButton.disabled = false;
+        sendButton.disabled = readOnly;
         status.textContent = "Agent response saved: " + event.data.message.id;
       }
       if (event.data.type === "agentError") {
-        sendButton.disabled = false;
+        sendButton.disabled = readOnly;
         status.textContent = "Agent run failed: " + event.data.error;
       }
       if (event.data.type === "teamMessage") {

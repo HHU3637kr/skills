@@ -1,0 +1,1572 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>R&K Flow Spec Archive Viewer Prototype</title>
+  <style>
+    :root {
+      --bg: #181818;
+      --chrome: #1b1b1b;
+      --sidebar: #202020;
+      --sidebar-2: #252526;
+      --editor: #1e1e1e;
+      --editor-2: #232323;
+      --panel: #191919;
+      --surface: #242424;
+      --surface-2: #2b2b2b;
+      --line: #303030;
+      --line-strong: #3d3d3d;
+      --ink: #d4d4d4;
+      --ink-strong: #f2f2f2;
+      --muted: #a6a6a6;
+      --faint: #747474;
+      --blue: #36a3ff;
+      --blue-soft: #1f4e72;
+      --green: #58d68d;
+      --green-soft: #1f5b3a;
+      --gold: #d7ba7d;
+      --red: #f48771;
+      --purple: #c586c0;
+      --mono: Consolas, "SFMono-Regular", "Liberation Mono", monospace;
+      --sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    * {
+      scrollbar-color: #626262 transparent;
+      scrollbar-width: thin;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 48px 304px minmax(650px, 1fr) 420px;
+      grid-template-rows: 35px minmax(0, 1fr) 230px 22px;
+      width: 100vw;
+      height: 100vh;
+      background: var(--bg);
+    }
+
+    .titlebar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 300px minmax(320px, 680px) 1fr 120px;
+      align-items: center;
+      gap: 12px;
+      padding: 0 10px;
+      border-bottom: 1px solid var(--line);
+      background: #181818;
+      color: var(--muted);
+      user-select: none;
+      font-size: 12px;
+    }
+
+    .menu {
+      display: flex;
+      gap: 14px;
+      white-space: nowrap;
+    }
+
+    .command {
+      display: flex;
+      align-items: center;
+      height: 24px;
+      border: 1px solid #3b3b3b;
+      border-radius: 5px;
+      background: #242424;
+      color: #c2c2c2;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+
+    .command span:first-child {
+      color: #858585;
+      margin-right: 8px;
+    }
+
+    .window-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 11px;
+      color: #bdbdbd;
+      font-size: 14px;
+    }
+
+    .activity {
+      grid-row: 2 / 5;
+      display: grid;
+      grid-template-rows: repeat(8, 44px) 1fr 44px;
+      justify-items: center;
+      padding-top: 5px;
+      border-right: 1px solid var(--line);
+      background: #181818;
+    }
+
+    .activity button {
+      width: 48px;
+      height: 44px;
+      border-left: 2px solid transparent;
+      background: transparent;
+      color: #858585;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .activity button.active {
+      border-left-color: var(--ink-strong);
+      color: var(--ink-strong);
+    }
+
+    .sidebar {
+      grid-row: 2 / 4;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 36px auto minmax(0, 1fr) 220px;
+      border-right: 1px solid var(--line);
+      background: var(--sidebar);
+      overflow: hidden;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 36px;
+      padding: 0 12px;
+      color: #cccccc;
+      font-size: 11px;
+      font-weight: 650;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+    }
+
+    .section-title button {
+      width: 26px;
+      height: 24px;
+      border-radius: 4px;
+      background: transparent;
+      color: #cfcfcf;
+      font-size: 18px;
+    }
+
+    .spec-filters {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      padding: 0 10px 10px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .spec-filters button {
+      height: 26px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #252525;
+      color: #bfbfbf;
+      font-size: 12px;
+    }
+
+    .spec-filters button.selected {
+      border-color: var(--blue);
+      color: var(--ink-strong);
+      background: #26384a;
+    }
+
+    .spec-list {
+      min-height: 0;
+      overflow: auto;
+      padding: 8px 0 12px;
+    }
+
+    .group-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 26px;
+      padding: 0 12px;
+      color: #bfbfbf;
+      font-size: 11px;
+      font-weight: 650;
+      text-transform: uppercase;
+    }
+
+    .group-label .count {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-weight: 400;
+      text-transform: none;
+    }
+
+    .spec-item {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 6px;
+      padding: 6px 10px 6px 12px;
+      border-left: 2px solid transparent;
+      color: #d0d0d0;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+    }
+
+    .spec-item:hover {
+      background: #2a2d2e;
+    }
+
+    .spec-item.selected {
+      background: #37373d;
+      border-left-color: var(--blue);
+    }
+
+    .spec-icon {
+      width: 18px;
+      height: 18px;
+      border: 1px solid #8a8a8a;
+      border-radius: 3px;
+      color: #a9a9a9;
+      display: grid;
+      place-items: center;
+      font-family: var(--mono);
+      font-size: 10px;
+      margin-top: 1px;
+    }
+
+    .spec-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .spec-meta {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      min-width: 0;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      height: 17px;
+      padding: 0 6px;
+      border-radius: 4px;
+      border: 1px solid var(--line-strong);
+      background: #252525;
+      color: #bababa;
+      font-family: var(--mono);
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .badge.active {
+      color: #b9f6ce;
+      border-color: #2d7e50;
+      background: #1d3929;
+    }
+
+    .badge.archived {
+      color: #f0d7a2;
+      border-color: #745a25;
+      background: #3a2f18;
+    }
+
+    .files {
+      min-height: 0;
+      border-top: 1px solid var(--line);
+      overflow: auto;
+      background: #1d1d1d;
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 18px minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+      height: 26px;
+      padding: 0 10px 0 14px;
+      color: #c8c8c8;
+      font-size: 13px;
+    }
+
+    .file-row:hover {
+      background: #2a2d2e;
+    }
+
+    .file-row .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      opacity: .75;
+    }
+
+    .file-icon {
+      color: #8cc8ff;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .file-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tabs {
+      grid-column: 3 / 4;
+      grid-row: 2 / 3;
+      min-width: 0;
+      display: grid;
+      grid-template-rows: 36px 48px minmax(0, 1fr);
+      background: var(--editor);
+    }
+
+    .editor-tabs {
+      display: flex;
+      height: 36px;
+      border-bottom: 1px solid var(--line);
+      background: #191919;
+      overflow: hidden;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      min-width: 160px;
+      max-width: 260px;
+      padding: 0 12px;
+      border-right: 1px solid var(--line);
+      color: #b9b9b9;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      background: var(--editor);
+      color: var(--ink-strong);
+      border-top: 1px solid var(--blue);
+    }
+
+    .archive-banner {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 16px;
+      align-items: center;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--line);
+      background: #202020;
+    }
+
+    .banner-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .banner-title strong {
+      color: var(--ink-strong);
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .banner-title span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .banner-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #2b2b2b;
+      color: #e3e3e3;
+      padding: 0 12px;
+      font-size: 12px;
+    }
+
+    .action-btn.primary {
+      border-color: var(--blue-soft);
+      background: #26384a;
+      color: #d6ecff;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      min-height: 0;
+      overflow: hidden;
+      background-color: #1d1d1d;
+      background-image:
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+
+    .canvas {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 920px;
+      height: 520px;
+      transform: translate(-50%, -50%);
+    }
+
+    .spec-card {
+      position: absolute;
+      right: 16px;
+      top: 18px;
+      width: 360px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: rgba(31, 31, 31, .96);
+      padding: 16px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
+    }
+
+    .spec-card h3 {
+      margin: 0 0 10px;
+      color: var(--ink-strong);
+      font-size: 14px;
+    }
+
+    .role-config-card {
+      position: absolute;
+      right: 16px;
+      top: 184px;
+      width: 360px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: rgba(31, 31, 31, .97);
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
+      overflow: hidden;
+    }
+
+    .config-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: #232323;
+    }
+
+    .config-head span {
+      display: block;
+      color: var(--faint);
+      font-size: 11px;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+    }
+
+    .config-head strong {
+      display: block;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--ink-strong);
+      font-size: 14px;
+    }
+
+    .lock-chip {
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border: 1px solid #715a28;
+      border-radius: 4px;
+      background: #312713;
+      color: var(--gold);
+      font-family: var(--mono);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .config-body {
+      padding: 12px 14px 14px;
+    }
+
+    .config-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .field label {
+      display: block;
+      color: var(--faint);
+      font-size: 11px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
+
+    .select-like {
+      width: 100%;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: #dddddd;
+      padding: 0 9px;
+      font-size: 12px;
+      text-align: left;
+    }
+
+    .select-like::after {
+      content: "⌄";
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .prompt-preview {
+      min-height: 74px;
+      max-height: 92px;
+      overflow: auto;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #171717;
+      padding: 9px;
+      color: #cfcfcf;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 17px;
+      white-space: pre-wrap;
+    }
+
+    .config-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .config-btn {
+      height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: #dedede;
+      font-size: 12px;
+    }
+
+    .config-btn.primary {
+      border-color: var(--blue-soft);
+      background: #26384a;
+      color: #d6ecff;
+    }
+
+    .kv {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr);
+      gap: 6px 10px;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .kv span:nth-child(odd) {
+      color: var(--faint);
+      text-transform: uppercase;
+    }
+
+    .kv span:nth-child(even) {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--mono);
+      color: #d6d6d6;
+    }
+
+    .kv .ok {
+      color: var(--green);
+    }
+
+    .edge {
+      position: absolute;
+      height: 2px;
+      border-top: 2px dashed rgba(102, 170, 220, .7);
+      transform-origin: left center;
+    }
+
+    .node {
+      position: absolute;
+      width: 180px;
+      height: 82px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #252525;
+      box-shadow: 0 10px 24px rgba(0,0,0,.2);
+      padding: 14px 14px 12px;
+    }
+
+    .node.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 1px rgba(54, 163, 255, .3), 0 12px 28px rgba(0,0,0,.28);
+    }
+
+    .node.archived {
+      opacity: .9;
+    }
+
+    .node-title {
+      color: var(--ink-strong);
+      font-weight: 650;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .node-sub {
+      display: flex;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .node-sub b {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .lock {
+      position: absolute;
+      right: 10px;
+      top: 9px;
+      color: var(--gold);
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .right {
+      grid-column: 4 / 5;
+      grid-row: 2 / 4;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 36px auto minmax(0, 1fr) auto;
+      border-left: 1px solid var(--line);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .right-tabs {
+      display: flex;
+      height: 36px;
+      border-bottom: 1px solid var(--line);
+      background: #191919;
+    }
+
+    .right-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 96px;
+      padding: 0 12px;
+      border-right: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .right-tab.active {
+      color: var(--ink-strong);
+      border-top: 1px solid var(--blue);
+      background: var(--panel);
+    }
+
+    .role-head {
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+      background: #1c1c1c;
+    }
+
+    .role-kicker {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    .role-name {
+      color: var(--ink-strong);
+      font-size: 24px;
+      font-weight: 720;
+      line-height: 1.05;
+      margin-bottom: 8px;
+    }
+
+    .role-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 20px;
+    }
+
+    .role-subtitle code {
+      color: var(--blue);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .state-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .state-pill {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #222;
+      padding: 8px 9px;
+    }
+
+    .state-pill span {
+      display: block;
+      color: var(--faint);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+
+    .state-pill b {
+      color: #d6d6d6;
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 650;
+    }
+
+    .readonly-note {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      margin-top: 12px;
+      padding: 10px;
+      border: 1px solid #725b2a;
+      border-radius: 6px;
+      background: #2d2619;
+      color: #dec991;
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .chat-toolbar {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid var(--line);
+      background: #1a1a1a;
+    }
+
+    .chat-toolbar button {
+      height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 5px;
+      background: #262626;
+      color: #bfbfbf;
+      padding: 0 12px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .chat-toolbar button.active {
+      border-color: var(--blue);
+      color: #e8f4ff;
+      background: #24384b;
+    }
+
+    .chat {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px 16px 18px;
+    }
+
+    .message {
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #222;
+      padding: 12px 13px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 20px;
+    }
+
+    .message.role {
+      border-color: #245f8e;
+      background: #20262b;
+    }
+
+    .message.tool {
+      border-color: #2d7149;
+      background: #1e271f;
+    }
+
+    .message.error {
+      border-color: #7a3a31;
+      background: #2b1f1d;
+    }
+
+    .message-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--blue);
+      font-weight: 650;
+      margin-bottom: 6px;
+    }
+
+    .message-title span:last-child {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-weight: 400;
+      font-size: 11px;
+    }
+
+    .message pre {
+      margin: 8px 0 0;
+      padding: 10px;
+      border-radius: 5px;
+      background: #151515;
+      color: #d6d6d6;
+      font-family: var(--mono);
+      font-size: 11px;
+      line-height: 17px;
+      overflow: auto;
+    }
+
+    .right-footer {
+      padding: 12px 16px 14px;
+      border-top: 1px solid var(--line);
+      background: #1b1b1b;
+    }
+
+    .disabled-composer {
+      margin-bottom: 10px;
+      border: 1px dashed #515151;
+      border-radius: 6px;
+      padding: 10px;
+      color: var(--faint);
+      font-size: 12px;
+      line-height: 18px;
+    }
+
+    .chat-composer {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 34px;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .chat-composer textarea {
+      width: 100%;
+      height: 76px;
+      resize: none;
+      outline: 0;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: #242424;
+      color: var(--ink);
+      padding: 10px;
+      font-size: 13px;
+      line-height: 18px;
+    }
+
+    .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #a97552;
+      color: #fff;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .send-btn:disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    .team-panel {
+      grid-column: 3 / 4;
+      grid-row: 3 / 4;
+      min-height: 0;
+      display: grid;
+      grid-template-rows: 34px minmax(0, 1fr);
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .panel-tabs {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      border-bottom: 1px solid var(--line);
+      padding-left: 14px;
+      background: #191919;
+    }
+
+    .panel-tab {
+      height: 33px;
+      padding: 0 13px;
+      border-bottom: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .panel-tab.active {
+      color: var(--ink-strong);
+      border-bottom-color: var(--blue);
+    }
+
+    .team-content {
+      min-height: 0;
+      overflow: auto;
+      padding: 14px 18px 18px;
+    }
+
+    .team-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .team-title {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .team-path {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: #dfdfdf;
+    }
+
+    .team-filters {
+      display: flex;
+      gap: 6px;
+    }
+
+    .team-filters button {
+      height: 26px;
+      border: 1px solid var(--line-strong);
+      border-radius: 4px;
+      background: #262626;
+      color: #c2c2c2;
+      padding: 0 8px;
+      font-size: 11px;
+    }
+
+    .team-message {
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr) 100px;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      margin-bottom: 9px;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      background: #222;
+      font-size: 13px;
+      line-height: 19px;
+    }
+
+    .team-route {
+      color: var(--blue);
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .team-body {
+      color: #d9d9d9;
+      min-width: 0;
+    }
+
+    .delivery {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      height: 22px;
+      padding: 0 8px;
+      border: 1px solid #2d7e50;
+      border-radius: 4px;
+      background: #1d3929;
+      color: #b9f6ce;
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .statusbar {
+      grid-column: 2 / -1;
+      grid-row: 4 / 5;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: 0 10px;
+      background: #007acc;
+      color: #fff;
+      font-size: 12px;
+      font-family: var(--mono);
+    }
+
+    .status-left,
+    .status-right {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .status-left span {
+      min-width: 0;
+      white-space: nowrap;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!--
+    Assumptions:
+    1. 归档 Spec 不从 UI 消失，而是进入 Archived 分组。
+    2. 归档 Spec 打开后进入只读 Archive Viewer，保留 Canvas、Role Chat、Team Chatroom、日志和文件树。
+    3. spec-update 只作用于 Active/未归档 Spec，Archived 只能 Start New Spec From Archive。
+  -->
+  <div class="app">
+    <header class="titlebar">
+      <div class="menu">
+        <span>File</span>
+        <span>Edit</span>
+        <span>Selection</span>
+        <span>View</span>
+        <span>Go</span>
+        <span>Run</span>
+        <span>Terminal</span>
+      </div>
+      <div class="command"><span>Search</span><span>skills - R&K Flow Archive Viewer</span></div>
+      <div></div>
+      <div class="window-actions"><span>□</span><span>□</span><span>×</span></div>
+    </header>
+
+    <nav class="activity">
+      <button>EX</button>
+      <button>SE</button>
+      <button>GI</button>
+      <button>DB</button>
+      <button>PK</button>
+      <button class="active">RK</button>
+      <button>ET</button>
+      <button>AI</button>
+      <div></div>
+      <button>⚙</button>
+    </nav>
+
+    <aside class="sidebar">
+      <div class="section-title">
+        <span>Spec Directory</span>
+        <button title="Create Spec">+</button>
+      </div>
+      <div class="spec-filters">
+        <button class="selected" data-filter="all">All</button>
+        <button data-filter="active">Active</button>
+        <button data-filter="archived">Archived</button>
+      </div>
+      <div class="spec-list">
+        <div class="group active-group">
+          <div class="group-label">Active <span class="count">3</span></div>
+          <button class="spec-item" data-mode="active" data-title="画布效果优化">
+            <span class="spec-icon">S</span>
+            <span>
+              <span class="spec-name">20260428-1838 画布效果优化</span>
+              <span class="spec-meta"><span class="badge active">active</span> feat/spec-canvas</span>
+            </span>
+          </button>
+          <button class="spec-item" data-mode="active" data-title="CreateSpec入口与目录体验优化">
+            <span class="spec-icon">S</span>
+            <span>
+              <span class="spec-name">20260428-1825 CreateSpec入口与目录体验优化</span>
+              <span class="spec-meta"><span class="badge active">active</span> feat/spec-entry</span>
+            </span>
+          </button>
+          <button class="spec-item" data-mode="active" data-title="RoleChat对话体验优化">
+            <span class="spec-icon">S</span>
+            <span>
+              <span class="spec-name">20260428-1658 RoleChat对话体验优化</span>
+              <span class="spec-meta"><span class="badge active">active</span> feat/role-chat</span>
+            </span>
+          </button>
+        </div>
+
+        <div class="group archived-group">
+          <div class="group-label">Archived <span class="count">2</span></div>
+          <button class="spec-item selected" data-mode="archived" data-title="智能体团队运行时生命周期与后端加载设计">
+            <span class="spec-icon">A</span>
+            <span>
+              <span class="spec-name">20260428-1904 智能体团队运行时生命周期与后端加载设计</span>
+              <span class="spec-meta"><span class="badge archived">archived</span> 5c80c27</span>
+            </span>
+          </button>
+          <button class="spec-item" data-mode="archived" data-title="自研RoleChat与ClaudeCode单后端设计">
+            <span class="spec-icon">A</span>
+            <span>
+              <span class="spec-name">20260428-1621 自研RoleChat与ClaudeCode单后端设计</span>
+              <span class="spec-meta"><span class="badge archived">archived</span> 1517c26</span>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div class="files">
+        <div class="section-title"><span>Current Spec Files</span><span></span></div>
+        <div class="file-row"><span class="file-icon">md</span><span class="file-name">summary.md</span><span class="dot"></span></div>
+        <div class="file-row"><span class="file-icon">md</span><span class="file-name">test-report.md</span><span class="dot"></span></div>
+        <div class="file-row"><span class="file-icon">js</span><span class="file-name">team-chat.jsonl</span><span></span></div>
+        <div class="file-row"><span class="file-icon">js</span><span class="file-name">agent-chat.jsonl</span><span></span></div>
+        <div class="file-row"><span class="file-icon">js</span><span class="file-name">audit-log.jsonl</span><span></span></div>
+        <div class="file-row"><span class="file-icon">js</span><span class="file-name">runtime.json</span><span></span></div>
+        <div class="file-row"><span class="file-icon">dir</span><span class="file-name">team-mailboxes</span><span></span></div>
+        <div class="file-row"><span class="file-icon">dir</span><span class="file-name">logs</span><span></span></div>
+      </div>
+    </aside>
+
+    <main class="tabs">
+      <div class="editor-tabs">
+        <div class="tab active">AgentTeam.canvas</div>
+        <div class="tab">summary.md</div>
+        <div class="tab">test-report.md</div>
+        <div class="tab">audit-log.jsonl</div>
+      </div>
+
+      <div class="archive-banner">
+        <div class="banner-title">
+          <span class="badge archived" id="modeBadge">archived</span>
+          <strong id="bannerMode">Archive Viewer</strong>
+          <span id="bannerText">只读复盘：保留画布、角色对话、TeamBus、日志和最终提交。</span>
+        </div>
+        <div class="banner-actions" id="archiveActions">
+          <button class="action-btn">Open Summary</button>
+          <button class="action-btn">Open Commit</button>
+          <button class="action-btn primary">Start New Spec From Archive</button>
+        </div>
+        <div class="banner-actions hidden" id="activeActions">
+          <button class="action-btn">Spec Update</button>
+          <button class="action-btn">Run Test</button>
+          <button class="action-btn primary">Archive Spec</button>
+        </div>
+      </div>
+
+      <section class="canvas-wrap">
+        <div class="canvas">
+          <div class="edge" style="left:190px; top:123px; width:118px; transform: rotate(-23deg);"></div>
+          <div class="edge" style="left:410px; top:112px; width:142px; transform: rotate(15deg);"></div>
+          <div class="edge" style="left:360px; top:172px; width:118px; transform: rotate(100deg);"></div>
+          <div class="edge" style="left:325px; top:320px; width:134px; transform: rotate(-4deg);"></div>
+          <div class="edge" style="left:486px; top:310px; width:158px; transform: rotate(16deg);"></div>
+          <div class="edge" style="left:450px; top:380px; width:105px; transform: rotate(82deg);"></div>
+
+          <button class="node selected archived" data-role="TeamLead" style="left:65px; top:86px;">
+            <span class="lock">RO</span>
+            <div class="node-title">TeamLead</div>
+            <div class="node-sub">Claude Code <b>phase gate</b></div>
+          </button>
+          <button class="node archived" data-role="spec-explorer" style="left:302px; top:58px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-explorer</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+          <button class="node archived" data-role="spec-writer" style="left:560px; top:98px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-writer</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+          <button class="node archived" data-role="spec-debugger" style="left:70px; top:316px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-debugger</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+          <button class="node archived" data-role="spec-executor" style="left:326px; top:292px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-executor</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+          <button class="node archived" data-role="spec-tester" style="left:602px; top:338px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-tester</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+          <button class="node archived" data-role="spec-ender" style="left:392px; top:428px;">
+            <span class="lock">RO</span>
+            <div class="node-title">spec-ender</div>
+            <div class="node-sub">Claude Code <b>agent role</b></div>
+          </button>
+
+          <div class="spec-card">
+            <h3 id="canvasTitle">智能体团队运行时生命周期与后端加载设计</h3>
+            <div class="kv">
+              <span>Location</span><span id="canvasPath">spec/06-已归档/20260428-1904...</span>
+              <span>Lifecycle</span><span class="ok" id="canvasLifecycle">archived snapshot</span>
+              <span>Branch</span><span>feat/spec-20260428-1335-rk-flow-vscode-extension</span>
+              <span>Commit</span><span>5c80c27</span>
+              <span>Runtime</span><span id="canvasRuntime">frozen / read-only</span>
+            </div>
+          </div>
+
+          <div class="role-config-card">
+            <div class="config-head">
+              <div>
+                <span>Selected Role</span>
+                <strong id="configRole">TeamLead</strong>
+              </div>
+              <div class="lock-chip" id="configLock">read-only</div>
+            </div>
+            <div class="config-body">
+              <div class="config-grid">
+                <div class="field">
+                  <label>Backend</label>
+                  <button class="select-like" id="configBackend">Claude Code</button>
+                </div>
+                <div class="field">
+                  <label>Model</label>
+                  <button class="select-like" id="configModel">Default model</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>System Prompt</label>
+                <div class="prompt-preview" id="configPrompt">You are TeamLead in the R&K Flow Spec-driven Agent Team workflow. Coordinate phase gates, route TeamBus messages, and keep the Spec lifecycle coherent.</div>
+              </div>
+              <div class="config-actions">
+                <button class="config-btn">Open Prompt</button>
+                <button class="config-btn primary" id="configSave">Save Role Config</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="right">
+      <div class="right-tabs">
+        <div class="right-tab">Claude Code</div>
+        <div class="right-tab">Chat</div>
+        <div class="right-tab active">R&K Agent</div>
+      </div>
+
+      <div class="role-head">
+        <div class="role-kicker" id="roleMode">Role Chat</div>
+        <div class="role-name" id="roleName">TeamLead</div>
+        <div class="role-subtitle">
+          <span id="roleSpec">智能体团队运行时生命周期与后端加载设计</span><br />
+          <code id="roleBranch">feat/spec-20260428-1335-rk-flow-vscode-extension</code><br />
+          <span id="roleSession">archived Claude Code session</span>
+        </div>
+        <div class="state-grid">
+          <div class="state-pill"><span>lifecycle</span><b id="pillLifecycle">archived</b></div>
+          <div class="state-pill"><span>activity</span><b id="pillActivity">frozen</b></div>
+          <div class="state-pill"><span>backend</span><b>claude-code</b></div>
+          <div class="state-pill"><span>mailbox</span><b id="pillMailbox">0 pending</b></div>
+        </div>
+        <div class="readonly-note" id="readonlyNote">
+          <span>RO</span>
+          <span>这是归档 Spec 的历史会话。可以查看 Role Chat、工具调用和 TeamBus 记录，但不能继续发送消息或调度角色。</span>
+        </div>
+      </div>
+
+      <div class="chat-toolbar">
+        <button class="active">All</button>
+        <button>Replies</button>
+        <button>Tools</button>
+        <button>Errors</button>
+        <button>Files</button>
+        <button>TeamBus</button>
+      </div>
+
+      <div class="chat" id="chatLog">
+        <div class="message">
+          <div class="message-title"><span>You</span><span>10:42</span></div>
+          归档后原来的 Team 聊天记录是否还在？
+        </div>
+        <div class="message role">
+          <div class="message-title"><span>TeamLead</span><span>10:43</span></div>
+          记录仍然存在，只是从 Active Spec 工作区转入 Archive Viewer。TeamBus、Role Chat、audit log 和 runtime 快照都应作为历史复盘数据展示。
+        </div>
+        <div class="message tool">
+          <div class="message-title"><span>Tool Success · Read</span><span>10:43</span></div>
+          team-chat.jsonl
+          <pre>{
+  "from": "spec-explorer",
+  "to": "TeamLead",
+  "type": "status",
+  "delivery": "handled"
+}</pre>
+        </div>
+      </div>
+
+      <div class="right-footer">
+        <div class="disabled-composer" id="composerState">Archived Spec is read-only. Use “Start New Spec From Archive” to continue with a new lifecycle.</div>
+        <div class="chat-composer">
+          <textarea id="chatInput" placeholder="Chat with selected role..." disabled></textarea>
+          <button class="send-btn" id="sendButton">↑</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="team-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab">Problems</button>
+        <button class="panel-tab">Output</button>
+        <button class="panel-tab">Terminal</button>
+        <button class="panel-tab active">R&K Team</button>
+      </div>
+      <div class="team-content">
+        <div class="team-header">
+          <div>
+            <div class="team-title">Team Chatroom</div>
+            <div class="team-path" id="teamPath">spec/06-已归档/20260428-1904-智能体团队运行时生命周期与后端加载设计</div>
+          </div>
+          <div class="team-filters">
+            <button>All Roles</button>
+            <button>Status</button>
+            <button>Requests</button>
+            <button>Handled</button>
+          </div>
+        </div>
+
+        <div class="team-message">
+          <div class="team-route">TeamLead -> spec-explorer</div>
+          <div class="team-body">请确认 mailbox 消息是否被消费。requiresResponse=false 只表示不强制回复，不表示不投递。</div>
+          <div class="delivery">handled</div>
+        </div>
+        <div class="team-message">
+          <div class="team-route">spec-explorer -> TeamLead</div>
+          <div class="team-body">确认收到。消息已进入 mailbox，Role 已感知，当前链路按投递、消费、回复三段语义处理。</div>
+          <div class="delivery">handled</div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="statusbar">
+      <div class="status-left">
+        <span id="statusBranch">feat/spec-20260428-1335-rk-flow-vscode-extension</span>
+        <span id="statusMode">Archive Viewer</span>
+        <span>Claude Code</span>
+      </div>
+      <div class="status-right">
+        <span>0 errors</span>
+        <span>read-only</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const specs = document.querySelectorAll(".spec-item");
+    const filters = document.querySelectorAll(".spec-filters button");
+    const nodes = document.querySelectorAll(".node");
+    const roles = {
+      "TeamLead": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Default model",
+        prompt: "You are TeamLead in the R&K Flow Spec-driven Agent Team workflow. Coordinate phase gates, route TeamBus messages, and keep the Spec lifecycle coherent.",
+        messages: [
+          ["You", "归档后原来的 Team 聊天记录是否还在？"],
+          ["TeamLead", "记录仍然存在，只是从 Active Spec 工作区转入 Archive Viewer。TeamBus、Role Chat、audit log 和 runtime 快照都应作为历史复盘数据展示。"],
+          ["Tool Success · Read", "team-chat.jsonl\n\n{ \"from\": \"spec-explorer\", \"to\": \"TeamLead\", \"delivery\": \"handled\" }"]
+        ]
+      },
+      "spec-explorer": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-explorer. Investigate code, specs, logs, and historical context before implementation. Report findings through TeamBus when required.",
+        messages: [
+          ["TeamBus", "TeamLead -> spec-explorer：确认 mailbox 消息是否被消费。"],
+          ["spec-explorer", "已消费该消息。requiresResponse=false 不再触发 TeamBus 回复义务，但该消息仍进入 Role 上下文。"]
+        ]
+      },
+      "spec-writer": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-writer. Convert exploration into plan.md, architecture boundaries, risks, and testable implementation tasks.",
+        messages: [
+          ["spec-writer", "plan.md 已冻结为归档快照。后续若要继续演进，应新建 Spec，而不是修改该归档计划。"]
+        ]
+      },
+      "spec-debugger": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-debugger. Reproduce defects, isolate root causes, patch narrow fixes, and write debug reports tied to the current Spec.",
+        messages: [
+          ["spec-debugger", "debug-001 已记录 mailbox 显示与 TeamBus 投递语义问题，修复总结已归档。"]
+        ]
+      },
+      "spec-executor": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-executor. Implement strictly from plan.md, avoid scope creep, and keep runtime artifacts inside the current Spec.",
+        messages: [
+          ["spec-executor", "RuntimeStore、RoleRuntimeManager、FileTeamBus 已实现并纳入测试。"]
+        ]
+      },
+      "spec-tester": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-tester. Design and execute automated and end-side tests, preserve audit logs, and verify acceptance criteria.",
+        messages: [
+          ["spec-tester", "npm test 25 passing。端侧日志和审计记录已随 Spec 一起归档。"]
+        ]
+      },
+      "spec-ender": {
+        mailbox: "0 pending",
+        backend: "Claude Code",
+        model: "Claude Sonnet",
+        prompt: "You are spec-ender. Close the Spec lifecycle, archive artifacts, reflect reusable experience, and coordinate Git handoff.",
+        messages: [
+          ["spec-ender", "Spec 已归档，经验沉淀已写入 context/experience，提交 5c80c27 已推送。"]
+        ]
+      }
+    };
+
+    function setMode(mode, title) {
+      const archived = mode === "archived";
+      document.getElementById("modeBadge").textContent = archived ? "archived" : "active";
+      document.getElementById("modeBadge").className = "badge " + (archived ? "archived" : "active");
+      document.getElementById("bannerMode").textContent = archived ? "Archive Viewer" : "AgentTeam Workspace";
+      document.getElementById("bannerText").textContent = archived
+        ? "只读复盘：保留画布、角色对话、TeamBus、日志和最终提交。"
+        : "可执行工作区：允许 Role Chat、TeamBus 调度、spec-update 和归档。";
+      document.getElementById("archiveActions").classList.toggle("hidden", !archived);
+      document.getElementById("activeActions").classList.toggle("hidden", archived);
+      document.getElementById("canvasTitle").textContent = title;
+      document.getElementById("roleSpec").textContent = title;
+      document.getElementById("canvasPath").textContent = archived ? "spec/06-已归档/20260428-1904..." : "spec/02-技术设计/20260428-1838...";
+      document.getElementById("canvasLifecycle").textContent = archived ? "archived snapshot" : "active runtime";
+      document.getElementById("canvasRuntime").textContent = archived ? "frozen / read-only" : "running / interactive";
+      document.getElementById("teamPath").textContent = archived
+        ? "spec/06-已归档/20260428-1904-智能体团队运行时生命周期与后端加载设计"
+        : "spec/02-技术设计/20260428-1838-画布效果优化";
+      document.getElementById("pillLifecycle").textContent = archived ? "archived" : "active";
+      document.getElementById("pillActivity").textContent = archived ? "frozen" : "idle";
+      document.getElementById("roleSession").textContent = archived ? "archived Claude Code session" : "resumable Claude Code session";
+      document.getElementById("readonlyNote").classList.toggle("hidden", !archived);
+      document.getElementById("composerState").textContent = archived
+        ? "Archived Spec is read-only. Use “Start New Spec From Archive” to continue with a new lifecycle."
+        : "Message composer enabled. User can chat with selected Role in this active Spec.";
+      document.getElementById("chatInput").disabled = archived;
+      document.getElementById("sendButton").disabled = archived;
+      document.getElementById("configLock").textContent = archived ? "read-only" : "editable";
+      document.getElementById("configSave").textContent = archived ? "Snapshot Config" : "Save Role Config";
+      document.getElementById("statusMode").textContent = archived ? "Archive Viewer" : "AgentTeam Workspace";
+      document.querySelector(".status-right span:last-child").textContent = archived ? "read-only" : "interactive";
+      document.querySelectorAll(".lock").forEach(lock => lock.textContent = archived ? "RO" : "LIVE");
+    }
+
+    function renderRole(role) {
+      const data = roles[role] || roles.TeamLead;
+      document.getElementById("roleName").textContent = role;
+      document.getElementById("configRole").textContent = role;
+      document.getElementById("pillMailbox").textContent = data.mailbox;
+      document.getElementById("configBackend").textContent = data.backend;
+      document.getElementById("configModel").textContent = data.model;
+      document.getElementById("configPrompt").textContent = data.prompt;
+      const chat = document.getElementById("chatLog");
+      chat.innerHTML = data.messages.map(([who, body]) => {
+        const cls = who.includes("Tool") ? "message tool" : who === "You" ? "message" : "message role";
+        const escaped = body.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+        return `<div class="${cls}"><div class="message-title"><span>${who}</span><span>snapshot</span></div>${escaped.replace(/\n\n/g, "<br><br>").replace(/\n/g, "<br>")}</div>`;
+      }).join("");
+    }
+
+    specs.forEach(item => {
+      item.addEventListener("click", () => {
+        specs.forEach(spec => spec.classList.remove("selected"));
+        item.classList.add("selected");
+        setMode(item.dataset.mode, item.dataset.title);
+      });
+    });
+
+    filters.forEach(filter => {
+      filter.addEventListener("click", () => {
+        filters.forEach(item => item.classList.remove("selected"));
+        filter.classList.add("selected");
+        const value = filter.dataset.filter;
+        document.querySelector(".active-group").classList.toggle("hidden", value === "archived");
+        document.querySelector(".archived-group").classList.toggle("hidden", value === "active");
+      });
+    });
+
+    nodes.forEach(node => {
+      node.addEventListener("click", () => {
+        nodes.forEach(item => item.classList.remove("selected"));
+        node.classList.add("selected");
+        renderRole(node.dataset.role);
+      });
+    });
+
+    setMode("archived", "智能体团队运行时生命周期与后端加载设计");
+    renderRole("TeamLead");
+  </script>
+</body>
+</html>

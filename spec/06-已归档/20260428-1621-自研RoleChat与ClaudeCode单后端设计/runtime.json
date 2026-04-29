@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "specId": "20260428-1621",
+  "specDir": "spec/06-已归档/20260428-1621-自研RoleChat与ClaudeCode单后端设计",
+  "state": "archived",
+  "activeRole": "TeamLead",
+  "roles": {
+    "spec-writer": {
+      "role": "spec-writer",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "spec-executor": {
+      "role": "spec-executor",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "spec-tester": {
+      "role": "spec-tester",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "spec-debugger": {
+      "role": "spec-debugger",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "spec-ender": {
+      "role": "spec-ender",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "spec-explorer": {
+      "role": "spec-explorer",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "resumable",
+      "backendEngine": "claude-code",
+      "sessionId": "7e13bd75-9e0d-4715-bac1-a1ac634e1022",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    },
+    "TeamLead": {
+      "role": "TeamLead",
+      "lifecycle": "archived",
+      "activity": "idle",
+      "backend": "resumable",
+      "backendEngine": "claude-code",
+      "sessionId": "d29751d5-d395-4038-b45a-001f3c15d975",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T06:03:24.309Z"
+    }
+  },
+  "createdAt": "2026-04-29T05:40:02.109Z",
+  "updatedAt": "2026-04-29T06:03:24.309Z"
+}

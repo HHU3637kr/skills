@@ -3,7 +3,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-import { readableEventText, renderTeamChatroomHtml, shouldRouteTeamMessage } from "../../extension";
+import { buildRolePrompt, canvasPanelKey, readableEventText, renderCanvasHtml, renderTeamChatroomHtml, roleDefinitionFor, shouldRouteTeamMessage } from "../../extension";
 import {
   buildClaudeCodeResumeArgs,
   ClaudeCodeAdapter
@@ -121,7 +121,32 @@ suite("R&K Flow extension host", () => {
 
     assert.strictEqual(spec.id, "20260428-1335");
     assert.strictEqual(spec.gitBranch, "feat/spec-20260428-1335-rk-flow-vscode-extension");
-    assert.ok(spec.planPathFsPath.endsWith("plan.md"));
+    assert.ok(spec.planPathFsPath?.endsWith("plan.md"));
+    assert.ok(["active", "archived"].includes(spec.lifecycle));
+  });
+
+  test("discovers incomplete Spec directories without plan.md", async () => {
+    const workspace = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-spec-repository-"));
+    const specDir = path.join(workspace, "spec", "02-技术设计", "20260429-1015-缺少计划的目录");
+    await fs.mkdir(specDir, { recursive: true });
+    await fs.writeFile(path.join(specDir, "README.md"), [
+      "---",
+      "title: 缺少计划的目录",
+      "category: 02-技术设计",
+      "status: 草稿",
+      "---",
+      "",
+      "# 缺少计划的目录"
+    ].join("\n"), "utf8");
+
+    const repository = new SpecRepository(vscode.Uri.file(workspace));
+    const [spec] = await repository.listSpecs();
+
+    assert.strictEqual(spec.id, "20260429-1015");
+    assert.strictEqual(spec.lifecycle, "active");
+    assert.strictEqual(spec.health, "incomplete");
+    assert.ok(spec.missingFiles.includes("plan.md"));
+    assert.strictEqual(spec.planPathFsPath, undefined);
   });
 
   test("opens the AgentTeam Canvas command without throwing", async () => {
@@ -129,6 +154,20 @@ suite("R&K Flow extension host", () => {
     const spec = testSpec(dir);
 
     await vscode.commands.executeCommand("rkFlow.openAgentTeamCanvas", spec);
+  });
+
+  test("uses specDir as the AgentTeam Canvas panel reuse key", () => {
+    const active = testSpec(path.join(os.tmpdir(), "rk-flow-canvas-active"));
+    const archived: SpecBinding = {
+      ...active,
+      lifecycle: "archived",
+      category: "06-已归档",
+      specDir: "spec/06-已归档/20260428-test-Timeline"
+    };
+
+    assert.strictEqual(canvasPanelKey(active), active.specDir);
+    assert.strictEqual(canvasPanelKey(archived), archived.specDir);
+    assert.notStrictEqual(canvasPanelKey(active), canvasPanelKey(archived));
   });
 
   test("selects an Agent role from Canvas or command routing", async () => {
@@ -154,7 +193,7 @@ suite("R&K Flow extension host", () => {
       type: "status",
       subject: "Extension Host test ping",
       body: "Team Bus persistence verified by VS Code extension integration test.",
-      artifacts: [spec.planPathFsPath],
+      artifacts: spec.planPathFsPath ? [spec.planPathFsPath] : [],
       requiresResponse: false
     });
 
@@ -177,7 +216,7 @@ suite("R&K Flow extension host", () => {
       type: "blocker",
       subject: "Targeted route test",
       body: "Verify target role can read the routed TeamBus message.",
-      artifacts: [spec.planPathFsPath],
+      artifacts: spec.planPathFsPath ? [spec.planPathFsPath] : [],
       requiresResponse: true
     });
 
@@ -285,6 +324,23 @@ suite("R&K Flow extension host", () => {
     assert.strictEqual(shouldRouteTeamMessage({ ...base, requiresResponse: true }), true);
     assert.strictEqual(shouldRouteTeamMessage({ ...base, to: "TeamLead", requiresResponse: false }), false);
     assert.strictEqual(shouldRouteTeamMessage({ ...base, to: "all", requiresResponse: false }), false);
+  });
+
+  test("binds Agent roles to workflow skill names without hard-coded skill paths", () => {
+    const spec = testSpec(path.join(os.tmpdir(), "rk-flow-role-skill-prompt"));
+    const definition = roleDefinitionFor("spec-debugger");
+    const prompt = buildRolePrompt(spec, "spec-debugger", "修复问题");
+
+    assert.strictEqual(definition.skillName, "spec-debug");
+    assert.strictEqual("skillPath" in definition, false);
+    assert.ok(prompt.includes("Required workflow skill: $spec-debug"));
+    assert.ok(prompt.includes("spec-debugger -> $spec-debug"));
+    assert.ok(prompt.includes("spec-tester -> $spec-test"));
+    assert.ok(prompt.includes("Use the installed skill by name"));
+    assert.ok(!prompt.includes("SKILL.md"));
+    assert.ok(!prompt.includes("spec-debug/SKILL"));
+    assert.ok(!prompt.includes("C:/"));
+    assert.ok(!prompt.includes("C:\\"));
   });
 
   test("detects local Claude Code adapter availability", async () => {
@@ -605,7 +661,8 @@ suite("R&K Flow extension host", () => {
       }
     ], {});
 
-    assert.ok(html.includes("data-filter=\"tools\""));
+    assert.ok(html.includes("id=\"filterSelect\""));
+    assert.ok(html.includes("<option value=\"tools\">Tools</option>"));
     assert.ok(html.includes("TeamBus"));
     assert.ok(!html.includes("id=\"retryButton\""));
     assert.ok(!html.includes("id=\"continueButton\""));
@@ -615,8 +672,39 @@ suite("R&K Flow extension host", () => {
     assert.ok(html.includes("runtimeState"));
     assert.ok(html.includes("state.mailboxBacklog"));
     assert.ok(!html.includes("state.mailboxCursor ?? 0"));
-    assert.ok(!html.includes("<label for=\"role\">Agent Role</label>"));
+    assert.ok(!html.includes("id=\"role\""));
+    assert.ok(!html.includes("id=\"model\""));
+    assert.ok(!html.includes("Default model"));
+    assert.ok(!html.includes("aria-label=\"Agent Role\""));
     assert.ok(html.includes("command: \"openFile\""));
+  });
+
+  test("renders empty Role Chat as a lightweight agent chat surface", () => {
+    const html = renderRoleChatHtml(testSpec(path.join(os.tmpdir(), "rk-flow-empty-chat")), "spec-writer", [], {});
+
+    assert.ok(html.includes("Build with Agent"));
+    assert.ok(html.includes("Chat with selected role"));
+    assert.ok(html.includes("toolButton"));
+    assert.ok(!html.includes("Agent Role"));
+    assert.ok(!html.includes("Default model"));
+  });
+
+  test("renders Canvas role config in a fixed inspector instead of overlaying the canvas", () => {
+    const html = renderCanvasHtml(testSpec(path.join(os.tmpdir(), "rk-flow-canvas-inspector")), "feat/spec-20260428-1335-rk-flow-vscode-extension");
+
+    assert.ok(html.includes("class=\"workspace\""));
+    assert.ok(html.includes("class=\"canvasWrap\""));
+    assert.ok(html.includes("class=\"inspector\""));
+    assert.ok(html.includes("id=\"closeInspector\""));
+    assert.ok(html.includes("workspace.classList.add(\"inspectorOpen\")"));
+    assert.ok(html.includes("Selected Role Config"));
+    assert.ok(html.includes("Workflow Skill"));
+    assert.ok(html.includes("\"skillName\":\"spec-explore\""));
+    assert.ok(!html.includes("SKILL.md"));
+    assert.ok(!html.includes("sideStack"));
+    assert.ok(!html.includes("position: absolute; right: 16px; top: 16px"));
+    assert.ok(!html.includes("Checkout Spec Branch"));
+    assert.ok(!html.includes("Request Implementation Phase"));
   });
 
   test("renders paired tool call and result as one tool card", () => {
@@ -747,6 +835,9 @@ function testSpec(specDirFsPath: string): SpecBinding {
     id: "20260428-test",
     title: "Timeline Test Spec",
     category: "02-技术设计",
+    lifecycle: "active",
+    health: "incomplete",
+    missingFiles: ["summary.md"],
     status: "未确认",
     phase: "draft",
     specDir: "spec/02-技术设计/20260428-test-Timeline",

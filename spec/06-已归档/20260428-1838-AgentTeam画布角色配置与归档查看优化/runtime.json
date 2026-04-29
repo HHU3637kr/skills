@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "specId": "20260428-1838",
+  "specDir": "spec/02-技术设计/20260428-1838-AgentTeam画布角色配置与归档查看优化",
+  "state": "active",
+  "activeRole": "TeamLead",
+  "roles": {
+    "spec-tester": {
+      "role": "spec-tester",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "spec-explorer": {
+      "role": "spec-explorer",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "spec-debugger": {
+      "role": "spec-debugger",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "spec-writer": {
+      "role": "spec-writer",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "spec-ender": {
+      "role": "spec-ender",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "spec-executor": {
+      "role": "spec-executor",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    },
+    "TeamLead": {
+      "role": "TeamLead",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "resumable",
+      "backendEngine": "claude-code",
+      "sessionId": "8c0af798-1860-4e13-9a8c-481c5e5df961",
+      "mailboxCursor": 0,
+      "mailboxBacklog": 0,
+      "updatedAt": "2026-04-29T03:54:24.909Z"
+    }
+  },
+  "createdAt": "2026-04-29T03:54:24.909Z",
+  "updatedAt": "2026-04-29T07:34:31.286Z"
+}

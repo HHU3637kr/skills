@@ -16,18 +16,25 @@ import { RuntimeStore } from "./runtime/runtimeStore";
 import { createSpec, createSpecBranchName, createSpecId, specCategories, validateSpecTitle } from "./specs/specCreator";
 import type { CreatedSpec } from "./specs/specCreator";
 import { SpecRepository } from "./specs/specRepository";
-import type { SpecBinding } from "./specs/types";
+import type { SpecBinding, SpecLifecycle } from "./specs/types";
 import { FileTeamBus } from "./teamBus/fileTeamBus";
 import { extractTeamMessageRequests, stripTeamMessageBlocks } from "./teamBus/protocol";
 import type { TeamBus, TeamDeliveryState, TeamMessage, TeamMessageType } from "./teamBus/types";
 
+const agentTeamCanvasPanels = new Map<string, vscode.WebviewPanel>();
+
 class SpecItem extends vscode.TreeItem {
   constructor(readonly spec: SpecBinding) {
     super(`${spec.id} ${spec.title}`, vscode.TreeItemCollapsibleState.None);
-    this.description = `${spec.phase} · ${spec.gitBranch || "no branch"}`;
-    this.tooltip = `${spec.title}\n${spec.specDir}\n${spec.gitBranch}`;
+    this.description = specDescription(spec);
+    this.tooltip = [
+      spec.title,
+      spec.specDir,
+      spec.gitBranch || "no branch",
+      spec.health === "incomplete" ? `missing: ${spec.missingFiles.join(", ")}` : "complete"
+    ].join("\n");
     this.contextValue = "rkFlowSpec";
-    this.iconPath = new vscode.ThemeIcon("git-pull-request");
+    this.iconPath = new vscode.ThemeIcon(spec.health === "incomplete" ? "warning" : spec.lifecycle === "archived" ? "archive" : "git-pull-request");
     this.command = {
       command: "rkFlow.openAgentTeamCanvas",
       title: "Open AgentTeam Canvas",
@@ -36,8 +43,19 @@ class SpecItem extends vscode.TreeItem {
   }
 }
 
-class SpecExplorerProvider implements vscode.TreeDataProvider<SpecItem> {
-  private readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<SpecItem | undefined>();
+class SpecGroupItem extends vscode.TreeItem {
+  constructor(readonly lifecycle: SpecLifecycle, readonly count: number) {
+    super(lifecycle === "active" ? "Active" : "Archived", vscode.TreeItemCollapsibleState.Expanded);
+    this.description = `${count}`;
+    this.contextValue = "rkFlowSpecGroup";
+    this.iconPath = new vscode.ThemeIcon(lifecycle === "active" ? "folder-active" : "archive");
+  }
+}
+
+type SpecTreeItem = SpecGroupItem | SpecItem;
+
+class SpecExplorerProvider implements vscode.TreeDataProvider<SpecTreeItem> {
+  private readonly onDidChangeTreeDataEmitter = new vscode.EventEmitter<SpecTreeItem | undefined>();
   readonly onDidChangeTreeData = this.onDidChangeTreeDataEmitter.event;
 
   constructor(private readonly repository: SpecRepository) {}
@@ -46,14 +64,39 @@ class SpecExplorerProvider implements vscode.TreeDataProvider<SpecItem> {
     this.onDidChangeTreeDataEmitter.fire(undefined);
   }
 
-  getTreeItem(element: SpecItem): vscode.TreeItem {
+  getTreeItem(element: SpecTreeItem): vscode.TreeItem {
     return element;
   }
 
-  async getChildren(): Promise<SpecItem[]> {
+  async getChildren(element?: SpecTreeItem): Promise<SpecTreeItem[]> {
     const specs = await this.repository.listSpecs();
-    return specs.map(spec => new SpecItem(spec));
+    if (element instanceof SpecGroupItem) {
+      return specs
+        .filter(spec => spec.lifecycle === element.lifecycle)
+        .map(spec => new SpecItem(spec));
+    }
+
+    const activeCount = specs.filter(spec => spec.lifecycle === "active").length;
+    const archivedCount = specs.filter(spec => spec.lifecycle === "archived").length;
+    return [
+      new SpecGroupItem("active", activeCount),
+      new SpecGroupItem("archived", archivedCount)
+    ];
   }
+}
+
+function specDescription(spec: SpecBinding): string {
+  if (spec.lifecycle === "archived") {
+    return spec.health === "complete"
+      ? `archived · ${spec.gitBranch || "no branch"}`
+      : `archived · incomplete${spec.missingFiles[0] ? ` · missing ${spec.missingFiles[0]}` : ""}`;
+  }
+
+  if (spec.health === "incomplete") {
+    return `incomplete${spec.missingFiles[0] ? ` · missing ${spec.missingFiles[0]}` : ""}`;
+  }
+
+  return `${spec.phase} · ${spec.gitBranch || "no branch"}`;
 }
 
 class SpecFileItem extends vscode.TreeItem {
@@ -164,7 +207,11 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     const spec = await this.getActiveSpec();
     const items = spec ? await readTimelineForRole(spec, this.activeRole) : [];
     const sessions = spec ? await readRoleSessions(spec) : {};
-    const runtime = spec ? await this.runtimeStore.ensureRuntime(spec, this.activeRole) : undefined;
+    const runtime = spec
+      ? spec.lifecycle === "archived"
+        ? await this.runtimeStore.readRuntime(spec)
+        : await this.runtimeStore.ensureRuntime(spec, this.activeRole)
+      : undefined;
     this.webviewView.webview.html = renderRoleChatHtml(spec, this.activeRole, items, sessions, runtime);
   }
 
@@ -194,6 +241,10 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         await vscode.window.showWarningMessage("No active Spec found.");
         return;
       }
+      if (spec.lifecycle === "archived") {
+        await vscode.window.showWarningMessage("Archived Spec is read-only.");
+        return;
+      }
       const role = isAgentRole(message.role) ? message.role : this.activeRole;
       try {
         const runtime = await this.roleRuntime.resetSession(spec, role);
@@ -212,6 +263,10 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     const spec = await this.getActiveSpec();
     if (!spec) {
       await vscode.window.showWarningMessage("No active Spec found.");
+      return;
+    }
+    if (spec.lifecycle === "archived") {
+      await vscode.window.showWarningMessage("Archived Spec is read-only.");
       return;
     }
 
@@ -807,6 +862,10 @@ class TeamChatroomViewProvider implements vscode.WebviewViewProvider {
       await vscode.window.showWarningMessage("No active Spec found.");
       return;
     }
+    if (spec.lifecycle === "archived") {
+      await vscode.window.showWarningMessage("Archived Spec is read-only.");
+      return;
+    }
 
     const from = isAgentRole(message.from) ? message.from : "TeamLead";
     const to = message.to === "all" || isAgentRole(message.to) ? message.to : "all";
@@ -819,7 +878,7 @@ class TeamChatroomViewProvider implements vscode.WebviewViewProvider {
       type,
       subject,
       body: message.body.trim(),
-      artifacts: [spec.planPathFsPath],
+      artifacts: spec.planPathFsPath ? [spec.planPathFsPath] : [],
       requiresResponse: message.requiresResponse === true
     });
 
@@ -900,11 +959,13 @@ export function activate(context: vscode.ExtensionContext): void {
     vscode.commands.registerCommand("rkFlow.openAgentTeamCanvas", async (spec?: SpecBinding) => {
       activeSpec = spec ?? await getActiveSpec();
       if (!activeSpec) {
-        await vscode.window.showWarningMessage("No Spec with plan.md found under spec/.");
+        await vscode.window.showWarningMessage("No Spec found under spec/.");
         return;
       }
 
-      await runtimeStore.ensureRuntime(activeSpec);
+      if (activeSpec.lifecycle !== "archived") {
+        await runtimeStore.ensureRuntime(activeSpec);
+      }
       specFilesProvider.refresh();
       await chatProvider.refresh();
       await teamChatProvider.refresh();
@@ -1048,6 +1109,9 @@ function createdSpecToBinding(created: CreatedSpec): SpecBinding {
     id: created.id,
     title: created.title,
     category: created.category,
+    lifecycle: "active",
+    health: "incomplete",
+    missingFiles: ["summary.md"],
     status: "草稿",
     phase: "草稿",
     specDir: created.specDir,
@@ -1066,12 +1130,27 @@ async function openAgentTeamCanvas(
   chatProvider: AgentChatViewProvider,
   teamChatProvider: TeamChatroomViewProvider
 ): Promise<void> {
+  const panelKey = canvasPanelKey(spec);
+  const existingPanel = agentTeamCanvasPanels.get(panelKey);
+  if (existingPanel) {
+    existingPanel.reveal(vscode.ViewColumn.One);
+    existingPanel.webview.postMessage({
+      type: "branch",
+      branch: await safeCurrentBranch(gitBinding)
+    });
+    return;
+  }
+
   const panel = vscode.window.createWebviewPanel(
     "rkFlow.agentTeamCanvas",
     "AgentTeam.canvas",
     vscode.ViewColumn.One,
     { enableScripts: true, retainContextWhenHidden: true }
   );
+  agentTeamCanvasPanels.set(panelKey, panel);
+  panel.onDidDispose(() => {
+    agentTeamCanvasPanels.delete(panelKey);
+  });
 
   const currentBranch = await safeCurrentBranch(gitBinding);
   panel.webview.html = renderCanvasHtml(spec, currentBranch);
@@ -1090,6 +1169,11 @@ async function openAgentTeamCanvas(
     }
 
     if (message.command === "phaseRequest" && typeof message.phase === "string") {
+      if (spec.lifecycle === "archived") {
+        await vscode.window.showWarningMessage("Archived Spec is read-only.");
+        panel.webview.postMessage({ type: "readonly", reason: "archived" });
+        return;
+      }
       const teamMessage = await teamBus.requestPhaseChange({
         specId: spec.id,
         from: "TeamLead",
@@ -1101,6 +1185,10 @@ async function openAgentTeamCanvas(
       await teamChatProvider.reveal();
     }
   });
+}
+
+export function canvasPanelKey(spec: Pick<SpecBinding, "specDir">): string {
+  return spec.specDir;
 }
 
 async function checkoutSpecBranch(gitBinding: GitBindingManager, spec: SpecBinding): Promise<void> {
@@ -1164,7 +1252,70 @@ async function detectAdapterStatuses(adapters: AgentAdapter[]): Promise<Array<{ 
   })));
 }
 
-function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
+interface RoleDefinition {
+  role: AgentRole;
+  responsibility: string;
+  skillName: string;
+  skillUsage: string;
+}
+
+const roleDefinitions: Record<AgentRole, RoleDefinition> = {
+  TeamLead: {
+    role: "TeamLead",
+    responsibility: "Coordinate the current Spec, keep phase boundaries clear, and route specialist work to the correct AgentRole.",
+    skillName: "spec-start",
+    skillUsage: "Use only when starting a new Spec or AgentTeam workflow. For an existing Spec, coordinate and route work via TeamBus instead of doing specialist work directly."
+  },
+  "spec-explorer": {
+    role: "spec-explorer",
+    responsibility: "Explore repository context, historical Spec records, constraints, and unknowns before design or implementation.",
+    skillName: "spec-explore",
+    skillUsage: "Use when collecting background, reading code, searching historical experience, or preparing exploration reports."
+  },
+  "spec-writer": {
+    role: "spec-writer",
+    responsibility: "Write the technical plan, data contracts, implementation steps, acceptance criteria, and related design documents.",
+    skillName: "spec-write",
+    skillUsage: "Use when creating or revising plan.md and design-level implementation guidance."
+  },
+  "spec-executor": {
+    role: "spec-executor",
+    responsibility: "Implement the approved plan strictly within scope and produce implementation summary artifacts.",
+    skillName: "spec-execute",
+    skillUsage: "Use when executing an approved plan.md and making scoped code changes."
+  },
+  "spec-tester": {
+    role: "spec-tester",
+    responsibility: "Design and execute tests, preserve audit logs, verify behavior, and report defects with reproducible evidence.",
+    skillName: "spec-test",
+    skillUsage: "Use when writing test plans, running automated or end-side tests, and producing test reports."
+  },
+  "spec-debugger": {
+    role: "spec-debugger",
+    responsibility: "Diagnose verified defects, identify root cause, create debug documents, and apply focused fixes.",
+    skillName: "spec-debug",
+    skillUsage: "Use when debugging implementation or runtime issues discovered during Spec execution or testing."
+  },
+  "spec-ender": {
+    role: "spec-ender",
+    responsibility: "Close the Spec, reflect reusable experience, update summary context, archive, and prepare Git submission.",
+    skillName: "spec-end",
+    skillUsage: "Use when the Spec is ready for closure, reflection, archive, and final Git workflow."
+  }
+};
+
+export function roleDefinitionFor(role: AgentRole): RoleDefinition {
+  return roleDefinitions[role];
+}
+
+function roleSkillRoutingTable(): string[] {
+  return agentRoles.map(role => {
+    const definition = roleDefinitionFor(role);
+    return `- ${role} -> $${definition.skillName}: ${definition.skillUsage}`;
+  });
+}
+
+export function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
   const agents: Array<{ role: AgentRole; engine: string; x: number; y: number }> = [
     { role: "TeamLead", engine: "Claude Code", x: 92, y: 78 },
     { role: "spec-explorer", engine: "Claude Code", x: 326, y: 68 },
@@ -1174,6 +1325,17 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
     { role: "spec-debugger", engine: "Claude Code", x: 114, y: 282 },
     { role: "spec-ender", engine: "Claude Code", x: 374, y: 424 }
   ];
+  const isArchived = spec.lifecycle === "archived";
+  const roleConfigs = Object.fromEntries(agents.map(agent => [agent.role, {
+    backend: agent.engine,
+    model: "Default model",
+    skillName: roleDefinitionFor(agent.role).skillName,
+    prompt: roleSystemPrompt(agent.role)
+  }]));
+  const roleConfigsJson = JSON.stringify(roleConfigs).replace(/</g, "\\u003c");
+  const healthLabel = spec.health === "complete"
+    ? "complete"
+    : `incomplete · missing ${spec.missingFiles.join(", ") || "core files"}`;
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -1184,17 +1346,34 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
     :root { color-scheme: dark; --bg:#1e1e1e; --panel:#252526; --line:#3c3c3c; --text:#d4d4d4; --muted:#8f8f8f; --accent:#4cc2ff; --green:#53c285; --gold:#d7b46a; }
     * { box-sizing: border-box; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; overflow: hidden; }
-    header { height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: #181818; }
+    header { height: 42px; display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); background: #181818; }
     h1 { margin: 0; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     button { color: var(--text); background: #2d2d2d; border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; font: inherit; cursor: pointer; }
-    .canvasWrap { position: relative; height: calc(100vh - 42px); overflow: hidden; background-image: linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 28px 28px; }
+    button:disabled, select:disabled, textarea:disabled { opacity: .56; cursor: default; }
+    select, textarea { width: 100%; color: var(--text); background: #2d2d2d; border: 1px solid var(--line); border-radius: 4px; padding: 6px 7px; font: inherit; }
+    textarea { min-height: 96px; resize: vertical; }
+    /* 修复: debug-001.md - Role config belongs to a fixed inspector, not a canvas overlay. */
+    /* 修复: debug-002.md - Inspector opens only after selecting a role. */
+    .workspace { height: calc(100vh - 42px); min-height: 0; display: grid; grid-template-columns: minmax(420px, 1fr); }
+    .workspace.inspectorOpen { grid-template-columns: minmax(420px, 1fr) minmax(300px, 360px); }
+    .canvasWrap { position: relative; min-width: 0; min-height: 0; overflow: hidden; background-image: linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 28px 28px; }
     .canvas { position: relative; width: 920px; height: 660px; transform-origin: 0 0; }
     .agent { position: absolute; width: 174px; min-height: 82px; padding: 10px; border: 1px solid var(--line); border-radius: 7px; background: #252526; box-shadow: 0 8px 18px rgba(0,0,0,.18); cursor: pointer; user-select: none; }
     .agent:hover, .agent.selected { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(76,194,255,.28), 0 8px 18px rgba(0,0,0,.18); }
     .agent strong { display: block; font-size: 13px; }
     .agent span { color: var(--muted); font-size: 12px; }
     .agent small { display: inline-block; margin-top: 8px; color: var(--accent); }
-    .info { position: absolute; right: 16px; top: 16px; width: min(360px, calc(100vw - 36px)); padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: rgba(24,24,24,.92); backdrop-filter: blur(8px); }
+    .inspector { min-width: 0; min-height: 0; overflow: auto; border-left: 1px solid var(--line); background: #181818; display: none; }
+    .workspace.inspectorOpen .inspector { display: block; }
+    .inspectorHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .closeInspector { width: 28px; height: 28px; padding: 0; color: var(--muted); flex: none; }
+    .info, .roleConfig { padding: 12px; border-bottom: 1px solid var(--line); background: #1d1d1d; }
+    .configGrid { display: grid; gap: 8px; margin-top: 8px; }
+    .readonlyField { min-height: 30px; display: flex; align-items: center; padding: 6px 7px; border: 1px solid var(--line); border-radius: 4px; background: #232323; color: var(--text); }
+    .badge { display: inline-flex; width: max-content; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: #171717; font-size: 11px; }
+    .badge.editable { color: var(--green); }
+    .badge.readonly { color: var(--gold); }
+    .nodeMode { float: right; color: var(--muted); font-size: 11px; }
     .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0; }
     .mono { font-family: Consolas, monospace; overflow-wrap: anywhere; }
     .ok { color: var(--green); }
@@ -1206,40 +1385,80 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
 <body>
   <header>
     <h1>${escapeHtml(spec.title)}</h1>
-    <div>
-      <button id="checkout">Checkout Spec Branch</button>
-      <button id="phase">Request Implementation Phase</button>
-    </div>
   </header>
-  <main class="canvasWrap" id="canvasWrap">
-    <div class="info">
-      <div class="label">Spec</div>
-      <div class="mono">${escapeHtml(spec.specDir)}</div>
-      <div style="height:8px"></div>
-      <div class="label">Git Binding</div>
-      <div class="mono">target: ${escapeHtml(spec.gitBranch || "not set")}</div>
-      <div class="mono ${currentBranch === spec.gitBranch ? "ok" : "warn"}">current: <span id="currentBranch">${escapeHtml(currentBranch)}</span></div>
-    </div>
-    <div class="canvas" id="canvas">
-      <svg viewBox="0 0 920 660">
-        <path d="M266 118 C300 96 306 102 326 110"></path>
-        <path d="M500 116 C528 112 540 118 558 132"></path>
-        <path d="M412 150 C404 186 394 210 382 246"></path>
-        <path d="M498 302 C526 306 544 312 582 326"></path>
-        <path d="M306 300 C260 302 220 310 288 322"></path>
-        <path d="M418 328 C420 374 418 398 438 424"></path>
-      </svg>
-      ${agents.map(agent => `<article class="agent" data-role="${agent.role}" tabindex="0" style="left:${agent.x}px;top:${agent.y}px">
-        <strong>${escapeHtml(agent.role)}</strong>
-        <span>${escapeHtml(agent.engine)}</span>
-        <small>${agent.role === "TeamLead" ? "phase gate" : "agent role"}</small>
-      </article>`).join("")}
-    </div>
+  <main class="workspace" id="workspace">
+    <section class="canvasWrap" id="canvasWrap">
+      <div class="canvas" id="canvas">
+        <svg viewBox="0 0 920 660">
+          <path d="M266 118 C300 96 306 102 326 110"></path>
+          <path d="M500 116 C528 112 540 118 558 132"></path>
+          <path d="M412 150 C404 186 394 210 382 246"></path>
+          <path d="M498 302 C526 306 544 312 582 326"></path>
+          <path d="M306 300 C260 302 220 310 288 322"></path>
+          <path d="M418 328 C420 374 418 398 438 424"></path>
+        </svg>
+        ${agents.map(agent => `<article class="agent" data-role="${agent.role}" tabindex="0" style="left:${agent.x}px;top:${agent.y}px">
+          <span class="nodeMode">${isArchived ? "RO" : "LIVE"}</span>
+          <strong>${escapeHtml(agent.role)}</strong>
+          <span>${escapeHtml(agent.engine)}</span>
+          <small>${agent.role === "TeamLead" ? "phase gate" : "agent role"}</small>
+        </article>`).join("")}
+      </div>
+    </section>
+    <aside class="inspector">
+      <section class="info">
+        <div class="label">Spec</div>
+        <div class="mono">${escapeHtml(spec.specDir)}</div>
+        <div class="badge ${isArchived ? "readonly" : "editable"}">${escapeHtml(spec.lifecycle)} · ${escapeHtml(healthLabel)}</div>
+        <div style="height:8px"></div>
+        <div class="label">Git Binding</div>
+        <div class="mono">target: ${escapeHtml(spec.gitBranch || "not set")}</div>
+        <div class="mono ${currentBranch === spec.gitBranch ? "ok" : "warn"}">current: <span id="currentBranch">${escapeHtml(currentBranch)}</span></div>
+      </section>
+      <section class="roleConfig">
+        <div class="inspectorHeader">
+          <div>
+            <div class="label">${isArchived ? "Snapshot Role Config" : "Selected Role Config"}</div>
+            <h2 id="configRole" style="margin:4px 0 2px;font-size:15px;">TeamLead</h2>
+          </div>
+          <button id="closeInspector" class="closeInspector" title="Close" aria-label="Close inspector">×</button>
+        </div>
+        <span class="badge ${isArchived ? "readonly" : "editable"}" id="configMode">${isArchived ? "read-only" : "editable"}</span>
+        <div class="configGrid">
+          <div>
+            <div class="label">Workflow Skill</div>
+            <div class="readonlyField" id="roleSkill"></div>
+          </div>
+          <label>
+            <div class="label">Backend</div>
+            <select id="roleBackend"${isArchived ? " disabled" : ""}>
+              <option>Claude Code</option>
+            </select>
+          </label>
+          <label>
+            <div class="label">Model</div>
+            <select id="roleModel"${isArchived ? " disabled" : ""}>
+              <option>Default model</option>
+              <option>Claude Code default</option>
+            </select>
+          </label>
+          <label>
+            <div class="label">System Prompt</div>
+            <textarea id="rolePrompt"${isArchived ? " disabled" : ""}></textarea>
+          </label>
+          <button id="saveRoleConfig"${isArchived ? " disabled" : ""}>${isArchived ? "Snapshot Config" : "Save Role Config"}</button>
+          <div class="mono" id="configStatus"></div>
+        </div>
+      </section>
+    </aside>
   </main>
   <script>
     const vscode = acquireVsCodeApi();
+    const workspace = document.querySelector("#workspace");
     const canvas = document.querySelector("#canvas");
     const wrap = document.querySelector("#canvasWrap");
+    const readOnly = ${JSON.stringify(isArchived)};
+    const roleConfigs = ${roleConfigsJson};
     let selectedRole = "TeamLead";
     let offset = { x: 28, y: 28 };
     let scale = 1;
@@ -1253,14 +1472,31 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
     function selectAgent(role, notify = true) {
       if (!role) return;
       selectedRole = role;
+      workspace.classList.add("inspectorOpen");
       document.querySelectorAll('.agent').forEach(node => node.classList.toggle('selected', node.dataset.role === role));
+      renderRoleConfig();
       if (notify) {
         vscode.postMessage({ command: "selectAgent", role });
       }
     }
 
+    function closeInspector() {
+      workspace.classList.remove("inspectorOpen");
+      document.querySelectorAll('.agent').forEach(node => node.classList.remove('selected'));
+    }
+
+    function renderRoleConfig() {
+      const config = roleConfigs[selectedRole] || roleConfigs.TeamLead;
+      document.querySelector("#configRole").textContent = selectedRole;
+      document.querySelector("#roleSkill").textContent = "$" + config.skillName;
+      document.querySelector("#roleBackend").value = config.backend;
+      document.querySelector("#roleModel").value = config.model;
+      document.querySelector("#rolePrompt").value = config.prompt;
+      document.querySelector("#configStatus").textContent = readOnly ? "Archived Spec snapshot." : "";
+    }
+
     wrap.addEventListener('pointerdown', event => {
-      if (event.target.closest('.agent') || event.target.closest('.info')) return;
+      if (event.target.closest('.agent')) return;
       dragging = true;
       start = { x: event.clientX - offset.x, y: event.clientY - offset.y };
       wrap.setPointerCapture(event.pointerId);
@@ -1277,8 +1513,16 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
       applyTransform();
     }, { passive: false });
 
-    document.querySelector("#checkout").addEventListener("click", () => vscode.postMessage({ command: "checkoutBranch" }));
-    document.querySelector("#phase").addEventListener("click", () => vscode.postMessage({ command: "phaseRequest", phase: "implementation" }));
+    document.querySelector("#closeInspector").addEventListener("click", closeInspector);
+    document.querySelector("#saveRoleConfig").addEventListener("click", () => {
+      if (readOnly) return;
+      const config = roleConfigs[selectedRole] || {};
+      config.backend = document.querySelector("#roleBackend").value;
+      config.model = document.querySelector("#roleModel").value;
+      config.prompt = document.querySelector("#rolePrompt").value;
+      roleConfigs[selectedRole] = config;
+      document.querySelector("#configStatus").textContent = "Role config saved for this canvas session.";
+    });
     document.querySelectorAll('.agent').forEach(node => {
       node.addEventListener('pointerdown', event => event.stopPropagation());
       node.addEventListener('click', event => {
@@ -1301,10 +1545,21 @@ function renderCanvasHtml(spec: SpecBinding, currentBranch: string): string {
       }
     });
     applyTransform();
-    selectAgent(selectedRole, false);
   </script>
 </body>
 </html>`;
+}
+
+export function roleSystemPrompt(role: AgentRole): string {
+  const definition = roleDefinitionFor(role);
+  return [
+    `Role: ${definition.role}`,
+    `Responsibility: ${definition.responsibility}`,
+    `Required workflow skill: $${definition.skillName}`,
+    `Usage rule: ${definition.skillUsage}`,
+    "Use the installed skill by name. Do not hard-code or infer a local skill file path in the prompt.",
+    "Before doing role-specific workflow work, activate and follow that Skill. Do not replace the Skill workflow with ad-hoc steps."
+  ].join("\n");
 }
 
 function renderLegacyCanvasHtml(
@@ -1919,12 +2174,25 @@ function extractExternalSessionId(event: AgentEvent, engine: AgentEngine): strin
   return undefined;
 }
 
-function buildRolePrompt(spec: SpecBinding, role: AgentRole, userPrompt: string): string {
+export function buildRolePrompt(spec: SpecBinding, role: AgentRole, userPrompt: string): string {
+  const definition = roleDefinitionFor(role);
   return [
     `You are ${role} in the R&K Flow Spec-driven Agent Team workflow.`,
     `Current Spec: ${spec.title}`,
     `Spec directory: ${spec.specDir}`,
     `Git branch: ${spec.gitBranch}`,
+    "",
+    "Role workflow contract:",
+    `- Responsibility: ${definition.responsibility}`,
+    `- Required workflow skill: $${definition.skillName}`,
+    `- Usage rule: ${definition.skillUsage}`,
+    "- Use the installed skill by name. Do not hard-code or infer a local skill file path in the prompt.",
+    "- Before doing role-specific workflow work, activate and follow that Skill if it is not already in context.",
+    "- Do not replace the required Skill workflow with ad-hoc steps.",
+    "- If the user's request belongs to another AgentRole, do not perform it directly; route it through TeamBus.",
+    "",
+    "Role-to-skill routing table:",
+    ...roleSkillRoutingTable(),
     "",
     "TeamBus protocol:",
     "When you need to communicate with another AgentRole, emit exactly one JSON fenced block with rkFlowTeamMessage.",

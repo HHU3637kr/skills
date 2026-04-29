@@ -1,0 +1,43 @@
+{
+  "nodes": [
+    {
+      "id": "teamlead",
+      "type": "text",
+      "x": 80,
+      "y": 80,
+      "width": 320,
+      "height": 150,
+      "text": "# TeamLead\nAgentTeam画布角色配置与归档查看优化\n\nspec/02-技术设计/20260428-1838-AgentTeam画布角色配置与归档查看优化"
+    },
+    {
+      "id": "canvas-config",
+      "type": "text",
+      "x": 480,
+      "y": 80,
+      "width": 360,
+      "height": 180,
+      "text": "# 目标交互\n\n- 点击画布 Role 节点选择当前聊天对象\n- 在画布中展示 Role 配置面板\n- backend/model/prompt 从右侧聊天 composer 移出"
+    },
+    {
+      "id": "archive-viewer",
+      "type": "text",
+      "x": 480,
+      "y": 320,
+      "width": 360,
+      "height": 180,
+      "text": "# Archive Viewer\n\n归档 Spec 不消失，进入只读复盘模式：Canvas、Role Chat、Team Chatroom、audit/runtime 均可查看。"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "fromNode": "teamlead",
+      "toNode": "canvas-config"
+    },
+    {
+      "id": "edge-2",
+      "fromNode": "teamlead",
+      "toNode": "archive-viewer"
+    }
+  ]
+}
