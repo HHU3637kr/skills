@@ -10,7 +10,7 @@ description: >
 
 ## 核心原则
 
-1. **多角色视角**：向团队成员收集各自视角的经验素材，不只是 spec-ender 的独角戏
+1. **多角色视角**：通过 TeamLead 收集各角色视角的经验素材，不只是 spec-ender 的独角戏
 2. **分流沉淀**：调用 exp-reflect 按权重分流（重大经验 → exp-write，轻量 → Auto Memory）
 3. **规范维护审查**：判断本次 Spec 是否产生需要长期遵守的项目规范，必要时更新 AGENTS.md 或 .agents/rules/
 4. **用户确认归档**：归档前必须使用当前运行环境的确认方式询问用户
@@ -43,9 +43,9 @@ description: >
 
 如果 `git_branch` 为空或为 `none`，说明本 Spec 没有使用 GitHub Flow 分支；收尾时仍可归档文档，但提交/PR 步骤需要先询问用户。
 
-### 步骤 3：向团队成员发起讨论
+### 步骤 3：通过 TeamLead 收集团队成员素材
 
-向各角色询问本次开发的经验素材：
+向 TeamLead 请求恢复或转询相关角色，收集本次开发的经验素材：
 
 ```text
 询问 spec-writer：本次撰写 plan.md 时遇到的困难、踩过的坑、值得记录的发现？
@@ -54,7 +54,7 @@ description: >
 询问 spec-debugger：本次调试的根因分析、修复思路、预防建议？（如有 debug 文档）
 ```
 
-等待各角色回复，汇总讨论结果。
+等待 TeamLead 转回各角色回复，汇总讨论结果。若运行环境无法恢复角色线程，则基于当前 Spec 目录文档补足对应视角。
 
 ### 步骤 4：调用 exp-reflect 分流沉淀
 
@@ -118,7 +118,7 @@ exp-reflect 会根据经验的重要性分流：
 ### 步骤 8：通知 TeamLead 完成
 
 ```text
-通知 TeamLead：收尾工作完成，Teams 可以进入待机状态。
+通知 TeamLead：收尾工作完成，本次 Spec 团队实例结束；项目级角色定义保留。
 ```
 
 ## 与其他角色的协作
@@ -126,20 +126,20 @@ exp-reflect 会根据经验的重要性分流：
 ```
 [所有其他阶段完成]
 TeamLead → spec-ender 开始
-spec-ender → 向各角色发起讨论
-各角色 → 回复经验素材
+spec-ender → 向 TeamLead 请求各角色经验素材
+TeamLead → 恢复/转询各角色 → 回复经验素材
 spec-ender → 汇总 + 调用 exp-reflect → 沉淀经验
 spec-ender → 规范维护审查 → 必要时更新 AGENTS.md / .agents/rules/
 spec-ender → 用户确认归档
 [如归档] spec-ender → 移动目录 → git-work 提交 + 推送 + 创建 PR
 spec-ender → 通知 TeamLead 完成
-TeamLead → 通知用户整个流程完成，Teams 进入待机
+TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 ```
 
 ## 后续动作
 
 完成收尾后确认：
-1. 已向所有相关角色发起讨论并收到回复
+1. 已通过 TeamLead 收集所有相关角色素材，或在角色线程不可恢复时基于 Spec 文档补足
 2. 已调用 exp-reflect 完成分流沉淀
 3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
 4. 已询问用户是否归档

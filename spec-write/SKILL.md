@@ -6,7 +6,7 @@ description: >
   (2) 用户说"创建 Spec"/"撰写设计文档"/"写技术规格"/"设计方案"，
   (3) spec/ 目录下需要新建 plan.md。
   注意：v2.0 起 plan.md 不含测试计划章节（由 spec-tester 用 spec-test 单独创建），
-  execution_mode 固定为 single-agent。
+  execution_mode 固定为 single-agent，且仅表示实现阶段执行模式，不否定项目级角色协作。
   如果目录下已有 summary.md 且仍在该 Spec 的活跃分支内，应使用 spec-update 而非本 Skill；若原分支已合并/关闭，后续需求默认新建 Spec。
 ---
 
@@ -78,7 +78,7 @@ description: >
 | 步骤 | 操作 | 要点 |
 |------|------|------|
 | 1 | 读取 exploration-report.md（如有） | 了解背景、现状、历史经验 |
-| 2 | 与 spec-tester 讨论接口边界 | 确认异常处理、验收边界 |
+| 2 | 通过 TeamLead 与 spec-tester 讨论接口边界 | 确认异常处理、验收边界 |
 | 3 | 确定工作类型目录 | 按“分类决策顺序”选择 01-05 目录，禁止默认选择 03 |
 | 4 | 确定文件夹命名 | `YYYYMMDD-HHMM-中文任务描述` |
 | 5 | 创建文件夹 | `mkdir -p "spec/分类目录/文件夹名"` |
@@ -92,13 +92,13 @@ description: >
 
 > [!important] v2.0 变更：移除测试计划章节
 > plan.md **不再包含**测试计划章节（由 spec-tester 用 spec-test 单独创建 test-plan.md）。
-> `execution_mode` **固定为 `single-agent`**（不再使用 agent-teams 模式）。
+> `execution_mode` **固定为 `single-agent`**，仅表示 spec-executor 的实现阶段执行模式；项目级角色协作由 spec-init/spec-start 管理。
 
 **必须包含的章节**：
 1. 概述（背景、目标、范围）
 2. 需求分析
 3. 设计方案
-4. 执行模式（固定 single-agent，说明理由）
+4. 执行模式（固定 single-agent，说明这是实现阶段执行模式）
 5. 实现步骤
 6. 风险和依赖
 7. 文档关联
@@ -116,7 +116,7 @@ Frontmatter 格式和字段说明详见 [references/plan-template.md](references
 **禁止**：
 - ❌ Spec 确认前开始编写代码
 - ❌ 在 plan.md 中包含测试计划章节（v2.0 起移除）
-- ❌ 将 execution_mode 设为 agent-teams
+- ❌ 将 execution_mode 设为 agent-teams 或把该字段解释为整个工作流不使用角色协作
 - ❌ 手写一个未创建的 `git_branch`
 - ❌ 直接在 `spec/` 下创建文件夹（必须放入工作类型目录）
 - ❌ 任务描述使用英文
@@ -124,7 +124,7 @@ Frontmatter 格式和字段说明详见 [references/plan-template.md](references
 
 **推荐**：
 - ✅ 先读取 exploration-report.md 了解背景
-- ✅ 与 spec-tester 讨论接口边界
+- ✅ 通过 TeamLead 与 spec-tester 讨论接口边界
 - ✅ 使用 Obsidian Callout 和双链增强文档
 - ✅ 确认 plan.md 的 `git_branch` 与当前分支一致
 

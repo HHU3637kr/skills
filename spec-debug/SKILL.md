@@ -2,11 +2,11 @@
 name: spec-debug
 description: >
   诊断并修复 Spec 执行过程中发现的问题。由角色 spec-debugger 调用。
-  触发条件：(1) 角色 spec-debugger 接收到 spec-tester 的 bug 通知，
+  触发条件：(1) 角色 spec-debugger 接收到 TeamLead 转交的 bug handoff，
   (2) spec-executor 执行后出现 bug 或 plan.md 中未考虑到的情况，
   (3) 运行时出现问题、依赖环境或配置问题。
   不修改已确认的 plan.md，而是创建独立的诊断文档（debug-xxx.md）和修复总结（debug-xxx-fix.md）。
-  修复完成后通知 spec-tester 重新验证，形成闭环。
+  修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动 spec-tester。
 ---
 
 # Spec Debug
@@ -14,19 +14,21 @@ description: >
 ## 核心原则
 
 1. **不修改已确认的 plan.md**：通过创建 debug 文档记录问题，保持设计的可追溯性
-2. **闭环协作**：接收 spec-tester 通知 → 修复 → 通知 spec-tester 重新验证
+2. **闭环协作**：接收 TeamLead 转交的 bug handoff → 修复 → 向 TeamLead 请求重新验证
 3. **用户确认诊断**：创建 debug-xxx.md 后，由 TeamLead 向用户确认诊断结果
 
 ## 协作闭环
 
 ```
 spec-tester 发现 bug
-    → 通知 spec-debugger（含复现步骤）
+    → 向 TeamLead 提交 bug handoff（含复现步骤）
+    → TeamLead 启动 spec-debugger
     → spec-debugger 调用 spec-debug
     → 诊断 → debug-xxx.md
     → TeamLead 向用户确认诊断
     → 修复 → debug-xxx-fix.md
-    → 通知 spec-tester 重新验证
+    → spec-debugger 向 TeamLead 请求 spec-tester 重新验证
+    → TeamLead 启动 spec-tester 重新验证
     → spec-tester 验证通过 → 记录到 test-report.md
 ```
 
@@ -34,7 +36,7 @@ spec-tester 发现 bug
 
 ### 步骤 1：收集问题信息
 
-从 spec-tester 的 bug 通知中获取：
+从 TeamLead 转交的 bug handoff 中获取：
 - 问题现象和复现步骤
 - 预期行为 vs 实际行为
 - 相关测试用例编号
@@ -121,33 +123,36 @@ tags:
 
 **必须包含**：修改的文件、关键修改前后对比、验证结果。
 
-### 步骤 9：通知 spec-tester 重新验证
+### 步骤 9：向 TeamLead 提交重新验证请求
 
 ```text
-通知 spec-tester：bug 已修复，请重新验证测试用例 TC-XXX。修复详情见 debug-001-fix.md
+通知 TeamLead：
+- bug 已修复
+- 请启动 spec-tester 重新验证测试用例 TC-XXX
+- 修复详情：debug-001-fix.md
 ```
 
 ## 与其他角色的协作
 
 ```
-spec-tester → 通知 spec-debugger（本角色）
+spec-tester → TeamLead → spec-debugger（本角色）
 spec-debugger → 诊断 → 通知 TeamLead（用户确认）→ 修复
-spec-debugger → 通知 spec-tester（重新验证）
+spec-debugger → TeamLead → spec-tester（重新验证）
 ```
 
 - 不直接修改 plan.md
 - 不在修复中添加新功能（使用 spec-update）
-- 修复完成后必须通知 spec-tester 验证，不自行判断修复是否成功
+- 修复完成后必须向 TeamLead 请求 spec-tester 重新验证，不自行判断修复是否成功
 
 ## 后续动作
 
 完成修复后确认：
 1. debug-xxx.md 已创建且用户已确认诊断
 2. debug-xxx-fix.md 已创建
-3. 已通知 spec-tester 重新验证
+3. 已向 TeamLead 提交重新验证请求
 4. 未修改 plan.md
 
 ### 常见陷阱
 - 直接修改 plan.md 而不是创建 debug 文档
-- 修复后未通知 spec-tester 重新验证（破坏闭环）
+- 修复后未向 TeamLead 请求 spec-tester 重新验证（破坏闭环）
 - 修复时引入了新功能（应使用 spec-update）

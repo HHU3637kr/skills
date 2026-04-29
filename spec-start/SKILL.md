@@ -11,10 +11,11 @@ description: >
 ## 核心原则
 
 1. **当前 Agent 即是 TeamLead**：调用本 Skill 的 Agent 本身就承担 TeamLead 职责，无需创建额外的 TeamLead 角色
-2. **Teams 贯穿整个周期**：创建后不提前销毁，所有角色随时可被唤起
-3. **角色 vs Skill 区分**：角色（spec-writer）是 Who，Skill（spec-write）是 How
-4. **TeamLead 统一协调**：所有阶段转换和用户确认节点均由 TeamLead（当前 Agent）主导
-5. **分支隔离**：每个 Spec 默认从 `main` 创建独立工作分支，禁止直接在 `main` 上实现
+2. **角色定义由 spec-init 持久化**：`spec-start` 只加载和唤起项目级角色，不内联维护角色 prompt
+3. **本次 Spec 创建运行实例**：角色线程/实例在当前 Spec 生命周期内尽量保持可恢复，跨 Spec 状态必须文件化
+4. **角色 vs Skill 区分**：角色（spec-writer）是 Who，Skill（spec-write）是 How
+5. **TeamLead 统一协调**：所有阶段转换、跨角色通信和用户确认节点均由 TeamLead（当前 Agent）主导
+6. **分支隔离**：每个 Spec 默认从 `main` 创建独立工作分支，禁止直接在 `main` 上实现
 
 ## 前置检查
 
@@ -22,9 +23,10 @@ description: >
 
 ```bash
 ls spec/context/experience/index.md
+ls .agents/roles/spec-explorer.md
 ```
 
-如果 spec/ 目录不存在，提示用户先执行 `/spec-init` 完成项目初始化。
+如果 spec/ 目录或 `.agents/roles/` 缺失，提示用户先执行 `/spec-init` 完成项目初始化。若是旧项目已初始化但缺少角色定义，可只补齐 `spec-init` 的项目级角色步骤。
 
 同时检查 Git 状态：
 
@@ -83,128 +85,52 @@ pr_url:
 
 如果用户确认无分支模式，记录 `git_branch: none`，并在 plan.md 中说明原因。
 
-### 步骤 3：创建 Agent Teams 并初始化 6 个专职角色
+### 步骤 3：加载项目级角色定义并创建本次 Spec Team Runtime
 
 ```text
 创建团队：spec-{YYYYMMDD-HHMM}-{任务简称}
 团队说明：Spec 驱动开发: {任务描述}
-初始化角色：
-- spec-explorer  → 调用 spec-explore  Skill，产出 exploration-report.md
-- spec-writer    → 调用 spec-write    Skill，产出 plan.md
-- spec-tester    → 调用 spec-test     Skill，产出 test-plan.md / test-report.md
-- spec-executor  → 调用 spec-execute  Skill，产出 summary.md
-- spec-debugger  → 调用 spec-debug    Skill，产出 debug-xxx.md / debug-xxx-fix.md
-- spec-ender     → 调用 spec-end      Skill，完成经验沉淀 + 规范维护 + 归档 + PR
+加载角色定义：
+- .agents/roles/spec-explorer.md
+- .agents/roles/spec-writer.md
+- .agents/roles/spec-tester.md
+- .agents/roles/spec-executor.md
+- .agents/roles/spec-debugger.md
+- .agents/roles/spec-ender.md
 ```
 
-如果运行环境没有团队/子代理能力，由当前 Agent 按同一角色顺序串行执行。
+优先使用当前运行环境的项目级 Agent / Subagent 能力：
+- Claude Code：优先使用 `.claude/agents/<role-id>.md`
+- Codex：优先使用 `.codex/agents/<role-id>.toml`
+- 其他环境：使用 `.agents/roles/<role-id>.md` 的中立角色协议
 
-### 步骤 4：初始化各专职角色
+如果运行环境支持恢复子 Agent 线程，TeamLead 记录每个角色的运行时 handle；后续多轮交互优先恢复同一角色线程。若运行环境没有团队/子代理能力，或角色线程不可恢复，由当前 Agent 按同一角色协议串行执行，并从已落盘文档重建上下文。
 
-按以下 prompt 模板创建 6 个专职角色，各角色通过调用对应 Skill 完成工作：
+可在当前 Spec 目录创建 `team-runtime.md` 记录本次运行实例状态：
 
-**spec-explorer**：
-```
-你是 spec-explorer，负责 Spec 创建前的信息收集。
+```markdown
+# Team Runtime
 
-【初始化】阅读 spec-explore Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】未收到 TeamLead 的明确启动指令前，禁止开始任何工作。
-
-调用 spec-explore Skill 完成工作。
-产出：exploration-report.md
-
-【完成后】直接通知 spec-writer、spec-tester 和 TeamLead，附上 exploration-report.md 路径。
+| role_id | adapter | handle/thread_id | status | last_artifact |
+|---------|---------|------------------|--------|---------------|
+| spec-explorer | .claude/.codex/.agents | 运行时填写 | pending |  |
 ```
 
-**spec-writer**：
-```
-你是 spec-writer，负责撰写代码实现计划。
+### 步骤 4：建立跨角色通信规则
 
-【初始化】阅读 spec-write Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】等待 spec-explorer 的完成通知后才开始工作，禁止提前行动。
+所有跨角色消息默认由 TeamLead 中转：
 
-调用 spec-write Skill 完成工作。
-产出：plan.md（纯代码实现计划，不含测试计划）
-注意：plan.md 的 execution_mode 固定为 single-agent
-注意：将 TeamLead 提供的 git_branch / base_branch / pr_url 写入 plan.md frontmatter
-
-【协作】完成 plan.md 草稿后，通知 spec-tester 协作讨论接口边界和验收标准。
-【完成后】plan.md 定稿后通知 TeamLead。
+```text
+上游角色 → TeamLead：提交产物路径、结论、问题、建议下游角色
+TeamLead → 下游角色：传递必要上下文并启动或恢复角色线程
+下游角色 → TeamLead：返回产物路径和状态
 ```
 
-**spec-tester**：
-```
-你是 spec-tester，负责测试策略设计（Spec 阶段）和测试执行（测试阶段）。
-
-【初始化】阅读 spec-test Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】等待 spec-explorer 的完成通知后才进入 Spec 阶段，禁止提前行动。
-
-调用 spec-test Skill 完成工作。
-产出：test-plan.md（Spec 阶段）、test-report.md（测试阶段）
-
-【Spec 阶段】收到 spec-explorer 通知后，等待 spec-writer 发起接口边界讨论，协作完成 test-plan.md。
-【完成后（Spec 阶段）】test-plan.md 定稿后通知 TeamLead。
-【测试阶段】等待 TeamLead 的明确启动指令后开始执行测试。
-【发现 bug】直接通知 spec-debugger（含复现步骤），等待修复后重新验证。
-【完成后（测试阶段）】test-report.md 完成后通知 TeamLead。
-```
-
-**spec-executor**：
-```
-你是 spec-executor，负责严格按 plan.md 实现代码。
-
-【初始化】阅读 spec-execute Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
-
-调用 spec-execute Skill 完成工作。
-产出：summary.md
-禁止：添加 plan.md 未定义的功能；编写测试（由 spec-tester 负责）
-
-【完成后】summary.md 完成后直接通知 TeamLead。
-```
-
-**spec-debugger**：
-```
-你是 spec-debugger，负责诊断和修复 bug。
-
-【初始化】阅读 spec-debug Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】等待 spec-tester 的 bug 通知后才开始工作，禁止提前行动。
-
-调用 spec-debug Skill 完成工作。
-产出：debug-xxx.md, debug-xxx-fix.md
-
-【完成后】修复完成后直接通知 spec-tester 重新验证，同时通知 TeamLead。
-```
-
-**spec-ender**：
-```
-你是 spec-ender，负责整个 Spec 完成后的收尾工作。
-
-【初始化】阅读 spec-end Skill，了解你的职责、行为规范和 SOP，然后进入待命状态。
-【待命规则】等待 TeamLead 的明确启动指令后才开始工作，禁止提前行动。
-
-调用 spec-end Skill 完成工作。
-工作：向各角色发起讨论 → 汇总素材 → 调用 exp-reflect → 规范维护审查 → 询问用户是否归档 → 调用 git-work 提交、推送、创建 PR
-
-【完成后】直接通知 TeamLead，Teams 进入待机状态。
-```
-
-### 步骤 4.5：发送初始化广播
-
-所有角色创建完毕后，TeamLead 向团队发送广播：
-
-```
-团队已创建完毕。请各位完成初始化：
-1. 阅读自己对应的 Skill 文档，了解职责和 SOP
-2. 进入待命状态
-3. 未收到明确指令或来自上游角色的完成通知前，禁止开始任何工作
-
-当前状态：阶段二（Spec 创建）即将开始，等待 TeamLead 通知 spec-explorer。
-```
+角色可以在产物中声明建议接收方，但不假设运行环境支持直接 Agent-to-Agent 通信。例如，`spec-tester` 发现 bug 时向 TeamLead 提交 bug handoff，由 TeamLead 启动或恢复 `spec-debugger`；`spec-debugger` 修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动或恢复 `spec-tester`。
 
 ### 步骤 5：启动阶段二（探索）
 
-需求对齐、分支准备、团队初始化都完成后，通知 spec-explorer 开始阶段二。
+需求对齐、分支准备、角色定义加载和通信规则建立后，TeamLead 启动或恢复 `spec-explorer`，并传递任务描述、探索范围、Spec 目录和 Git 元数据。
 
 ## 完整协作时序
 
@@ -218,41 +144,43 @@ GitHub Flow 准备
   TeamLead → 记录 git_branch / base_branch / pr_url，后续传给 spec-writer
 
 【团队初始化】
-  TeamLead 创建 6 个角色 → 发送初始化广播
-  各角色：阅读对应 Skill → 进入待命状态
+  TeamLead 加载 .agents/roles/ 的 6 个项目级角色定义
+  TeamLead 按运行时能力创建或恢复本次 Spec 的角色实例
+  TeamLead 记录可恢复的角色 handle（如运行时支持）
 
 阶段二：Spec 创建
-  TeamLead → 通知 spec-explorer 开始
-  spec-explorer → exploration-report.md → 直接通知 spec-writer + spec-tester + TeamLead
-  spec-writer 收到通知 → 开始撰写 plan.md 草稿
-  spec-tester 收到通知 → 进入协作等待状态
-  spec-writer 完成草稿 → 直接通知 spec-tester 协作讨论接口边界
-  spec-writer ↔ spec-tester 协作完成
-  spec-writer → plan.md 定稿 → 直接通知 TeamLead
-  spec-tester → test-plan.md 定稿 → 直接通知 TeamLead
+  TeamLead → 启动/恢复 spec-explorer
+  spec-explorer → exploration-report.md → TeamLead
+  TeamLead → 启动/恢复 spec-writer，传递 exploration-report.md + Git 元数据
+  TeamLead → 启动/恢复 spec-tester，传递 exploration-report.md 并进入测试计划阶段
+  TeamLead 中转 spec-writer 与 spec-tester 的接口边界问题
+  spec-writer → plan.md 定稿 → TeamLead
+  spec-tester → test-plan.md 定稿 → TeamLead
   TeamLead → 用户确认 plan.md + test-plan.md
       ↓ 【门禁 2 通过】
 
 阶段三：实现
-  TeamLead → 通知 spec-executor 开始
-  spec-executor → summary.md → 直接通知 TeamLead
+  TeamLead → 启动/恢复 spec-executor
+  spec-executor → summary.md → TeamLead
   TeamLead → 用户确认 summary.md
       ↓ 【门禁 3 通过】
 
 阶段四：测试
-  TeamLead → 通知 spec-tester 开始执行测试
-  [如有 bug] spec-tester → 直接通知 spec-debugger（含复现步骤）
-             spec-debugger 修复 → 直接通知 spec-tester 重新验证 + 通知 TeamLead
+  TeamLead → 启动/恢复 spec-tester 执行测试
+  [如有 bug] spec-tester → bug handoff → TeamLead
+             TeamLead → 启动/恢复 spec-debugger
+             spec-debugger 修复 → TeamLead
+             TeamLead → 启动/恢复 spec-tester 重新验证
              spec-tester 验证通过 → 继续
-  spec-tester → test-report.md → 直接通知 TeamLead
+  spec-tester → test-report.md → TeamLead
   TeamLead → 用户确认 test-report.md
       ↓ 【门禁 4 通过】
 
 阶段五：收尾
-  TeamLead → 通知 spec-ender 开始
-  spec-ender → 多角色讨论 + exp-reflect → 规范维护审查 → 询问用户归档
+  TeamLead → 启动/恢复 spec-ender
+  spec-ender → 向 TeamLead 请求多角色素材 + exp-reflect → 规范维护审查 → 询问用户归档
   spec-ender → git-work 提交、推送、创建 PR
-  spec-ender → 直接通知 TeamLead，Teams 进入待机
+  spec-ender → TeamLead，本次 Spec 团队实例结束，项目级角色定义保留
 ```
 
 ## 用户确认节点
@@ -271,7 +199,7 @@ GitHub Flow 准备
 
 启动完成后确认：
 1. 团队协作上下文已成功建立
-2. 6 个专职角色已创建（spec-explorer/writer/tester/executor/debugger/ender）
+2. 6 个项目级角色定义已加载（spec-explorer/writer/tester/executor/debugger/ender）
 3. 已创建或确认当前 Spec 工作分支
 4. 阶段二（探索）已启动
 5. 用户已了解整体流程
@@ -281,6 +209,8 @@ GitHub Flow 准备
 - 跳过 git-work，直接在 `main` 上开发
 - 工作区有无关改动时切换分支
 - 多个并发 Spec 共用同一个 working tree（应使用 `git worktree`）
+- 在 spec-start 中重写角色定义，导致与 spec-init 持久化角色漂移
 - 创建角色时混淆角色名（spec-writer）和 Skill 名（spec-write）
 - 尝试创建 TeamLead 角色（当前 Agent 本身就是 TeamLead）
+- 假设角色之间可以直接通信，绕过 TeamLead 中转
 - 阶段转换时未等待用户确认就继续

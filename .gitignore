@@ -19,6 +19,8 @@ Thumbs.db
 *.temp
 *.bak
 
+# Obsidian local vault config
+.obsidian/
+
 # SOP skills（由 memory Skill 动态生成）
 sop-**/
-

@@ -39,7 +39,7 @@ related: []
 | `related` | 否 | 关联的其他 Spec | 双链列表 |
 
 > [!important] v2.0 变更：execution_mode 固定为 single-agent
-> Teams 架构取代了原来的 agent-teams 路径 B，plan.md 中不再使用 agent-teams 模式。
+> 该字段只描述实现阶段由 spec-executor 执行代码修改的模式，不表示整个 Spec 工作流没有项目级角色协作。项目级角色由 spec-init 初始化，spec-start 负责加载和唤起。
 
 > [!important] GitHub Flow 元数据
 > `git_branch` / `base_branch` 由 spec-start 通过 git-work 创建并传入。不要手写一个不存在的分支；如果项目不是 Git 仓库，写 `git_branch: none` 并在正文说明原因。

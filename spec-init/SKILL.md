@@ -180,6 +180,72 @@ mkdir -p ".agents/skills"
 rk-flow init
 ```
 
+#### 4.3 创建项目级角色定义与运行时 Agent 适配
+
+> [!important] 角色定义属于 spec-init
+> `spec-start` 只负责加载和唤起角色实例，不再内联维护 6 个角色的 prompt 模板。6 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
+
+创建中立角色定义目录和运行时适配目录：
+
+```bash
+mkdir -p ".agents/roles"
+mkdir -p ".claude/agents"
+mkdir -p ".codex/agents"
+```
+
+按 [references/project-agent-roles.md](references/project-agent-roles.md) 创建 6 个中立角色定义：
+
+```text
+.agents/roles/spec-explorer.md
+.agents/roles/spec-writer.md
+.agents/roles/spec-tester.md
+.agents/roles/spec-executor.md
+.agents/roles/spec-debugger.md
+.agents/roles/spec-ender.md
+```
+
+角色定义必须包含：
+- `role_id`
+- `required_skill`
+- `purpose`
+- `activation`
+- `inputs`
+- `outputs`
+- `handoff`
+- `rules`
+
+同时生成项目级运行时 Agent 适配文件：
+
+```text
+.claude/agents/spec-explorer.md
+.claude/agents/spec-writer.md
+.claude/agents/spec-tester.md
+.claude/agents/spec-executor.md
+.claude/agents/spec-debugger.md
+.claude/agents/spec-ender.md
+
+.codex/agents/spec-explorer.toml
+.codex/agents/spec-writer.toml
+.codex/agents/spec-tester.toml
+.codex/agents/spec-executor.toml
+.codex/agents/spec-debugger.toml
+.codex/agents/spec-ender.toml
+```
+
+如 `.codex/config.toml` 不存在，创建最小配置；如已存在，只在不覆盖用户配置的前提下合并 `[agents]` 设置：
+
+```toml
+[agents]
+max_threads = 6
+max_depth = 1
+```
+
+运行时适配规则：
+- Claude Code 适配文件使用 Markdown + YAML frontmatter，正文要求角色先读取 `.agents/roles/<role-id>.md`
+- Codex 适配文件使用 TOML，`developer_instructions` 要求角色先读取 `.agents/roles/<role-id>.md`
+- 不向 `~/.claude/agents/` 或 `~/.codex/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent
+- 已存在的角色或适配文件不覆盖；如需要更新，先说明差异并等待用户确认
+
 ### 步骤 5：创建 Spec 目录结构
 
 ```bash
@@ -274,11 +340,13 @@ mkdir -p ".obsidian"
 - AGENTS.md（项目身份 + 规范）
 - .agents/rules/（编码规范）
 - .agents/skills/（Skills 体系）
+- .agents/roles/（CLI 中立项目级角色定义）
+- .claude/agents/ 与 .codex/agents/（项目级运行时 Agent 适配）
 - spec/（Spec 目录 + 记忆系统）
 - .obsidian/（Obsidian Vault）
 
 是否需要立即启动一个开发任务？
-- 启动开发任务：调用 spec-start 初始化 Agent Teams 并开始 5 阶段流程
+- 启动开发任务：调用 spec-start 加载项目级角色并开始 5 阶段流程
 - 暂不启动：先熟悉项目结构，稍后手动调用 /spec-start
 ```
 
@@ -294,6 +362,13 @@ mkdir -p ".obsidian"
 │   │   ├── coding-style.md          # 编码风格
 │   │   ├── spec-workflow.md         # Spec 工作流规范
 │   │   └── git-workflow.md          # GitHub Flow 规范
+│   ├── roles/                       # CLI 中立项目级角色定义
+│   │   ├── spec-explorer.md
+│   │   ├── spec-writer.md
+│   │   ├── spec-tester.md
+│   │   ├── spec-executor.md
+│   │   ├── spec-debugger.md
+│   │   └── spec-ender.md
 │   └── skills/                      # Skills 体系（通过 CLI 或手动安装）
 │       ├── spec-init/SKILL.md
 │       ├── spec-start/SKILL.md
@@ -316,6 +391,23 @@ mkdir -p ".obsidian"
 │       ├── obsidian-bases/SKILL.md
 │       ├── obsidian-plugin-dev/SKILL.md
 │       └── json-canvas/SKILL.md
+├── .claude/
+│   └── agents/                      # Claude Code 项目级 Agent 适配
+│       ├── spec-explorer.md
+│       ├── spec-writer.md
+│       ├── spec-tester.md
+│       ├── spec-executor.md
+│       ├── spec-debugger.md
+│       └── spec-ender.md
+├── .codex/
+│   ├── config.toml                  # Codex 项目级 Agent 配置（如需）
+│   └── agents/                      # Codex 项目级 Agent 适配
+│       ├── spec-explorer.toml
+│       ├── spec-writer.toml
+│       ├── spec-tester.toml
+│       ├── spec-executor.toml
+│       ├── spec-debugger.toml
+│       └── spec-ender.toml
 ├── spec/
 │   ├── 01-产品规划/
 │   ├── 02-技术设计/
@@ -340,14 +432,17 @@ mkdir -p ".obsidian"
 2. AGENTS.md 已创建（项目身份 + 规范 + 路由）
 3. .agents/rules/ 已创建（编码规范 + Spec 工作流 + GitHub Flow）
 4. .agents/skills/ 已安装或引导安装
-5. spec/ 目录结构已创建（6 个分类目录 + context/）
-6. 经验/知识索引文件已创建
-7. Obsidian Vault 已注册（.obsidian/ + app.json）
-8. 已询问用户是否启动开发任务（spec-start）
+5. .agents/roles/ 已创建（6 个项目级角色定义）
+6. .claude/agents/ 与 .codex/agents/ 已按需创建项目级运行时适配
+7. spec/ 目录结构已创建（6 个分类目录 + context/）
+8. 经验/知识索引文件已创建
+9. Obsidian Vault 已注册（.obsidian/ + app.json）
+10. 已询问用户是否启动开发任务（spec-start）
 
 ### 常见陷阱
 - 已有 AGENTS.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）
 - 已有 .agents/rules/ 时覆盖已有规范（应先检查）
+- 已有 .agents/roles/ 或运行时适配文件时覆盖用户自定义角色（应先检查）
 - 已有 spec/ 目录时重复创建（应先检查）
 - 覆盖已有的 .obsidian/ 自定义配置（应先检查）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段

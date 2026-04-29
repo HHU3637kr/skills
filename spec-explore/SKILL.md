@@ -82,11 +82,13 @@ description: >
 - 可复用的现有组件]
 ```
 
-### 步骤 6：通知 spec-writer 和 spec-tester
+### 步骤 6：向 TeamLead 提交探索完成通知
 
 ```text
-通知 spec-writer：exploration-report.md 已完成，请阅读后开始撰写 plan.md。路径：{路径}
-通知 spec-tester：exploration-report.md 已完成，请阅读后与 spec-writer 协作撰写 test-plan.md。路径：{路径}
+通知 TeamLead：
+- exploration-report.md 已完成，路径：{路径}
+- 建议下游角色：spec-writer、spec-tester
+- 需要传递给下游的重点风险/边界：[简述]
 ```
 
 ## 与其他角色的协作
@@ -95,7 +97,7 @@ description: >
 TeamLead → spec-explorer 开始
 spec-explorer → exp-search（检索） + 代码探索 + 外部资源探索
 spec-explorer → exploration-report.md
-spec-explorer → 通知 spec-writer + spec-tester
+spec-explorer → TeamLead → spec-writer / spec-tester
 ```
 
 ## 后续动作
@@ -103,9 +105,9 @@ spec-explorer → 通知 spec-writer + spec-tester
 完成探索后确认：
 1. exploration-report.md 已在正确路径创建
 2. 探索新内容后已调用 exp-reflect 沉淀知识
-3. 已通知 spec-writer 和 spec-tester
+3. 已向 TeamLead 提交探索完成通知，并声明建议分发给 spec-writer 和 spec-tester
 
 ### 常见陷阱
 - 调用 exp-search 后误触发 exp-reflect（不应触发）
 - exploration-report.md 内容太简略，spec-writer 缺少背景信息
-- 未通知 spec-tester，导致测试计划与设计方案脱节
+- 未在交接中声明 spec-tester，导致 TeamLead 未及时启动测试计划角色

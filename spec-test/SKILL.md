@@ -11,8 +11,8 @@ description: >
 ## 核心原则
 
 1. **两个阶段，两个产出**：Spec 创建阶段 → test-plan.md；测试执行阶段 → test-report.md
-2. **不直接修复 bug**：发现 bug 时通知 spec-debugger，等修复后重新验证
-3. **与 spec-writer 协作**：Spec 阶段需讨论接口边界和异常情况，确保测试覆盖完整
+2. **不直接修复 bug**：发现 bug 时向 TeamLead 提交 bug handoff，由 TeamLead 启动 spec-debugger
+3. **通过 TeamLead 与 spec-writer 协作**：Spec 阶段需讨论接口边界和异常情况，确保测试覆盖完整
 4. **关键路径可观测**：测试必须验证系统关键路径有日志、trace id、事件或其他可审计证据
 5. **证据同目录归档**：端侧测试和关键路径测试的审计日志必须保存在当前 Spec 目录的 `artifacts/test-logs/<run-id>/`
 6. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
@@ -81,9 +81,9 @@ description: >
 - 历史经验和已知的边界情况
 - 外部依赖和限制条件
 
-### 步骤 2：与 spec-writer 协作讨论
+### 步骤 2：通过 TeamLead 与 spec-writer 协作讨论
 
-通过当前运行环境的消息/任务交接方式与 spec-writer 讨论：
+通过 TeamLead 中转，与 spec-writer 讨论：
 - 接口设计（参数类型、返回值、异常情况）
 - 验收边界（何时算通过、何时算失败）
 - 边界条件（空值、极端输入、并发场景）
@@ -189,18 +189,19 @@ artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 ### 步骤 3：发现 Bug 时的处理
 
-> [!important] 不直接修复，通知 spec-debugger
+> [!important] 不直接修复，向 TeamLead 提交 bug handoff
 
 ```text
-通知 spec-debugger：
+通知 TeamLead：
 - 现象：[错误描述]
 - 复现步骤：[步骤]
 - 预期：[期望行为]
 - 实际：[实际行为]
 - 相关测试用例：TC-XXX
+- 建议下游角色：spec-debugger
 ```
 
-等待 spec-debugger 修复完成后，重新执行相关测试用例。
+等待 TeamLead 提供 spec-debugger 的修复完成通知后，重新执行相关测试用例。
 
 ### 步骤 4：记录微小修改
 
@@ -308,12 +309,12 @@ tags:
 
 ```
 阶段二：spec-explorer → (exploration-report.md) → spec-tester
-        spec-writer ↔ spec-tester（接口讨论）
+        spec-writer ↔ TeamLead ↔ spec-tester（接口讨论）
 
 阶段四：spec-executor → (summary.md) → spec-tester 执行测试
-        spec-tester ↔ spec-debugger（bug 修复闭环）
-           发现 bug → 通知 spec-debugger 修复
-           修复完成 → 通知 spec-tester 重新验证
+        spec-tester ↔ TeamLead ↔ spec-debugger（bug 修复闭环）
+           发现 bug → 向 TeamLead 提交 bug handoff
+           修复完成 → TeamLead 通知 spec-tester 重新验证
 ```
 
 ## 后续动作
@@ -333,7 +334,7 @@ tags:
 7. 已通知 TeamLead
 
 ### 常见陷阱
-- 直接修复 bug 而不通知 spec-debugger（破坏协作闭环）
+- 直接修复 bug 或绕过 TeamLead 联系 spec-debugger（破坏协作闭环）
 - test-plan.md 验收标准不够具体（无法判断通过/失败）
 - 忘记在 test-report.md 中引用 debug 文档
 - 端侧测试只看界面结果，没有保存 console/network/截图等审计证据
