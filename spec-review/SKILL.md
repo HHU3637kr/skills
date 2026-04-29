@@ -1,6 +1,6 @@
 ---
 name: spec-review
-description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，生成审查报告（review.md）。在 spec-execute 完成 summary.md 后、spec-end 归档前使用。触发词：审查 Spec、检查实现、Spec Review。
+description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，在 reviewer/ 下生成审查报告（review.md）。在 spec-execute 完成 executor/summary.md 后、spec-end 归档前使用。触发词：审查 Spec、检查实现、Spec Review。
 ---
 
 # Spec Review
@@ -22,8 +22,8 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 | 场景 | 文件名 |
 |------|--------|
-| 新功能审查 | `review.md` |
-| 更新审查 | `update-001-review.md`（编号与 update 对应） |
+| 新功能审查 | `reviewer/review.md` |
+| 更新审查 | `reviewer/update-001-review.md`（编号与 update 对应） |
 
 ## 审查维度
 
@@ -43,12 +43,12 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 | 步骤 | 操作 | 要点 |
 |------|------|------|
-| 1 | 读取 Spec 文档 | 读取 `plan.md` 或 `update-xxx.md`，提取功能点、数据模型、接口定义 |
-| 2 | 读取实现总结 | 读取 `summary.md` 或 `update-xxx-summary.md`，了解已完成功能和修改文件 |
+| 1 | 读取 Spec 文档 | 读取 `writer/plan.md` 或 `updater/update-xxx.md`，提取功能点、数据模型、接口定义 |
+| 2 | 读取实现总结 | 读取 `executor/summary.md` 或 `updater/update-xxx-summary.md`，了解已完成功能和修改文件 |
 | 3 | 建立检查清单 | 从 Spec 提取所有需实现的功能点、模型、接口、测试 |
 | 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
 | 5 | 对比分析 | 按三个维度（完成度、一致性、额外实现）识别差异 |
-| 6 | 生成审查报告 | 在 Spec 目录下创建 review.md，模板见 [references/review-template.md](references/review-template.md) |
+| 6 | 生成审查报告 | 在 Spec 目录下创建 `reviewer/review.md`，模板见 [references/review-template.md](references/review-template.md) |
 | 7 | 用户确认 | **必须**使用当前运行环境的确认方式等待用户确认 |
 
 ### 步骤 5：对比分析要点
@@ -63,9 +63,17 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - Frontmatter 和正文模板详见 [references/review-template.md](references/review-template.md)
 - 每个检查项必须标注具体的 Spec 位置和代码位置（`file:line`）
 - 使用 Obsidian Callout 标注结果：`> [!success]`、`> [!failure]`、`> [!warning]`、`> [!tip]`
-- 使用 `[[]]` 双链关联 plan.md 和 summary.md
+- 使用 `[[]]` 双链或相对链接关联 `writer/plan.md` 和 `executor/summary.md`
 
 ### 步骤 7：用户确认响应处理
+
+用户确认前，先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Task Progress` 中追加或更新 spec-reviewer 自己的审查任务行
+- `artifact` 指向 `reviewer/review.md` 或 `reviewer/update-xxx-review.md`
+- `status` 根据审查结果标记为 `done` / `needs-fix`
+- `completed_at` 使用当前时间，`updated_by` 写 `spec-reviewer`
+- 若发现阻塞问题，在 `Problem Resolution Log` 中追加问题行，`found_by` 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
+- 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
 
 | 响应 | 含义 | 后续操作 |
 |------|------|----------|

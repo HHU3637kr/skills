@@ -12,9 +12,9 @@ description: >
 
 ## 核心原则
 
-1. **探索在先**：在 spec-writer 撰写 plan.md 之前完成，为 spec-writer 和 spec-tester 提供充分背景
+1. **探索在先**：在 spec-writer 撰写 writer/plan.md 之前完成，为 spec-writer 和 spec-tester 提供充分背景
 2. **条件性 exp-reflect**：仅探索新内容时才调用 exp-reflect，纯检索已有经验时不调用
-3. **exploration-report.md 是产出**：结构化报告，供 spec-writer 和 spec-tester 参考
+3. **explorer 目录归属**：探索产物固定写入当前 Spec 目录的 `explorer/exploration-report.md`
 
 ## exp-reflect 触发条件
 
@@ -32,7 +32,8 @@ description: >
 从 TeamLead 的启动指令中获取：
 - 当前任务描述
 - 需要探索的范围（项目代码、外部库、文档等）
-- exploration-report.md 的保存路径
+- 当前 Spec 目录
+- `explorer/exploration-report.md` 的保存路径
 
 ### 步骤 2：检索历史经验
 
@@ -59,9 +60,9 @@ description: >
 > [!tip] 探索完成后触发 exp-reflect
 > 探索外部资源后，调用 exp-reflect 将关键发现沉淀为知识记忆。
 
-### 步骤 5：产出 exploration-report.md
+### 步骤 5：产出 explorer/exploration-report.md
 
-在 plan.md 同目录下创建 `exploration-report.md`：
+在当前 Spec 目录下创建 `explorer/exploration-report.md`：
 
 ```markdown
 # 探索报告
@@ -84,9 +85,16 @@ description: >
 
 ### 步骤 6：向 TeamLead 提交探索完成通知
 
+先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Task Progress` 中追加或更新 spec-explorer 自己的任务行
+- `status` 标记为 `done`
+- `artifact` 指向 `explorer/exploration-report.md`
+- `completed_at` 使用当前时间，`updated_by` 写 `spec-explorer`
+- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块
+
 ```text
 通知 TeamLead：
-- exploration-report.md 已完成，路径：{路径}
+- explorer/exploration-report.md 已完成，路径：{路径}
 - 建议下游角色：spec-writer、spec-tester
 - 需要传递给下游的重点风险/边界：[简述]
 ```
@@ -96,18 +104,19 @@ description: >
 ```
 TeamLead → spec-explorer 开始
 spec-explorer → exp-search（检索） + 代码探索 + 外部资源探索
-spec-explorer → exploration-report.md
+spec-explorer → explorer/exploration-report.md
 spec-explorer → TeamLead → spec-writer / spec-tester
 ```
 
 ## 后续动作
 
 完成探索后确认：
-1. exploration-report.md 已在正确路径创建
+1. `explorer/exploration-report.md` 已在正确路径创建
 2. 探索新内容后已调用 exp-reflect 沉淀知识
-3. 已向 TeamLead 提交探索完成通知，并声明建议分发给 spec-writer 和 spec-tester
+3. 已更新 `lead/team-context.md` 的 `Task Progress` 中自己的任务行
+4. 已向 TeamLead 提交探索完成通知，并声明建议分发给 spec-writer 和 spec-tester
 
 ### 常见陷阱
 - 调用 exp-search 后误触发 exp-reflect（不应触发）
-- exploration-report.md 内容太简略，spec-writer 缺少背景信息
+- `explorer/exploration-report.md` 内容太简略，spec-writer 缺少背景信息
 - 未在交接中声明 spec-tester，导致 TeamLead 未及时启动测试计划角色

@@ -1,12 +1,12 @@
 ---
 title: 功能名称-实现总结
 type: summary
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 created: YYYY-MM-DD
-plan: "[[plan]]"
-git_branch: 与 plan.md 相同
-base_branch: 与 plan.md 相同
+plan: "[[../writer/plan|plan]]"
+git_branch: 与 writer/plan.md 相同
+base_branch: 与 writer/plan.md 相同
 pr_url:
 tags:
   - spec
@@ -47,7 +47,7 @@ tests/
 > [!warning] 问题 1：描述
 > **解决方案**：描述如何解决
 
-## 5. 与 plan.md 的差异
+## 5. 与 writer/plan.md 的差异
 
 > [!note] 设计调整（如有）
 > - 调整 1：原因和影响
@@ -69,7 +69,7 @@ tests/
 
 ## 7. 文档关联
 
-- 设计文档: [[plan|设计方案]]
+- 设计文档: [[../writer/plan|设计方案]]
 - 沉淀经验: （如有经验沉淀，在此添加双链引用）
 
 ---
@@ -80,12 +80,12 @@ tests/
 |------|------|------|--------|
 | `title` | 是 | 文档标题 | - |
 | `type` | 是 | 文档类型 | `summary` |
-| `category` | 是 | 分类目录 | 与 plan.md 相同 |
+| `category` | 是 | 分类目录 | 与 writer/plan.md 相同 |
 | `status` | 是 | 当前状态 | `未确认`/`已确认`/`已归档` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` 格式 |
-| `plan` | 是 | 关联的 plan | `"[[plan]]"` |
-| `git_branch` | 是 | 当前 Spec 工作分支 | 与 plan.md 相同 |
-| `base_branch` | 是 | 工作分支的基准分支 | 与 plan.md 相同 |
+| `plan` | 是 | 关联的 plan | `"[[../writer/plan|plan]]"` |
+| `git_branch` | 是 | 当前 Spec 工作分支 | 与 writer/plan.md 相同 |
+| `base_branch` | 是 | 工作分支的基准分支 | 与 writer/plan.md 相同 |
 | `pr_url` | 否 | spec-end 创建 PR 后写回 | GitHub PR URL，创建前留空 |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `summary` |
 
@@ -93,7 +93,7 @@ tests/
 
 | 触发条件 | 状态变更 | 说明 |
 |----------|----------|------|
-| 创建 summary.md | → `未确认` | 初始状态 |
+| 创建 executor/summary.md | → `未确认` | 初始状态 |
 | 用户确认内容 | `未确认` → `已确认` | 用户确认无误 |
 | 用户修改文档 | `已确认` → `未确认` | 需重新确认 |
 | 归档完成 | `已确认` → `已归档` | 归档时更新 |

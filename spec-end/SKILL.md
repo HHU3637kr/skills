@@ -23,20 +23,23 @@ description: >
 从 TeamLead 的启动指令中获取：
 - 当前 Spec 的目录路径
 - 确认所有阶段（计划/实现/测试）已完成
-- 当前工作分支（应与 plan.md 的 `git_branch` 一致）
+- 当前工作分支（应与 `lead/team-context.md` 的 `git_branch` 一致）
 - base 分支（通常为 `main`）
 
 ### 步骤 2：扫描 Spec 目录
 
-读取当前 spec 目录下的所有文档：
-- `plan.md`：设计方案
-- `exploration-report.md`：探索阶段发现
-- `summary.md`：实现细节
-- `test-plan.md`：测试策略
-- `test-report.md`：测试过程和结果
-- `debug-xxx.md` / `debug-xxx-fix.md`：问题和修复（如有）
+读取当前 spec 目录下的所有角色产物：
+- `lead/team-context.md`：团队运行上下文
+- `explorer/exploration-report.md`：探索阶段发现
+- `writer/plan.md`：设计方案
+- `tester/test-plan.md`：测试策略
+- `executor/summary.md`：实现细节
+- `tester/test-report.md`：测试过程和结果
+- `reviewer/review.md` / `reviewer/update-xxx-review.md`：审查报告（如有）
+- `updater/update-xxx.md` / `updater/update-xxx-summary.md`：更新方案和总结（如有）
+- `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`：问题和修复（如有）
 
-同时读取 `plan.md` frontmatter：
+同时读取 `lead/team-context.md` frontmatter：
 - `git_branch`
 - `base_branch`
 - `pr_url`
@@ -48,10 +51,11 @@ description: >
 向 TeamLead 请求恢复或转询相关角色，收集本次开发的经验素材：
 
 ```text
-询问 spec-writer：本次撰写 plan.md 时遇到的困难、踩过的坑、值得记录的发现？
+询问 spec-writer：本次撰写 writer/plan.md 时遇到的困难、踩过的坑、值得记录的发现？
 询问 spec-tester：本次测试过程中的发现、边界情况、改进建议？
 询问 spec-executor：本次实现过程中遇到的技术挑战、解决方案、值得复用的模式？
 询问 spec-debugger：本次调试的根因分析、修复思路、预防建议？（如有 debug 文档）
+询问 spec-reviewer：本次审查中发现的完成度风险、测试缺口或规范建议？（如有 review 文档）
 ```
 
 等待 TeamLead 转回各角色回复，汇总讨论结果。若运行环境无法恢复角色线程，则基于当前 Spec 目录文档补足对应视角。
@@ -89,7 +93,16 @@ exp-reflect 会根据经验的重要性分流：
 
 如需更新，先向用户说明将修改哪些规范文件，得到确认后再编辑。
 
-### 步骤 6：询问用户是否归档并创建 PR
+### 步骤 6：创建 ender/end-report.md 并询问用户是否归档创建 PR
+
+在当前 Spec 目录下创建 `ender/end-report.md`，记录：
+- 本次 Spec 完成状态
+- 已扫描的角色产物路径
+- 经验沉淀结果或无需沉淀的说明
+- 规范维护结果或无需维护的说明
+- 归档、提交、推送、PR 的待确认状态
+
+然后向用户确认：
 
 ```text
 确认目标：所有阶段已完成，经验沉淀与规范审查也已完成。是否可以将本 Spec 归档到 06-已归档，并提交、推送当前分支、创建 PR？
@@ -105,17 +118,24 @@ exp-reflect 会根据经验的重要性分流：
 1. 将 Spec 目录移动到 `spec/06-已归档/`
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不是 `main`
-   - 确认当前分支等于 plan.md 的 `git_branch`
+   - 确认当前分支等于 `lead/team-context.md` 的 `git_branch`
    - 审查 diff
    - commit
    - push
    - 创建 PR 或输出 compare URL
-3. 如果获得 PR URL，写回归档后 `plan.md` / `summary.md` 的 `pr_url` 字段，并补充提交推送
+3. 如果获得 PR URL，写回归档后 `lead/team-context.md` 和 `ender/end-report.md` 的 `pr_url` 字段，并补充提交推送
 
 用户选择"暂不归档"：
 - 跳过归档步骤，直接执行步骤 8
 
 ### 步骤 8：通知 TeamLead 完成
+
+先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Task Progress` 中追加或更新 spec-ender 自己的收尾任务行
+- `artifact` 指向 `ender/end-report.md`
+- `status` 标记为 `done`
+- `completed_at` 使用当前时间，`updated_by` 写 `spec-ender`
+- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块；PR URL 等控制面字段仍由 TeamLead 或 Hook 更新
 
 ```text
 通知 TeamLead：收尾工作完成，本次 Spec 团队实例结束；项目级角色定义保留。
@@ -130,6 +150,7 @@ spec-ender → 向 TeamLead 请求各角色经验素材
 TeamLead → 恢复/转询各角色 → 回复经验素材
 spec-ender → 汇总 + 调用 exp-reflect → 沉淀经验
 spec-ender → 规范维护审查 → 必要时更新 AGENTS.md / .agents/rules/
+spec-ender → ender/end-report.md
 spec-ender → 用户确认归档
 [如归档] spec-ender → 移动目录 → git-work 提交 + 推送 + 创建 PR
 spec-ender → 通知 TeamLead 完成
@@ -144,14 +165,15 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
 4. 已询问用户是否归档
 5. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR
-6. 如有 PR URL：已写回 plan.md / summary.md
-7. 已通知 TeamLead
+6. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.md`
+7. 已更新 `lead/team-context.md` 的 `Task Progress` 中自己的收尾任务行
+8. 已通知 TeamLead
 
 ### 常见陷阱
 - 跳过多角色讨论，只用自己的视角沉淀经验（会遗漏各角色的独特发现）
 - 把一次性实现细节写进 AGENTS.md 或 rules，导致规范膨胀
 - 本次形成了长期安全/日志/测试约束，却忘记更新 .agents/rules/
 - 在 `main` 上直接提交 Spec 成果
-- 创建 PR 前没有确认当前分支与 plan.md 的 `git_branch` 一致
+- 创建 PR 前没有确认当前分支与 `lead/team-context.md` 的 `git_branch` 一致
 - 未询问用户直接归档
 - 沉淀完成后忘记通知 TeamLead

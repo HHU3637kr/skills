@@ -1,7 +1,7 @@
 ---
 name: spec-test
 description: >
-  当角色 spec-tester 需要为 Spec 撰写 test-plan.md、在实现完成后执行测试并产出 test-report.md，
+  当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.md、在实现完成后执行测试并产出 tester/test-report.md，
   或在 spec-debugger 修复后重新验证时使用。若测试对象属于 Web 前端、端侧应用、API、CLI 等具体场景，
   先选择对应 references 测试策略；不要用于普通代码实现或 bug 修复。
 ---
@@ -10,13 +10,14 @@ description: >
 
 ## 核心原则
 
-1. **两个阶段，两个产出**：Spec 创建阶段 → test-plan.md；测试执行阶段 → test-report.md
+1. **两个阶段，两个产出**：Spec 创建阶段 → `tester/test-plan.md`；测试执行阶段 → `tester/test-report.md`
 2. **不直接修复 bug**：发现 bug 时向 TeamLead 提交 bug handoff，由 TeamLead 启动 spec-debugger
 3. **通过 TeamLead 与 spec-writer 协作**：Spec 阶段需讨论接口边界和异常情况，确保测试覆盖完整
 4. **关键路径可观测**：测试必须验证系统关键路径有日志、trace id、事件或其他可审计证据
-5. **证据同目录归档**：端侧测试和关键路径测试的审计日志必须保存在当前 Spec 目录的 `artifacts/test-logs/<run-id>/`
-6. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
-7. **策略在 spec-test 内沉淀**：测试过程中发现跨项目可复用的测试方法时，更新本 Skill 的 `references/` 和策略表；不要写入当前项目的 `AGENTS.md` 或 `.agents/rules/`
+5. **证据归属 tester**：端侧测试和关键路径测试的审计日志必须保存在当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`
+6. **证据必须自动采集**：`tester/artifacts/test-logs/<run-id>/` 下的日志、JSON、trace、录屏和截图必须由测试脚本、浏览器自动化、服务日志采集或命令输出生成；Agent 不得手写、补写或伪造这些证据文件内容
+7. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
+8. **策略在 spec-test 内沉淀**：测试过程中发现跨项目可复用的测试方法时，更新本 Skill 的 `references/` 和策略表；不要写入当前项目的 `AGENTS.md` 或 `.agents/rules/`
 
 ## 测试策略库
 
@@ -34,12 +35,13 @@ description: >
 
 1. **文件命名**：`<场景>-testing.md`，英文小写短横线，如 `web-e2e-testing.md`
 2. **开头先写路由条件**：第一节必须是 `## 何时使用`，说明什么时候读这个策略、什么时候不要读
-3. **必须给 test-plan 要求**：明确该策略要求 test-plan.md 增补哪些章节、表格或字段
+3. **必须给 test-plan 要求**：明确该策略要求 `tester/test-plan.md` 增补哪些章节、表格或字段
 4. **必须给执行流程**：按可操作步骤描述如何执行测试，包含环境、数据、工具、日志和失败处理
-5. **必须给 test-report 要求**：明确测试报告中如何呈现证据、结论和失败信息
+5. **必须给 test-report 要求**：明确 `tester/test-report.md` 中如何呈现证据、结论和失败信息
 6. **必须给证据与脱敏规则**：说明证据保存路径、日志类型、截图/trace/录屏要求，以及不能保存的敏感信息
-7. **必须给常见陷阱**：列出该场景最容易漏掉或误判的点
-8. **禁止写项目一次性细节**：具体账号、真实 URL、业务私有数据、临时 workaround 不写入策略文件
+7. **必须给证据生成规则**：明确证据文件只能由测试运行自动生成，禁止 Agent 事后手写日志、JSON 或 trace
+8. **必须给常见陷阱**：列出该场景最容易漏掉或误判的点
+9. **禁止写项目一次性细节**：具体账号、真实 URL、业务私有数据、临时 workaround 不写入策略文件
 
 推荐结构：
 
@@ -47,9 +49,9 @@ description: >
 # 场景名测试策略
 
 ## 何时使用
-## test-plan.md 必须补充
+## tester/test-plan.md 必须补充
 ## 执行流程
-## test-report.md 必须补充
+## tester/test-report.md 必须补充
 ## 证据与脱敏
 ## 常见陷阱
 ```
@@ -58,12 +60,12 @@ description: >
 
 策略沉淀发生在 `spec-test` 内部，不等到 Spec 收尾阶段。
 
-在完成测试执行并产出 test-report.md 后，必须做一次轻量判断：
+在完成测试执行并产出 `tester/test-report.md` 后，必须做一次轻量判断：
 
 | 判断问题 | 是 | 否 |
 |----------|----|----|
 | 本次是否形成了某类开发场景可复用的测试方法？ | 新增或更新 `references/*-testing.md` | 不沉淀 |
-| 本次是否补齐了现有策略缺失的证据、日志、断言或失败处理要求？ | 更新对应策略文件 | 只保留在 test-report.md |
+| 本次是否补齐了现有策略缺失的证据、日志、断言或失败处理要求？ | 更新对应策略文件 | 只保留在 `tester/test-report.md` |
 | 本次经验是否跨项目有效，而不是当前项目的一次性约束？ | 可进入策略库 | 留在当前 Spec 文档或项目规则中 |
 
 需要沉淀时：
@@ -76,7 +78,7 @@ description: >
 
 ### 步骤 1：读取探索报告
 
-读取同目录下的 `exploration-report.md`，了解：
+读取当前 Spec 目录下的 `explorer/exploration-report.md`，了解：
 - 现有代码结构和接口
 - 历史经验和已知的边界情况
 - 外部依赖和限制条件
@@ -91,9 +93,9 @@ description: >
 - 端侧审计证据（控制台日志、网络摘要、截图/录屏、设备/浏览器/App 版本）
 - 命中的场景测试策略（如 Web 端侧 E2E 的用户使用场景、浏览器自动化、前后端日志联动）
 
-### 步骤 3：撰写 test-plan.md
+### 步骤 3：撰写 tester/test-plan.md
 
-在 plan.md 同目录下创建 `test-plan.md`：
+在当前 Spec 目录下创建 `tester/test-plan.md`：
 
 ```yaml
 ---
@@ -101,7 +103,7 @@ title: 测试计划
 type: test-plan
 status: 未确认
 created: YYYY-MM-DD
-plan: "[[plan]]"
+plan: "[[../writer/plan|plan]]"
 tags:
   - spec
   - test-plan
@@ -140,7 +142,7 @@ tags:
 - 日志断言应覆盖成功、失败和拒绝/回滚路径
 
 ### 端侧审计日志
-- 端侧测试必须保留审计日志目录：`artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/`
+- 端侧测试必须保留审计日志目录：`tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/`
 - 审计日志至少包含：测试 run id、时间戳、测试账号/角色（脱敏）、设备/浏览器/App 版本、操作路径、控制台日志、网络请求摘要、截图或录屏路径、失败堆栈、关联用例编号
 - 不得保存 token、密码、密钥、完整手机号、身份证号或真实用户隐私
 
@@ -150,8 +152,15 @@ tags:
 
 ### 步骤 4：通知 TeamLead 完成
 
+先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Task Progress` 中追加或更新 spec-tester 的测试计划任务行
+- `status` 标记为 `done`
+- `artifact` 指向 `tester/test-plan.md`
+- `completed_at` 使用当前时间，`updated_by` 写 `spec-tester`
+- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块
+
 ```text
-通知 TeamLead：test-plan.md 已完成，等待用户确认。
+通知 TeamLead：tester/test-plan.md 已完成，等待用户确认。
 ```
 
 ---
@@ -160,18 +169,18 @@ tags:
 
 ### 步骤 1：读取必要文档
 
-- `plan.md`：了解设计方案
-- `test-plan.md`：测试用例和验收标准
-- `summary.md`：了解实现细节
+- `writer/plan.md`：了解设计方案
+- `tester/test-plan.md`：测试用例和验收标准
+- `executor/summary.md`：了解实现细节
 
 ### 步骤 2：执行测试用例
 
-按 test-plan.md 的用例逐一执行，记录结果。
+按 `tester/test-plan.md` 的用例逐一执行，记录结果。
 
-每次测试运行先在当前 Spec 目录下创建审计日志目录：
+每次测试运行先在当前 Spec 目录下创建 tester 审计日志目录：
 
 ```text
-artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
+tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 ├── audit.log
 ├── console.log
 ├── network-summary.json
@@ -187,9 +196,24 @@ artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - iOS/Android/桌面端测试：保留设备信息、App 版本、操作路径、截图/录屏、崩溃或失败堆栈
 - 所有证据必须脱敏，禁止保存 token、密码、密钥和真实用户隐私
 
+证据生成规则：
+- 必须通过测试运行自动生成证据文件，例如测试脚本捕获 console/network、Playwright trace/screenshot、后端日志按 RUN_ID 过滤导出、CLI 命令输出重定向。
+- 允许 Agent 编写或调整测试脚本、测试配置、日志采集命令，让测试执行时自动写入 `tester/artifacts/test-logs/<run-id>/`。
+- 禁止 Agent 在测试结束后手工编辑 `audit.log`、`console.log`、`browser-console.ndjson`、`network-summary.json`、`backend.log`、`traces/` 或 `recordings/` 来“补齐证据”。
+- 如果某类证据无法自动采集，在 `tester/test-report.md` 记录缺失原因和风险；不要用手写内容替代真实证据。
+
 ### 步骤 3：发现 Bug 时的处理
 
 > [!important] 不直接修复，向 TeamLead 提交 bug handoff
+
+先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Problem Resolution Log` 中追加或更新该问题行
+- `found_by` 写 `spec-tester`
+- `owner` 建议写 `spec-debugger`
+- `problem` 简述现象，`artifacts` 引用测试证据路径或即将创建的 debug 文档
+- `status` 标记为 `open`
+- `updated_by` 写 `spec-tester`
+- 只修改 `Problem Resolution Log`，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：
@@ -206,12 +230,12 @@ artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 ### 步骤 4：记录微小修改
 
 测试过程中如有微小调整（非 bug，如参数调优、配置修正）：
-- 直接记录到 test-report.md 的「修改记录」表
+- 直接记录到 `tester/test-report.md` 的「修改记录」表
 - 不创建 debug 文档
 
-### 步骤 5：产出 test-report.md
+### 步骤 5：产出 tester/test-report.md
 
-在同目录下创建 `test-report.md`：
+在当前 Spec 目录下创建 `tester/test-report.md`：
 
 ```yaml
 ---
@@ -219,8 +243,8 @@ title: 测试报告
 type: test-report
 status: 未确认
 created: YYYY-MM-DD
-plan: "[[plan]]"
-test-plan: "[[test-plan]]"
+plan: "[[../writer/plan|plan]]"
+test-plan: "[[test-plan|test-plan]]"
 tags:
   - spec
   - test-report
@@ -243,13 +267,13 @@ tags:
 | 修改类型 | 描述 | 关联文档 |
 |---------|------|---------|
 | 微小调整 | [直接描述] | — |
-| Bug 修复 | [问题现象简述] | [[debug-001\|debug-001]] |
+| Bug 修复 | [问题现象简述] | [[../debugger/debug-001\|debug-001]] |
 
 ## 日志与审计证据
 
 ### 测试运行
 - Run ID: YYYYMMDD-HHMM-run-XXX
-- 审计日志目录: `artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/`
+- 审计日志目录: `tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/`
 - 测试账号/角色: [脱敏后的账号或角色]
 - 设备/浏览器/App 版本: [端侧测试必填]
 
@@ -257,29 +281,29 @@ tags:
 
 | 关键路径 | 关联用例 | 证据类型 | 证据位置/trace id | 结果 |
 |---------|---------|---------|------------------|------|
-| [状态流转/权限边界/数据写入等] | TC-XXX | 日志/trace/事件/截图 | `artifacts/test-logs/...` 或 trace id | 通过/失败 |
+| [状态流转/权限边界/数据写入等] | TC-XXX | 日志/trace/事件/截图 | `tester/artifacts/test-logs/...` 或 trace id | 通过/失败 |
 
 ### 端侧审计留存
-- 控制台日志: `artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/console.log`
-- 网络摘要: `artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/network-summary.json`
-- 截图: `artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/screenshots/`
-- 录屏/trace（如有）: `artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/recordings/` / `traces/`
+- 控制台日志: `tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/console.log`
+- 网络摘要: `tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/network-summary.json`
+- 截图: `tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/screenshots/`
+- 录屏/trace（如有）: `tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/recordings/` / `traces/`
 - 脱敏检查: 已确认未保存 token、密码、密钥或真实用户隐私
 
 ## 发现的 Bug（如有）
-- [[debug-001|Bug 标题]] - 已修复 ✅
+- [[../debugger/debug-001|Bug 标题]] - 已修复 ✅
 
 ## 最终测试结果
 [通过/不通过，结论]
 
 ## 文档关联
-- 设计文档: [[plan|设计方案]]
+- 设计文档: [[../writer/plan|设计方案]]
 - 测试计划: [[test-plan|测试计划]]
 ```
 
 ### 步骤 6：测试策略沉淀判断
 
-基于本次 test-plan.md、test-report.md 和测试日志，判断是否需要沉淀或更新测试策略：
+基于本次 `tester/test-plan.md`、`tester/test-report.md` 和测试日志，判断是否需要沉淀或更新测试策略：
 
 - 是否出现了新的可复用测试场景（如移动端真机、API 契约、异步任务、权限矩阵、性能回归）
 - 是否发现现有策略漏掉了关键证据（如 console/network/backend log、trace、截图、录屏、审计字段）
@@ -289,9 +313,9 @@ tags:
 1. 暂停通知 TeamLead，先向用户说明拟修改 `spec-test/references/` 的内容
 2. 用户确认后，按「策略撰写标准」新增或更新策略文件
 3. 如新增策略，同步更新「测试策略库」表格
-4. 在 test-report.md 的「文档关联」中补充策略文件引用
+4. 在 `tester/test-report.md` 的「文档关联」中补充策略文件引用
 
-如果不需要沉淀，在 test-report.md 中记录：
+如果不需要沉淀，在 `tester/test-report.md` 中记录：
 
 ```markdown
 ## 测试策略沉淀判断
@@ -301,17 +325,25 @@ tags:
 
 ### 步骤 7：通知 TeamLead 完成
 
+先更新当前 Spec 的 `lead/team-context.md` 共享区：
+- 在 `Task Progress` 中追加或更新 spec-tester 的测试执行任务行
+- `status` 标记为 `done` 或 `blocked`（如仍有未解决问题）
+- `artifact` 指向 `tester/test-report.md`
+- `completed_at` 使用当前时间，`updated_by` 写 `spec-tester`
+- 若测试过程中发现的问题已验证修复，在 `Problem Resolution Log` 中把对应行状态更新为 `verified`
+- 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+
 ```text
-通知 TeamLead：test-report.md 已完成，等待用户确认。
+通知 TeamLead：tester/test-report.md 已完成，等待用户确认。
 ```
 
 ## 与其他角色的协作
 
 ```
-阶段二：spec-explorer → (exploration-report.md) → spec-tester
+阶段二：spec-explorer → (explorer/exploration-report.md) → spec-tester
         spec-writer ↔ TeamLead ↔ spec-tester（接口讨论）
 
-阶段四：spec-executor → (summary.md) → spec-tester 执行测试
+阶段四：spec-executor → (executor/summary.md) → spec-tester 执行测试
         spec-tester ↔ TeamLead ↔ spec-debugger（bug 修复闭环）
            发现 bug → 向 TeamLead 提交 bug handoff
            修复完成 → TeamLead 通知 spec-tester 重新验证
@@ -320,24 +352,26 @@ tags:
 ## 后续动作
 
 阶段一完成后确认：
-1. test-plan.md 已在 plan.md 同目录下创建
+1. `tester/test-plan.md` 已在正确路径创建
 2. 已与 spec-writer 讨论并对齐接口边界
-3. 已通知 TeamLead
+3. 已更新 `lead/team-context.md` 的 `Task Progress` 中测试计划任务行
+4. 已通知 TeamLead
 
 阶段二完成后确认：
-1. test-report.md 已创建，包含所有测试结果
+1. `tester/test-report.md` 已创建，包含所有测试结果
 2. 所有发现的 bug 都已由 spec-debugger 修复并重新验证
-3. 关键路径日志验证已记录到 test-report.md
-4. 端侧测试审计日志已保存到当前 Spec 目录的 `artifacts/test-logs/<run-id>/`
+3. 关键路径日志验证已记录到 `tester/test-report.md`
+4. 端侧测试审计日志已保存到当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`
 5. 已完成脱敏检查，未保存 token、密码、密钥或真实用户隐私
 6. 已完成测试策略沉淀判断；如需新增或更新策略，已获得用户确认并维护 `references/` 和策略表
-7. 已通知 TeamLead
+7. 已更新 `lead/team-context.md` 的 `Task Progress` 和必要的 `Problem Resolution Log`
+8. 已通知 TeamLead
 
 ### 常见陷阱
 - 直接修复 bug 或绕过 TeamLead 联系 spec-debugger（破坏协作闭环）
-- test-plan.md 验收标准不够具体（无法判断通过/失败）
-- 忘记在 test-report.md 中引用 debug 文档
+- `tester/test-plan.md` 验收标准不够具体（无法判断通过/失败）
+- 忘记在 `tester/test-report.md` 中引用 debug 文档
 - 端侧测试只看界面结果，没有保存 console/network/截图等审计证据
 - 关键路径没有日志或 trace id，导致失败后无法复盘
 - 审计日志包含未脱敏的 token、密码、密钥或真实用户隐私
-- 把可复用测试策略只写在 test-report.md，没有沉淀到 `spec-test/references/`
+- 把可复用测试策略只写在 `tester/test-report.md`，没有沉淀到 `spec-test/references/`

@@ -79,7 +79,7 @@ git branch -M main
 ### 开发方法论
 
 本项目采用 **Spec 驱动式开发**，所有功能开发遵循以下流程：
-1. 先设计（plan.md），后实现
+1. 先设计（writer/plan.md），后实现
 2. 严格遵循 Spec，不添加额外功能
 3. 每个实现都可追溯到 Spec 文档
 4. 完整的开发过程记录在 Obsidian 中
@@ -138,7 +138,7 @@ mkdir -p ".agents/rules"
 ```markdown
 # Spec 工作流规范
 
-- 实现前必须有已确认的 plan.md
+- 实现前必须有已确认的 writer/plan.md
 - 不添加 Spec 未定义的功能
 - 每个关键节点等待用户确认
 - 收尾时使用 exp-reflect 沉淀经验，并由 spec-end 审查是否维护 AGENTS.md / rules
@@ -152,7 +152,7 @@ mkdir -p ".agents/rules"
 - 每个新 Spec 从 main 创建短生命周期分支
 - 同一活跃 Spec 的 update 复用原 Spec 分支
 - 禁止直接在 main 上实现、测试或归档 Spec
-- plan.md / update-xxx.md 必须记录 git_branch、base_branch、pr_url
+- writer/plan.md / updater/update-xxx.md 必须记录 git_branch、base_branch、pr_url
 - 收尾时提交、推送当前分支并创建 PR
 - PR 合并后同步 main 并删除本地/远程工作分支
 ```
@@ -183,7 +183,7 @@ rk-flow init
 #### 4.3 创建项目级角色定义与运行时 Agent 适配
 
 > [!important] 角色定义属于 spec-init
-> `spec-start` 只负责加载和唤起角色实例，不再内联维护 6 个角色的 prompt 模板。6 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
+> `spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。7 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
 
 创建中立角色定义目录和运行时适配目录：
 
@@ -193,7 +193,7 @@ mkdir -p ".claude/agents"
 mkdir -p ".codex/agents"
 ```
 
-按 [references/project-agent-roles.md](references/project-agent-roles.md) 创建 6 个中立角色定义：
+按 [references/project-agent-roles.md](references/project-agent-roles.md) 创建 7 个中立角色定义：
 
 ```text
 .agents/roles/spec-explorer.md
@@ -201,6 +201,7 @@ mkdir -p ".codex/agents"
 .agents/roles/spec-tester.md
 .agents/roles/spec-executor.md
 .agents/roles/spec-debugger.md
+.agents/roles/spec-reviewer.md
 .agents/roles/spec-ender.md
 ```
 
@@ -222,6 +223,7 @@ mkdir -p ".codex/agents"
 .claude/agents/spec-tester.md
 .claude/agents/spec-executor.md
 .claude/agents/spec-debugger.md
+.claude/agents/spec-reviewer.md
 .claude/agents/spec-ender.md
 
 .codex/agents/spec-explorer.toml
@@ -229,6 +231,7 @@ mkdir -p ".codex/agents"
 .codex/agents/spec-tester.toml
 .codex/agents/spec-executor.toml
 .codex/agents/spec-debugger.toml
+.codex/agents/spec-reviewer.toml
 .codex/agents/spec-ender.toml
 ```
 
@@ -236,15 +239,50 @@ mkdir -p ".codex/agents"
 
 ```toml
 [agents]
-max_threads = 6
+max_threads = 7
 max_depth = 1
 ```
 
 运行时适配规则：
 - Claude Code 适配文件使用 Markdown + YAML frontmatter，正文要求角色先读取 `.agents/roles/<role-id>.md`
 - Codex 适配文件使用 TOML，`developer_instructions` 要求角色先读取 `.agents/roles/<role-id>.md`
+- Codex 适配文件的文件名继续使用 `<role-id>.toml`，但 `name` 字段使用 snake_case，例如 `spec_explorer`、`spec_tester`
+- Codex CLI 的 `/agent` 只显示已启动的子 Agent 线程，不显示 `.codex/agents/` 下的 Agent 库；验证时应明确要求 Codex spawn 对应 `name`
 - 不向 `~/.claude/agents/` 或 `~/.codex/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent
 - 已存在的角色或适配文件不覆盖；如需要更新，先说明差异并等待用户确认
+
+#### 4.4 创建中立 Hook 协议与运行时适配
+
+Hook 的职责是自动维护 `lead/team-context.md` 的事实事件，不负责流程决策。`spec-init` 必须创建中立协议文件，当前运行环境再按自己的 Hook 系统生成适配：
+
+```bash
+mkdir -p ".agents/hooks"
+```
+
+创建 `.agents/hooks/team-context-hook-contract.md`，内容来源见 [references/team-context-hook-contract.md](references/team-context-hook-contract.md)。
+
+运行时适配规则：
+- `.agents/hooks/team-context-hook-contract.md` 是唯一的跨 CLI Hook 协议源，描述事件语义、可自动更新区块、禁止自动推断的区块和安全规则。
+- 生成 Claude Code / Codex 项目级 Hook 适配时，参考 [references/runtime-hook-examples.md](references/runtime-hook-examples.md)；样例只用于运行时配置，不替代中立协议。
+- Claude Code 运行时根据该协议生成或更新 `.claude/settings.json`，接入 Claude Code 当前版本支持的项目级 hooks。
+- Codex 运行时根据该协议生成或更新 `.codex/` 下当前版本支持的 hooks 配置；不要在中立协议里写死 Codex 配置 schema。
+- 适配器可以创建 `.agents/hooks/team-context-sync.*` 作为本项目的同步脚本，但脚本输入输出必须遵循中立协议。
+- 如果当前运行环境不支持 hooks，或用户不希望自动 hook，跳过适配，只保留中立协议，并由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护。
+- 已存在的 `.claude/settings.json`、`.codex/*` hook 配置或 `.agents/hooks/team-context-sync.*` 不覆盖；如需要更新，先说明差异并等待用户确认。
+
+Hook 只自动记录事实：
+- 文件创建/修改、artifact 状态、`updated_at`
+- Git/PR 元数据
+- agent runtime handle
+- 当前角色自己的 `Task Progress`
+- 问题发现/解决文件对应的 `Problem Resolution Log` 初始行或状态
+
+Hook 不自动推断：
+- `Next Action`
+- gate decision
+- handoff reason
+- blocker 业务判断
+- plan / test / debug 正文摘要
 
 ### 步骤 5：创建 Spec 目录结构
 
@@ -341,6 +379,7 @@ mkdir -p ".obsidian"
 - .agents/rules/（编码规范）
 - .agents/skills/（Skills 体系）
 - .agents/roles/（CLI 中立项目级角色定义）
+- .agents/hooks/（中立 Hook 协议；运行时适配按需生成）
 - .claude/agents/ 与 .codex/agents/（项目级运行时 Agent 适配）
 - spec/（Spec 目录 + 记忆系统）
 - .obsidian/（Obsidian Vault）
@@ -368,7 +407,11 @@ mkdir -p ".obsidian"
 │   │   ├── spec-tester.md
 │   │   ├── spec-executor.md
 │   │   ├── spec-debugger.md
+│   │   ├── spec-reviewer.md
 │   │   └── spec-ender.md
+│   ├── hooks/                       # 中立 Hook 协议 + 运行时同步脚本
+│   │   ├── team-context-hook-contract.md
+│   │   └── team-context-sync.*       # 由当前运行环境按需生成
 │   └── skills/                      # Skills 体系（通过 CLI 或手动安装）
 │       ├── spec-init/SKILL.md
 │       ├── spec-start/SKILL.md
@@ -392,26 +435,55 @@ mkdir -p ".obsidian"
 │       ├── obsidian-plugin-dev/SKILL.md
 │       └── json-canvas/SKILL.md
 ├── .claude/
+│   ├── settings.json                 # Claude Code 项目级 Hook 配置（如需）
 │   └── agents/                      # Claude Code 项目级 Agent 适配
 │       ├── spec-explorer.md
 │       ├── spec-writer.md
 │       ├── spec-tester.md
 │       ├── spec-executor.md
 │       ├── spec-debugger.md
+│       ├── spec-reviewer.md
 │       └── spec-ender.md
 ├── .codex/
 │   ├── config.toml                  # Codex 项目级 Agent 配置（如需）
+│   ├── hooks.json                   # Codex 项目级 Hook 配置（如需）
 │   └── agents/                      # Codex 项目级 Agent 适配
 │       ├── spec-explorer.toml
 │       ├── spec-writer.toml
 │       ├── spec-tester.toml
 │       ├── spec-executor.toml
 │       ├── spec-debugger.toml
+│       ├── spec-reviewer.toml
 │       └── spec-ender.toml
 ├── spec/
 │   ├── 01-产品规划/
 │   ├── 02-技术设计/
 │   ├── 03-能力交付/
+│   │   └── YYYYMMDD-HHMM-任务描述/    # 由 spec-start 创建
+│   │       ├── lead/                  # TeamLead 运行上下文
+│   │       │   └── team-context.md
+│   │       ├── explorer/              # spec-explorer 产物
+│   │       │   └── exploration-report.md
+│   │       ├── writer/                # spec-writer 产物
+│   │       │   └── plan.md
+│   │       ├── tester/                # spec-tester 产物
+│   │       │   ├── test-plan.md
+│   │       │   ├── test-report.md
+│   │       │   └── artifacts/
+│   │       │       └── test-logs/
+│   │       ├── executor/              # spec-executor 产物
+│   │       │   └── summary.md
+│   │       ├── debugger/              # spec-debugger 产物（按需）
+│   │       │   ├── debug-001.md
+│   │       │   └── debug-001-fix.md
+│   │       ├── reviewer/              # spec-reviewer 产物（按需）
+│   │       │   ├── review.md
+│   │       │   └── update-001-review.md
+│   │       ├── updater/               # spec-update 产物（按需）
+│   │       │   ├── update-001.md
+│   │       │   └── update-001-summary.md
+│   │       └── ender/                 # spec-ender 产物
+│   │           └── end-report.md
 │   ├── 04-系统改进/
 │   ├── 05-验证工程/
 │   ├── 06-已归档/
@@ -432,17 +504,19 @@ mkdir -p ".obsidian"
 2. AGENTS.md 已创建（项目身份 + 规范 + 路由）
 3. .agents/rules/ 已创建（编码规范 + Spec 工作流 + GitHub Flow）
 4. .agents/skills/ 已安装或引导安装
-5. .agents/roles/ 已创建（6 个项目级角色定义）
-6. .claude/agents/ 与 .codex/agents/ 已按需创建项目级运行时适配
-7. spec/ 目录结构已创建（6 个分类目录 + context/）
-8. 经验/知识索引文件已创建
-9. Obsidian Vault 已注册（.obsidian/ + app.json）
-10. 已询问用户是否启动开发任务（spec-start）
+5. .agents/roles/ 已创建（7 个项目级角色定义）
+6. .agents/hooks/ 已创建（中立 Hook 协议；运行时适配按当前 CLI 能力生成或降级跳过）
+7. .claude/agents/ 与 .codex/agents/ 已按需创建项目级运行时适配
+8. spec/ 目录结构已创建（6 个分类目录 + context/；单个 Spec 内由 spec-start 创建角色子目录）
+9. 经验/知识索引文件已创建
+10. Obsidian Vault 已注册（.obsidian/ + app.json）
+11. 已询问用户是否启动开发任务（spec-start）
 
 ### 常见陷阱
 - 已有 AGENTS.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）
 - 已有 .agents/rules/ 时覆盖已有规范（应先检查）
 - 已有 .agents/roles/ 或运行时适配文件时覆盖用户自定义角色（应先检查）
+- 已有 .agents/hooks/、.claude/settings.json 或 .codex hook 配置时直接覆盖（应先检查并合并）
 - 已有 spec/ 目录时重复创建（应先检查）
 - 覆盖已有的 .obsidian/ 自定义配置（应先检查）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段

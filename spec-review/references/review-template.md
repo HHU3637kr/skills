@@ -2,38 +2,38 @@
 
 ## Frontmatter
 
-### review.md（新功能审查）
+### reviewer/review.md（新功能审查）
 
 ```yaml
 ---
 title: 功能名称-审查报告
 type: review
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD
-plan: "[[plan]]"
-summary: "[[summary]]"
+plan: "[[../writer/plan|plan]]"
+summary: "[[../executor/summary|summary]]"
 tags:
   - spec
   - review
 ---
 ```
 
-### update-xxx-review.md（更新审查）
+### reviewer/update-xxx-review.md（更新审查）
 
 ```yaml
 ---
 title: 功能名称-更新XXX-审查报告
 type: review
 update_number: 1
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 result: 通过/需修复/严重不符
 created: YYYY-MM-DD
-plan: "[[plan]]"
-update: "[[update-XXX]]"
-update_summary: "[[update-XXX-summary]]"
+plan: "[[../writer/plan|plan]]"
+update: "[[../updater/update-XXX|update-XXX]]"
+update_summary: "[[../updater/update-XXX-summary|update-XXX-summary]]"
 tags:
   - spec
   - review
@@ -42,19 +42,19 @@ tags:
 
 ### 字段说明
 
-| 字段 | review.md | update-xxx-review.md | 说明 |
+| 字段 | reviewer/review.md | reviewer/update-xxx-review.md | 说明 |
 |------|-----------|----------------------|------|
 | `title` | 必填 | 必填 | `功能名称-审查报告` / `功能名称-更新XXX-审查报告` |
 | `type` | `review` | `review` | 固定值 |
 | `update_number` | - | 必填 | 更新编号，与 update 文档一致 |
-| `category` | 必填 | 必填 | 继承自原 plan.md |
+| `category` | 必填 | 必填 | 继承自原 writer/plan.md |
 | `status` | 必填 | 必填 | `未确认`/`已确认`/`已归档` |
 | `result` | 必填 | 必填 | `通过`/`需修复`/`严重不符` |
 | `created` | 必填 | 必填 | `YYYY-MM-DD` 格式 |
-| `plan` | 必填 | 必填 | 链接到 plan.md |
-| `summary` | 必填 | - | 链接到 summary.md |
-| `update` | - | 必填 | 链接到 update-xxx.md |
-| `update_summary` | - | 必填 | 链接到 update-xxx-summary.md |
+| `plan` | 必填 | 必填 | 链接到 writer/plan.md |
+| `summary` | 必填 | - | 链接到 executor/summary.md |
+| `update` | - | 必填 | 链接到 updater/update-xxx.md |
+| `update_summary` | - | 必填 | 链接到 updater/update-xxx-summary.md |
 
 ### result 可选值
 
@@ -68,7 +68,7 @@ tags:
 
 | 触发条件 | 状态变更 |
 |----------|----------|
-| 创建 review.md | → `未确认` |
+| 创建 reviewer/review.md | → `未确认` |
 | 用户确认审查报告 | `未确认` → `已确认` |
 | 用户修改文档 | `已确认` → `未确认` |
 | 归档完成 | `已确认` → `已归档` |
@@ -83,7 +83,7 @@ tags:
 ## 文档信息
 
 - **审查日期**: YYYY-MM-DD HH:MM
-- **审查对象**: plan.md / update-xxx.md
+- **审查对象**: writer/plan.md / updater/update-xxx.md
 - **Spec 路径**: spec/分类目录/YYYYMMDD-HHMM-任务描述/
 
 ---
@@ -109,13 +109,13 @@ tags:
 
 | 功能 | Spec 位置 | 实现位置 | 说明 |
 |------|-----------|----------|------|
-| 功能 1 | plan.md 3.1 | xxx.py:50 | 符合预期 |
+| 功能 1 | writer/plan.md 3.1 | xxx.py:50 | 符合预期 |
 
 #### ❌ 未完成
 
 | 功能 | Spec 位置 | 说明 |
 |------|-----------|------|
-| 功能 X | plan.md 3.5 | 未找到实现 |
+| 功能 X | writer/plan.md 3.5 | 未找到实现 |
 
 #### ⚠️ 不符项
 
@@ -154,7 +154,7 @@ tags:
 ### 高优先级 🔴
 
 1. **问题描述**
-   - Spec 位置：plan.md X.X
+   - Spec 位置：writer/plan.md X.X
    - 问题：[描述]
    - 建议：[修复建议]
 
@@ -180,8 +180,8 @@ tags:
 
 ## 5. 文档关联
 
-- 设计文档: [[plan|设计方案]]
-- 实现总结: [[summary|实现总结]]
+- 设计文档: [[../writer/plan|设计方案]]
+- 实现总结: [[../executor/summary|实现总结]]
 ```
 
 ---
@@ -189,8 +189,8 @@ tags:
 ## Obsidian 格式要求
 
 1. **文档关联（必须）**：使用 `[[]]` 双链
-   - review.md → 链接 plan.md 和 summary.md
-   - update-xxx-review.md → 链接 update-xxx.md 和 update-xxx-summary.md
+   - reviewer/review.md → 链接 writer/plan.md 和 executor/summary.md
+   - reviewer/update-xxx-review.md → 链接 updater/update-xxx.md 和 updater/update-xxx-summary.md
 
 2. **Callout 标注审查结果**：
    - `> [!success]` 审查通过部分

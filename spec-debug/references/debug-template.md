@@ -6,11 +6,11 @@
 ---
 title: 问题诊断-简述
 type: debug
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 severity: 高/中/低
 created: YYYY-MM-DD
-plan: "[[plan]]"
+plan: "[[../writer/plan|plan]]"
 tags:
   - spec
   - debug
@@ -49,11 +49,11 @@ tags:
 ### 3.2 根因说明
 [详细说明为什么会发生这个问题]
 
-### 3.3 与 plan.md 的关系
+### 3.3 与 writer/plan.md 的关系
 
 > [!note] 设计关联
-> 此问题与 [[plan]] 的关系：
-> - plan.md 章节 X.X 中未考虑 [某种情况]
+> 此问题与 [[../writer/plan|plan]] 的关系：
+> - writer/plan.md 章节 X.X 中未考虑 [某种情况]
 
 ---
 
@@ -72,8 +72,8 @@ tags:
 
 ## 5. 文档关联
 
-- 设计文档: [[plan|设计方案]]
-- 实现总结: [[summary|实现总结]]
+- 设计文档: [[../writer/plan|设计方案]]
+- 实现总结: [[../executor/summary|实现总结]]
 ```
 
 ---
@@ -84,11 +84,11 @@ tags:
 ---
 title: 修复总结-简述
 type: debug-fix
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 created: YYYY-MM-DD
-plan: "[[plan]]"
-debug: "[[debug-001]]"
+plan: "[[../writer/plan|plan]]"
+debug: "[[debug-001|debug-001]]"
 tags:
   - spec
   - debug-fix
@@ -132,6 +132,6 @@ tags:
 
 ## 4. 文档关联
 
-- 设计文档: [[plan|设计方案]]
+- 设计文档: [[../writer/plan|设计方案]]
 - 问题诊断: [[debug-001|问题诊断]]
 ```

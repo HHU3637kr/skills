@@ -2,14 +2,14 @@
 title: 功能名称-更新XXX
 type: update
 update_number: 1
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 未确认
 update_type: 功能增强
 created: YYYY-MM-DD
-plan: "[[plan]]"
-git_branch: 与 plan.md 相同
-base_branch: 与 plan.md 相同
-pr_url: 与 plan.md 相同
+plan: "[[../writer/plan|plan]]"
+git_branch: 与 writer/plan.md 相同
+base_branch: 与 writer/plan.md 相同
+pr_url: 与 writer/plan.md 相同
 tags:
   - spec
   - update
@@ -19,8 +19,8 @@ tags:
 
 ## 文档关联
 
-- 原设计: [[plan|设计方案]]
-- 原总结: [[summary|实现总结]]
+- 原设计: [[../writer/plan|设计方案]]
+- 原总结: [[../executor/summary|实现总结]]
 
 ---
 
@@ -115,12 +115,12 @@ tags:
 | `title` | 是 | 文档标题 | `功能名称-更新XXX` |
 | `type` | 是 | 文档类型 | `update` |
 | `update_number` | 是 | 更新编号 | 与文件名一致（如 1） |
-| `category` | 是 | 分类目录 | 继承自原 plan.md |
+| `category` | 是 | 分类目录 | 继承自原 writer/plan.md |
 | `status` | 是 | 当前状态 | `未确认`/`已确认`/`已归档` |
 | `update_type` | 是 | 更新类型 | `功能增强`/`Bug修复`/`性能优化`/`重构`/`安全修复` |
 | `created` | 是 | 创建日期 | `YYYY-MM-DD` |
-| `plan` | 是 | 关联 plan | `"[[plan]]"` |
-| `git_branch` | 是 | 当前 Spec 的 GitHub Flow 工作分支 | 与 plan.md 相同 |
-| `base_branch` | 是 | 工作分支的基准分支 | 与 plan.md 相同 |
-| `pr_url` | 否 | 当前 Spec 的 PR 链接 | 与 plan.md 相同；创建前留空 |
+| `plan` | 是 | 关联 plan | `"[[../writer/plan|plan]]"` |
+| `git_branch` | 是 | 当前 Spec 的 GitHub Flow 工作分支 | 与 writer/plan.md 相同 |
+| `base_branch` | 是 | 工作分支的基准分支 | 与 writer/plan.md 相同 |
+| `pr_url` | 否 | 当前 Spec 的 PR 链接 | 与 writer/plan.md 相同；创建前留空 |
 | `tags` | 是 | 标签列表 | 至少包含 `spec` 和 `update` |

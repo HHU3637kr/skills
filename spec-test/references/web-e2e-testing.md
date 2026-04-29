@@ -6,7 +6,7 @@
 
 不要用于纯后端 API、纯 CLI、纯文档变更；这些场景应使用对应测试策略或常规测试计划。
 
-## test-plan.md 必须补充
+## tester/test-plan.md 必须补充
 
 ### 用户使用场景
 
@@ -52,7 +52,7 @@
 
 ```text
 RUN_ID=YYYYMMDD-HHMM-web-e2e-XXX
-artifacts/test-logs/<RUN_ID>/
+tester/artifacts/test-logs/<RUN_ID>/
 ├── audit.log
 ├── browser-console.ndjson
 ├── network-summary.json
@@ -63,7 +63,16 @@ artifacts/test-logs/<RUN_ID>/
 └── traces/
 ```
 
-所有日志、截图、trace 都写入当前 Spec 目录下的该 run 目录。
+所有日志、截图、trace 都写入当前 Spec 目录下的 tester run 目录。
+
+证据文件必须由测试运行自动生成：
+- `browser-console.ndjson` 由浏览器自动化监听 console、pageerror、unhandled rejection 后逐行写入
+- `network-summary.json` 由请求/响应监听器、代理、HAR 转换或测试框架 reporter 生成
+- `screenshots/`、`traces/`、`recordings/` 由浏览器自动化工具在执行过程中保存
+- `backend.log` 由服务日志按 RUN_ID / trace id 过滤导出，或由测试命令启动服务时重定向生成
+- `audit.log` 由测试 runner 记录 run id、用例编号、时间戳和执行状态
+
+禁止 Agent 在测试结束后手写或编辑这些日志、JSON、trace、录屏和截图内容。Agent 只可以在 `tester/test-report.md` 中总结测试结论并引用证据路径。若无法自动采集某项证据，必须在 `tester/test-report.md` 说明缺失原因，不得伪造或补写证据文件。
 
 ### 2. 启动并标记测试
 
@@ -74,7 +83,7 @@ artifacts/test-logs/<RUN_ID>/
 
 ### 3. 浏览器自动化模拟用户
 
-按 test-plan.md 的用户场景执行：
+按 `tester/test-plan.md` 的用户场景执行：
 
 1. 打开入口页面
 2. 按用户可见控件点击、输入、提交
@@ -141,7 +150,7 @@ artifacts/test-logs/<RUN_ID>/
 - network 摘要
 - 后端日志片段或 trace id
 
-## test-report.md 必须补充
+## tester/test-report.md 必须补充
 
 ### 用户场景执行结果
 
@@ -154,15 +163,15 @@ artifacts/test-logs/<RUN_ID>/
 - 控制台错误：无 / 有，说明
 - 网络失败：无 / 有，说明
 - 后端异常：无 / 有，说明
-- 截图/trace/录屏：已归档到 `artifacts/test-logs/<RUN_ID>/`
+- 截图/trace/录屏：已归档到 `tester/artifacts/test-logs/<RUN_ID>/`
 - 脱敏检查：已确认未保存敏感信息
 
 ## 证据与脱敏
 
-证据统一保存在当前 Spec 目录：
+证据统一保存在当前 Spec 目录的 tester 子目录：
 
 ```text
-artifacts/test-logs/<RUN_ID>/
+tester/artifacts/test-logs/<RUN_ID>/
 ```
 
 必须保留：
@@ -184,6 +193,7 @@ artifacts/test-logs/<RUN_ID>/
 
 - 只调用接口，不模拟用户真实点击路径
 - 只看页面成功，不检查 console/network/backend log
+- Agent 手写 `network-summary.json`、`browser-console.ndjson` 或 `backend.log` 充当证据，而不是让测试脚本和运行时自动采集
 - 使用固定 sleep 导致测试不稳定
 - 没有 run id，无法把前端操作和后端日志关联
 - 保存了 token、Cookie 或真实用户隐私

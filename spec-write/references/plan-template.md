@@ -1,4 +1,4 @@
-# plan.md 模板与字段参考（v2.0）
+# writer/plan.md 模板与字段参考（v2.0）
 
 ## Frontmatter（必须放在文件最开头）
 
@@ -46,9 +46,9 @@ related: []
 
 ---
 
-## plan.md 正文结构（v2.0）
+## writer/plan.md 正文结构（v2.0）
 
-plan.md 必须包含以下章节：
+`writer/plan.md` 必须包含以下章节：
 
 1. 概述（背景、目标、范围）
 2. 需求分析
@@ -59,7 +59,7 @@ plan.md 必须包含以下章节：
 7. **文档关联**（固定章节）
 
 > [!important] v2.0 变更：移除测试计划章节
-> plan.md 不再包含测试计划章节。测试计划由 spec-tester 用 spec-test 单独创建 test-plan.md。
+> `writer/plan.md` 不再包含测试计划章节。测试计划由 spec-tester 用 spec-test 单独创建 `tester/test-plan.md`。
 
 ---
 
@@ -83,8 +83,8 @@ plan.md 必须包含以下章节：
 ```markdown
 ## 文档关联
 
-- 实现总结: [[summary|实现总结]] (待创建)
-- 测试计划: [[test-plan|测试计划]] (待创建，由 spec-tester 创建)
+- 实现总结: [[../executor/summary|实现总结]] (待创建)
+- 测试计划: [[../tester/test-plan|测试计划]] (待创建，由 spec-tester 创建)
 ```
 
 关联其他 Spec 示例：`参见 [[../20260103-1430-数据模型设计/plan|数据模型设计]]`

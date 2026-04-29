@@ -2,10 +2,10 @@
 title: 功能名称-更新XXX-实现总结
 type: update-summary
 update_number: 1
-category: 与 plan.md 相同
+category: 与 writer/plan.md 相同
 status: 已完成
 created: YYYY-MM-DD
-plan: "[[plan]]"
+plan: "[[../writer/plan|plan]]"
 update: "[[update-XXX]]"
 git_branch: 与 update-XXX.md 相同
 base_branch: 与 update-XXX.md 相同
@@ -23,7 +23,7 @@ tags:
 - **更新编号**: update-XXX
 - **创建日期**: YYYY-MM-DD
 - **对应更新文档**: update-XXX.md
-- **原 plan.md**: spec/XX-分类/YYYYMMDD-功能名称/plan.md
+- **原 writer/plan.md**: spec/XX-分类/YYYYMMDD-功能名称/writer/plan.md
 - **实施人员**: Claude Code
 - **实施时间**: X 小时
 
@@ -124,9 +124,9 @@ tests/
 ## 7. 文档关联
 
 - 更新方案: [[update-XXX|更新方案]]
-- 原设计: [[plan|设计方案]]
-- 原总结: [[summary|实现总结]]
-- 审查报告: [[update-XXX-review|审查报告]] (待生成)
+- 原设计: [[../writer/plan|设计方案]]
+- 原总结: [[../executor/summary|实现总结]]
+- 审查报告: [[../reviewer/update-XXX-review|审查报告]] (待生成)
 
 ---
 
@@ -137,10 +137,10 @@ tests/
 | `title` | 是 | `功能名称-更新XXX-实现总结` |
 | `type` | 是 | `update-summary` |
 | `update_number` | 是 | 与 update 文件一致 |
-| `category` | 是 | 继承自原 plan.md |
+| `category` | 是 | 继承自原 writer/plan.md |
 | `status` | 是 | `未确认`/`已确认`/`已归档` |
 | `created` | 是 | `YYYY-MM-DD` |
-| `plan` | 是 | `"[[plan]]"` |
+| `plan` | 是 | `"[[../writer/plan|plan]]"` |
 | `update` | 是 | `"[[update-XXX]]"` |
 | `git_branch` | 是 | 当前 Spec 工作分支，与 update-XXX.md 相同 |
 | `base_branch` | 是 | 工作分支的基准分支，与 update-XXX.md 相同 |
