@@ -1,7 +1,7 @@
 ---
 title: 知识记忆索引
 type: index
-updated: 2026-04-28
+updated: 2026-04-29
 ---
 
 # 知识记忆索引
@@ -17,6 +17,7 @@ updated: 2026-04-28
 |----|------|------|--------|-----------|
 | KNOW-001 | RKFlowVSCode扩展MVP架构 | 项目理解 | R&K Flow, VS Code Extension, AgentTeam, TeamBus, CLI Adapter, Spec | 在 VS Code 扩展中承载 Spec Explorer、AgentTeam Canvas、Role Chat、TeamBus、ClaudeCodeAdapter 和 Git Binding |
 | KNOW-002 | RKFlowRoleChat显示管线与Timeline方向 | 项目理解 | R&K Flow, Role Chat, Agent Timeline, Claude Code, tool call, Webview | Role Chat 已升级为结构化 Agent Timeline，私聊、TeamBus、工具事件和 UI 展示边界已明确 |
+| KNOW-003 | RKFlow扩展模块化边界 | 项目理解 | R&K Flow, VS Code Extension, extension.ts, providers, webviews, controllers, prompts, commands | extension.ts 已缩减为激活装配层，Provider/Webview/Controller/Prompt/Command 模块边界已明确 |
 
 ## 分类索引
 
@@ -24,3 +25,4 @@ updated: 2026-04-28
 
 - [KNOW-001] RKFlowVSCode扩展MVP架构
 - [KNOW-002] RKFlowRoleChat显示管线与Timeline方向
+- [KNOW-003] RKFlow扩展模块化边界

@@ -1,0 +1,14 @@
+{
+  "nodes": [
+    {
+      "id": "teamlead",
+      "type": "text",
+      "x": 80,
+      "y": 80,
+      "width": 260,
+      "height": 120,
+      "text": "# TeamLead\nextension入口模块化重构\n\nspec/02-技术设计/20260429-1627-extension入口模块化重构"
+    }
+  ],
+  "edges": []
+}
