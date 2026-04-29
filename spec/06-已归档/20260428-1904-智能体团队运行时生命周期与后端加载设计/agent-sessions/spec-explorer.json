@@ -1,0 +1,11 @@
+{
+  "id": "cf404801-51f8-4e62-b774-d14941854c91",
+  "role": "spec-explorer",
+  "engine": "claude-code",
+  "model": "default",
+  "workspaceUri": "c:\\Users\\18735\\.claude\\skills",
+  "specDir": "spec/02-技术设计/20260428-1904-智能体团队运行时生命周期与后端加载设计",
+  "gitBranch": "feat/spec-20260428-1335-rk-flow-vscode-extension",
+  "createdAt": "2026-04-29T03:44:27.795Z",
+  "updatedAt": "2026-04-29T03:44:27.795Z"
+}

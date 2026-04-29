@@ -3,7 +3,7 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
-import { readableEventText, renderTeamChatroomHtml } from "../../extension";
+import { readableEventText, renderTeamChatroomHtml, shouldRouteTeamMessage } from "../../extension";
 import {
   buildClaudeCodeResumeArgs,
   ClaudeCodeAdapter
@@ -17,6 +17,7 @@ import { redactSensitiveText, truncateOutput } from "../../roleChat/sanitize";
 import { mapAgentEventToTimelineItems } from "../../roleChat/timelineMapper";
 import { appendTimelineItems, readTimelineForRole } from "../../roleChat/timelineStore";
 import type { RoleTimelineItem } from "../../roleChat/timelineTypes";
+import { RuntimeStore } from "../../runtime/runtimeStore";
 import { createSpec, createSpecBranchName } from "../../specs/specCreator";
 import { SpecRepository } from "../../specs/specRepository";
 import type { SpecBinding } from "../../specs/types";
@@ -124,8 +125,8 @@ suite("R&K Flow extension host", () => {
   });
 
   test("opens the AgentTeam Canvas command without throwing", async () => {
-    const repository = new SpecRepository(workspaceRoot());
-    const spec = await currentSpec(repository);
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-open-canvas-"));
+    const spec = testSpec(dir);
 
     await vscode.commands.executeCommand("rkFlow.openAgentTeamCanvas", spec);
   });
@@ -142,8 +143,8 @@ suite("R&K Flow extension host", () => {
   });
 
   test("persists Team Bus messages and audit logs inside the Spec directory", async () => {
-    const repository = new SpecRepository(workspaceRoot());
-    const spec = await currentSpec(repository);
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-team-bus-persist-"));
+    const spec = testSpec(dir);
     const bus = new FileTeamBus(async specId => specId === spec.id ? spec.specDirFsPath : undefined);
 
     const message = await bus.sendMessage({
@@ -165,8 +166,8 @@ suite("R&K Flow extension host", () => {
   });
 
   test("persists targeted AgentRole Team Bus messages", async () => {
-    const repository = new SpecRepository(workspaceRoot());
-    const spec = await currentSpec(repository);
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-team-bus-targeted-"));
+    const spec = testSpec(dir);
     const bus = new FileTeamBus(async specId => specId === spec.id ? spec.specDirFsPath : undefined);
 
     const message = await bus.sendMessage({
@@ -185,6 +186,105 @@ suite("R&K Flow extension host", () => {
 
     assert.ok(targetMessages.some(candidate => candidate.id === message.id));
     assert.ok(senderMessages.some(candidate => candidate.id === message.id));
+  });
+
+  test("initializes Spec Runtime files and restores existing Role backend sessions", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-runtime-"));
+    const spec = testSpec(dir);
+    const store = new RuntimeStore();
+    const session: AgentSession = {
+      id: "22222222-2222-4222-8222-222222222222",
+      role: "spec-explorer",
+      engine: "claude-code",
+      model: "default",
+      workspaceUri: dir,
+      specDir: spec.specDir,
+      gitBranch: spec.gitBranch,
+      createdAt: "2026-04-28T00:00:00.000Z",
+      updatedAt: "2026-04-28T00:00:00.000Z"
+    };
+
+    await fs.mkdir(path.join(dir, "agent-sessions"), { recursive: true });
+    await fs.writeFile(path.join(dir, "agent-sessions", "spec-explorer.json"), `${JSON.stringify(session)}\n`, "utf8");
+
+    const runtime = await store.ensureRuntime(spec, "spec-explorer");
+
+    assert.strictEqual(runtime.state, "active");
+    assert.strictEqual(runtime.roles["spec-explorer"].backend, "resumable");
+    assert.strictEqual(runtime.roles["spec-explorer"].sessionId, session.id);
+    await fs.stat(path.join(dir, "runtime.json"));
+    await fs.stat(path.join(dir, "delivery-state.json"));
+    await fs.stat(path.join(dir, "team-mailboxes", "TeamLead.jsonl"));
+    await fs.stat(path.join(dir, "logs", "runtime-events.jsonl"));
+  });
+
+  test("delivers TeamBus messages to role mailboxes and tracks response state", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "rk-flow-team-bus-"));
+    const spec = testSpec(dir);
+    const store = new RuntimeStore();
+    await store.ensureRuntime(spec, "TeamLead");
+    const bus = new FileTeamBus(async specId => specId === spec.id ? spec.specDirFsPath : undefined, store);
+
+    const noReply = await bus.sendMessage({
+      specId: spec.id,
+      from: "TeamLead",
+      to: "spec-explorer",
+      type: "status",
+      subject: "No reply delivery",
+      body: "Deliver this message without scheduling a reply.",
+      artifacts: [],
+      requiresResponse: false
+    });
+    const needsReply = await bus.sendMessage({
+      specId: spec.id,
+      from: "TeamLead",
+      to: "spec-writer",
+      type: "question",
+      subject: "Reply delivery",
+      body: "Deliver this message and require a response.",
+      artifacts: [],
+      requiresResponse: true
+    });
+
+    const explorerMailbox = await bus.readMailbox(spec.id, "spec-explorer");
+    const writerMailbox = await bus.readMailbox(spec.id, "spec-writer");
+    assert.strictEqual(explorerMailbox.find(entry => entry.messageId === noReply.id)?.state, "pending");
+    assert.strictEqual(writerMailbox.find(entry => entry.messageId === needsReply.id)?.state, "pending");
+
+    const queuedRuntime = await store.readRuntime(spec);
+    assert.strictEqual(queuedRuntime?.roles["spec-explorer"].activity, "queued");
+    assert.strictEqual(queuedRuntime?.roles["spec-explorer"].mailboxBacklog, 1);
+    assert.strictEqual(queuedRuntime?.roles["spec-writer"].activity, "queued");
+    assert.strictEqual(queuedRuntime?.roles["spec-writer"].mailboxBacklog, 1);
+
+    await bus.markHandled(spec.id, noReply.id, "spec-explorer");
+    await bus.markSeen(spec.id, needsReply.id, "spec-writer");
+    await bus.markHandled(spec.id, needsReply.id, "spec-writer", "team-response-1");
+    const handledNoReply = (await bus.readDeliveryStates(spec.id)).find(delivery => delivery.messageId === noReply.id);
+    const handled = (await bus.readDeliveryStates(spec.id)).find(delivery => delivery.messageId === needsReply.id);
+    assert.strictEqual(handledNoReply?.state, "handled");
+    assert.strictEqual(handledNoReply?.responseMessageId, undefined);
+    assert.strictEqual(handled?.state, "handled");
+    assert.strictEqual(handled?.responseMessageId, "team-response-1");
+  });
+
+  test("routes TeamBus messages for role consumption independent of reply requirement", () => {
+    const base = {
+      id: "team-route",
+      specId: "20260428-test",
+      from: "TeamLead" as const,
+      to: "spec-explorer" as const,
+      type: "status" as const,
+      subject: "Consume without reply",
+      body: "Spec explorer should consume this message.",
+      artifacts: [],
+      timestamp: "2026-04-28T00:00:00.000Z"
+    };
+
+    assert.strictEqual(shouldRouteTeamMessage({ ...base, requiresResponse: false }), true);
+    assert.strictEqual(shouldRouteTeamMessage({ ...base, requiresResponse: true }), true);
+    assert.strictEqual(shouldRouteTeamMessage({ ...base, to: "TeamLead", requiresResponse: false }), false);
+    assert.strictEqual(shouldRouteTeamMessage({ ...base, to: "all", requiresResponse: false }), false);
   });
 
   test("detects local Claude Code adapter availability", async () => {
@@ -507,10 +607,14 @@ suite("R&K Flow extension host", () => {
 
     assert.ok(html.includes("data-filter=\"tools\""));
     assert.ok(html.includes("TeamBus"));
-    assert.ok(html.includes("Retry"));
-    assert.ok(html.includes("Continue"));
+    assert.ok(!html.includes("id=\"retryButton\""));
+    assert.ok(!html.includes("id=\"continueButton\""));
+    assert.ok(!html.includes("id=\"resetButton\""));
     assert.ok(html.includes("composerBox"));
     assert.ok(html.includes("compactSelect"));
+    assert.ok(html.includes("runtimeState"));
+    assert.ok(html.includes("state.mailboxBacklog"));
+    assert.ok(!html.includes("state.mailboxCursor ?? 0"));
     assert.ok(!html.includes("<label for=\"role\">Agent Role</label>"));
     assert.ok(html.includes("command: \"openFile\""));
   });
@@ -572,12 +676,42 @@ suite("R&K Flow extension host", () => {
   });
 
   test("renders Team Chatroom as a read-only TeamBus log", () => {
-    const html = renderTeamChatroomHtml(testSpec(path.join(os.tmpdir(), "rk-flow-team-room")), []);
+    const html = renderTeamChatroomHtml(testSpec(path.join(os.tmpdir(), "rk-flow-team-room")), [], []);
 
     assert.ok(html.includes("Team Chatroom"));
     assert.ok(html.includes("No TeamBus messages yet."));
     assert.ok(!html.includes("Send TeamBus Message"));
     assert.ok(!html.includes("id=\"composer\""));
+  });
+
+  test("renders Team Chatroom delivery states", () => {
+    const spec = testSpec(path.join(os.tmpdir(), "rk-flow-team-room-delivery"));
+    const html = renderTeamChatroomHtml(spec, [
+      {
+        id: "team-1",
+        specId: spec.id,
+        from: "TeamLead",
+        to: "spec-explorer",
+        type: "question",
+        subject: "Need exploration",
+        body: "Please inspect runtime.",
+        artifacts: [],
+        requiresResponse: true,
+        timestamp: "2026-04-28T00:00:00.000Z"
+      }
+    ], [
+      {
+        messageId: "team-1",
+        recipient: "spec-explorer",
+        state: "pending",
+        requiresResponse: true,
+        updatedAt: "2026-04-28T00:00:01.000Z"
+      }
+    ]);
+
+    assert.ok(html.includes("delivery"));
+    assert.ok(html.includes("response required"));
+    assert.ok(html.includes("spec-explorer"));
   });
 });
 

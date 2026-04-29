@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "specId": "20260428-1904",
+  "specDir": "spec/02-技术设计/20260428-1904-智能体团队运行时生命周期与后端加载设计",
+  "state": "active",
+  "activeRole": "spec-explorer",
+  "roles": {
+    "TeamLead": {
+      "role": "TeamLead",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "resumable",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:44:27.171Z",
+      "sessionId": "098ab658-ddae-4b91-9001-772f54f3ceee",
+      "mailboxBacklog": 0
+    },
+    "spec-explorer": {
+      "role": "spec-explorer",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "resumable",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 2,
+      "updatedAt": "2026-04-29T03:47:42.498Z",
+      "mailboxBacklog": 0,
+      "sessionId": "cf404801-51f8-4e62-b774-d14941854c91"
+    },
+    "spec-tester": {
+      "role": "spec-tester",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:16:13.369Z",
+      "mailboxBacklog": 0
+    },
+    "spec-writer": {
+      "role": "spec-writer",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:16:13.369Z",
+      "mailboxBacklog": 0
+    },
+    "spec-debugger": {
+      "role": "spec-debugger",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:16:13.369Z",
+      "mailboxBacklog": 0
+    },
+    "spec-executor": {
+      "role": "spec-executor",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:16:13.369Z",
+      "mailboxBacklog": 0
+    },
+    "spec-ender": {
+      "role": "spec-ender",
+      "lifecycle": "active",
+      "activity": "idle",
+      "backend": "none",
+      "backendEngine": "claude-code",
+      "mailboxCursor": 0,
+      "updatedAt": "2026-04-29T03:16:13.369Z",
+      "mailboxBacklog": 0
+    }
+  },
+  "createdAt": "2026-04-29T03:16:13.369Z",
+  "updatedAt": "2026-04-29T03:47:42.520Z"
+}

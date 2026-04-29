@@ -3,7 +3,7 @@ import { randomUUID } from "crypto";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { ClaudeCodeAdapter } from "./agentAdapters/cliAdapters";
-import type { AgentAdapter, AgentEngine, AgentEvent, AgentRole, AgentSession } from "./agentAdapters/types";
+import type { AgentAdapter, AgentBackend, AgentEngine, AgentEvent, AgentRole, AgentSession } from "./agentAdapters/types";
 import { appendJsonLine } from "./audit/jsonlStore";
 import { createId, nowIso } from "./common/id";
 import { GitBindingManager } from "./git/gitBinding";
@@ -11,13 +11,15 @@ import { mapAgentEventToTimelineItems } from "./roleChat/timelineMapper";
 import { renderRoleChatHtml } from "./roleChat/renderRoleChatHtml";
 import { appendTimelineItems, readTimelineForRole } from "./roleChat/timelineStore";
 import type { PrivateRoleChatMessage, RoleTimelineItem } from "./roleChat/timelineTypes";
+import { RoleRuntimeManager } from "./runtime/roleRuntime";
+import { RuntimeStore } from "./runtime/runtimeStore";
 import { createSpec, createSpecBranchName, createSpecId, specCategories, validateSpecTitle } from "./specs/specCreator";
 import type { CreatedSpec } from "./specs/specCreator";
 import { SpecRepository } from "./specs/specRepository";
 import type { SpecBinding } from "./specs/types";
 import { FileTeamBus } from "./teamBus/fileTeamBus";
 import { extractTeamMessageRequests, stripTeamMessageBlocks } from "./teamBus/protocol";
-import type { TeamBus, TeamMessage, TeamMessageType } from "./teamBus/types";
+import type { TeamBus, TeamDeliveryState, TeamMessage, TeamMessageType } from "./teamBus/types";
 
 class SpecItem extends vscode.TreeItem {
   constructor(readonly spec: SpecBinding) {
@@ -137,6 +139,8 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     private readonly teamBus: TeamBus,
     private readonly getActiveSpec: () => Promise<SpecBinding | undefined>,
     private readonly adapters: AgentAdapter[],
+    private readonly runtimeStore: RuntimeStore,
+    private readonly roleRuntime: RoleRuntimeManager,
     private readonly workspaceRoot: vscode.Uri
   ) {}
 
@@ -160,7 +164,8 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     const spec = await this.getActiveSpec();
     const items = spec ? await readTimelineForRole(spec, this.activeRole) : [];
     const sessions = spec ? await readRoleSessions(spec) : {};
-    this.webviewView.webview.html = renderRoleChatHtml(spec, this.activeRole, items, sessions);
+    const runtime = spec ? await this.runtimeStore.ensureRuntime(spec, this.activeRole) : undefined;
+    this.webviewView.webview.html = renderRoleChatHtml(spec, this.activeRole, items, sessions, runtime);
   }
 
   async selectRole(role: AgentRole): Promise<void> {
@@ -180,6 +185,23 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
 
     if (message.command === "openFile" && typeof message.path === "string") {
       await this.openWorkspaceFile(message.path, message.line);
+      return;
+    }
+
+    if (message.command === "resetSession") {
+      const spec = await this.getActiveSpec();
+      if (!spec) {
+        await vscode.window.showWarningMessage("No active Spec found.");
+        return;
+      }
+      const role = isAgentRole(message.role) ? message.role : this.activeRole;
+      try {
+        const runtime = await this.roleRuntime.resetSession(spec, role);
+        this.webviewView?.webview.postMessage({ type: "runtimeState", role, runtime });
+        this.webviewView?.webview.postMessage({ type: "sessionReset", role });
+      } catch (error) {
+        this.webviewView?.webview.postMessage({ type: "agentError", error: error instanceof Error ? error.message : String(error) });
+      }
       return;
     }
 
@@ -302,6 +324,50 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
       await appendTimelineItems(spec, items);
       await postMessage({ type: "timelineItems", items, role });
     };
+    const postRuntimeState = async (): Promise<void> => {
+      await this.postRuntimeState(spec, role, postMessage);
+    };
+    let runtimeLocked = false;
+
+    try {
+      await this.roleRuntime.beginRun(spec, role, turnId);
+      runtimeLocked = true;
+      await postRuntimeState();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      await postTimelineItems([
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "error",
+          timestamp: nowIso(),
+          source: "system",
+          severity: "error",
+          message: errorMessage
+        },
+        {
+          id: createId("timeline"),
+          specId: spec.id,
+          role,
+          turnId,
+          type: "turn_end",
+          timestamp: nowIso(),
+          source: "system",
+          status: "failed"
+        }
+      ]);
+      await postMessage({ type: "agentError", error: errorMessage });
+      return { body: errorMessage, teamMessages: [] };
+    }
+    const markRoleFailed = async (error: string, sessionId?: string): Promise<void> => {
+      if (!runtimeLocked) {
+        return;
+      }
+      await this.roleRuntime.failRun(spec, role, error, sessionId);
+      await postRuntimeState();
+    };
 
     if (!options.turnId) {
       await postTimelineItems([{
@@ -351,6 +417,7 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
           status: "failed"
         }
       ]);
+      await markRoleFailed(error);
       await postMessage({ type: "agentError", error });
       return { body: error, teamMessages: [] };
     }
@@ -390,6 +457,7 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
           status: "failed"
         }
       ]);
+      await markRoleFailed(error);
       await postMessage({ type: "agentError", error });
       return { body: error, teamMessages: [] };
     }
@@ -401,6 +469,11 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     session.model = normalizedModel;
     session.updatedAt = nowIso();
     await saveAgentSession(spec, session);
+    if (isAgentBackend(adapter)) {
+      await adapter.loadSession(session);
+    }
+    await this.roleRuntime.updateSession(spec, role, session.id);
+    await postRuntimeState();
     const eventLogPath = `${spec.specDirFsPath}/logs/agent-events.jsonl`;
     const readableText: string[] = [];
     const resumed = Boolean(loadedSession);
@@ -420,9 +493,12 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     }]);
 
     try {
-      const eventStream = resumed
-        ? adapter.resume(session, buildRolePrompt(spec, role, prompt))
-        : adapter.start(session, buildRolePrompt(spec, role, prompt));
+      const rolePrompt = buildRolePrompt(spec, role, prompt);
+      const eventStream = isAgentBackend(adapter)
+        ? adapter.invoke({ session, prompt: rolePrompt, resumed, turnId })
+        : resumed
+          ? adapter.resume(session, rolePrompt)
+          : adapter.start(session, rolePrompt);
 
       for await (const event of eventStream) {
         await appendJsonLine(eventLogPath, event);
@@ -431,6 +507,8 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
           session.id = externalSessionId;
           session.updatedAt = nowIso();
           await saveAgentSession(spec, session);
+          await this.roleRuntime.updateSession(spec, role, session.id);
+          await postRuntimeState();
           await postMessage({ type: "sessionUpdated", role, sessionId: session.id });
         }
         const text = readableEventText(event);
@@ -452,7 +530,7 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
       let teamMessages = await this.emitTeamMessagesFromAgentResponse(spec, role, rawBody, eventLogPath, postMessage);
       const body = stripTeamMessageBlocks(rawBody) || (teamMessages.length ? `${role} sent ${teamMessages.length} TeamBus message(s).` : rawBody);
 
-      if (options.sourceTeamMessage && teamMessages.length === 0) {
+      if (options.sourceTeamMessage?.requiresResponse && teamMessages.length === 0) {
         const implicitReply = await this.teamBus.sendMessage({
           specId: spec.id,
           from: role,
@@ -514,6 +592,17 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
         messageId: responseMessage.id,
         artifacts: [eventLogPath]
       });
+      if (options.sourceTeamMessage) {
+        await this.teamBus.markHandled(
+          spec.id,
+          options.sourceTeamMessage.id,
+          role,
+          options.sourceTeamMessage.requiresResponse ? teamMessages[0]?.id : undefined
+        );
+        await this.onTeamMessagesChanged?.();
+      }
+      await this.roleRuntime.completeRun(spec, role, session.id);
+      await postRuntimeState();
       await postMessage({ type: "agentDone", message: responseMessage });
       await this.routeRequestedResponses(spec, teamMessages, model, postMessage, options.routeDepth ?? 0);
       return { body, teamMessages };
@@ -561,9 +650,20 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
           status: "failed"
         }
       ]);
+      await markRoleFailed(errorMessage, session.id);
       await postMessage({ type: "agentError", error: errorMessage });
       return { body: errorMessage, teamMessages: [] };
     }
+  }
+
+  private async postRuntimeState(
+    spec: SpecBinding,
+    role: AgentRole,
+    postMessage: (payload: unknown) => void | Thenable<void>
+  ): Promise<void> {
+    const existing = await this.runtimeStore.readRuntime(spec);
+    const runtime = await this.runtimeStore.ensureRuntime(spec, existing?.activeRole ?? role);
+    await postMessage({ type: "runtimeState", role, runtime });
   }
 
   private async emitTeamMessagesFromAgentResponse(
@@ -611,10 +711,15 @@ class AgentChatViewProvider implements vscode.WebviewViewProvider {
     }
 
     for (const message of teamMessages) {
-      if (!message.requiresResponse || !isAgentRole(message.to) || message.to === message.from) {
+      if (!shouldRouteTeamMessage(message)) {
         continue;
       }
 
+      await this.teamBus.markSeen(spec.id, message.id, message.to);
+      await this.runtimeStore.updateRole(spec, message.to, {
+        mailboxCursor: (await this.teamBus.readMailbox(spec.id, message.to)).length
+      });
+      await this.onTeamMessagesChanged?.();
       await this.runAgentMessage(
         spec,
         message.to,
@@ -664,7 +769,8 @@ class TeamChatroomViewProvider implements vscode.WebviewViewProvider {
 
     const spec = await this.getActiveSpec();
     const messages = spec ? await readAllTeamMessages(spec) : [];
-    this.webviewView.webview.html = renderTeamChatroomHtml(spec, messages);
+    const deliveries = spec ? await this.teamBus.readDeliveryStates(spec.id) : [];
+    this.webviewView.webview.html = renderTeamChatroomHtml(spec, messages, deliveries);
   }
 
   async reveal(): Promise<void> {
@@ -735,6 +841,8 @@ export function activate(context: vscode.ExtensionContext): void {
   const repository = new SpecRepository(workspaceRoot);
   const gitBinding = new GitBindingManager(workspaceRoot.fsPath);
   const adapters: AgentAdapter[] = [new ClaudeCodeAdapter()];
+  const runtimeStore = new RuntimeStore();
+  const roleRuntime = new RoleRuntimeManager(runtimeStore);
   let activeSpec: SpecBinding | undefined;
 
   const getActiveSpec = async (): Promise<SpecBinding | undefined> => {
@@ -750,10 +858,10 @@ export function activate(context: vscode.ExtensionContext): void {
   const teamBus = new FileTeamBus(async specId => {
     const spec = activeSpec?.id === specId ? activeSpec : await repository.findById(specId);
     return spec?.specDirFsPath;
-  });
+  }, runtimeStore);
   const specExplorer = new SpecExplorerProvider(repository);
   const specFilesProvider = new CurrentSpecFilesProvider(workspaceRoot, getActiveSpec);
-  const chatProvider = new AgentChatViewProvider(teamBus, getActiveSpec, adapters, workspaceRoot);
+  const chatProvider = new AgentChatViewProvider(teamBus, getActiveSpec, adapters, runtimeStore, roleRuntime, workspaceRoot);
   const teamChatProvider = new TeamChatroomViewProvider(teamBus, getActiveSpec, chatProvider);
   const adapterStatusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
   chatProvider.setTeamMessagesChangedHandler(() => teamChatProvider.refresh());
@@ -782,6 +890,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
       specExplorer.refresh();
       activeSpec = await repository.findById(created.specDir) ?? createdSpecToBinding(created);
+      await runtimeStore.ensureRuntime(activeSpec);
       specFilesProvider.refresh();
       await chatProvider.refresh();
       await teamChatProvider.refresh();
@@ -795,6 +904,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
+      await runtimeStore.ensureRuntime(activeSpec);
       specFilesProvider.refresh();
       await chatProvider.refresh();
       await teamChatProvider.refresh();
@@ -826,6 +936,7 @@ export function activate(context: vscode.ExtensionContext): void {
         return;
       }
 
+      await runtimeStore.ensureRuntime(spec);
       const body = await vscode.window.showInputBox({ prompt: "Message to Agent Team" });
       if (!body?.trim()) {
         return;
@@ -1521,8 +1632,13 @@ function renderLegacyCanvasHtml(
 </html>`;
 }
 
-export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: TeamMessage[]): string {
+export function renderTeamChatroomHtml(
+  spec: SpecBinding | undefined,
+  messages: TeamMessage[],
+  deliveries: TeamDeliveryState[] = []
+): string {
   const messagesJson = JSON.stringify(messages).replace(/</g, "\\u003c");
+  const deliveriesJson = JSON.stringify(deliveries).replace(/</g, "\\u003c");
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -1540,6 +1656,8 @@ export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: 
     .messages { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
     .message { border: 1px solid #333; background: var(--panel); border-radius: 6px; padding: 8px; margin-bottom: 8px; white-space: pre-wrap; }
     .message b { color: var(--accent); }
+    .delivery { margin-top: 6px; color: var(--muted); font-size: 12px; }
+    .delivery strong { color: var(--text); font-weight: 600; }
     .empty { color: var(--muted); padding: 10px 0; }
     #status { color: var(--muted); margin-top: 4px; }
   </style>
@@ -1555,6 +1673,7 @@ export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: 
   </section>
   <script>
     const messages = ${messagesJson};
+    let deliveries = ${deliveriesJson};
     const messagesEl = document.querySelector("#messages");
     const status = document.querySelector("#status");
 
@@ -1565,10 +1684,23 @@ export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: 
     function renderMessages() {
       messagesEl.innerHTML = messages.length
         ? messages
-        .map(message => '<div class="message"><b>' + escapeText(message.from) + ' -> ' + escapeText(message.to) + '</b><br>' + escapeText(message.subject) + '<br><span>' + escapeText(message.body) + '</span></div>')
+        .map(message => '<div class="message"><b>' + escapeText(message.from) + ' -> ' + escapeText(message.to) + '</b><br>' + escapeText(message.subject) + '<br><span>' + escapeText(message.body) + '</span>' + deliveryHtml(message.id) + '</div>')
         .join('')
         : '<div class="empty">No TeamBus messages yet.</div>';
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function deliveryHtml(messageId) {
+      const state = deliveries.filter(delivery => delivery.messageId === messageId);
+      if (!state.length) {
+        return '<div class="delivery">delivery: <strong>not recorded</strong></div>';
+      }
+      return '<div class="delivery">delivery: ' + state.map(delivery =>
+        '<strong>' + escapeText(delivery.recipient) + '</strong> ' +
+        escapeText(delivery.state) +
+        (delivery.requiresResponse ? ' · response required' : ' · no response') +
+        (delivery.responseMessageId ? ' · response ' + escapeText(delivery.responseMessageId) : '')
+      ).join(' · ') + '</div>';
     }
 
     function appendMessage(message) {
@@ -1581,6 +1713,10 @@ export function renderTeamChatroomHtml(spec: SpecBinding | undefined, messages: 
       if (event.data.type === "teamMessage") {
         appendMessage(event.data.message);
         status.textContent = "TeamBus message: " + event.data.message.id;
+      }
+      if (event.data.type === "deliveryStates") {
+        deliveries = event.data.deliveries || deliveries;
+        renderMessages();
       }
       if (event.data.type === "agentStarted") {
         status.textContent = "Routing " + event.data.role + " via " + event.data.engine + "...";
@@ -1626,8 +1762,16 @@ function isAgentRole(value: unknown): value is AgentRole {
   return typeof value === "string" && agentRoles.includes(value as AgentRole);
 }
 
+function isAgentBackend(adapter: AgentAdapter): adapter is AgentBackend {
+  return typeof (adapter as Partial<AgentBackend>).invoke === "function";
+}
+
 function isTeamMessageType(value: unknown): value is TeamMessageType {
   return typeof value === "string" && ["handoff", "question", "blocker", "review_request", "phase_request", "status"].includes(value);
+}
+
+export function shouldRouteTeamMessage(message: TeamMessage): message is TeamMessage & { to: AgentRole } {
+  return isAgentRole(message.to) && message.to !== message.from;
 }
 
 function defaultEngineForRole(_role: AgentRole): AgentEngine {
@@ -1787,7 +1931,10 @@ function buildRolePrompt(spec: SpecBinding, role: AgentRole, userPrompt: string)
     "The extension will persist that block to team-chat.jsonl and audit-log.jsonl. Your current role is always used as from.",
     "Allowed to values: TeamLead, spec-explorer, spec-writer, spec-executor, spec-tester, spec-debugger, spec-ender, all.",
     "Allowed type values: handoff, question, blocker, review_request, phase_request, status.",
-    "Use requiresResponse=true only when the target role must be invoked. Avoid protocol blocks for normal user-facing replies.",
+    "Every direct TeamBus message to an AgentRole is delivered to and consumed by that role.",
+    "Use requiresResponse=true only when the target role must send a TeamBus reply after handling the message.",
+    "Use requiresResponse=false when the target role should consume the message without replying on TeamBus.",
+    "Avoid protocol blocks for normal user-facing replies.",
     "Example:",
     "```json",
     "{\"rkFlowTeamMessage\":{\"to\":\"spec-debugger\",\"type\":\"blocker\",\"subject\":\"Need debugging\",\"body\":\"Describe the blocker and evidence.\",\"artifacts\":[],\"requiresResponse\":true}}",
@@ -1807,7 +1954,9 @@ function buildTeamBusPrompt(spec: SpecBinding, role: AgentRole, message: TeamMes
     `Body: ${message.body}`,
     `Artifacts: ${message.artifacts.length ? message.artifacts.join(", ") : "none"}`,
     "",
-    `Respond as ${role}. If the answer should go back to ${message.from} or another role, emit rkFlowTeamMessage. If you do not emit one, the orchestrator will record your response as a status reply to ${message.from}.`
+    message.requiresResponse
+      ? `Respond as ${role}. This message requires a TeamBus reply to ${message.from}; emit rkFlowTeamMessage unless there is a hard blocker.`
+      : `Respond as ${role}. Consume this message and update your private role context. Do not emit a TeamBus reply unless you discover a new blocker or handoff.`
   ].join("\n"));
 }
 

@@ -45,3 +45,30 @@ export interface AgentAdapter {
   resume(session: AgentSession, prompt: string): AsyncIterable<AgentEvent>;
   stop(session: AgentSession): Promise<void>;
 }
+
+export interface BackendStatus {
+  engine: AgentEngine;
+  available: boolean;
+  detail?: string;
+}
+
+export interface BackendSession {
+  engine: AgentEngine;
+  sessionId: string;
+  model: string;
+  status: "none" | "resumable" | "running" | "expired" | "error";
+}
+
+export interface BackendInvokeRequest {
+  session: AgentSession;
+  prompt: string;
+  resumed: boolean;
+  turnId: string;
+}
+
+export interface AgentBackend extends AgentAdapter {
+  detectStatus(): Promise<BackendStatus>;
+  loadSession(session: AgentSession): Promise<BackendSession>;
+  invoke(request: BackendInvokeRequest): AsyncIterable<AgentEvent>;
+  cancel(turnId: string): Promise<void>;
+}

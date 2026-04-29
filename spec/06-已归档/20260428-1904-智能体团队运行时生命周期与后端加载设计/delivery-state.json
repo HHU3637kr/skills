@@ -1,0 +1,16 @@
+[
+  {
+    "messageId": "team-mojhkz8h-coux5v",
+    "recipient": "spec-explorer",
+    "state": "delivered",
+    "requiresResponse": false,
+    "updatedAt": "2026-04-29T03:19:35.779Z"
+  },
+  {
+    "messageId": "team-mojigxwk-e2k5fw",
+    "recipient": "spec-explorer",
+    "state": "handled",
+    "requiresResponse": false,
+    "updatedAt": "2026-04-29T03:47:42.455Z"
+  }
+]

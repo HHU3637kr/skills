@@ -1,4 +1,5 @@
 import type { AgentRole, AgentSession } from "../agentAdapters/types";
+import type { SpecRuntimeDocument } from "../runtime/types";
 import type { SpecBinding } from "../specs/types";
 import { escapeHtml } from "./sanitize";
 import { renderTimeline } from "./renderers";
@@ -18,10 +19,12 @@ export function renderRoleChatHtml(
   spec: SpecBinding | undefined,
   activeRole: AgentRole,
   items: RoleTimelineItem[],
-  sessions: Partial<Record<AgentRole, AgentSession | undefined>>
+  sessions: Partial<Record<AgentRole, AgentSession | undefined>>,
+  runtime?: SpecRuntimeDocument
 ): string {
   const timelineJson = JSON.stringify(items).replace(/</g, "\\u003c");
   const roleSessionsJson = JSON.stringify(Object.fromEntries(agentRoles.map(role => [role, Boolean(sessions[role])]))).replace(/</g, "\\u003c");
+  const runtimeJson = JSON.stringify(runtime?.roles ?? {}).replace(/</g, "\\u003c");
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -32,7 +35,7 @@ export function renderRoleChatHtml(
     :root { color-scheme: dark; --line:#333; --text:#d4d4d4; --muted:#9a9a9a; --panel:#202020; --panel2:#252525; --accent:#4cc2ff; --good:#7bd88f; --warn:#d7ba7d; --error:#f0c8c0; --danger:#f48771; }
     * { box-sizing: border-box; }
     body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: #181818; color: var(--text); font: 13px/1.45 "Segoe UI", sans-serif; }
-    header { padding: 12px; border-bottom: 1px solid var(--line); background: #1d1d1d; }
+    header { padding: 10px 12px; border-bottom: 1px solid var(--line); background: #1d1d1d; }
     h2 { margin: 2px 0 4px; font-size: 17px; line-height: 1.2; }
     label { display: block; color: var(--muted); font-size: 11px; margin: 8px 0 4px; }
     select, textarea, button { width: 100%; color: var(--text); background: var(--panel2); border: 1px solid var(--line); border-radius: 5px; padding: 7px; font: inherit; }
@@ -41,6 +44,13 @@ export function renderRoleChatHtml(
     button:disabled { opacity: .55; cursor: default; }
     .meta { color: var(--muted); overflow-wrap: anywhere; }
     .mono { font-family: Consolas, monospace; color: var(--accent); overflow-wrap: anywhere; }
+    .runtimeStrip { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 0 0; color: var(--muted); }
+    .runtimePill { width: auto; min-width: 0; padding: 2px 6px; border: 1px solid var(--line); border-radius: 999px; background: #171717; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+    .runtimePill span { margin-right: 4px; }
+    .runtimePill b { color: var(--text); font-weight: 600; }
+    .runtimePill.running b { color: var(--accent); }
+    .runtimePill.failed b { color: var(--danger); }
+    .runtimePill.queued b { color: var(--warn); }
     .toolbar { display: flex; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--line); overflow-x: auto; }
     .chip { width: auto; min-width: max-content; padding: 4px 8px; color: var(--muted); }
     .chip.active { color: var(--text); border-color: var(--accent); }
@@ -74,9 +84,8 @@ export function renderRoleChatHtml(
     .compactSelect { width: auto; min-width: 0; max-width: 150px; height: 30px; padding: 4px 7px; }
     #model { max-width: 190px; }
     .spacer { flex: 1; min-width: 8px; }
-    .secondaryButton { width: auto; min-width: 62px; height: 30px; padding: 4px 8px; color: var(--muted); }
     .sendIcon { width: 30px; height: 30px; padding: 0; border-radius: 50%; color: #fff; background: #7f5a48; font-size: 17px; line-height: 1; }
-    #status { margin-top: 6px; color: var(--muted); min-height: 16px; font-size: 12px; overflow-wrap: anywhere; }
+    #status { margin-top: 5px; color: var(--muted); min-height: 16px; font-size: 12px; overflow-wrap: anywhere; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -108,26 +117,23 @@ export function renderRoleChatHtml(
           <option value="claude-default">Claude Code default</option>
         </select>
         <span class="spacer"></span>
-        <button type="button" class="secondaryButton" id="retryButton">Retry</button>
-        <button type="button" class="secondaryButton" id="continueButton">Continue</button>
         <button id="sendButton" class="sendIcon" title="Send" aria-label="Send">↑</button>
       </div>
     </div>
+    <div class="runtimeStrip" id="runtimeState"></div>
     <div id="status"></div>
   </form>
   <script>
     const vscode = acquireVsCodeApi();
     let timelineItems = ${timelineJson};
     const roleSessions = ${roleSessionsJson};
+    let roleRuntime = ${runtimeJson};
     const timeline = document.querySelector("#timeline");
     const status = document.querySelector("#status");
     const sendButton = document.querySelector("#sendButton");
-    const retryButton = document.querySelector("#retryButton");
-    const continueButton = document.querySelector("#continueButton");
     const bodyInput = document.querySelector("#body");
     let selectedRole = ${JSON.stringify(activeRole)};
     let activeFilter = "all";
-    let lastPrompt = "";
     let composing = false;
 
     function escapeText(value) {
@@ -310,9 +316,26 @@ export function renderRoleChatHtml(
       applyFilter();
       document.querySelector("#activeRole").textContent = selectedRole;
       document.querySelector("#role").value = selectedRole;
-      document.querySelector("#sessionState").textContent = roleSessions[selectedRole] ? "resumable CLI session" : "new CLI session";
-      retryButton.disabled = !lastPrompt;
+      renderRuntimeState();
       timeline.scrollTop = timeline.scrollHeight;
+    }
+
+    function renderRuntimeState() {
+      const state = roleRuntime[selectedRole];
+      const sessionState = document.querySelector("#sessionState");
+      const runtimeState = document.querySelector("#runtimeState");
+      if (!state) {
+        sessionState.textContent = roleSessions[selectedRole] ? "resumable CLI session" : "new CLI session";
+        runtimeState.innerHTML = "";
+        return;
+      }
+      sessionState.textContent = state.sessionId ? "resumable CLI session" : "new CLI session";
+      runtimeState.innerHTML = [
+        '<div class="runtimePill ' + escapeText(state.activity) + '"><span>activity</span><b>' + escapeText(state.activity) + '</b></div>',
+        '<div class="runtimePill ' + escapeText(state.backend) + '"><span>backend</span><b>' + escapeText(state.backendEngine || 'claude-code') + ' · ' + escapeText(state.backend) + '</b></div>',
+        '<div class="runtimePill"><span>lifecycle</span><b>' + escapeText(state.lifecycle) + '</b></div>',
+        '<div class="runtimePill"><span>mailbox</span><b>' + escapeText(state.mailboxBacklog ?? 0) + '</b></div>'
+      ].join('');
     }
 
     function applyFilter() {
@@ -334,7 +357,6 @@ export function renderRoleChatHtml(
 
     function sendPrompt(prompt) {
       if (!prompt.trim()) return;
-      lastPrompt = prompt.trim();
       sendButton.disabled = true;
       status.textContent = "Running Claude Code...";
       vscode.postMessage({
@@ -377,9 +399,6 @@ export function renderRoleChatHtml(
       bodyInput.value = "";
     });
 
-    retryButton.addEventListener("click", () => sendPrompt(lastPrompt));
-    continueButton.addEventListener("click", () => sendPrompt("继续"));
-
     timeline.addEventListener("click", event => {
       const target = event.target.closest("[data-open-file]");
       if (!target) return;
@@ -399,6 +418,16 @@ export function renderRoleChatHtml(
       }
       if (event.data.type === "sessionUpdated") {
         roleSessions[event.data.role] = true;
+        renderTimeline();
+      }
+      if (event.data.type === "runtimeState") {
+        roleRuntime = event.data.runtime && event.data.runtime.roles ? event.data.runtime.roles : roleRuntime;
+        renderTimeline();
+      }
+      if (event.data.type === "sessionReset") {
+        roleSessions[event.data.role] = false;
+        sendButton.disabled = false;
+        status.textContent = "Session reset for " + event.data.role;
         renderTimeline();
       }
       if (event.data.type === "agentDone") {
