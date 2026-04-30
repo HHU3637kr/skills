@@ -6,7 +6,7 @@
 
 **仓库地址**：`github.com/HHU3637kr/skills`
 **当前分支**：`master`
-**文档口径**：v2.4
+**文档口径**：v2.4.1
 **npm package**：`@rnking3637/rk-flow` v2.3.0
 
 核心架构与 README 保持一致：
@@ -29,7 +29,7 @@ skills/
 └── CODEMAP.md                # 本文件
 ```
 
-`rk-flow init` 的目标是把核心 Skills 复制到目标项目 `.agents/skills/`，并引导目标项目通过 `AGENTS.md` 加载这些 Skills。
+`rk-flow init` 的目标是把核心 Skills 复制到目标项目 `.agents/skills/`，并引导目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。
 
 ---
 
@@ -110,9 +110,14 @@ skills/
 
 ```
 <project>/
-├── AGENTS.md
+├── AGENTS.md                         # 项目身份 + 入口清单 + 路由
 ├── .agents/
-│   ├── rules/
+│   ├── rules/                        # 长期规则、项目偏好、前端风格
+│   │   ├── coding-style.md
+│   │   ├── project-preferences.md
+│   │   ├── spec-workflow.md
+│   │   ├── documentation.md
+│   │   └── git-workflow.md
 │   ├── skills/
 │   ├── roles/
 │   │   ├── spec-explorer.md
@@ -363,5 +368,6 @@ lead/team-context.md 的事实字段
 - 新增或修改核心 Skill 时，同步更新 README 的 Skills 表、Spec 目录结构和本 CODEMAP。
 - 修改角色协议时，优先更新 `spec-init/references/project-agent-roles.md`，再同步 Claude Code / Codex 适配说明。
 - 修改 Team Context 字段或 Hook 行为时，优先更新 `spec-init/references/team-context-hook-contract.md`、`spec-init/references/runtime-hook-examples.md` 和 `spec-start/SKILL.md`。
+- `AGENTS.md` 保持薄入口定位；详细规则、项目偏好和前端风格落在 `.agents/rules/`。
 - 不把运行时临时上下文当成长期状态；长期状态必须落在 Spec 目录、`.agents/roles/`、`.agents/rules/` 或显式记忆系统中。
 - 测试证据目录中的日志和 JSON 应由测试运行自动生成，Agent 不应手写测试日志冒充证据。

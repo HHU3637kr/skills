@@ -57,63 +57,46 @@ git branch -M main
 2. 项目简介（一句话描述）
 3. 主要技术栈（如 Python/FastAPI、TypeScript/React 等）
 4. 项目类型（如 Web 应用、CLI 工具、库等）
+5. 长期项目偏好（可选，如产品体验、前端风格、协作习惯）
 ```
 
 ### 步骤 3：创建 AGENTS.md
 
-在项目根目录创建 `AGENTS.md`，这是项目的身份文件和路由入口：
+在项目根目录创建 `AGENTS.md`，这是项目的身份文件和路由入口。保持精简：只写项目身份、最高优先级工作方式、详细目录入口；具体规则和项目偏好写入 `.agents/rules/`。
 
 ```markdown
 # {项目名称}
 
 {项目简介}
 
-## 技术栈
+## 项目身份
 
-- **语言**: {主要语言}
-- **框架**: {主要框架}
+- **技术栈**: {主要技术栈}
 - **类型**: {项目类型}
 
-## 项目规范
+## 工作方式
 
-### 开发方法论
+本项目采用 R&K Flow / Spec 驱动式开发。新功能、更新、修复和收尾均通过 `.agents/skills/` 中的对应 Skill 执行。
 
-本项目采用 **Spec 驱动式开发**，所有功能开发遵循以下流程：
-1. 先设计（writer/plan.md），后实现
-2. 严格遵循 Spec，不添加额外功能
-3. 每个实现都可追溯到 Spec 文档
-4. 完整的开发过程记录在 Obsidian 中
-
-### 编码规范
+## 详细规则入口
 
 @import .agents/rules/
+@import .agents/skills/
 
-> AGENTS.md 与 .agents/rules/ 是活文档。每个 Spec 收尾时由 spec-end 审查是否需要维护项目规范。
+## 目录路由
 
-### 文档规范
+- `.agents/rules/`：长期项目规则、项目偏好、前端风格、测试/安全/文档约束
+- `.agents/skills/`：R&K Flow 工作流 Skill 与项目 SOP
+- `.agents/roles/`：CLI 中立项目级角色定义
+- `.agents/hooks/`：Team Context 事件记录协议
+- `spec/context/knowledge/`：项目架构、模块理解、技术调研
+- `spec/context/experience/`：困境-策略、踩坑经验、决策经验
 
-- 所有 Spec 文档使用 Obsidian Flavored Markdown
-- 命名规范：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
-- 使用 `[[wikilink]]` 建立文档关联
-- 每个文档包含完整的 YAML frontmatter
-
-### 开发流程
-
-- 新功能开发：`/spec-start` → 5 阶段流程
-- 功能更新：`/spec-update`
-- 问题修复：`/spec-debug`
-- 经验检索：`/exp-search`
-- 经验沉淀：`/exp-reflect`
-
-### 记忆系统
-
-- 自动层：Auto Memory（Claude 自主管理）
-- 显式层：`spec/context/experience/` + `spec/context/knowledge/`
-- 索引文件始终加载，详情按需检索
+> AGENTS.md 是入口清单，不承载长篇规范。每个 Spec 收尾时由 spec-end 审查是否需要维护 AGENTS.md 或 `.agents/rules/`。
 ```
 
 > [!important] AGENTS.md 是模板
-> 根据用户提供的项目信息填充模板。如果用户有额外的项目规范需求，在此文件中补充。
+> 根据用户提供的项目信息填充模板。如果用户有额外的长期项目规范或偏好，优先写入 `.agents/rules/`，只在需要修改入口、导入或项目身份摘要时更新 AGENTS.md。
 
 ### 步骤 4：创建 .agents/ 配置目录
 
@@ -134,6 +117,17 @@ mkdir -p ".agents/rules"
 - 本文件只记录长期规则，临时实现细节不要写入
 ```
 
+创建 `.agents/rules/project-preferences.md`（项目偏好模板，根据项目类型调整）：
+```markdown
+# 项目偏好
+
+- 产品体验：{如内部工具优先信息密度；未知则写"遵循现有产品风格"}
+- 前端风格：{如 UI 项目，记录布局、组件、图标、色彩、动效等长期偏好}
+- 协作习惯：{如评审口径、发布节奏、命名偏好}
+- 偏好必须长期有效、可复用；一次性需求写入当前 Spec
+- 详细设计理由写入 `spec/context/knowledge/`
+```
+
 创建 `.agents/rules/spec-workflow.md`（Spec 工作流规范）：
 ```markdown
 # Spec 工作流规范
@@ -143,6 +137,17 @@ mkdir -p ".agents/rules"
 - 每个关键节点等待用户确认
 - 收尾时使用 exp-reflect 沉淀经验，并由 spec-end 审查是否维护 AGENTS.md / rules
 - rules 只记录长期项目约束，避免写入一次性任务细节
+```
+
+创建 `.agents/rules/documentation.md`（文档规范）：
+```markdown
+# 文档规范
+
+- 所有 Spec 文档使用 Obsidian Flavored Markdown
+- Spec 目录命名：`YYYYMMDD-HHMM-任务描述`，任务描述使用中文
+- 使用 `[[wikilink]]` 建立文档关联
+- 每个文档包含完整 YAML frontmatter
+- 长篇背景写入 `spec/context/knowledge/`，不要塞进 AGENTS.md
 ```
 
 创建 `.agents/rules/git-workflow.md`（GitHub Flow 规范）：
@@ -375,8 +380,8 @@ mkdir -p ".obsidian"
 
 ```text
 项目 Spec 开发环境已初始化完成：
-- AGENTS.md（项目身份 + 规范）
-- .agents/rules/（编码规范）
+- AGENTS.md（项目身份 + 入口路由）
+- .agents/rules/（长期规则 + 项目偏好）
 - .agents/skills/（Skills 体系）
 - .agents/roles/（CLI 中立项目级角色定义）
 - .agents/hooks/（中立 Hook 协议；运行时适配按需生成）
@@ -395,11 +400,13 @@ mkdir -p ".obsidian"
 
 ```
 项目根目录/
-├── AGENTS.md                        # 项目身份 + 规范 + 路由
+├── AGENTS.md                        # 项目身份 + 入口清单 + 路由
 ├── .agents/
-│   ├── rules/                       # 永久性编码规范（每文件 ≤ 20 行）
+│   ├── rules/                       # 长期规则与项目偏好（每文件 ≤ 20 行）
 │   │   ├── coding-style.md          # 编码风格
+│   │   ├── project-preferences.md   # 项目偏好/产品体验/前端风格
 │   │   ├── spec-workflow.md         # Spec 工作流规范
+│   │   ├── documentation.md         # 文档规范
 │   │   └── git-workflow.md          # GitHub Flow 规范
 │   ├── roles/                       # CLI 中立项目级角色定义
 │   │   ├── spec-explorer.md
@@ -501,8 +508,8 @@ mkdir -p ".obsidian"
 
 初始化完成后确认：
 1. Git 仓库状态已检查；如用户确认，已完成 `git init` + `main` 分支初始化
-2. AGENTS.md 已创建（项目身份 + 规范 + 路由）
-3. .agents/rules/ 已创建（编码规范 + Spec 工作流 + GitHub Flow）
+2. AGENTS.md 已创建（项目身份 + 入口清单 + 路由）
+3. .agents/rules/ 已创建（编码规范 + 项目偏好 + Spec 工作流 + 文档规范 + GitHub Flow）
 4. .agents/skills/ 已安装或引导安装
 5. .agents/roles/ 已创建（7 个项目级角色定义）
 6. .agents/hooks/ 已创建（中立 Hook 协议；运行时适配按当前 CLI 能力生成或降级跳过）

@@ -17,11 +17,12 @@ allowed-tools: Read, Write, Edit, Glob
 - ✅ 写入 `spec/context/experience/` 目录（经验详情 + 索引）
 - ✅ 写入 `spec/context/knowledge/` 目录（知识详情 + 索引）
 - ❌ 不写入 MEMORY.md（由 Claude Code Auto Memory 自主管理）
-- ❌ 不写入 `.agents/rules/`（由 skill-creator 管理）
+- ❌ 不写入 `.agents/rules/` 或 `AGENTS.md`（由 exp-reflect/spec-end/skill-creator 按规范类型直接维护）
 
 **注意**：本 Skill 仅处理经验记忆和知识记忆的写入。
 - 程序记忆（SOP）→ 使用 `/skill-creator` 创建
 - 工具记忆 → 直接编辑目标 Skill 文件末尾
+- 项目规范/规则/偏好 → 由 `/exp-reflect` 展示变更并在用户确认后直接编辑 `AGENTS.md` 或 `.agents/rules/*.md`
 
 ## 触发场景
 

@@ -48,7 +48,8 @@ function doInit() {
   console.log(`\n✓ R&K Flow skills installed to .agents/skills/`)
   console.log(`  Installed: ${installed.length} skills`)
   if (skipped.length) console.log(`  Skipped:   ${skipped.join(', ')}`)
-  console.log(`\nNext: add .agents/skills/ to your AGENTS.md @import`)
+  console.log(`\nNext: keep AGENTS.md thin and add @import .agents/skills/`)
+  console.log(`      Put detailed long-term rules and preferences under .agents/rules/`)
 }
 
 if (cmd === 'init') {

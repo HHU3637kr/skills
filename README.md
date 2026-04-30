@@ -16,9 +16,10 @@ rk-flow init
 
 在任意项目目录执行 `rk-flow init`，核心 R&K Flow Skills 会自动复制到 `.agents/skills/`。
 
-然后在项目的 `AGENTS.md` 中添加：
+然后在项目的 `AGENTS.md` 中添加入口导入。`AGENTS.md` 只作为项目身份和路由清单，详细规则、项目偏好和前端风格等长期约束放在 `.agents/rules/`：
 
 ```
+@import .agents/rules/
 @import .agents/skills/
 ```
 
@@ -115,11 +116,11 @@ rk-flow init
 ├───────────────────────────────────────────────────────────────────────────┤
 │                         信息分层架构                                        │
 │                                                                           │
-│  AGENTS.md           → 项目身份 + 路由（@import .agents/rules/）           │
+│  AGENTS.md           → 项目身份 + 入口清单 + 路由（薄入口）                 │
 │  .agents/roles/      → CLI 中立的项目级角色定义                              │
 │  .agents/hooks/      → Team Context 自动记账的中立 Hook 协议                 │
 │  .claude/.codex      → 运行时 Agent / Hook 适配                              │
-│  .agents/rules/      → 永久性编码规范（每文件 ≤ 20 行）                     │
+│  .agents/rules/      → 长期规则 + 项目偏好 + 前端风格（每文件 ≤ 20 行）      │
 │  spec/*/*/lead/      → 每个 Spec 的 team-context 运行账本                    │
 │  spec/context/       → 项目级结构化经验与知识（显式层）                       │
 │  skills/             → 工作流程定义（精简核心 + references/ 按需加载）        │
@@ -803,7 +804,7 @@ created: YYYY-MM-DD
 | **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
 | **知识记忆** | 是什么 | 项目理解、技术调研、代码分析 | TeachingAnalyzer 架构、AgentScope 框架对比 |
 | **程序记忆（SOP）** | 怎么做 | 可机械执行的步骤序列 | Docker 部署流程、数据库迁移流程 |
-| **项目规范/规则** | 必须遵守什么 | 长期项目约束、编码/安全/测试/日志/审计规则 | AGENTS.md、.agents/rules/*.md |
+| **项目规范/规则** | 必须遵守什么 | 长期项目约束、项目偏好、前端风格、编码/安全/测试/日志/审计规则 | 薄入口 AGENTS.md、.agents/rules/*.md |
 
 ### 经验权重分流
 
@@ -832,23 +833,23 @@ created: YYYY-MM-DD
 - 探索了项目架构、数据流 → 知识记忆（exp-write）
 - 完成了技术调研、框架对比 → 知识记忆（exp-write）
 - 完成了一个可重复的操作流程 → 程序记忆（SOP）
-- 形成长期编码、安全、测试、日志或审计约束 → 项目规范/规则（AGENTS.md 或 rules）
+- 形成长期编码、安全、测试、日志、审计、产品体验或前端样式约束 → 项目规范/规则（薄入口 AGENTS.md 或 rules）
 - 发现某个操作后总是需要特定的后续步骤 → 工具记忆
 - 日常编码技巧和调试经验 → Auto Memory（自动处理）
 
 ## 规范演进闭环
 
-`spec-init` 负责创建 `AGENTS.md` 和 `.agents/rules/`，`spec-end` 负责让它们在每个 Spec 收尾时被轻量审查。审查问题是：本次是否产生了以后都要遵守的项目规范？
+`spec-init` 负责创建薄入口 `AGENTS.md` 和 `.agents/rules/`，`spec-end` 负责让它们在每个 Spec 收尾时被轻量审查。审查问题是：本次是否产生了以后都要遵守的项目规范、项目偏好或前端样式？
 
 | 发现内容 | 维护位置 |
 |----------|----------|
-| 项目身份、技术栈、启动/部署方式、开发流程变化 | `AGENTS.md` |
-| 长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范 | `.agents/rules/*.md` |
+| 项目名称/一句话身份、核心技术栈摘要、AGENTS 路由或 import 变化 | `AGENTS.md` |
+| 启动/部署方式、开发流程细则、长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范、产品/前端偏好 | `.agents/rules/*.md` |
 | 可复用操作流程（部署、发布、迁移等） | `.agents/skills/sop-xxx/SKILL.md` |
 | 项目架构、数据流、模块理解 | `spec/context/knowledge/` |
 | 困境-策略、踩坑经验 | `spec/context/experience/` |
 
-原则：只写长期规则，不写一次性实现细节；优先更新已有 rules 文件，必要时再创建新规则文件；规范文件每次会话都会加载，必须短、明确、可执行。
+原则：`AGENTS.md` 只写入口清单和身份摘要，不承载长篇规范；长期规则和项目偏好优先更新已有 rules 文件，必要时再创建新规则文件；规范文件每次会话都会加载，必须短、明确、可执行。
 
 ## 最佳实践
 
@@ -897,7 +898,7 @@ created: YYYY-MM-DD
 ### 新成员入门流程
 
 1. **理解 Spec 驱动开发理念**
-   - 阅读 AGENTS.md 了解项目背景
+   - 阅读 AGENTS.md 了解项目身份和入口路由，再阅读 `.agents/rules/` 的长期规则
    - 阅读 spec/ 目录下现有 Spec 了解文档风格
 
 2. **熟悉 Agent Teams 工作流**
@@ -950,7 +951,7 @@ created: YYYY-MM-DD
 
 ### 内部文档
 
-- `AGENTS.md` - 项目总体指南
+- `AGENTS.md` - 项目身份与入口清单
 - `spec/` - 所有 Spec 文档
 - `.agents/roles/` - CLI 中立的项目级角色定义
 - `.agents/hooks/team-context-hook-contract.md` - Team Context 自动记账协议
@@ -981,13 +982,22 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.4
-**最后更新**: 2026-04-29
+**版本**: 2.4.1
+**最后更新**: 2026-04-30
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.4.1 (2026-04-30) - AGENTS 薄入口 + rules 偏好分层
+
+**核心改进**：
+
+1. **AGENTS.md 入口化**：明确 `AGENTS.md` 只承载项目身份、入口导入和目录路由，不再承载长篇规范。
+2. **项目偏好下沉**：长期项目偏好、产品体验、前端风格、测试/安全/文档约束统一维护在 `.agents/rules/`。
+3. **初始化模板同步**：`spec-init` 生成薄入口 `AGENTS.md`，并创建 `project-preferences.md` 与 `documentation.md` 等 rules 模板。
+4. **规范维护分流收敛**：`spec-end` / `exp-reflect` 将入口变化写入 `AGENTS.md`，详细规则和偏好写入 `.agents/rules/`。
 
 ### v2.4 (2026-04-29) - 项目级角色目录 + Team Context + Hook 协议
 
@@ -1008,7 +1018,7 @@ created: YYYY-MM-DD
 2. **归档职责收敛**：`spec-execute` 只负责实现和 `summary.md`，归档与 PR 收尾统一交给 `spec-end`
 3. **确认策略收敛**：`intent-confirmation` 改为风险触发式确认，而不是所有任务第一步强制确认
 4. **路径口径统一**：显式记忆统一指向 `spec/context/experience/` 与 `spec/context/knowledge/`
-5. **规范演进闭环**：`spec-end` 在归档前审查 `AGENTS.md` / `.agents/rules/` 是否需要维护，`exp-reflect` 支持项目规范/规则分流
+5. **规范演进闭环**：`spec-end` 在归档前审查薄入口 `AGENTS.md` / `.agents/rules/` 是否需要维护，`exp-reflect` 支持项目规范/规则/偏好分流
 6. **GitHub Flow 贯穿 Spec 生命周期**：`spec-start` 创建工作分支，`spec-update` 复用当前 Spec 分支，`spec-end` 收尾创建 PR，update 收尾提交推送并在整体交付时创建/更新 PR
 7. **版本同步**：README 与 npm package 版本同步到 2.3.0
 
@@ -1196,8 +1206,8 @@ created: YYYY-MM-DD
 **信息分层架构**：
 
 ```
-AGENTS.md          → 项目身份 + 路由（@import .agents/rules/）
-.agents/rules/     → 永久性编码规范（每文件 ≤ 20 行）
+AGENTS.md          → 项目身份 + 入口清单 + 路由（薄入口）
+.agents/rules/     → 长期规则 + 项目偏好 + 前端风格（每文件 ≤ 20 行）
 MEMORY.md          → Auto Memory 跨会话记忆（Claude 自主管理）
 spec/context/      → 项目级结构化经验与知识（显式层）
 skills/            → 工作流程定义（按需加载）
