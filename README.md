@@ -645,6 +645,100 @@ spec-ender → 通知 TeamLead，Teams 进入待机
 
 **非 Claude Code / Codex 用户**（Cursor、Windsurf 等）：这套 Skills 同样适用。将 `spec-start` 的流程交给单 Agent 按顺序执行，并使用 `.agents/roles/` 与 `lead/team-context.md` 保存状态。每个 Skill 文件都是独立的 Markdown 提示词，可以直接粘贴到任意 AI 编辑器中使用。
 
+### Claude Code 新特性增强用法
+
+R&K Flow 不依赖 Claude Code 的 `/goal` 或 Dynamic Workflows；它们只是 Claude Code 用户的可选增强层。推荐原则：
+
+- `/goal` 适合让 Claude Code 按 R&K Flow 持续推进，直到实现、测试和审查条件满足。
+- Dynamic Workflows 适合由 TeamLead 在探索、测试、审查阶段发起并行扫描。
+- Workflow 可以并行收集素材，但最终状态必须写回当前 Spec 目录。
+- 不建议让多个 workflow agent 同时修改同一批代码文件。
+
+#### 示例 1：用 `/goal` 自动推进一个完整 Spec
+
+```text
+/goal 使用 /spec-start 启动一个新 Spec，目标是实现「用户登录失败次数限制」功能。
+请按 R&K Flow 推进：探索 → plan.md → 实现 → 测试 → review。
+无需在每个阶段停下来问我，除非发现需求不清、会破坏现有接口、需要删除数据或涉及高风险改动。
+
+完成条件：
+1. executor/summary.md 已生成
+2. tester/test-report.md 显示关键用例通过
+3. reviewer/review.md 没有高优先级问题
+4. 构建和相关测试命令通过
+5. 最后给出改动摘要和验证证据
+```
+
+#### 示例 2：先开 Spec，再让 `/goal` 接管推进
+
+```text
+/spec-start 为「personal-web 增加文章搜索高亮」创建 Spec。
+```
+
+等 `spec-start` 建好上下文后：
+
+```text
+/goal 从当前 Spec 继续推进，直到实现完成、测试通过、review 无阻塞问题。
+阶段间不用反复确认，按 R&K Flow 写回所有角色产物。
+如果 plan.md 与实际代码冲突，停止并说明冲突点。
+```
+
+#### 示例 3：让 TeamLead 发起 Dynamic Workflow 做探索
+
+```text
+/spec-start 为「重构订单结算模块」创建 Spec。
+
+TeamLead：在 spec-explore 阶段使用 Claude Code Dynamic Workflow 做并行探索。
+请让 workflow 分成以下方向：
+1. 订单状态流转
+2. 支付与退款调用链
+3. 数据模型和数据库写入点
+4. 权限与异常处理
+5. 现有测试覆盖和缺口
+
+要求：
+- workflow 只读代码，不修改文件
+- 最终汇总到 explorer/exploration-report.md
+- 标出高风险区域、建议改动边界和测试重点
+```
+
+#### 示例 4：让 TeamLead 发起 Dynamic Workflow 做审查
+
+```text
+TeamLead：当前 executor/summary.md 已完成。
+请在 spec-review 阶段使用 Dynamic Workflow 并行审查实现。
+
+分工：
+1. 对照 writer/plan.md 检查功能完整性
+2. 检查接口签名、数据结构、命名是否一致
+3. 检查是否有 Spec 未定义的额外实现
+4. 检查测试证据是否覆盖关键路径
+5. 检查潜在安全、权限、回归风险
+
+要求：
+- 不修改代码
+- 所有发现汇总进 reviewer/review.md
+- 每个问题必须带 Spec 位置和代码位置
+```
+
+#### 示例 5：测试阶段并行扩展覆盖
+
+```text
+TeamLead：让 spec-tester 使用 Dynamic Workflow 扩展测试覆盖。
+请并行分析以下测试面：
+1. 正常用户路径
+2. 空值和边界输入
+3. 权限失败路径
+4. 网络/API 异常路径
+5. 回归风险路径
+
+输出：
+- 更新 tester/test-plan.md
+- 执行可运行的测试
+- 把日志、截图、trace 或命令输出放入 tester/artifacts/test-logs/
+- 最终生成 tester/test-report.md
+```
+
 ## 记忆系统
 
 本项目实现了**双层互补**的记忆架构：运行时原生记忆负责轻量上下文，基于 MUSE 框架的项目级经验系统负责可追溯沉淀。不同 CLI 的原生记忆能力不同，但显式层始终落在项目目录中。
@@ -1299,5 +1393,4 @@ skills/            → 工作流程定义（按需加载）
 - 初始版本
 - Spec 驱动式开发工作流
 - 三层记忆架构（memory Skill）
-
 
