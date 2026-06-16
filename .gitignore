@@ -19,8 +19,28 @@ Thumbs.db
 *.temp
 *.bak
 
+# Gate / 工具生成的备份文件
+*.gatebak
+
+# 本地运行时产物（不纳入唯一来源）
+*.zip
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+
 # Obsidian local vault config
 .obsidian/
 
 # SOP skills（由 memory Skill 动态生成）
 sop-**/
+
+# 运行时系统目录
+.system/
+
+# R&K flow 运行时产物（Spec 执行期间生成，不纳入版本控制）
+**/audit-log.jsonl
+**/delivery-state.json
+**/runtime.json
+**/team-mailboxes/
+**/logs/runtime-events.jsonl
