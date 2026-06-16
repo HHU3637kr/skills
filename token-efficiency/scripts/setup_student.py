@@ -2,7 +2,7 @@
 """
 One-shot student setup: install skill + audit + optional skill fix preview.
 
-Python 3.8+, stdlib only. v0.2
+Python 3.8+, stdlib only. v0.3
 """
 
 from __future__ import annotations
@@ -54,11 +54,14 @@ def main() -> int:
         run([py, str(scripts / "fix_skills.py"), "--list"])
 
     print("\n--- Next ---")
-    print("1. Install rules to your repo:")
-    print(f"   {py} scripts/install.py --write --project YOUR_REPO --agents cursor,claude-code --levers 1,3")
-    print("2. Re-audit to verify:")
-    print(f"   {py} scripts/audit.py --project ~")
-    print("3. Read docs/学员安装指南.md")
+    print("1. Save baseline + install rules to your repo:")
+    print(f"   {py} scripts/perf.py --save-baseline")
+    print(f"   {py} scripts/install.py --write --project YOUR_REPO --agents cursor,claude-code,hermes --levers 1,2,3")
+    print("2. Re-audit / compare:")
+    print(f"   {py} scripts/perf.py --compare-baseline")
+    print("3. Large tool output → shrink before agent reads:")
+    print(f"   {py} scripts/shrink.py OUTPUT --vault -o OUTPUT.shrunk")
+    print("4. Read docs/学员安装指南.md")
     return 0
 
 

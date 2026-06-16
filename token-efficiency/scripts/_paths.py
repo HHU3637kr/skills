@@ -9,12 +9,14 @@ ADAPTERS = REPO_ROOT / "adapters"
 DIST = REPO_ROOT / "dist"
 
 BEHAVIOR = CORE / "behavior-rules.md"
+PAYLOAD = CORE / "payload-rules.md"
 OUTPUT = CORE / "output-rules.md"
 CONTEXT = CORE / "context-design.md"
+CAPABILITY = CORE / "capability-guardrails.md"
 MARKER = "<!-- token-efficiency -->"
 
 VERSION_FILE = REPO_ROOT / "VERSION"
-VERSION = VERSION_FILE.read_text(encoding="utf-8").strip() if VERSION_FILE.is_file() else "0.2.0"
+VERSION = VERSION_FILE.read_text(encoding="utf-8").strip() if VERSION_FILE.is_file() else "0.3.1"
 
 # Optional ledger paths (e.g. Hermes ~/.hermes/phoenix/data/token_ledger.jsonl)
 LEDGER_CANDIDATES = [

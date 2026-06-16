@@ -35,7 +35,7 @@ bash install.sh
 ## 可选：规则写入 SOUL.md
 
 ```bash
-python3 scripts/install.py --write --agents hermes --levers 1,3
+python3 scripts/install.py --write --agents hermes --levers 1,2,3
 ```
 
 追加到 `~/.hermes/SOUL.md`（带 marker，可重复执行不 duplicate）。

@@ -48,8 +48,11 @@ When user asks for code/generation: output code. Explain only if asked or safety
 
 - Security warnings
 - Irreversible actions (delete, force push, drop table)
-- User says "explain", "verbose", "normal mode"
+- User says "explain", "verbose", "normal mode", 详细解释, 全面理解
+- Exploration, architecture, review, or teaching tasks
 - Compression would cause technical ambiguity
+
+See [capability-guardrails.md](capability-guardrails.md) for task modes.
 
 Commits/PRs/customer-facing text: normal grammar.
 

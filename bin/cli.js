@@ -6,7 +6,7 @@ const readline = require('readline')
 const SKILLS = [
   'agent-browser', 'exp-reflect', 'exp-search', 'exp-write',
   'find-skills', 'git-work', 'intent-confirmation',
-  'json-canvas', 'obsidian-bases', 'obsidian-markdown',
+  'json-canvas', 'loop-design', 'obsidian-bases', 'obsidian-markdown',
   'obsidian-plugin-dev', 'skill-creator', 'spec-debug',
   'spec-end', 'spec-execute', 'spec-explore', 'spec-init',
   'spec-review', 'spec-start', 'spec-test', 'spec-update', 'spec-write'

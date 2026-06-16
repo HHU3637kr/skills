@@ -110,21 +110,32 @@ Independent reads/searches go in **one message**. Parallel beats serial.
 
 ## 5. Search before read
 
-Unfamiliar code: grep the symbol → read match ±20 lines. Never read 1000 lines to find one function.
+Unfamiliar code in **Execution mode**: grep the symbol → read match ±20 lines.
+
+**Exploration mode:** semantic search + targeted reads across modules is OK.
 
 ## 6. No speculative explore
+
+**Execution mode only** (see capability-guardrails.md):
 
 - User gave path → start there.
 - User gave error → search error string first.
 - Widen scope only after targeted approach fails.
 - No "let me look around the repo first."
 
+**Exploration mode** (user asks to understand architecture / whole repo / onboarding):
+- Structured multi-file reads and semantic search are OK.
+- Prefer a short plan (files/areas to inspect) over random walks.
+
 ## 7. Build / test / lint
 
+**Execution mode:**
 - No full test suite for typo fixes.
 - No repo-wide lint/typecheck after one-file edits.
 - Targeted check on changed file only when risky or user asked.
 - User didn't ask for tests → don't run them.
+
+**Debug mode or user asked for tests:** run the verification they need (targeted or full per request).
 
 ## 8. Stop when done
 
@@ -143,6 +154,64 @@ Unfamiliar code: grep the symbol → read match ±20 lines. Never read 1000 line
 
 - Set generous timeout; don't poll repeatedly.
 - Dev servers/watchers: launch and move on.
+
+## 11. Capability over savings
+
+When L1 rules conflict with correct completion, follow [capability-guardrails.md](capability-guardrails.md).
+
+User says 详细解释 / explore freely / run tests / verbose → lift constraints for that task.
+
+
+---
+
+# Payload Rules (L2) — Core Source
+
+> Shrink large tool returns before they enter agent context.
+
+## When to shrink
+
+- Shell/command output > 80 lines
+- JSON array with > 10 objects
+- Log files > 100 lines
+- Any single tool result > ~4,000 est. tokens
+
+## Agent workflow
+
+1. Save bulky tool output to a temp file (or pipe to file).
+2. Run: `python3 scripts/shrink.py OUTPUT --vault -o OUTPUT.shrunk`
+3. Read `OUTPUT.shrunk` instead of full output.
+4. If detail missing, restore: `python3 scripts/shrink.py --restore VAULT_ID`
+
+## Content routing (auto)
+
+| Detected | Action |
+|----------|--------|
+| JSON array of objects | field list + count + sample rows |
+| JSON object | truncate long strings, cap nested depth |
+| Log | ERROR/WARN lines + tail |
+| Code | head + tail, omit middle |
+| Plain text | head + tail with marker |
+
+## Prefer prevention first
+
+- grep before cat
+- `head -n 50` / `tail -n 50` for logs
+- jq/query for JSON fields you need
+- shrink.py when output already captured
+
+## Vault
+
+`--vault` stores original under `~/.token-efficiency/vault/` for on-demand restore without re-running tools.
+
+## Capability (Debug / user override)
+
+Do **not** shrink if it may hide the bug. Restore vault or read full output when:
+
+- Debug mode or user says 看完整日志 / don't shrink
+- errors are intermittent or sample rows look inconsistent
+- shrink summary lacks the field you need → `--restore VAULT_ID`
+
+See [capability-guardrails.md](capability-guardrails.md).
 
 
 ---
@@ -197,8 +266,11 @@ When user asks for code/generation: output code. Explain only if asked or safety
 
 - Security warnings
 - Irreversible actions (delete, force push, drop table)
-- User says "explain", "verbose", "normal mode"
+- User says "explain", "verbose", "normal mode", 详细解释, 全面理解
+- Exploration, architecture, review, or teaching tasks
 - Compression would cause technical ambiguity
+
+See [capability-guardrails.md](capability-guardrails.md) for task modes.
 
 Commits/PRs/customer-facing text: normal grammar.
 
@@ -209,3 +281,98 @@ Commits/PRs/customer-facing text: normal grammar.
 - "Make production-ready" (vague)
 
 Ask: "Which file first?"
+
+
+---
+
+# Capability Guardrails — Save Waste, Not Intelligence
+
+Token efficiency removes **redundant cost**, not **reasoning depth** or **task completeness**.
+
+When efficiency rules conflict with doing the job right, **capability wins**.
+
+## Task modes (pick one per request)
+
+| Mode | When | Efficiency rules |
+|------|------|------------------|
+| **Execution** (default) | Fix bug, edit file, run command, ship feature | L1/L2/L3 fully apply |
+| **Exploration** | Understand codebase, architecture review, onboarding, "how does X work end-to-end" | L1 relaxed: semantic search, multi-file reads, structured repo survey OK |
+| **Debug** | Intermittent bug, production incident, "find root cause" | L2 relaxed: full or partial logs OK; always `--vault` before shrink; run targeted tests |
+| **Review** | PR review, design critique, teaching/explaining | L3 relaxed: prose, rationale, trade-offs OK |
+
+Detect mode from the user request. If ambiguous and the task is large, ask **one** clarifying question.
+
+## User overrides — always honor immediately
+
+If the user says any of:
+
+- 详细解释 / verbose / normal mode / 正常模式
+- explore freely / 全面理解 / 先看整个项目 / broad explore
+- run tests / 跑测试 / 全量验证
+- don't shrink / 不要压缩 / 看完整日志
+
+→ Drop efficiency constraints for **that task** until they say otherwise.
+
+## L1 — behavior (what NOT to cut)
+
+Still apply in Execution mode:
+
+- grep before blind full-file read **for a known symbol**
+- no duplicate re-read of unchanged files
+- batch parallel independent tool calls
+
+Lift in Exploration / Debug / when user overrides:
+
+- reading many files to build a mental model
+- semantic search across the repo
+- running test suites the user asked for (or Debug mode requires)
+- re-reading after edits across a wide surface
+
+**Never skip:** security checks, irreversible action confirmation, user-specified verification.
+
+## L2 — payload shrink (what NOT to cut)
+
+Shrink **after capture**, not instead of capture, when:
+
+- output is clearly redundant (1000-line log, 500-row JSON dump)
+- you only need structure + errors + tail
+
+Do **not** shrink (or restore from vault first) when:
+
+- the missing line might be the bug (Debug mode)
+- sampling could hide data skew (analytics, test failures)
+- user asked for full output
+
+Always use `--vault` when shrinking anything you might need to inspect again.
+
+## L3 — output (what NOT to cut)
+
+Terse by default in Execution mode. Expand when:
+
+- user asked to explain
+- architecture / trade-off decision needs rationale
+- ambiguity would cause wrong implementation
+- teaching or review mode
+
+Commits, PR descriptions, customer-facing text: normal grammar and completeness.
+
+## Skills & MCP (L0)
+
+`fix_skills` and MCP prune save fixed tax — they do **not** make the model dumber.
+
+- Keep auto-invoke on skills used **every session** (`--keep`)
+- Do not disable MCP the task explicitly needs
+- Pruning unused servers frees context for **more** useful code — net capability gain
+
+## Decision rule
+
+```
+if task_complete_and_correct:
+    apply efficiency
+elif efficiency_rule_blocks_correctness:
+    lift constraint for this step
+else:
+    prefer cheaper tool, keep quality bar
+```
+
+Efficiency is a **default**, not a cage.

@@ -43,7 +43,7 @@ Root-cause model. Every fix maps to exactly one primary layer.
 - Batch parallel reads
 - Stop when done
 
-**Expected impact:** 30–70% of agent-task tokens (GitHub gh-aw: turn count dominates)
+**Expected impact:** 30–70% of agent-task tokens (turn count dominates)
 
 ---
 
@@ -55,13 +55,17 @@ Root-cause model. Every fix maps to exactly one primary layer.
 - Full file read (1000+ lines)
 - Unbounded command output
 - Wide semantic search results
+- JSON arrays / log dumps from shell tools
+
+**Detection:** Session review; `shrink.py --json` for measured reduction
 
 **Fixes:**
-- Targeted read with line range
-- Pipe through `head`/`tail` for logs
-- Narrow search scope first
+- Install [core/payload-rules.md](core/payload-rules.md) via adapter lever 2
+- `python3 scripts/shrink.py OUTPUT --vault` — auto-routes JSON / log / code / text
+- Targeted read with line range; `head`/`tail` for logs
+- Restore detail on demand: `shrink.py --restore VAULT_ID`
 
-**Expected impact:** 1K–10K tokens per offending call
+**Expected impact:** 1K–10K tokens per offending call; 50–90% on large JSON/log payloads
 
 ---
 
@@ -76,7 +80,7 @@ Root-cause model. Every fix maps to exactly one primary layer.
 
 **Fixes:**
 - Install [core/output-rules.md](core/output-rules.md) via adapter
-- Optional terse mode (lighter than caveman)
+- Professional terse mode (no cosplay)
 
 **Expected impact:** 40–70% output tokens on code tasks
 

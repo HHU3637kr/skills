@@ -55,7 +55,7 @@ python3 scripts/audit.py --project ~
 python3 scripts/fix_skills.py --write --keep 用户指定的常用skill名
 
 # 给当前项目装行为规则
-python3 scripts/install.py --write --project 用户项目路径 --agents cursor,claude-code --levers 1,3
+python3 scripts/install.py --write --project 用户项目路径 --agents cursor,claude-code --levers 1,2,3
 ```
 
 ## 安装结果

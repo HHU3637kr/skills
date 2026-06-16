@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from _paths import ADAPTERS, BEHAVIOR, CONTEXT, OUTPUT, REPO_ROOT
+from _paths import ADAPTERS, BEHAVIOR, CAPABILITY, CONTEXT, OUTPUT, PAYLOAD, REPO_ROOT
 
 
 def mdc(desc: str, body: str) -> str:
@@ -33,6 +33,14 @@ def main() -> None:
         mdc("Token efficiency L0 — context landmines", CONTEXT.read_text(encoding="utf-8")),
         encoding="utf-8",
     )
+    (cursor / "token-efficiency-payload.mdc").write_text(
+        mdc("Token efficiency L2 — payload shrink", PAYLOAD.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
+    (cursor / "token-efficiency-capability.mdc").write_text(
+        mdc("Token efficiency — capability guardrails", CAPABILITY.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
 
     cc = ADAPTERS / "claude-code"
     cc.mkdir(parents=True, exist_ok=True)
@@ -47,7 +55,11 @@ def main() -> None:
         + "\n\n---\n\n"
         + BEHAVIOR.read_text(encoding="utf-8")
         + "\n\n---\n\n"
-        + OUTPUT.read_text(encoding="utf-8"),
+        + PAYLOAD.read_text(encoding="utf-8")
+        + "\n\n---\n\n"
+        + OUTPUT.read_text(encoding="utf-8")
+        + "\n\n---\n\n"
+        + CAPABILITY.read_text(encoding="utf-8"),
         encoding="utf-8",
     )
     print(f"Synced adapters from {REPO_ROOT / 'core'}")

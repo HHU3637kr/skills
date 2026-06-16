@@ -26,6 +26,7 @@ TARGETS: Dict[str, Path] = {
     "agents": Path.home() / ".agents" / "skills" / "token-efficiency",
     "claude": Path.home() / ".claude" / "skills" / "token-efficiency",
     "hermes": Path.home() / ".hermes" / "skills" / "token-efficiency",
+    "openclaw": Path.home() / ".openclaw" / "skills" / "token-efficiency",
 }
 
 
@@ -46,8 +47,8 @@ def main(argv: List[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Install token-efficiency skill globally")
     parser.add_argument(
         "--targets",
-        default="codex,cursor,agents,hermes",
-        help="comma list: codex,cursor,agents,claude,hermes",
+        default="codex,cursor,agents,claude,hermes,openclaw",
+        help="comma list: codex,cursor,agents,claude,hermes,openclaw",
     )
     parser.add_argument("--write", action="store_true", help="Apply (default dry-run)")
     args = parser.parse_args(argv)
@@ -71,6 +72,7 @@ def main(argv: List[str] | None = None) -> int:
     else:
         print("\nDone. Invoke: token audit / 省 token / save tokens")
         print("Hermes users: run /reload-skills in TUI after install")
+        print("OpenClaw users: restart gateway or reload skills if your build supports it")
     return 0
 
 

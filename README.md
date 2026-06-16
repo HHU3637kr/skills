@@ -381,6 +381,27 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
 | `find-skills` | 搜索和安装开源 Skill | 从 skills.sh 生态发现新能力 |
 
+#### loop-design 的定位
+
+`loop-design` 不属于某个固定角色，也不在 Spec 执行链路上——它**只产出 Loop 定义，不驱动执行**。先由 `intent-confirmation` 把意图澄清清楚，再把重复任务设计成一个有边界的 Loop（运行契约 + Loop Budget），产出的定义既可套用到 R&K Flow 内的 loop（如 `spec-test ↔ spec-debug` 修复循环），也可用于自定义 loop。
+
+```text
+intent-confirmation（澄清意图）
+        │  复用澄清结果
+        ▼
+loop-design（设计有边界的 Loop）
+        │  产出 Loop 定义：运行契约 + Loop Budget
+        ▼
+┌──────────────────────────────────────────┐
+│ R&K Flow 内 loop                           │  例：spec-test ↔ spec-debug
+│ （套用 Loop Budget：max_rounds /           │       修复循环
+│   max_no_progress_rounds 触发即停并升级）  │
+│ 或 自定义 loop                              │
+└──────────────────────────────────────────┘
+        ▲
+        └─ loop-design 只产出定义，不直接驱动循环执行
+```
+
 ## Spec 目录结构
 
 ```
@@ -1090,13 +1111,25 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.4.1
-**最后更新**: 2026-04-30
+**版本**: 2.5.0
+**最后更新**: 2026-06-16
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.5 (2026-06-16) - 运行契约 + loop-design + Skill 生态扩展
+
+**核心改进**：
+
+1. **运行契约（Run Contract）**：为 7 个核心工作流 Skill + 3 个记忆管理 Skill（exp-search/exp-reflect/exp-write）头部引入「运行契约」表，统一声明输入、权限、验证、停止、升级，把每个 Skill 当成有边界的循环单元。
+2. **Loop Budget 停止条件**：`spec-test ↔ spec-debug` 修复循环在 `lead/team-context.md` 新增 `Loop Budget` 区，`max_rounds` / `max_no_progress_rounds` 由用户进入循环前确认，触发上限即停止并升级。
+3. **新增 `loop-design` Skill**：复用 `intent-confirmation` 澄清后，把重复任务设计成有边界的 Loop（运行契约 + 预算），只产出定义不驱动执行，可服务 R&K Flow 内 loop 或自定义 loop。
+4. **Lark Skill 套件**：新增 lark-base / sheets / docs / im / mail / drive / calendar / task / wiki / okr / slides / whiteboard / vc / minutes / workflows 等飞书生态 Skill。
+5. **辅助 Skill 扩充**：新增 token-efficiency、agent-browser、obsidian-spec-confirm 等 Skill；38 个 Skill 标记 `disable-model-invocation`（仅显式调用）。
+6. **token-efficiency v0.3.1**：从 v0.2.0 升级，新增 L2 大输出压缩（`shrink.py` + `--vault` 还原）、`perf.py` 前后对比基线、能力保障护栏（「省浪费不省智能」，避免效率规则阻断任务完成），扩展 Hermes / OpenClaw / Codex 适配。
+7. **仓库治理**：`.gitignore` 增加 `*.gatebak`、运行时产物（`*.zip`/`*.sqlite*`/`*.log`）、`.system/` 和 R&K flow 运行时文件忽略规则；移除已废弃的 minimax-* / pptx-generator / ding-yuanying-perspective Skill；README 与 npm package 版本同步到 2.5.0。
 
 ### v2.4.1 (2026-04-30) - AGENTS 薄入口 + rules 偏好分层
 

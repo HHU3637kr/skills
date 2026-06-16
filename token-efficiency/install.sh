@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Install token-efficiency v0.2 — global skill + hint
+# Install token-efficiency v0.3.1 — global skill + hint
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 PY="${PYTHON:-python3}"

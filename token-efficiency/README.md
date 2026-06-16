@@ -1,4 +1,4 @@
-# token-efficiency v0.2.0
+# token-efficiency v0.3.1
 
 **独立省 Token 插件** — zip 分发 · Agent 可代安装 · Win/Mac/Linux · Cursor/Codex/Hermes/…
 
@@ -6,7 +6,7 @@
 
 ```bash
 python3 scripts/package_release.py
-# → dist/token-efficiency-0.2.0.zip
+# → dist/token-efficiency-0.3.1.zip
 ```
 
 ## 学员（最简单）

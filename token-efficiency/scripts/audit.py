@@ -213,7 +213,7 @@ def scan_mcp() -> List[FileFinding]:
             continue
         seen.add(key)
         servers = parse_mcp_servers(p)
-        schema_est = servers * 2000  # ~2K tok/server/turn heuristic (gh-aw)
+        schema_est = servers * 2000  # ~2K tok/server/turn heuristic
         findings.append(
             FileFinding(
                 str(p),
@@ -346,11 +346,23 @@ def rank_fixes(
     fixes.append(
         FixRecommendation(
             rank,
+            "L2",
+            "Install payload shrink rules + use shrink.py on large tool output",
+            2000,
+            "high",
+            "python3 scripts/install.py --write --levers 2 && python3 scripts/shrink.py BIG_OUTPUT --vault",
+        )
+    )
+    rank += 1
+
+    fixes.append(
+        FixRecommendation(
+            rank,
             "L1",
-            "Install behavior + output rules",
+            "Install behavior + payload + output + capability guardrails",
             0,
             "high",
-            "python3 scripts/install.py --write --agents cursor,claude-code,windsurf --levers 1,3",
+            "python3 scripts/install.py --write --agents cursor,claude-code,codex,hermes,openclaw --levers 1,2,3",
         )
     )
     return fixes

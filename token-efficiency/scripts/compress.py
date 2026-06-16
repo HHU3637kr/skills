@@ -2,7 +2,7 @@
 """
 token-efficiency compress — semantic-safe instruction compression.
 
-Synthesized from context-compress (vidanov) with safety-first classification.
+Semantic-safe instruction compression for always-on markdown files.
 Python 3.8+, stdlib only.
 """
 
