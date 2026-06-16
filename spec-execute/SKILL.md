@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-execute
 description: >
   严格按 writer/plan.md 执行新功能开发。由角色 spec-executor 调用。
@@ -13,6 +14,18 @@ description: >
 # Spec Execute
 
 根据当前 Spec 目录中的 `writer/plan.md` 执行新功能开发，严格遵循已批准的设计方案，不添加额外功能。完成后创建 `executor/summary.md`，并通知 TeamLead 进入测试阶段。
+
+## 运行契约
+
+> 进入核心原则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | 已确认的 `writer/plan.md`、`exp-search` 检索结果、TeamLead 提供的 Git 元数据 |
+| 权限 | 按 plan 实现代码 + 写 `executor/summary.md`；不写测试、不修 bug、不归档、不提交或推送 |
+| 验证 | 只实现 plan 中明确定义的功能，使用 plan 的类名/方法名/数据结构，代码注释引用 plan 章节 |
+| 停止 | plan 定义的实现步骤全部完成且 summary 通过用户确认即停止，不"优化"、不加 plan 未定义的功能 |
+| 升级 | plan 不完整、前置阶段未完成、或实现中发现 plan 设计有误时，停止实现并交回 TeamLead 由用户决策 |
 
 ## 核心原则
 

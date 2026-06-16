@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-explore
 description: >
   Spec 创建前的信息收集与探索。由角色 spec-explorer 调用。
@@ -9,6 +10,18 @@ description: >
 ---
 
 # Spec Explore
+
+## 运行契约
+
+> 进入工作流程前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | TeamLead 的任务描述与探索范围、`exp-search` 检索结果、项目代码、外部库/文档 |
+| 权限 | 只读探索（Read/Glob/Grep）+ 探索新内容后调用 exp-reflect 沉淀知识；不改业务代码、不写 plan、不建测试 |
+| 验证 | `explorer/exploration-report.md` 含历史经验、项目现状、外部知识、对下游的建议与已知风险 |
+| 停止 | 报告四个章节齐备且足以让 spec-writer/spec-tester 开工即停止，不为"探索更全"无限扩大范围 |
+| 升级 | 探索发现需求本身存在矛盾、范围远超任务、或触及权限/安全/数据风险时，停止探索并交回 TeamLead 由用户决策 |
 
 ## 核心原则
 

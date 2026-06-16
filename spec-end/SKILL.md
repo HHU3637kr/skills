@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-end
 description: >
   当一个完整 Spec 的计划、实现、测试阶段都已完成，且角色 spec-ender 进入阶段五收尾时使用：
@@ -7,6 +8,18 @@ description: >
 ---
 
 # Spec End
+
+## 运行契约
+
+> 进入核心原则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | 当前 Spec 全部角色产物、`lead/team-context.md`（含 Git 元数据）、TeamLead 转回的各角色经验素材 |
+| 权限 | 写 `ender/end-report.md`、调用 exp-reflect 分流、用户确认后维护 AGENTS.md/rules、归档目录、git commit/push/PR；规范变更前必须先经用户确认 |
+| 验证 | 各阶段已完成、经验已分流沉淀、规范审查有结论、归档前当前分支等于 `git_branch` 且不是 main |
+| 停止 | 归档/提交/PR 必须经用户确认才执行；用户选"暂不归档"则只产出报告即停止 |
+| 升级 | 阶段未真正完成、规范变更影响面大、或 Git 状态异常（分支不符、main 上提交）时，停止并交回用户决策 |
 
 ## 核心原则
 

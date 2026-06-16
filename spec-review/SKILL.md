@@ -1,9 +1,22 @@
 ---
+disable-model-invocation: true
 name: spec-review
 description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，在 reviewer/ 下生成审查报告（review.md）。在 spec-execute 完成 executor/summary.md 后、spec-end 归档前使用。触发词：审查 Spec、检查实现、Spec Review。
 ---
 
 # Spec Review
+
+## 运行契约
+
+> 进入核心规则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | `writer/plan.md` 或 `updater/update-xxx.md`、`executor/summary.md` 或 `updater/update-xxx-summary.md`、实际代码 |
+| 权限 | 只写 `reviewer/review.md` / `update-xxx-review.md`（审查结论）；只读代码核对，不修改代码、不修 bug、不归档 |
+| 验证 | 按完成度/一致性/额外实现三维核对，每个检查项标注 Spec 位置 + 代码位置（file:line） |
+| 停止 | 审查报告定稿且通过用户确认即停止；不越界去修复发现的问题（交给 spec-debugger/spec-update） |
+| 升级 | 发现核心功能未实现、数据模型严重不符或需重新实现时，在 `Problem Resolution Log` 记录并交回 TeamLead 由用户决策 |
 
 ## 核心规则
 

@@ -38,6 +38,12 @@ rk-flow init
 > - 5 阶段流程，每个阶段转换有用户确认门禁
 > - 通过 `lead/team-context.md` 记录运行路径、角色实例、产物、完成项、问题解决和 PR 状态
 
+> **运行契约（Run Contract）** - 先写刹车，再写循环
+> - 每个核心工作流 Skill 头部都有一张「运行契约」表：输入、权限、验证、停止、升级
+> - 把 Skill 当成有边界的循环单元，而不是一段无界的提示词；强调"什么时候停、什么时候交还给人"
+> - spec-test ↔ spec-debug 修复循环用 `lead/team-context.md` 的 `Loop Budget` 落实停止条件：`max_rounds` / `max_no_progress_rounds` 由用户进入循环前确认，触发上限即停止并升级
+> - 适用范围：7 个核心工作流 Skill + 3 个记忆管理 Skill（exp-search/exp-reflect/exp-write）；领域 Skill 不强制
+
 
 ## 架构概览
 
@@ -171,11 +177,13 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/lead/team-context.md
 - 产物注册表、跨角色 handoff、开放问题和下一步动作
 - 共享完成区：`Task Progress`
 - 共享问题区：`Problem Resolution Log`
+- 修复循环预算区：`Loop Budget`（test-debug 循环的 `max_rounds` / `max_no_progress_rounds` / `rounds_used` / `no_progress_streak`）
 
 维护边界：
 - TeamLead 维护 frontmatter、运行路径、Git/PR 元数据、Runtime Handles、Artifact Registry、Gate Decisions、Handoffs、Open Questions / Blockers、Next Action。
 - 所有角色可共同维护 `Task Progress`，但只追加或更新自己负责的任务行。
 - 发现或解决问题的角色可共同维护 `Problem Resolution Log`，但只追加或更新自己相关的问题行。
+- `Loop Budget` 的上限值由用户在进入修复循环前通过 TeamLead 确认；`rounds_used` / `no_progress_streak` 由 spec-debugger 和 spec-tester 每轮更新，触发上限时停止循环并升级给用户。
 - Hook 只自动记录事实事件，不推断业务结论、门禁决策、handoff 原因或下一步动作。
 
 ### GitHub Flow 约定
@@ -368,6 +376,7 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `intent-confirmation` | 确认用户意图 | **在执行任务前**避免理解偏差，确保 Agent 正确理解需求 |
+| `loop-design` | 帮用户把重复任务设计成有边界的 Loop | 复用 intent-confirmation 澄清后，产出 loop 定义（运行契约 + 预算）；可服务 R&K Flow 内 loop 或自定义 loop，只产出定义不驱动执行 |
 | `git-work` | GitHub Flow 分支/PR 规范 | Spec 开始时创建工作分支，收尾时提交、推送、创建 PR |
 | `skill-creator` | 创建新 Skill 的指南 | 扩展能力时参考 |
 | `find-skills` | 搜索和安装开源 Skill | 从 skills.sh 生态发现新能力 |
@@ -610,7 +619,10 @@ spec-tester：
   按 tester/test-plan.md 执行测试用例
   测试代码自动采集 tester/artifacts/test-logs/<run-id>/ 下的日志/JSON/证据
   发现 bug → 在 lead/team-context.md 的 Problem Resolution Log 记录问题并通知 TeamLead
-  TeamLead → spec-debugger 修复 → TeamLead → spec-tester 重新验证
+  TeamLead → 用 intent-confirmation 与用户确认修复循环预算（max_rounds / max_no_progress_rounds）
+           → 写入 lead/team-context.md 的 Loop Budget
+  TeamLead → spec-debugger 修复（每轮更新 rounds_used / no_progress_streak）→ TeamLead → spec-tester 重新验证
+  触发预算上限或连续无进展 → 停止循环 → TeamLead 升级给用户（继续加预算 / 改方案 / 暂停）
   产出 tester/test-report.md
 
 可选：
@@ -1066,13 +1078,15 @@ created: YYYY-MM-DD
 1. 参考 `skill-creator/SKILL.md` 的指南
 2. 在 `.agents/skills/` 下创建新目录
 3. 编写 SKILL.md 文件
-4. 更新本 README 的 Skills 列表
+4. 核心工作流 / 记忆管理类 Skill 在标题后补一张「运行契约」表（输入/权限/验证/停止/升级）
+5. 更新本 README 的 Skills 列表
 
 ### 更新现有 Skill
 
 1. 直接编辑对应 Skill 的 SKILL.md
 2. 遵循 Skill 的更新规范
-3. 更新相关文档引用
+3. 修改职责或边界时，同步更新该 Skill 的「运行契约」表
+4. 更新相关文档引用
 
 ---
 

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-start
 description: >
   当用户开始新的开发任务、需要启动完整 Spec 流程（需求对齐→探索→设计→实现→测试→收尾），
@@ -211,6 +212,21 @@ updated_at: {ISO8601}
 | from | to | reason | artifact | status | updated_at |
 |------|----|--------|----------|--------|------------|
 
+## Loop Budget
+
+> 修复循环（spec-tester ↔ spec-debugger）的运行预算。值不写死在 Skill 中，
+> 由 TeamLead 在进入阶段四修复循环前用 intent-confirmation 与用户确认后填入。
+> 只跟踪两个上限：最大轮数、最大无进展轮数。
+
+| loop | max_rounds | max_no_progress_rounds | rounds_used | no_progress_streak | status | confirmed_by_user | updated_at |
+|------|-----------|------------------------|-------------|--------------------|--------|-------------------|------------|
+| test-debug | 待确认 | 待确认 | 0 | 0 | not-started | no | |
+
+- `max_rounds`：本次修复循环最多允许 tester→debugger→tester 走多少轮（建议默认 3，用户可改）。
+- `max_no_progress_rounds`：连续多少轮没有新增进展就停止并升级给人（建议默认 2，用户可改）。
+- `rounds_used` / `no_progress_streak`：由 spec-debugger 和 spec-tester 在每轮重验后更新。
+- `status` 取值：`not-started` | `running` | `passed` | `stopped-budget` | `stopped-no-progress` | `escalated`。
+
 ## Open Questions / Blockers
 
 | id | owner | question_or_blocker | status | resolution |
@@ -291,10 +307,18 @@ GitHub Flow 准备
 阶段四：测试
   TeamLead → 启动/恢复 spec-tester 执行测试
   [如有 bug] spec-tester → bug handoff → TeamLead
+             TeamLead → 用 intent-confirmation 与用户确认本次修复循环预算
+                        （max_rounds 建议 3，max_no_progress_rounds 建议 2，用户可改）
+                        → 写入 lead/team-context.md 的 Loop Budget，status=running
              TeamLead → 启动/恢复 spec-debugger
-             spec-debugger 修复 → TeamLead
+             spec-debugger 修复 → 更新 rounds_used / no_progress_streak → TeamLead
              TeamLead → 启动/恢复 spec-tester 重新验证
-             spec-tester 验证通过 → 继续
+             spec-tester 验证 → 更新 Loop Budget 进展信号
+             [验证通过] Loop Budget status=passed → 继续
+             [仍失败且未触上限] 回到 spec-debugger 下一轮
+             [触发 max_rounds 或 max_no_progress_rounds]
+                        → spec-tester/spec-debugger 停止，status=stopped-budget/stopped-no-progress
+                        → TeamLead 升级给用户决定（继续加预算 / 改方案 / 暂停）
   spec-tester → tester/test-report.md → TeamLead
   TeamLead → 用户确认 tester/test-report.md
   [可选审查] TeamLead → 启动/恢复 spec-reviewer
@@ -317,9 +341,20 @@ GitHub Flow 准备
 | 分支准备 | TeamLead | 仅在工作区不干净、无 Git 仓库或需使用 worktree 时询问 |
 | Spec 审阅 | TeamLead | `writer/plan.md` + `tester/test-plan.md` |
 | 实现确认 | TeamLead | `executor/summary.md` |
+| 修复循环预算 | TeamLead | 进入修复循环前确认 `max_rounds` 和 `max_no_progress_rounds`（带建议默认值，用户可改） |
 | 诊断确认 | TeamLead | `debugger/debug-xxx.md`（如有） |
 | 测试报告确认 | TeamLead | `tester/test-report.md` |
+| 修复循环升级 | TeamLead | 触发预算上限或连续无进展时，确认继续加预算 / 改方案 / 暂停 |
 | 归档确认 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
+
+## 修复循环进展信号
+
+进入阶段四的 spec-tester ↔ spec-debugger 修复循环时，TeamLead 维护 `lead/team-context.md` 的 `Loop Budget`：
+
+- **预算来自用户**：`max_rounds` 和 `max_no_progress_rounds` 不写死在 Skill 中。每次进入修复循环前，TeamLead 用 `intent-confirmation` 向用户确认，带建议默认值（3 轮 / 连续 2 轮无进展），用户可直接接受或改写。
+- **每轮记账**：spec-debugger 修复后、spec-tester 重验后，各自更新 `rounds_used` 和 `no_progress_streak`。
+- **进展的定义**：一轮算"有进展"当且仅当出现以下至少一项——新增通过的测试用例、失败范围缩小、定位到此前未知的根因、产生新的可验证证据。仅写了新总结但上述都没有，记为"无进展"，`no_progress_streak` 加一。
+- **停止与升级**：`rounds_used` 达到 `max_rounds`，或 `no_progress_streak` 达到 `max_no_progress_rounds` 时，停止循环并由 TeamLead 升级给用户，不自行无限重试。
 
 ## 后续动作
 

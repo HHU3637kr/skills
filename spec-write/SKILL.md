@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-write
 description: >
   撰写代码实现计划（writer/plan.md）。由角色 spec-writer 调用。
@@ -11,6 +12,18 @@ description: >
 ---
 
 # Spec Write
+
+## 运行契约
+
+> 进入核心规则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | `explorer/exploration-report.md`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据 |
+| 权限 | 只写 `writer/plan.md`（设计方案）；不写测试计划、不实现代码、不归档、不提交；目录分类错误时通过 TeamLead 请求修正 |
+| 验证 | plan 含 7 个必需章节、工作类型目录正确、命名为中文 `YYYYMMDD-HHMM-任务描述`、git_branch 与当前分支一致 |
+| 停止 | plan 定稿且通过用户确认即停止，不在确认前编写代码、不"顺手"加 Spec 未要求的设计 |
+| 升级 | 探索背景不足、接口边界与 spec-tester 无法对齐、或需求超出当前 Spec 范围时，交回 TeamLead 由用户决策 |
 
 ## 核心规则
 

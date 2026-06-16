@@ -90,6 +90,10 @@ skills/
 ├── exp-write/                         # 写入 experience/knowledge
 ├── git-work/                          # GitHub Flow 分支、提交、推送、PR
 ├── intent-confirmation/               # 前置意图确认
+├── loop-design/                       # 把重复任务设计成有边界的 Loop
+│   ├── SKILL.md                       # 交互式产出 loop 定义（只产出不执行）
+│   └── references/
+│       └── loop-definition-template.md
 ├── obsidian-markdown/                 # Obsidian Markdown 支持
 ├── obsidian-bases/                    # Obsidian Bases 支持
 ├── obsidian-plugin-dev/               # Obsidian 插件开发参考
@@ -203,6 +207,7 @@ spec-start → git-work → lead/team-context.md
 | Skill | 作用 |
 |-------|------|
 | `intent-confirmation` | 在理解风险较高时对齐用户意图 |
+| `loop-design` | 把重复任务设计成有边界的 Loop，产出 loop 定义（运行契约 + 预算），只产出不执行 |
 | `git-work` | 创建 Spec 分支、提交、推送、PR |
 | `skill-creator` | 创建或维护 Skill |
 | `find-skills` | 发现外部 Skill |
@@ -258,6 +263,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | Runtime Handles | TeamLead | 记录 agent/thread/session handle |
 | Artifact Registry | TeamLead | 产物路径、状态、是否确认 |
 | Gate Decisions | TeamLead | 用户确认门禁 |
+| Loop Budget | TeamLead + tester/debugger | 修复循环（test-debug）预算：max_rounds / max_no_progress_rounds 由用户在进入循环前确认；rounds_used / no_progress_streak 每轮由 tester/debugger 更新 |
 | Handoffs | TeamLead | 跨角色交接 |
 | Open Questions / Blockers | TeamLead | 阻塞和开放问题 |
 | Next Action | TeamLead | 下一步动作 |
@@ -345,6 +351,7 @@ lead/team-context.md 的事实字段
 | `spec-end` | `exp-reflect`, `git-work` | TeamLead |
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
+| `loop-design` | `intent-confirmation`, `spec-start`(Loop Budget), `skill-creator` | 用户在需要设计循环时调用 |
 | `git-work` | Git CLI / GitHub Flow | `spec-start`, `spec-end`, `spec-update` |
 
 ---
@@ -365,6 +372,7 @@ lead/team-context.md 的事实字段
 ## 维护要点
 
 - README 是最高层叙事文档；CODEMAP 按 README 的组织方式维护源码地图。
+- 7 个核心工作流 Skill 和 3 个记忆管理 Skill（exp-search/exp-reflect/exp-write）标题后都有一张「运行契约」表（输入/权限/验证/停止/升级）；修改这些 Skill 的职责或边界时，同步更新其运行契约表。
 - 新增或修改核心 Skill 时，同步更新 README 的 Skills 表、Spec 目录结构和本 CODEMAP。
 - 修改角色协议时，优先更新 `spec-init/references/project-agent-roles.md`，再同步 Claude Code / Codex 适配说明。
 - 修改 Team Context 字段或 Hook 行为时，优先更新 `spec-init/references/team-context-hook-contract.md`、`spec-init/references/runtime-hook-examples.md` 和 `spec-start/SKILL.md`。

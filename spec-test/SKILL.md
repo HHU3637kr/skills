@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-test
 description: >
   当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.md、在实现完成后执行测试并产出 tester/test-report.md，
@@ -7,6 +8,18 @@ description: >
 ---
 
 # Spec Test
+
+## 运行契约
+
+> 进入核心原则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | `explorer/exploration-report.md`、`writer/plan.md`、`executor/summary.md`、命中的场景测试策略 |
+| 权限 | 写 `tester/test-plan.md` / `tester/test-report.md`、采集 `tester/artifacts/` 证据、可调整测试脚本/配置；不直接修复 bug、不改业务实现 |
+| 验证 | 验收标准具体可判定、关键路径有可审计证据、证据由测试运行自动生成且已脱敏 |
+| 停止 | 测试计划/报告定稿且通过用户确认即停止；修复循环受 `Loop Budget` 约束，触发 `max_rounds` 或 `max_no_progress_rounds` 时停止发起新一轮 handoff |
+| 升级 | 发现 bug 时向 TeamLead 提交 handoff（不自行修复）；修复循环触上限或证据无法采集时，交回 TeamLead 由用户决策 |
 
 ## 核心原则
 
@@ -18,6 +31,7 @@ description: >
 6. **证据必须自动采集**：`tester/artifacts/test-logs/<run-id>/` 下的日志、JSON、trace、录屏和截图必须由测试脚本、浏览器自动化、服务日志采集或命令输出生成；Agent 不得手写、补写或伪造这些证据文件内容
 7. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
 8. **策略在 spec-test 内沉淀**：测试过程中发现跨项目可复用的测试方法时，更新本 Skill 的 `references/` 和策略表；不要写入当前项目的 `AGENTS.md` 或 `.agents/rules/`
+9. **修复循环受预算约束**：重验属于 spec-tester ↔ spec-debugger 修复循环的一环，受 `lead/team-context.md` 的 `Loop Budget` 约束。每轮重验后更新 `Loop Budget` 进展信号；触发 `max_rounds` 或 `max_no_progress_rounds` 时停止发起新一轮 handoff，转为通知 TeamLead 升级给用户。
 
 ## 测试策略库
 
@@ -227,6 +241,23 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 等待 TeamLead 提供 spec-debugger 的修复完成通知后，重新执行相关测试用例。
 
+#### 重验后更新修复循环记账
+
+收到 spec-debugger 的修复完成通知并重新执行相关用例后，更新 `lead/team-context.md` 的 `Loop Budget`（`test-debug` 行）：
+
+- **验证通过**：把 `status` 标为 `passed`，在 `Problem Resolution Log` 把对应问题行标为 `verified`，结束修复循环。
+- **仍然失败**：与 spec-debugger 的本轮记账保持一致，复核 `rounds_used` 和 `no_progress_streak` 是否已正确递增（重验视角下，本轮是否新增通过用例、是否缩小失败范围）。
+  - 若 `rounds_used` 达到 `max_rounds` 或 `no_progress_streak` 达到 `max_no_progress_rounds`，把 `status` 标为 `stopped-budget` 或 `stopped-no-progress`，**不再发起下一轮 bug handoff**，转而通知 TeamLead 升级给用户。
+  - 若预算未触上限，再向 TeamLead 提交下一轮 bug handoff。
+
+```text
+通知 TeamLead（触发预算上限时）：修复循环已达预算上限，停止重验并请升级给用户。
+- 已用轮数：{rounds_used}/{max_rounds}
+- 连续无进展轮数：{no_progress_streak}/{max_no_progress_rounds}
+- 仍未通过的用例：TC-XXX
+- 建议用户在「继续加预算 / 改方案 / 暂停」中决定下一步
+```
+
 ### 步骤 4：记录微小修改
 
 测试过程中如有微小调整（非 bug，如参数调优、配置修正）：
@@ -375,3 +406,4 @@ tags:
 - 关键路径没有日志或 trace id，导致失败后无法复盘
 - 审计日志包含未脱敏的 token、密码、密钥或真实用户隐私
 - 把可复用测试策略只写在 `tester/test-report.md`，没有沉淀到 `spec-test/references/`
+- 修复循环重验后忘记更新 `Loop Budget`，或在触发预算上限后仍发起新一轮 bug handoff（应停止并升级给 TeamLead）

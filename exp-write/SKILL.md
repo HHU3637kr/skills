@@ -1,10 +1,23 @@
 ---
+disable-model-invocation: true
 name: exp-write
 description: 记忆写入 Skill，将重大经验写入 spec/context/experience/ 或知识记忆写入 spec/context/knowledge/，并更新对应索引（不写 MEMORY.md）。触发场景：exp-reflect 确认后、手动添加经验或知识。仅处理经验记忆和知识记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
 allowed-tools: Read, Write, Edit, Glob
 ---
 
 # exp-write - 记忆写入 Skill
+
+## 运行契约
+
+> 把本 Skill 当成一个有边界的写入循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | exp-reflect 生成的经验/知识草稿、type 参数、对应记忆索引 |
+| 权限 | 只写 `spec/context/experience/` 与 `spec/context/knowledge/`（详情 + 索引）；不写 MEMORY.md、不写 AGENTS.md/rules（各有其归口） |
+| 验证 | ID 递增不重复、文件名规范、通过经验/知识质量检查项、索引同步更新 |
+| 停止 | 写入详情 + 更新索引 + 给出检索方式即停止；不重复写入已存在的同一记忆 |
+| 升级 | 命中相似记忆时按重复检测规则停下，交回用户决定"不记录/更新现有/新增"，不擅自覆盖 |
 
 ## 概述
 
