@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Audit outputs
+audit-report.md
+audit-report.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups from install
+*.bak.*

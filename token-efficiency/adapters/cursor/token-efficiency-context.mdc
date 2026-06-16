@@ -1,0 +1,78 @@
+---
+description: Token efficiency L0 — context landmines
+globs:
+alwaysApply: false
+---
+
+# Context Design (L0)
+
+Context files are mine maps, not wikis. Every token here bills every turn.
+
+## Landmines only
+
+**Include:** stack, entry paths, non-obvious conventions the agent cannot infer from code.
+
+**Exclude:** tutorials, API docs, anything discoverable by reading the repo, LLM `/init` boilerplate.
+
+## Always-on hygiene
+
+| Pattern | Action |
+|---------|--------|
+| `alwaysApply: true` on broad rules | Switch to glob-scoped rules |
+| Skill body in system prompt | `disable-model-invocation: true`; load on invoke |
+| Duplicate instructions across files | Dedup — one canonical source |
+| Pasting docs into CLAUDE.md | Pointer: "see `docs/foo.md`" |
+| 21 MCP servers | Keep only servers used weekly |
+
+## Skill description
+
+- Description: WHAT + WHEN in ≤1024 chars; third person.
+- Body: read only when skill triggers.
+- Default: `disable-model-invocation: true`.
+
+## MCP hygiene
+
+- Each unused server adds tool schema to **every turn** (often 8–12 KB+).
+- One server per domain; prune unused tools.
+- Prefer CLI (`gh`, `git`) over MCP when output is large and deterministic.
+
+## Project notes template (fill once, highest ROI)
+
+```markdown
+### Stack
+- Language:
+- Framework:
+
+### Key paths
+- Entry:
+- Types:
+
+### Known shortcuts
+- (non-obvious helpers only)
+
+### Do NOT touch
+-
+```
+
+## Session (L4)
+
+- New task → new chat or fork.
+- Simple Q&A → Ask/plan mode, not Agent.
+- Long thread → checkpoint summary to file, start fresh.
+
+## Model (L5)
+
+| Task | Tier |
+|------|------|
+| Single-file edit, clear pattern | Fast / small |
+| Multi-file feature | Mid reasoning |
+| Architecture, novel debug | Top reasoning |
+| "Just answer this" | Fast / small |
+
+## Prompt cache
+
+Stable rules at top of context; task-specific at bottom. Don't casually edit rule files — invalidates cache.
+
+## Compression
+
+Run `python3 scripts/compress.py FILE --write` on bloated instruction files. Safety sections use light compression only.

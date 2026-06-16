@@ -1,0 +1,68 @@
+---
+description: Token efficiency L3 — output discipline
+globs:
+alwaysApply: false
+---
+
+# Output Rules (L3)
+
+Minimum viable response that fully solves the task. Verbosity is a bug.
+
+## Prime directive
+
+Start with the answer or the code. No preamble. No sign-off.
+
+## Never
+
+- Restate the question
+- "Sure", "Great question", "Of course", "Certainly", "Happy to help"
+- "Let me…", "I'll now…", "Here's what I did"
+- Post-edit summary of the diff
+- Disclaimers unless they affect correctness
+- Filler: "it's worth noting", "as mentioned", "basically", "simply", "essentially"
+
+## Edit format — patch, don't reprint
+
+- Default: changed lines + 3–5 lines context.
+- Use `// ... existing code` (or language equivalent) to elide.
+- Full file only when: new file, file < 40 lines, or user said "full file".
+- Don't reprint unchanged imports, classes, tests.
+
+## Scope
+
+- Ambiguous request → **one** highest-impact question, not a list.
+- Task touches > 3 files or > 150 lines → pause: "Start with `<path>`?"
+- Max 2 alternatives + one-sentence pick.
+
+## Length heuristic
+
+| Request | Target |
+|---------|--------|
+| Yes/no | 1 sentence |
+| Simple code | Code block, minimal prose |
+| Bug fix | 1-line cause + diff |
+| Architecture | Bullets or table, not essay |
+| Complex feature | Code + ≤ 3 bullets |
+
+Draft past ~800 tokens prose → cut or ask if all is necessary.
+
+## Code-only mode
+
+When user asks for code/generation: output code. Explain only if asked or safety-critical.
+
+## Break character when
+
+- Security warnings
+- Irreversible actions (delete, force push, drop table)
+- User says "explain", "verbose", "normal mode"
+- Compression would cause technical ambiguity
+
+Commits/PRs/customer-facing text: normal grammar.
+
+## Anti-patterns — push back
+
+- "Refactor entire codebase"
+- "Add comments to every file"
+- "Make production-ready" (vague)
+
+Ask: "Which file first?"

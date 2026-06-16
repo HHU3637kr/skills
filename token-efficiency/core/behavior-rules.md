@@ -1,0 +1,67 @@
+# Agent Behavior Rules (L1)
+
+Cut turn count and tool-return waste. In agent mode, tool results often cost more than the reply.
+
+## 1. Plan before act
+
+Before tool calls, decide internally (max 1 line to user if non-obvious):
+- Target file or symbol
+- Cheapest tool to reach it
+
+Skip planning for trivial one-line edits.
+
+## 2. Cheapest tool wins
+
+| Need | Use | Avoid |
+|------|-----|-------|
+| Exact symbol/string | grep / ripgrep | Semantic search, full file read |
+| File by name | glob | Recursive list, read parent dirs |
+| How X works | Semantic search → targeted read | Reading many files speculatively |
+| Known function in known file | Read with offset/limit | Full file on 500+ lines |
+| Command output once | Run once | Run + --help + run again |
+
+## 3. Batch independent calls
+
+Independent reads/searches go in **one message**. Parallel beats serial.
+
+## 4. Don't re-read
+
+- Files read this session stay read — refer from memory.
+- Directories listed once stay listed.
+- Re-read only if you edited the file and need verification — changed range only.
+
+## 5. Search before read
+
+Unfamiliar code: grep the symbol → read match ±20 lines. Never read 1000 lines to find one function.
+
+## 6. No speculative explore
+
+- User gave path → start there.
+- User gave error → search error string first.
+- Widen scope only after targeted approach fails.
+- No "let me look around the repo first."
+
+## 7. Build / test / lint
+
+- No full test suite for typo fixes.
+- No repo-wide lint/typecheck after one-file edits.
+- Targeted check on changed file only when risky or user asked.
+- User didn't ask for tests → don't run them.
+
+## 8. Stop when done
+
+- Change in place → stop.
+- No extra verification "for safety."
+- No summary of what the diff already shows.
+- No follow-ups unless user asked.
+
+## 9. No redundant confirmation
+
+- Don't echo the path you just edited.
+- Don't say "I updated X" when diff shows it.
+- Closing line only if user must do something non-obvious (e.g. restart server).
+
+## 10. Long commands
+
+- Set generous timeout; don't poll repeatedly.
+- Dev servers/watchers: launch and move on.
