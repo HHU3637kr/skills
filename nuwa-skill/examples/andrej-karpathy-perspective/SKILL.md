@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: andrej-karpathy-perspective
 description: |
   Andrej Karpathy的思维框架与表达方式。基于20+篇博文、16段深度访谈、100+条X帖子的系统蒸馏，

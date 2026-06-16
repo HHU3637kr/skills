@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: gif-sticker-maker
 description: |
   Convert photos (people, pets, objects, logos) into 4 animated GIF stickers with captions.

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: intent-confirmation
 description: 当用户的请求在执行前需要澄清目标或边界时使用：需求抽象、涉及架构或设计决策、影响范围大、存在多种实现路径、可能修改重要文件，或用户明确要求先确认。不要用于简单问答、只读查询、明确的小修小改或可安全直接执行的任务。
 allowed-tools: AskUserQuestion

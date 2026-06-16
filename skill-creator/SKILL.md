@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: skill-creator
 description: 创建有效 Skill 的指南。当用户想要创建新 Skill（或更新现有 Skill）以扩展 Claude 的能力时使用，包括专业知识、工作流程或工具集成。
 license: 完整条款见 LICENSE.txt

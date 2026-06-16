@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: elon-musk-perspective
 description: |
   马斯克的思维操作系统。基于传记、播客、推文、法庭证词、决策记录和外部批评的深度调研，

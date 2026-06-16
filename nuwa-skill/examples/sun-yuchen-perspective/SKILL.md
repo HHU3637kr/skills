@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: sun-yuchen-perspective
 description: |
   孙宇晨（Justin Sun / 孙割）的思维框架与行为逻辑。基于6个维度（著作、深度采访、表达DNA、

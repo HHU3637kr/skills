@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: huashu-nuwa
 description: |
   女娲造人：输入人名/主题/甚至只是模糊需求，自动深度调研→思维框架提炼→生成可运行的人物Skill。

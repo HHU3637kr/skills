@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: android-native-dev
 description: "Use when the user is developing, reviewing, or troubleshooting a native Android app, especially Kotlin/Compose, Material Design 3, Gradle project setup, Android accessibility, Play quality, or Android UI layout. Do not use for React Native/Flutter-only tasks, iOS apps, or general mobile product design without Android implementation."
 license: MIT

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: steve-jobs-perspective
 description: |
   史蒂夫·乔布斯(Steve Jobs)的思维框架与表达方式。基于Isaacson授权传记、Stanford演讲、

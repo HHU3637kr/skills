@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-update
 description: 当同一个活跃 Spec 在当前工作分支内需要小迭代、补充需求、修正方案或优化实现，且原 Spec 目录已有 writer/plan.md + executor/summary.md 时使用。默认复用 writer/plan.md 记录的 git_branch，不新建分支。不要用于新功能从零设计、已合并/已关闭分支上的后续需求，或需要独立 PR 的较大变更。
 ---

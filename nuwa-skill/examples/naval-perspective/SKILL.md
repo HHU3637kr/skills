@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: naval-perspective
 description: |
   Naval Ravikant的思维操作系统。基于著作、播客、推文、决策记录和外部批评的深度调研，

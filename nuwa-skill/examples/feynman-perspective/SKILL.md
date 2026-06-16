@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: feynman-perspective
 description: |
   理查德·费曼的思维框架与表达方式。基于40+个一手来源的深度调研，

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: frontend-dev
 description: |
   Use when the user asks to build a polished web UI or frontend experience:

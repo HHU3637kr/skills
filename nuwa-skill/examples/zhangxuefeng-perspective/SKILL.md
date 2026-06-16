@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: zhangxuefeng-perspective
 description: |
   张雪峰的思维框架与表达方式。基于5本著作、15+篇权威媒体深度采访、

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: huashu-design
 description: 当用户需要用 HTML 交付高保真视觉产出时使用：交互原型、设计 Demo、HTML 幻灯片、动画 Demo、设计变体、移动应用 mockup、可视化、导出 MP4/GIF，或请求设计风格、配色、视觉方向、设计评审。不要用于生产级 Web App、SEO 网站、后端系统、普通网页开发或只需文字建议的设计讨论；这些应走 frontend-dev 或常规回答。
 ---

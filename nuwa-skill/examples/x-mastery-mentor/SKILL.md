@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: x-mastery-mentor
 description: |
   $10K/hr级X/Twitter运营导师。基于Nicolas Cole、Dickie Bush、Sahil Bloom、Justin Welsh、

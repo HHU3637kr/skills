@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: ilya-sutskever-perspective
 description: |
   Ilya Sutskever的思维框架与表达方式。基于12段一手对话、9篇学术论文、10小时宣誓证词、

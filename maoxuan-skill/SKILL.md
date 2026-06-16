@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: mao-zedong-perspective
 description: |
   毛泽东思维框架：以《毛泽东选集》五卷为核心，提炼毛泽东分析问题、制定战略、组织行动的认知操作系统。

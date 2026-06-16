@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: shader-dev
 description: "Use when the user asks to create, debug, review, or explain GLSL/Shadertoy shader code or real-time visual effects such as ray marching, SDFs, procedural noise, lighting, particles, fluids, or post-processing. Do not use for general frontend animation, CSS effects, image editing, or non-shader graphics tasks."
 license: MIT

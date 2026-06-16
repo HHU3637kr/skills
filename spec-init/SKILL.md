@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: spec-init
 description: >
   当项目首次接入 Spec 驱动开发 / R&K Flow，需要创建 AGENTS.md、.agents/rules/、

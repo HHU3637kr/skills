@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: munger-perspective
 description: |
   查理·芒格的思维框架与表达方式。基于《穷查理宝典》、伯克希尔/Daily Journal股东会、

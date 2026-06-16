@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: paul-graham-perspective
 description: |
   Paul Graham的思维框架与表达方式。基于200+篇essays、12个播客/访谈、

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: trump-perspective
 description: |
   唐纳德·特朗普（Donald Trump）的思维框架与行为逻辑。基于著作、长访谈、辩论、

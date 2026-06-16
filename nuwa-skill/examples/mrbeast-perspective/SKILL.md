@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: mrbeast-perspective
 description: |
   MrBeast（Jimmy Donaldson）的内容创造操作系统。基于泄露的36页内部培训手册、

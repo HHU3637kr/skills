@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: fullstack-dev
 description: |
   Full-stack backend architecture and frontend-backend integration guide.

@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: git-work
 description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
 ---

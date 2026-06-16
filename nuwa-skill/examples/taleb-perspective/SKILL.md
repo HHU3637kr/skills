@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: taleb-perspective
 description: |
   塔勒布(Nassim Nicholas Taleb)的思维框架与表达方式。基于40+个来源的深度调研，
