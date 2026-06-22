@@ -61,20 +61,6 @@ git branch -M main
 5. 长期项目偏好（可选，如产品体验、前端风格、协作习惯）
 ```
 
-
-收集完基本信息后，必须询问当前运行环境（决定只生成哪一套运行时适配文件）：
-
-```text
-请确认你当前使用的 Agent 运行环境（用于生成对应的运行时适配，只创建当前环境所需文件）：
-1. OMP（Oh My Pi）        → 生成 .omp/agents/ 与 .omp/hooks/
-2. Claude Code            → 生成 .claude/agents/ 与 .claude/settings.json
-3. Codex                  → 生成 .codex/agents/ 与 .codex/ hook 配置
-```
-
-记录用户选择为 `<runtime>`（`omp` / `claude` / `codex`）。后续步骤 4.3、4.4 只为 `<runtime>` 生成运行时适配文件，不创建其它环境的目录和文件。中立产物（`.agents/roles/`、`.agents/hooks/team-context-hook-contract.md`）始终创建，与运行环境无关。
-
-> [!important] 只建当前环境
-> 不要默认三套全建。`.agents/roles/`（中立角色定义）和 `.agents/hooks/team-context-hook-contract.md`（中立协议）是权威源，必须创建；`.claude` / `.codex` / `.omp` 三套运行时适配只生成 `<runtime>` 对应的那一套。
 ### 步骤 3：创建 AGENTS.md
 
 在项目根目录创建 `AGENTS.md`，这是项目的身份文件和路由入口。保持精简：只写项目身份、最高优先级工作方式、详细目录入口；具体规则和项目偏好写入 `.agents/rules/`。
@@ -205,16 +191,12 @@ rk-flow init
 > [!important] 角色定义属于 spec-init
 > `spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。7 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
 
-创建中立角色定义目录（始终创建），以及 **仅当前运行环境** 的适配目录：
+创建中立角色定义目录和运行时适配目录：
 
 ```bash
-# 中立角色定义：始终创建
 mkdir -p ".agents/roles"
-
-# 运行时适配目录：只创建 <runtime> 对应的一个
-# <runtime> == omp    → mkdir -p ".omp/agents"
-# <runtime> == claude → mkdir -p ".claude/agents"
-# <runtime> == codex  → mkdir -p ".codex/agents"
+mkdir -p ".claude/agents"
+mkdir -p ".codex/agents"
 ```
 
 按 [references/project-agent-roles.md](references/project-agent-roles.md) 创建 7 个中立角色定义：
@@ -239,9 +221,7 @@ mkdir -p ".agents/roles"
 - `handoff`
 - `rules`
 
-同时生成 **仅 `<runtime>` 对应** 的项目级运行时 Agent 适配文件（其它环境不创建）。
-
-**若 `<runtime>` == claude**，生成 Claude Code 适配：
+同时生成项目级运行时 Agent 适配文件：
 
 ```text
 .claude/agents/spec-explorer.md
@@ -251,11 +231,7 @@ mkdir -p ".agents/roles"
 .claude/agents/spec-debugger.md
 .claude/agents/spec-reviewer.md
 .claude/agents/spec-ender.md
-```
 
-**若 `<runtime>` == codex**，生成 Codex 适配：
-
-```text
 .codex/agents/spec-explorer.toml
 .codex/agents/spec-writer.toml
 .codex/agents/spec-tester.toml
@@ -265,7 +241,7 @@ mkdir -p ".agents/roles"
 .codex/agents/spec-ender.toml
 ```
 
-并按需创建/合并 `.codex/config.toml`（不存在则创建最小配置，已存在则在不覆盖用户配置的前提下合并 `[agents]`）：
+如 `.codex/config.toml` 不存在，创建最小配置；如已存在，只在不覆盖用户配置的前提下合并 `[agents]` 设置：
 
 ```toml
 [agents]
@@ -273,31 +249,13 @@ max_threads = 7
 max_depth = 1
 ```
 
-**若 `<runtime>` == omp**，生成 OMP 适配。OMP 只发现 `.omp/agents/<name>.md`，明确跳过 `.claude/agents` 与 `.codex/agents`（其 frontmatter 不符合 OMP task-agent 契约）：
-
-```text
-.omp/agents/spec-explorer.md
-.omp/agents/spec-writer.md
-.omp/agents/spec-tester.md
-.omp/agents/spec-executor.md
-.omp/agents/spec-debugger.md
-.omp/agents/spec-reviewer.md
-.omp/agents/spec-ender.md
-```
-
-运行时适配规则（只应用 `<runtime>` 对应的条目，其它环境的规则跳过）：
+运行时适配规则：
 - Claude Code 适配文件使用 Markdown + YAML frontmatter，正文要求角色先读取 `.agents/roles/<role-id>.md`
 - Codex 适配文件使用 TOML，`developer_instructions` 要求角色先读取 `.agents/roles/<role-id>.md`
 - Codex 适配文件的文件名继续使用 `<role-id>.toml`，但 `name` 字段使用 snake_case，例如 `spec_explorer`、`spec_tester`
 - Codex CLI 的 `/agent` 只显示已启动的子 Agent 线程，不显示 `.codex/agents/` 下的 Agent 库；验证时应明确要求 Codex spawn 对应 `name`
 - 不向 `~/.claude/agents/` 或 `~/.codex/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent
 - 已存在的角色或适配文件不覆盖；如需要更新，先说明差异并等待用户确认
-- OMP 适配文件使用 Markdown + YAML frontmatter，但遵循 OMP task-agent 契约：frontmatter 必须含 `name` 与 `description`（缺一即被判为无效定义而跳过），正文整体作为该 Agent 的 system prompt，正文首行要求角色先读取 `.agents/roles/<role-id>.md` 获取权威职责
-- OMP 可选 frontmatter 字段：`model`（按角色挂不同模型，对应 modelRoles 思路）、`thinkingLevel`（off/minimal/low/medium/high/xhigh）、`tools`（CSV 或数组，限制可用工具）、`spawns`（`*`/CSV，控制可再 spawn 的 Agent）、`output`（结构化输出 schema）、`read-summarize: false`（让该 Agent 的 read 返回原文而非摘要；探索角色保留摘要，审查/调试角色可关）
-- TeamLead 是 OMP 主 Agent，通过 `task` 工具 spawn 这 7 个 `.omp/agents` 角色；角色间协作（如 spec-tester ↔ spec-debugger 修复循环）用 OMP 的 `irc` 子 Agent 通信，handoff 仍落盘到 `lead/team-context.md`
-- 注意 OMP 的 `task.maxRecursionDepth`：TeamLead spawn 的角色处于深度 1，若某角色还需再 spawn 子 Agent，受递归深度限制，必要时在角色 frontmatter 显式声明 `spawns` 并确认未触顶
-- `.agents/skills/` 本身就是 OMP `agents` provider 的原生发现路径（受 `enableAgentsProject` 控制），R&K 的 Skill 在 OMP 下开箱即用，无需额外 skill 适配
-- 不向 `~/.omp/agent/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent；已存在的 `.omp/agents/*.md` 不覆盖，需要更新先说明差异并等待用户确认
 
 #### 4.4 创建中立 Hook 协议与运行时适配
 
@@ -309,7 +267,7 @@ mkdir -p ".agents/hooks"
 
 创建 `.agents/hooks/team-context-hook-contract.md`，内容来源见 [references/team-context-hook-contract.md](references/team-context-hook-contract.md)。
 
-运行时适配规则（Hook 适配只为 `<runtime>` 生成；中立协议文件始终创建）：
+运行时适配规则：
 - `.agents/hooks/team-context-hook-contract.md` 是唯一的跨 CLI Hook 协议源，描述事件语义、可自动更新区块、禁止自动推断的区块和安全规则。
 - 生成 Claude Code / Codex 项目级 Hook 适配时，参考 [references/runtime-hook-examples.md](references/runtime-hook-examples.md)；样例只用于运行时配置，不替代中立协议。
 - Claude Code 运行时根据该协议生成或更新 `.claude/settings.json`，接入 Claude Code 当前版本支持的项目级 hooks。
@@ -317,9 +275,6 @@ mkdir -p ".agents/hooks"
 - 适配器可以创建 `.agents/hooks/team-context-sync.*` 作为本项目的同步脚本，但脚本输入输出必须遵循中立协议。
 - 如果当前运行环境不支持 hooks，或用户不希望自动 hook，跳过适配，只保留中立协议，并由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护。
 - 已存在的 `.claude/settings.json`、`.codex/*` hook 配置或 `.agents/hooks/team-context-sync.*` 不覆盖；如需要更新，先说明差异并等待用户确认。
-- OMP 运行时根据该协议在 `.omp/hooks/post/*.ts` 生成事件 Hook：OMP Hook 是 default-export 的工厂函数 `export default (pi) => { pi.on(...) }`，通过 `pi.on("tool_result", ...)` 监听 `write`/`edit` 等工具结果，自动向 `lead/team-context.md` 追加 artifact 写入、`updated_at`、Task Progress 等事实事件；可用事件还包括 `agent_start` / `agent_end` / `turn_end`，分别记录角色启动/结束。
-- OMP 不读取 `.claude/settings.json` 也不读取 `.codex/hooks.json`；OMP 同步脚本放在 `.omp/hooks/post/team-context-sync.ts`，输入输出仍遵循中立协议，只记录事实、不推断业务结论。
-- 如果用户未启用 OMP hook 或运行环境不便注入 TS Hook，则降级跳过，由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护；已存在的 `.omp/hooks/**` 不覆盖，需要更新先说明差异并等待用户确认。
 
 Hook 只自动记录事实：
 - 文件创建/修改、artifact 状态、`updated_at`
@@ -431,10 +386,7 @@ mkdir -p ".obsidian"
 - .agents/skills/（Skills 体系）
 - .agents/roles/（CLI 中立项目级角色定义）
 - .agents/hooks/（中立 Hook 协议；运行时适配按需生成）
-- 运行时适配（只创建了 `<runtime>` 对应的一套）：
-  - omp    → .omp/agents/ + .omp/hooks/post/
-  - claude → .claude/agents/ + .claude/settings.json
-  - codex  → .codex/agents/ + .codex/ hook 配置
+- .claude/agents/ 与 .codex/agents/（项目级运行时 Agent 适配）
 - spec/（Spec 目录 + 记忆系统）
 - .obsidian/（Obsidian Vault）
 
@@ -446,8 +398,6 @@ mkdir -p ".obsidian"
 用户选择"启动开发任务"时，调用 `/spec-start`。
 
 ## 初始化后的目录结构
-
-> 注意：`.claude/`、`.codex/`、`.omp/` 三套运行时适配只生成 `<runtime>` 对应的一套，下图同时列出仅为参考。
 
 ```
 项目根目录/
@@ -492,7 +442,7 @@ mkdir -p ".obsidian"
 │       ├── obsidian-bases/SKILL.md
 │       ├── obsidian-plugin-dev/SKILL.md
 │       └── json-canvas/SKILL.md
-├── .claude/                          # 仅当 <runtime> == claude 生成
+├── .claude/
 │   ├── settings.json                 # Claude Code 项目级 Hook 配置（如需）
 │   └── agents/                      # Claude Code 项目级 Agent 适配
 │       ├── spec-explorer.md
@@ -502,7 +452,7 @@ mkdir -p ".obsidian"
 │       ├── spec-debugger.md
 │       ├── spec-reviewer.md
 │       └── spec-ender.md
-├── .codex/                          # 仅当 <runtime> == codex 生成
+├── .codex/
 │   ├── config.toml                  # Codex 项目级 Agent 配置（如需）
 │   ├── hooks.json                   # Codex 项目级 Hook 配置（如需）
 │   └── agents/                      # Codex 项目级 Agent 适配
@@ -513,18 +463,6 @@ mkdir -p ".obsidian"
 │       ├── spec-debugger.toml
 │       ├── spec-reviewer.toml
 │       └── spec-ender.toml
-├── .omp/                            # 仅当 <runtime> == omp 生成（OMP 运行时适配）
-│   ├── agents/                      # OMP 项目级 Agent 适配（OMP 只发现 .omp/agents）
-│   │   ├── spec-explorer.md
-│   │   ├── spec-writer.md
-│   │   ├── spec-tester.md
-│   │   ├── spec-executor.md
-│   │   ├── spec-debugger.md
-│   │   ├── spec-reviewer.md
-│   │   └── spec-ender.md
-│   └── hooks/
-│       └── post/
-│           └── team-context-sync.ts # OMP 事件 Hook（如需）
 ├── spec/
 │   ├── 01-产品规划/
 │   ├── 02-技术设计/
@@ -576,10 +514,7 @@ mkdir -p ".obsidian"
 4. .agents/skills/ 已安装或引导安装
 5. .agents/roles/ 已创建（7 个项目级角色定义）
 6. .agents/hooks/ 已创建（中立 Hook 协议；运行时适配按当前 CLI 能力生成或降级跳过）
-7. 运行时适配已按 `<runtime>` 只创建一套：
-   - omp    → `.omp/agents/`（OMP 只发现 .omp/agents，跳过 .claude/.codex）+ `.omp/hooks/post/`
-   - claude → `.claude/agents/` + `.claude/settings.json`
-   - codex  → `.codex/agents/` + `.codex/` hook 配置（+ `.codex/config.toml` 的 `[agents]`）
+7. .claude/agents/ 与 .codex/agents/ 已按需创建项目级运行时适配
 8. spec/ 目录结构已创建（6 个分类目录 + context/；单个 Spec 内由 spec-start 创建角色子目录）
 9. 经验/知识索引文件已创建
 10. Obsidian Vault 已注册（.obsidian/ + app.json）
@@ -587,12 +522,9 @@ mkdir -p ".obsidian"
 
 ### 常见陷阱
 - 已有 AGENTS.md 时覆盖用户自定义内容（应先检查，已有则跳过或合并）
-- 跳过步骤 2 的运行环境询问，默认三套适配全建（应先确认 `<runtime>`，只建对应一套）
 - 已有 .agents/rules/ 时覆盖已有规范（应先检查）
 - 已有 .agents/roles/ 或运行时适配文件时覆盖用户自定义角色（应先检查）
 - 已有 .agents/hooks/、.claude/settings.json 或 .codex hook 配置时直接覆盖（应先检查并合并）
-- 误以为 OMP 能读 `.claude/agents` 或 `.codex/agents`（实际被跳过，必须生成 `.omp/agents/*.md` 才能被 OMP 发现）
-- 已有 `.omp/agents/*.md` 或 `.omp/hooks/**` 时直接覆盖（应先检查并说明差异）
 - 已有 spec/ 目录时重复创建（应先检查）
 - 覆盖已有的 .obsidian/ 自定义配置（应先检查）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段

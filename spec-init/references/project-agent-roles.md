@@ -81,48 +81,6 @@ library view of all files under `.codex/agents/`. To verify discovery, ask
 Codex explicitly to spawn a project agent such as `spec_explorer`, then inspect
 the active thread with `/agent`.
 
-OMP (Oh My Pi) project adapter path: `.omp/agents/<role-id>.md`
-
-OMP only discovers task agents under `.omp/agents/` and deliberately skips
-`.claude/agents` and `.codex/agents` (their frontmatter is not the OMP
-task-agent contract). The frontmatter must include `name` and `description`
-(missing either makes the definition invalid and silently skipped); the whole
-body becomes the agent's system prompt. Keep the neutral role id and file paths
-hyphenated; `name` is the hyphenated role id.
-
-```markdown
----
-name: <role-id>
-description: <one-line role purpose and when TeamLead should use it>
-# optional OMP task-agent fields:
-# model: <provider/model-id>        # per-role model, mirrors modelRoles
-# thinkingLevel: high               # off|minimal|low|medium|high|xhigh
-# tools: read, search, find, lsp    # CSV or array; restricts available tools
-# spawns: ""                        # *|CSV; controls which agents this role may spawn
-# read-summarize: false             # return raw file content instead of summaries
----
-
-You are <role-id> in the R&K Flow Spec workflow.
-Read `.agents/roles/<role-id>.md` and follow the referenced `<required_skill>` protocol.
-Return results to TeamLead only, with artifact paths and any requested downstream handoff.
-```
-
-OMP runtime notes:
-
-- TeamLead is the current OMP main agent and spawns these 7 roles via the `task`
-  tool; inter-role coordination (e.g. spec-tester <-> spec-debugger fix loop)
-  uses OMP's `irc` subagent messaging, with handoffs still persisted to
-  `lead/team-context.md`.
-- `.agents/skills/` is already OMP's native `agents`-provider skill path
-  (gated by `enableAgentsProject`), so R&K skills work out of the box with no
-  separate skill adapter.
-- Mind OMP's `task.maxRecursionDepth`: TeamLead-spawned roles sit at depth 1; a
-  role that must spawn further subagents needs an explicit `spawns` field and
-  must not exceed the depth cap.
-- Do not write to `~/.omp/agent/agents/` unless the user explicitly asks for a
-  personal global agent. Do not overwrite existing `.omp/agents/*.md`; explain
-  diffs and wait for confirmation before updating.
-
 ## Role Definitions
 
 ### spec-explorer
