@@ -66,9 +66,12 @@ git branch -M main
 
 ```text
 请确认你当前使用的 Agent 运行环境（用于生成对应的运行时适配，只创建当前环境所需文件）：
-1. OMP（Oh My Pi）        → 生成 .omp/agents/ 与 .omp/hooks/
+1. OMP（Oh My Pi）【推荐】 → 生成 .omp/agents/ 与 .omp/hooks/
 2. Claude Code            → 生成 .claude/agents/ 与 .claude/settings.json
 3. Codex                  → 生成 .codex/agents/ 与 .codex/ hook 配置
+
+若用户没有明确偏好，推荐 OMP：R&K Flow 优先面向 OMP 设计并端到端验证，是契合度最高、
+唯一支持 session.compacting 自动重注入落盘账本的运行时。
 ```
 
 记录用户选择为 `<runtime>`（`omp` / `claude` / `codex`）。后续步骤 4.3、4.4 只为 `<runtime>` 生成运行时适配文件，不创建其它环境的目录和文件。中立产物（`.agents/roles/`、`.agents/hooks/team-context-hook-contract.md`）始终创建，与运行环境无关。
@@ -293,7 +296,8 @@ max_depth = 1
 - 不向 `~/.claude/agents/` 或 `~/.codex/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent
 - 已存在的角色或适配文件不覆盖；如需要更新，先说明差异并等待用户确认
 - OMP 适配文件使用 Markdown + YAML frontmatter，但遵循 OMP task-agent 契约：frontmatter 必须含 `name` 与 `description`（缺一即被判为无效定义而跳过），正文整体作为该 Agent 的 system prompt，正文首行要求角色先读取 `.agents/roles/<role-id>.md` 获取权威职责
-- OMP 可选 frontmatter 字段：`model`（按角色挂不同模型，对应 modelRoles 思路）、`thinkingLevel`（off/minimal/low/medium/high/xhigh）、`tools`（CSV 或数组，限制可用工具）、`spawns`（`*`/CSV，控制可再 spawn 的 Agent）、`output`（结构化输出 schema）、`read-summarize: false`（让该 Agent 的 read 返回原文而非摘要；探索角色保留摘要，审查/调试角色可关）
+- OMP 可选 frontmatter 字段：`model`（按角色挂不同模型，对应 modelRoles 思路）、`thinkingLevel`（off/minimal/low/medium/high/xhigh）、`tools`（CSV 或数组，限制可用工具）、`spawns`（`*`/CSV，控制可再 spawn 的 Agent）、`output`（结构化输出 schema）、`read-summarize: false`（让该 Agent 的 read 返回原文而非摘要）
+- 每个角色的推荐 OMP 字段（tools/spawns/thinkingLevel/read-summarize 及理由）见 [references/project-agent-roles.md](references/project-agent-roles.md) 的「OMP Per-Role Field Mapping」表。要点：spec-explorer/spec-reviewer 限只读工具；spec-writer/spec-executor/spec-debugger 设 `read-summarize: false` 读原文；spec-tester 是 delegation 例外（必须真跑测试采集证据，不套用「子 Agent 跳过验证」默认）；7 个角色一律 `spawns: ""` 保持深度 1
 - TeamLead 是 OMP 主 Agent，通过 `task` 工具 spawn 这 7 个 `.omp/agents` 角色；角色间协作（如 spec-tester ↔ spec-debugger 修复循环）用 OMP 的 `irc` 子 Agent 通信，handoff 仍落盘到 `lead/team-context.md`
 - 注意 OMP 的 `task.maxRecursionDepth`：TeamLead spawn 的角色处于深度 1，若某角色还需再 spawn 子 Agent，受递归深度限制，必要时在角色 frontmatter 显式声明 `spawns` 并确认未触顶
 - `.agents/skills/` 本身就是 OMP `agents` provider 的原生发现路径（受 `enableAgentsProject` 控制），R&K 的 Skill 在 OMP 下开箱即用，无需额外 skill 适配
@@ -318,6 +322,7 @@ mkdir -p ".agents/hooks"
 - 如果当前运行环境不支持 hooks，或用户不希望自动 hook，跳过适配，只保留中立协议，并由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护。
 - 已存在的 `.claude/settings.json`、`.codex/*` hook 配置或 `.agents/hooks/team-context-sync.*` 不覆盖；如需要更新，先说明差异并等待用户确认。
 - OMP 运行时根据该协议在 `.omp/hooks/post/*.ts` 生成事件 Hook：OMP Hook 是 default-export 的工厂函数 `export default (pi) => { pi.on(...) }`，通过 `pi.on("tool_result", ...)` 监听 `write`/`edit` 等工具结果，自动向 `lead/team-context.md` 追加 artifact 写入、`updated_at`、Task Progress 等事实事件；可用事件还包括 `agent_start` / `agent_end` / `turn_end`，分别记录角色启动/结束。
+- OMP 独有：Hook 还应监听 `session.compacting`，在上下文压缩前把当前 Spec 的恢复要点（阶段、门禁、Loop Budget、Next Action、未确认产物）从 `lead/team-context.md` 只读注入回上下文，保证压缩后仍能从落盘账本恢复。这是 Claude Code / Codex hook 没有的能力，直接服务 R&K「跨上下文必须从落盘恢复」原则。样例见 [references/runtime-hook-examples.md](references/runtime-hook-examples.md)。
 - OMP 不读取 `.claude/settings.json` 也不读取 `.codex/hooks.json`；OMP 同步脚本放在 `.omp/hooks/post/team-context-sync.ts`，输入输出仍遵循中立协议，只记录事实、不推断业务结论。
 - 如果用户未启用 OMP hook 或运行环境不便注入 TS Hook，则降级跳过，由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护；已存在的 `.omp/hooks/**` 不覆盖，需要更新先说明差异并等待用户确认。
 

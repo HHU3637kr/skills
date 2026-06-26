@@ -138,6 +138,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 ```
 
 优先使用当前运行环境的项目级 Agent / Subagent 能力：
+- OMP（Oh My Pi）：优先使用 `.omp/agents/<role-id>.md`，TeamLead 通过 `task` 工具 spawn 角色，角色间协作用 `irc` 子 Agent 通信；OMP 只发现 `.omp/agents/`，不读 `.claude/.codex`
 - Claude Code：优先使用 `.claude/agents/<role-id>.md`
 - Codex：优先使用 `.codex/agents/<role-id>.toml`，spawn 时使用 TOML `name` 字段（如 `spec_explorer`）
 - 其他环境：使用 `.agents/roles/<role-id>.md` 的中立角色协议
@@ -157,7 +158,7 @@ spec_dir: spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>
 task_description: {任务描述}
 status: running
 phase: intent | exploration | spec-writing | implementation | testing | debugging | review | ending | archived
-runtime: claude-code | codex | generic
+runtime: omp | claude-code | codex | generic
 git_branch: <branch-name 或 none>
 base_branch: main
 pr_url:
@@ -249,6 +250,7 @@ updated_at: {ISO8601}
 - `Current Run Path` 记录当前任务实际走过的流程路径；`Task Progress` 记录已经完成的任务；`Problem Resolution Log` 记录谁发现问题、谁解决问题、解决产物在哪里。
 - 除 `Task Progress` 和 `Problem Resolution Log` 外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
 - `agent_id`、`thread_id`、`session_id` 是运行时 handle，不作为跨 Spec 的长期身份；跨 Spec 只复用项目级角色定义。
+- OMP 运行时优先记录 `task` spawn 返回的 `agent_id`（`agent://<id>` 句柄）和子 Agent job id；角色间用 `irc` 协作时按角色 id（如 `spec-tester`）寻址，handoff 仍落盘到 `Handoffs` 与 `Problem Resolution Log`。
 - Claude Code 运行时优先记录 subagent `agent_id` 和对应 transcript/session 信息。
 - Codex 运行时优先记录 `/agent` 可见线程或当前 session handle；如 CLI 不暴露稳定 ID，记录 runtime agent name、当前 session 线索和最近产物路径。
 - 不记录 token、API key、私有凭据或不可提交的本机绝对敏感路径。

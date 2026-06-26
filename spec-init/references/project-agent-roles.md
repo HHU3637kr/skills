@@ -123,6 +123,34 @@ OMP runtime notes:
   personal global agent. Do not overwrite existing `.omp/agents/*.md`; explain
   diffs and wait for confirmation before updating.
 
+### OMP Per-Role Field Mapping
+
+These are the recommended OMP task-agent frontmatter fields per role. They are
+defaults, not hard requirements: tune `model`/`thinkingLevel` to the project's
+configured models. The body of every `.omp/agents/<role-id>.md` still begins by
+reading the neutral `.agents/roles/<role-id>.md`.
+
+| role-id | tools | spawns | thinkingLevel | read-summarize | rationale |
+|---------|-------|--------|---------------|----------------|-----------|
+| spec-explorer | `read, search, find, lsp, web_search` | `""` | high | (keep summaries) | Read-only scout; never edits. Mirrors the bundled `explore` agent so it cannot mutate the repo during探索. |
+| spec-writer | `read, search, find, lsp` | `""` | high | false | Designs the plan; reads source verbatim (no structural elision) to reason about接口边界. Does not write code, only `writer/plan.md`. |
+| spec-tester | (all default) | `""` | medium | (keep summaries) | **Delegation exception**: unlike OMP's generic fan-out workers, spec-tester MUST run real tests and collect evidence. Do NOT apply the "subagents skip verification" default to this role. |
+| spec-executor | (all default) | `""` | medium | false | Implements strictly per已确认 plan; reads verbatim to match existing code exactly. Edits/writes freely within scope. |
+| spec-debugger | (all default) | `""` | xhigh | false | Root-cause diagnosis benefits from the strongest reasoning; reads verbatim. Does not touch已确认 `writer/plan.md`. |
+| spec-reviewer | `read, search, find, lsp` | `""` | high | false | Audits consistency/completeness/risk only; read-only, never edits实现. |
+| spec-ender | (all default) | `""` | medium | (keep summaries) | Synthesizes收尾, runs exp-reflect, archives, commits, pushes, PR. Needs full tool access including `bash` for git. |
+
+Notes:
+- `spawns: ""` everywhere keeps all 7 roles at depth 1 under TeamLead, well clear
+  of `task.maxRecursionDepth`. Only widen `spawns` if a role provably needs to
+  fan out further, and confirm the depth cap is not exceeded.
+- `model` is intentionally omitted from the table: set it per role only when the
+  project configures distinct models (e.g. a stronger model for spec-debugger),
+  otherwise inherit the session default.
+- spec-explorer / spec-reviewer keep `read` structural summaries (default) for
+  cheap wide scanning; spec-writer / spec-executor / spec-debugger set
+  `read-summarize: false` because they reason about exact code, not shape.
+
 ## Role Definitions
 
 ### spec-explorer

@@ -14,7 +14,7 @@
 - 7 个项目级角色：explorer、writer、tester、executor、debugger、reviewer、ender
 - TeamLead 是当前主 Agent，不额外创建 TeamLead 子 Agent
 - 每个 Spec 使用角色目录保存产物，并由 `lead/team-context.md` 记录运行账本
-- Claude Code、Codex 或其他 CLI 只作为运行时适配层，核心协议保持中立
+- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色 + `.omp/hooks/post/` 记账与 `session.compacting` 恢复，契合度最高且唯一支持压缩时自动重注入落盘账本；Claude Code、Codex 等为受支持的备选
 
 ---
 
@@ -152,7 +152,7 @@ skills/
 
 | 角色 | Skill | 主要产物 | 运行时规则 |
 |------|-------|----------|------------|
-| TeamLead | `spec-start`, `intent-confirmation` | `lead/team-context.md` | 当前主 Agent，负责阶段、门禁、handoff、用户交互 |
+| TeamLead | `spec-start`, `intent-confirmation` | `lead/team-context.md` | 当前主 Agent，负责阶段、门禁、handoff、用户交互；OMP 下即 OMP 主 Agent，用 `task` spawn 角色、`irc` 协作 |
 | spec-explorer | `spec-explore` | `explorer/exploration-report.md` | 收集背景和风险，结果交回 TeamLead |
 | spec-writer | `spec-write` | `writer/plan.md` | 只写实现方案，不写测试计划 |
 | spec-tester | `spec-test` | `tester/test-plan.md`, `tester/test-report.md` | 设计和执行测试，不直接修 bug |
