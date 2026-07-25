@@ -53,12 +53,21 @@ git status --short
 
 ## 工作流程
 
-### 步骤 1：澄清任务需求
+### 步骤 1：澄清任务需求（理解 + 反问梳理 + 确认）
 
-使用 `intent-confirmation` 与用户对齐：
-- 任务目标和范围
-- 是否需要完整的 5 阶段流程，还是部分阶段
-- 是否有已有的 Spec（若有，直接进入对应阶段）
+强制使用 `intent-confirmation` 的**三步工作法**，不能只做「是/否」确认：
+
+1. **理解转述**：用可执行条目复述目标、默认假设、做/不做边界  
+2. **反问梳理编码思路**：用 OMP `ask`（或等价方式）就阻塞点反问，至少覆盖：  
+   - 目标与验收标准  
+   - 范围（模块 / 前后端 / 文档）  
+   - 实现倾向（最小补丁 / 重构 / 先调研）  
+   - Git 工作方式（新分支 / 当前分支 / 先不建分支）  
+   - 是否完整 5 阶段，或已有 Spec 可跳转  
+   每问尽量带推荐默认，帮用户拍板而不是从零设计  
+3. **收敛确认**：输出「编码思路小结」（触点、步骤顺序、关键取舍、验收），用户确认后再往下  
+
+通过门禁后，把思路小结写入后续上下文（`lead/team-context.md` 备注或 Next Action），供 explorer/writer 使用，避免下游重猜需求。
 
 ### 步骤 2：创建 Spec 工作分支
 
@@ -138,7 +147,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 ```
 
 优先使用当前运行环境的项目级 Agent / Subagent 能力：
-- OMP（Oh My Pi）：优先使用 `.omp/agents/<role-id>.md`，TeamLead 通过 `task` 工具 spawn 角色，角色间协作用 `irc` 子 Agent 通信；OMP 只发现 `.omp/agents/`，不读 `.claude/.codex`
+- OMP（Oh My Pi）：优先使用 `.omp/agents/<role-id>.md`，TeamLead 通过 `task` 工具 spawn 角色，角色间协作用 `irc` 子 Agent 通信；OMP 只发现 `.omp/agents/`，不读 `.claude/.codex`。spawn 使用 OMP 16.4+ batch schema：`{ context, tasks: [{ name?, agent: "<role-id>", task: "..." }] }`（字段是 `task`/`name`，不是 `assignment`/`id`）。若项目级 agent 未初始化，或仍使用窄 `tools` 白名单，先回到 `spec-init` 补齐（**默认省略 `tools` 继承完整工具集**；边界靠 `.agents/roles` rules）
 - Claude Code：优先使用 `.claude/agents/<role-id>.md`
 - Codex：优先使用 `.codex/agents/<role-id>.toml`，spawn 时使用 TOML `name` 字段（如 `spec_explorer`）
 - 其他环境：使用 `.agents/roles/<role-id>.md` 的中立角色协议
@@ -277,7 +286,9 @@ TeamLead → 下游角色：先查 lead/team-context.md；可恢复则继续同�
 
 ```
 阶段一：需求对齐
-  TeamLead → intent-confirmation → 用户确认
+  TeamLead → intent-confirmation
+             （理解转述 → 反问梳理编码思路 → 收敛确认）
+  用户确认编码思路小结
       ↓ 【门禁 1 通过】
 
 GitHub Flow 准备
@@ -339,7 +350,7 @@ GitHub Flow 准备
 
 | 节点 | 由谁发起 | 确认内容 |
 |------|---------|---------|
-| 需求对齐 | TeamLead | 需求理解正确 |
+| 需求对齐 | TeamLead | 目标/范围/验收 + 反问后的编码思路小结（非单纯「理解正确」） |
 | 分支准备 | TeamLead | 仅在工作区不干净、无 Git 仓库或需使用 worktree 时询问 |
 | Spec 审阅 | TeamLead | `writer/plan.md` + `tester/test-plan.md` |
 | 实现确认 | TeamLead | `executor/summary.md` |

@@ -296,12 +296,20 @@ max_depth = 1
 - 不向 `~/.claude/agents/` 或 `~/.codex/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent
 - 已存在的角色或适配文件不覆盖；如需要更新，先说明差异并等待用户确认
 - OMP 适配文件使用 Markdown + YAML frontmatter，但遵循 OMP task-agent 契约：frontmatter 必须含 `name` 与 `description`（缺一即被判为无效定义而跳过），正文整体作为该 Agent 的 system prompt，正文首行要求角色先读取 `.agents/roles/<role-id>.md` 获取权威职责
-- OMP 可选 frontmatter 字段：`model`（按角色挂不同模型，对应 modelRoles 思路）、`thinkingLevel`（off/minimal/low/medium/high/xhigh）、`tools`（CSV 或数组，限制可用工具）、`spawns`（`*`/CSV，控制可再 spawn 的 Agent）、`output`（结构化输出 schema）、`read-summarize: false`（让该 Agent 的 read 返回原文而非摘要）
-- 每个角色的推荐 OMP 字段（tools/spawns/thinkingLevel/read-summarize 及理由）见 [references/project-agent-roles.md](references/project-agent-roles.md) 的「OMP Per-Role Field Mapping」表。要点：spec-explorer/spec-reviewer 限只读工具；spec-writer/spec-executor/spec-debugger 设 `read-summarize: false` 读原文；spec-tester 是 delegation 例外（必须真跑测试采集证据，不套用「子 Agent 跳过验证」默认）；7 个角色一律 `spawns: ""` 保持深度 1
+- OMP 可选 frontmatter 字段：`thinkingLevel`（off/minimal/low/medium/high/xhigh/max）、`tools`（CSV 或数组；**一旦写出即白名单**）、`spawns`（`*`/CSV）、`output`、`read-summarize: false`、`model`（可选，项目启用 per-role 时再写）
+- 每个角色的推荐 OMP 字段见 [references/project-agent-roles.md](references/project-agent-roles.md)「OMP Per-Role Field Mapping」。硬性规则：
+  1. **默认省略 `tools`**，继承 OMP 完整启用工具集（含 write/edit/bash/eval/irc/web_search/…），避免窄白名单导致中途卡死
+  2. **禁止用只读/窄 tools 列表约束产品代码边界**；边界写在中立 `.agents/roles/*.md` rules
+  3. 仅在项目明确要求限制工具时才写 `tools`，且必须覆盖完整工作集：`read, grep, glob, bash, lsp, write, edit, eval, web_search, ast_grep, ast_edit, debug, browser, ask, job, irc, search_tool_bm25`（`yield` 自动加）
+  4. 工具名用 OMP 规范名：`grep`/`glob`（勿写 `search`/`find` 作为新定义规范名）；`thinkingLevel` 可选 `max`
+  5. `model` 可选：项目启用多模型路由时再写；未配置则省略，继承 session / modelRoles
+  6. spec-writer / spec-executor / spec-debugger 设 `read-summarize: false`；spec-tester 是 delegation 例外（必须真跑测试）；7 个角色一律 `spawns: ""` 保持深度 1
 - TeamLead 是 OMP 主 Agent，通过 `task` 工具 spawn 这 7 个 `.omp/agents` 角色；角色间协作（如 spec-tester ↔ spec-debugger 修复循环）用 OMP 的 `irc` 子 Agent 通信，handoff 仍落盘到 `lead/team-context.md`
+- OMP 16.4+ `task` wire schema（默认 batch）：`{ context, tasks: [{ name?, agent?, task }] }`。**不要**使用旧字段：top-level `agent`、`assignment`、`id`/`description`；UI label 由 `task` 文本自动生成
 - 注意 OMP 的 `task.maxRecursionDepth`：TeamLead spawn 的角色处于深度 1，若某角色还需再 spawn 子 Agent，受递归深度限制，必要时在角色 frontmatter 显式声明 `spawns` 并确认未触顶
 - `.agents/skills/` 本身就是 OMP `agents` provider 的原生发现路径（受 `enableAgentsProject` 控制），R&K 的 Skill 在 OMP 下开箱即用，无需额外 skill 适配
 - 不向 `~/.omp/agent/agents/` 写入任何文件，除非用户明确要求安装为个人全局 Agent；已存在的 `.omp/agents/*.md` 不覆盖，需要更新先说明差异并等待用户确认
+- 生成 `.omp/agents/<role-id>.md` 时，按 mapping 表写 frontmatter（thinkingLevel / spawns / 可选 model / 可选 read-summarize），**默认不要写 `tools` 行**
 
 #### 4.4 创建中立 Hook 协议与运行时适配
 
@@ -598,6 +606,10 @@ mkdir -p ".obsidian"
 - 已有 .agents/hooks/、.claude/settings.json 或 .codex hook 配置时直接覆盖（应先检查并合并）
 - 误以为 OMP 能读 `.claude/agents` 或 `.codex/agents`（实际被跳过，必须生成 `.omp/agents/*.md` 才能被 OMP 发现）
 - 已有 `.omp/agents/*.md` 或 `.omp/hooks/**` 时直接覆盖（应先检查并说明差异）
+- 给 OMP 角色写窄 `tools` 白名单（缺 bash/eval/write/edit 等），导致中途卡死或无法落盘 Spec 产物；**默认应省略 `tools`**
+- 用只读 tools 列表代替角色 rules 来“保护”产品代码（错误做法；边界写在 `.agents/roles/*.md`）
+- 在未启用 per-role 多模型时仍乱写 `model:`（可选字段；无规划则省略，继承 session 默认）
+- 用旧 `task` schema（top-level `agent`、`assignment`、`id`）spawn 角色；OMP 16.4+ 用 `{ context, tasks: [{ name?, agent?, task }] }`
 - 已有 spec/ 目录时重复创建（应先检查）
 - 覆盖已有的 .obsidian/ 自定义配置（应先检查）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段

@@ -131,6 +131,7 @@ Purpose: make one metric or fact memorable.
 
 Geometry:
 - Reserve the largest object for the metric: font size often `64-110`, region at least `300 x 120`.
+- Set `autoFit="normal-auto-fit"` on the metric's `<content>` so an oversized number shrinks to fit its box instead of overflowing.
 - Pair the number with one explanation and optional 2-3 small supporting labels.
 - Do not bury the number in a bullet list or small card.
 
@@ -168,7 +169,7 @@ Text:
 
 Purpose: explain components, dependencies, or system flow.
 
-Implementation: prefer `<whiteboard>` (see `lark-slides-whiteboard.md`); use `<shape>` + `<line>` only as fallback.
+Implementation: prefer Mermaid `<whiteboard>` (see `lark-slides-whiteboard.md`); use `<shape>` + `<line>` as fallback.
 
 Geometry:
 - Main visual area should be a diagram, not prose.
@@ -184,7 +185,7 @@ Text:
 
 Purpose: show operational steps, workflow, or cause-effect path.
 
-Implementation: prefer `<whiteboard>` (see `lark-slides-whiteboard.md`); use `<shape>` + `<line>` only as fallback.
+Implementation: prefer Mermaid `<whiteboard>` (see `lark-slides-whiteboard.md`); use `<shape>` + `<line>` as fallback.
 
 Geometry:
 - Use numbered steps connected by arrows or lines.

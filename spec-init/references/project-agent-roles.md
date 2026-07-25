@@ -94,12 +94,12 @@ hyphenated; `name` is the hyphenated role id.
 ---
 name: <role-id>
 description: <one-line role purpose and when TeamLead should use it>
-# optional OMP task-agent fields:
-# model: <provider/model-id>        # per-role model, mirrors modelRoles
-# thinkingLevel: high               # off|minimal|low|medium|high|xhigh
-# tools: read, search, find, lsp    # CSV or array; restricts available tools
-# spawns: ""                        # *|CSV; controls which agents this role may spawn
-# read-summarize: false             # return raw file content instead of summaries
+# OMP task-agent fields (recommended):
+# model: <provider/model-id>        # optional; omit to inherit session / modelRoles
+thinkingLevel: high               # off|minimal|low|medium|high|xhigh|max
+# tools:  **omit by default** — inherit the full enabled builtin set (write/edit/bash/eval/irc/…)
+spawns: ""                        # *|CSV; controls which agents this role may spawn
+# read-summarize: false           # return raw file content instead of summaries
 ---
 
 You are <role-id> in the R&K Flow Spec workflow.
@@ -113,6 +113,10 @@ OMP runtime notes:
   tool; inter-role coordination (e.g. spec-tester <-> spec-debugger fix loop)
   uses OMP's `irc` subagent messaging, with handoffs still persisted to
   `lead/team-context.md`.
+- OMP 16.4+ `task` wire schema (batch on by default): use
+  `{ context, tasks: [{ name?, agent?, task }] }`. There is **no** top-level
+  `agent` field; per-item field is `task` (not `assignment`) and optional
+  stable id is `name` (not `id`). UI labels are auto-generated from `task` text.
 - `.agents/skills/` is already OMP's native `agents`-provider skill path
   (gated by `enableAgentsProject`), so R&K skills work out of the box with no
   separate skill adapter.
@@ -122,34 +126,127 @@ OMP runtime notes:
 - Do not write to `~/.omp/agent/agents/` unless the user explicitly asks for a
   personal global agent. Do not overwrite existing `.omp/agents/*.md`; explain
   diffs and wait for confirmation before updating.
+- **`tools` is a whitelist when present.** Omitting `tools` inherits the full
+  enabled builtin set (subject to settings like `bash.enabled` / `lsp.enabled`).
+  Subagents auto-get `yield`; parent-owned `todo` is stripped. Prefer omit.
+- If you must set an explicit `tools` list, use OMP canonical names
+  (`grep`/`glob`, not legacy `search`/`find`) and include at least the working
+  set: `read, grep, glob, bash, lsp, write, edit, eval, web_search, ast_grep,
+  ast_edit, debug, browser, ask, job, irc, search_tool_bm25` — missing any of
+  these mid-run is a common stall. `yield` is auto-added; do not rely on a
+  narrow scout-style list for Spec roles.
 
 ### OMP Per-Role Field Mapping
 
-These are the recommended OMP task-agent frontmatter fields per role. They are
-defaults, not hard requirements: tune `model`/`thinkingLevel` to the project's
-configured models. The body of every `.omp/agents/<role-id>.md` still begins by
-reading the neutral `.agents/roles/<role-id>.md`.
+These are the recommended OMP task-agent frontmatter fields per role. Tune
+`thinkingLevel` / optional `model` per project. The body of every
+`.omp/agents/<role-id>.md` still begins by reading the neutral
+`.agents/roles/<role-id>.md`.
+
+**Hard rules for all 7 roles:**
+1. **Omit `tools` by default** so every role inherits the full enabled OMP
+   toolset and does not stall mid-run. Spec artifact delivery (write/edit) and
+   operational tools (bash/eval/lsp/web_search/…) come free with the default set.
+2. **Do not use narrow read-only tool lists** to enforce product-code boundaries.
+   Those boundaries belong in neutral `.agents/roles/*.md` rules. A whitelist
+   that drops `bash`/`eval`/`write` is how Spec roles fail.
+3. **Only set `tools` when the project explicitly needs a restriction** — and
+   then use the full working set above, never a scout-only subset.
+4. **`model` is optional**: set per role when the project adopts multi-model
+   routing; otherwise omit and inherit the session default.
+5. Prefer canonical tool names if listing tools; `thinkingLevel` may be `max`.
 
 | role-id | tools | spawns | thinkingLevel | read-summarize | rationale |
 |---------|-------|--------|---------------|----------------|-----------|
-| spec-explorer | `read, search, find, lsp, web_search` | `""` | high | (keep summaries) | Read-only scout; never edits. Mirrors the bundled `explore` agent so it cannot mutate the repo during探索. |
-| spec-writer | `read, search, find, lsp` | `""` | high | false | Designs the plan; reads source verbatim (no structural elision) to reason about接口边界. Does not write code, only `writer/plan.md`. |
-| spec-tester | (all default) | `""` | medium | (keep summaries) | **Delegation exception**: unlike OMP's generic fan-out workers, spec-tester MUST run real tests and collect evidence. Do NOT apply the "subagents skip verification" default to this role. |
-| spec-executor | (all default) | `""` | medium | false | Implements strictly per已确认 plan; reads verbatim to match existing code exactly. Edits/writes freely within scope. |
-| spec-debugger | (all default) | `""` | xhigh | false | Root-cause diagnosis benefits from the strongest reasoning; reads verbatim. Does not touch已确认 `writer/plan.md`. |
-| spec-reviewer | `read, search, find, lsp` | `""` | high | false | Audits consistency/completeness/risk only; read-only, never edits实现. |
-| spec-ender | (all default) | `""` | medium | (keep summaries) | Synthesizes收尾, runs exp-reflect, archives, commits, pushes, PR. Needs full tool access including `bash` for git. |
+| spec-explorer | *(omit — full default)* | `""` | high | (keep summaries) | Wide scan + write `explorer/exploration-report.md`. Product code stays untouched via role rules, not tool locks. |
+| spec-writer | *(omit — full default)* | `""` | high | false | Designs plan; reads source verbatim. Role rules: Spec docs only, not product code. |
+| spec-tester | *(omit — full default)* | `""` | medium | (keep summaries) | **Delegation exception**: MUST run real tests and collect evidence. Do NOT apply "subagents skip verification". |
+| spec-executor | *(omit — full default)* | `""` | medium | false | Implements per已确认 plan; product edits + `executor/summary.md` within scope. |
+| spec-debugger | *(omit — full default)* | `""` | xhigh | false | Root-cause + fixes; does not touch已确认 `writer/plan.md`. |
+| spec-reviewer | *(omit — full default)* | `""` | high | false | Audits only; role rules forbid product edits; must still write `reviewer/review.md`. |
+| spec-ender | *(omit — full default)* | `""` | medium | (keep summaries) | 收尾 / git / PR / archive; needs full tool access by default. |
 
 Notes:
 - `spawns: ""` everywhere keeps all 7 roles at depth 1 under TeamLead, well clear
   of `task.maxRecursionDepth`. Only widen `spawns` if a role provably needs to
   fan out further, and confirm the depth cap is not exceeded.
-- `model` is intentionally omitted from the table: set it per role only when the
-  project configures distinct models (e.g. a stronger model for spec-debugger),
-  otherwise inherit the session default.
+- Omitting `model` inherits the session / modelRoles default; projects may pin
+  per-role models (e.g. stronger model for writer/debugger) when ready.
+- Product-code mutation policy is a **role rule** (neutral `.agents/roles/*.md`),
+  not a tools lock.
 - spec-explorer / spec-reviewer keep `read` structural summaries (default) for
   cheap wide scanning; spec-writer / spec-executor / spec-debugger set
   `read-summarize: false` because they reason about exact code, not shape.
+- OMP bundled research agent is named `scout` (formerly `explore`); R&K keeps
+  project agent id `spec-explorer` and does not collide with the bundled name.
+
+### OMP Agent File Generation Examples
+
+When `spec-init` writes `.omp/agents/<role-id>.md`, emit the full file.
+**Omit `tools`.** Add `model` only when the project configures per-role models.
+
+`spec-explorer`:
+
+```markdown
+---
+name: spec-explorer
+description: Spec 创建前的信息收集与探索；TeamLead 在需求对齐和分支准备后启动。
+thinkingLevel: high
+spawns: ""
+---
+
+You are spec-explorer in the R&K Flow Spec workflow.
+Read `.agents/roles/spec-explorer.md` and follow the referenced `spec-explore` protocol.
+Return results to TeamLead only, with artifact paths and any requested downstream handoff.
+```
+
+`spec-writer` (verbatim reads + plan artifact):
+
+```markdown
+---
+name: spec-writer
+description: 撰写代码实现计划 writer/plan.md；TeamLead 提供探索报告后启动。
+thinkingLevel: high
+spawns: ""
+read-summarize: false
+---
+
+You are spec-writer in the R&K Flow Spec workflow.
+Read `.agents/roles/spec-writer.md` and follow the referenced `spec-write` protocol.
+Return results to TeamLead only, with artifact paths and any requested downstream handoff.
+```
+
+`spec-executor` (and the same shape for tester / debugger / ender — omit tools):
+
+```markdown
+---
+name: spec-executor
+description: 严格按已确认的 writer/plan.md 实现代码；TeamLead 在用户确认计划后启动。
+thinkingLevel: medium
+spawns: ""
+read-summarize: false
+---
+
+You are spec-executor in the R&K Flow Spec workflow.
+Read `.agents/roles/spec-executor.md` and follow the referenced `spec-execute` protocol.
+Return results to TeamLead only, with artifact paths and any requested downstream handoff.
+```
+
+`spec-reviewer`:
+
+```markdown
+---
+name: spec-reviewer
+description: 审查 Spec 执行的一致性、完成度与风险；TeamLead 在归档前审查时启动。
+thinkingLevel: high
+spawns: ""
+read-summarize: false
+---
+
+You are spec-reviewer in the R&K Flow Spec workflow.
+Read `.agents/roles/spec-reviewer.md` and follow the referenced `spec-review` protocol.
+Return results to TeamLead only, with artifact paths and any requested downstream handoff.
+```
 
 ## Role Definitions
 

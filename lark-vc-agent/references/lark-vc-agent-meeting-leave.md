@@ -46,7 +46,7 @@ lark-cli vc +meeting-leave --as bot --meeting-id 69xxxxxxxxxxxxx28 --dry-run
 ## 输出结果
 
 接口成功返回时，默认输出：`Left meeting <meeting-id> successfully.`。
-`--format json` 返回 API 原始响应体。
+`--format json` 返回标准 `{ok, identity, data}` 信封，例如 `{"ok":true,"identity":"bot","data":{}}`，不是带 `code` / `msg` 的 API 原始响应体。
 
 ## 如何获取输入参数
 
@@ -75,7 +75,7 @@ lark-cli vc +meeting-leave --as bot --meeting-id <meeting.id>
 
 ```bash
 # 第 1 步：会议结束后进入 lark-vc 获取会议产物信息
-lark-cli vc +notes --meeting-ids <meeting.id>
+lark-cli vc +detail --meeting-ids <meeting.id>
 ```
 
 ## 常见错误与排查
@@ -99,7 +99,7 @@ lark-cli vc +notes --meeting-ids <meeting.id>
 - [lark-vc-agent-meeting-events](lark-vc-agent-meeting-events.md) — 会中事件流
 - [lark-vc-search](../../lark-vc/references/lark-vc-search.md) — 搜索历史会议（获取 meeting_id）
 - [lark-vc-recording](../../lark-vc/references/lark-vc-recording.md) — 查询 minute_token
-- [lark-vc-notes](../../lark-vc/references/lark-vc-notes.md) — 获取会议纪要
+- [lark-vc-detail](../../lark-vc/references/lark-vc-detail.md) — 获取会议详情
 - [lark-vc-agent](../SKILL.md) — Agent 参会能力（本 skill）
 - [lark-vc](../../lark-vc/SKILL.md) — 视频会议原子域（Meeting / Note 等核心概念）
 - [lark-shared](../../lark-shared/SKILL.md) — 认证和全局参数

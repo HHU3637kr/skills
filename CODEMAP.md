@@ -14,7 +14,7 @@
 - 7 个项目级角色：explorer、writer、tester、executor、debugger、reviewer、ender
 - TeamLead 是当前主 Agent，不额外创建 TeamLead 子 Agent
 - 每个 Spec 使用角色目录保存产物，并由 `lead/team-context.md` 记录运行账本
-- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色 + `.omp/hooks/post/` 记账与 `session.compacting` 恢复，契合度最高且唯一支持压缩时自动重注入落盘账本；Claude Code、Codex 等为受支持的备选
+- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色 + `.omp/hooks/post/` 记账与 `session.compacting` 恢复；Claude Code、Codex 等为备选。OMP 16.4+：`task` 用 batch schema、角色 **默认省略 `tools`（继承完整工具集）**、产品边界靠 role rules、`model` 按需
 
 ---
 
@@ -40,7 +40,7 @@ skills/
 ├── spec-init/                         # 项目首次接入 R&K Flow
 │   ├── SKILL.md                       # 创建项目骨架、角色定义、运行时适配和 Hook 协议
 │   └── references/
-│       ├── project-agent-roles.md     # 7 个项目级角色的中立定义与 Claude/Codex 适配模板
+│       ├── project-agent-roles.md     # 7 个项目级角色中立定义 + OMP/Claude/Codex 适配（默认 omit tools）
 │       ├── team-context-hook-contract.md # lead/team-context.md 自动记账的中立 Hook 协议
 │       └── runtime-hook-examples.md      # Claude Code / Codex 项目级 Hook 配置样例
 │

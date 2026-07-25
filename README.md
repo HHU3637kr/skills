@@ -140,7 +140,7 @@ rk-flow init
 
 R&K Flow 文档中的“创建团队、创建角色、通知角色、请求用户确认”都是**抽象协作动作**，不是跨平台固定 API。项目初始化时会创建中立角色定义，运行时再由 OMP（Oh My Pi）、Claude Code、Codex 或其他 CLI 适配成自己的项目级 Agent / Subagent。
 
-> **推荐运行时：OMP（Oh My Pi）。** R&K Flow 优先面向 OMP 设计、并在 OMP 上端到端验证；新项目若无特定约束，**首选 OMP**。原生 `task` spawn 对应角色层、hook 事件总线对应账本记账层、`session.compacting` 对应上下文恢复层——三对三盖住 R&K 的角色 / 账本 / 恢复三大支柱，是目前契合度最高、唯一能在上下文压缩时自动重注入落盘账本的运行时。Claude Code、Codex 及其它 CLI 为受支持的备选适配，按各自能力降级。
+> **推荐运行时：OMP（Oh My Pi）。** R&K Flow 优先面向 OMP 设计、并在 OMP 上端到端验证；新项目若无特定约束，**首选 OMP**。原生 `task` spawn 对应角色层、hook 事件总线对应账本记账层、`session.compacting` 对应上下文恢复层——三对三盖住 R&K 的角色 / 账本 / 恢复三大支柱。OMP 16.4+ 适配要点：`task` 使用 `{ context, tasks: [{ name?, agent?, task }] }`；`.omp/agents/*` **默认省略 `tools`** 以继承完整启用工具集（避免窄白名单中断）；产品代码边界写在中立 role rules；`model` 按项目多模型策略可选配置。Claude Code、Codex 及其它 CLI 为受支持的备选适配，按各自能力降级。
 
 | 抽象动作 | 含义 | 不支持多 Agent 时 |
 |----------|------|------------------|
@@ -158,7 +158,7 @@ R&K Flow 文档中的“创建团队、创建角色、通知角色、请求用�
 | 层级 | 路径 | 作用 |
 |------|------|------|
 | 中立角色定义 | `.agents/roles/<role-id>.md` | 项目级角色的权威定义，跨 CLI 共享 |
-| OMP 适配 | `.omp/agents/<role-id>.md` | OMP 通过 `task` 发现并 spawn 的项目 Agent；只发现 `.omp/agents/`，不读 `.claude/.codex` |
+| OMP 适配 | `.omp/agents/<role-id>.md` | OMP 通过 `task` 发现并 spawn 的项目 Agent；只发现 `.omp/agents/`；**默认省略 `tools`**（完整工具集），边界靠 role rules |
 | OMP Hook | `.omp/hooks/post/team-context-sync.ts` | 监听 `tool_result`/`agent_*`/`turn_end` 自动记账，并在 `session.compacting` 重注入账本 |
 | Claude Code 适配 | `.claude/agents/<role-id>.md` | Claude Code 可发现的项目 Agent |
 | Codex 适配 | `.codex/agents/<role-id>.toml` | Codex 可 spawn 的项目 Agent，`name` 使用 snake_case |
