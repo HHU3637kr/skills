@@ -330,7 +330,7 @@ mkdir -p ".agents/hooks"
 - 如果当前运行环境不支持 hooks，或用户不希望自动 hook，跳过适配，只保留中立协议，并由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护。
 - 已存在的 `.claude/settings.json`、`.codex/*` hook 配置或 `.agents/hooks/team-context-sync.*` 不覆盖；如需要更新，先说明差异并等待用户确认。
 - OMP 运行时根据该协议在 `.omp/hooks/post/*.ts` 生成事件 Hook：OMP Hook 是 default-export 的工厂函数 `export default (pi) => { pi.on(...) }`，通过 `pi.on("tool_result", ...)` 监听 `write`/`edit` 等工具结果，自动向 `lead/team-context.md` 追加 artifact 写入、`updated_at`、Task Progress 等事实事件；可用事件还包括 `agent_start` / `agent_end` / `turn_end`，分别记录角色启动/结束。
-- OMP 独有：Hook 还应监听 `session.compacting`，在上下文压缩前把当前 Spec 的恢复要点（阶段、门禁、Loop Budget、Next Action、未确认产物）从 `lead/team-context.md` 只读注入回上下文，保证压缩后仍能从落盘账本恢复。这是 Claude Code / Codex hook 没有的能力，直接服务 R&K「跨上下文必须从落盘恢复」原则。样例见 [references/runtime-hook-examples.md](references/runtime-hook-examples.md)。
+- OMP 独有：Hook 还应监听 `session.compacting`，在上下文压缩前把当前 Spec 的恢复要点（阶段、门禁、Decision Log、Loop Budget、Next Action、未确认产物）从 `lead/team-context.md` 只读注入回上下文，保证压缩后仍能从落盘账本恢复。这是 Claude Code / Codex hook 没有的能力，直接服务 R&K「跨上下文必须从落盘恢复」原则。样例见 [references/runtime-hook-examples.md](references/runtime-hook-examples.md)。
 - OMP 不读取 `.claude/settings.json` 也不读取 `.codex/hooks.json`；OMP 同步脚本放在 `.omp/hooks/post/team-context-sync.ts`，输入输出仍遵循中立协议，只记录事实、不推断业务结论。
 - 如果用户未启用 OMP hook 或运行环境不便注入 TS Hook，则降级跳过，由 TeamLead / 各角色按 `lead/team-context.md` 规则手动维护；已存在的 `.omp/hooks/**` 不覆盖，需要更新先说明差异并等待用户确认。
 
@@ -344,6 +344,8 @@ Hook 只自动记录事实：
 Hook 不自动推断：
 - `Next Action`
 - gate decision
+- `Decision Log` 的取舍、选项与理由
+- 过程性问题的 `category` 归类
 - handoff reason
 - blocker 业务判断
 - plan / test / debug 正文摘要

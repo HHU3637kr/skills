@@ -49,7 +49,7 @@ rk-flow init
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                    Spec 驱动式开发工作流 v2.4                              │
+│                    Spec 驱动式开发工作流 v2.6                              │
 │                     Agent Teams 多角色协作架构                             │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
@@ -180,13 +180,15 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/lead/team-context.md
 - 角色 runtime handle（如 `agent_id`、`thread_id`、`session_id`）
 - 产物注册表、跨角色 handoff、开放问题和下一步动作
 - 共享完成区：`Task Progress`
-- 共享问题区：`Problem Resolution Log`
+- 共享问题区：`Problem Resolution Log`（bug 与过程性问题，`category` 区分）
+- 共享决策区：`Decision Log`（每个实质取舍的选项、结论、理由）
 - 修复循环预算区：`Loop Budget`（test-debug 循环的 `max_rounds` / `max_no_progress_rounds` / `rounds_used` / `no_progress_streak`）
 
 维护边界：
 - TeamLead 维护 frontmatter、运行路径、Git/PR 元数据、Runtime Handles、Artifact Registry、Gate Decisions、Handoffs、Open Questions / Blockers、Next Action。
 - 所有角色可共同维护 `Task Progress`，但只追加或更新自己负责的任务行。
-- 发现或解决问题的角色可共同维护 `Problem Resolution Log`，但只追加或更新自己相关的问题行。
+- 发现或解决问题的角色可共同维护 `Problem Resolution Log`，但只追加或更新自己相关的问题行；不止 bug，环境、依赖、阻塞、流程、范围偏差都记。
+- 遇到需要拍板的取舍时，拍板方在 `Decision Log` 追加一行；用户决策由 TeamLead 代记，保留被否决的选项和理由。
 - `Loop Budget` 的上限值由用户在进入修复循环前通过 TeamLead 确认；`rounds_used` / `no_progress_streak` 由 spec-debugger 和 spec-tester 每轮更新，触发上限时停止循环并升级给用户。
 - Hook 只自动记录事实事件，不推断业务结论、门禁决策、handoff 原因或下一步动作。
 
@@ -1115,13 +1117,24 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.5.0
-**最后更新**: 2026-06-16
+**版本**: 2.6.0
+**最后更新**: 2026-07-30
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.6.0 (2026-07-30) - 提问情境交代 + Decision Log 决策留痕
+
+**核心改进**：
+
+1. **提问前强制情境交代（Step 0）**：`intent-confirmation` 把三步工作法升级为四步，任何提问前必须先输出「已做（Did）/ 发现（Found）/ 卡点（Blocked）/ 要你决策（Need）」四段极短情境，解决「Agent 直接抛问题、用户不知道在问什么」。配套模板、提问前三条自检、`ask` 结构化提问情境写在正文而非选项、反模式明确列出「裸问」。
+2. **新增 `Decision Log` 区块**：`lead/team-context.md` 新增决策留痕区，记录每个实质取舍的 `options`（含被否决项）/ `decision` / `rationale` / `decided_by`。与 `Gate Decisions` 分工：门禁只记通过/驳回，「为什么这么定」进 Decision Log。
+3. **Problem Resolution Log 扩展过程性问题**：新增 `category` 字段（`bug` / `blocker` / `process` / `env` / `dependency` / `scope`），从只记 bug 扩展到环境、依赖、阻塞、范围偏差等过程性问题。
+4. **全链路落盘**：7 个角色 Skill 各自更新共享区步骤——writer 记设计取舍、executor 记实现取舍、debugger 记修复路径、tester/explorer/reviewer 记过程性问题、ender 从 Decision Log 汇总 end-report、updater 记更新范围判断。
+5. **跨上下文不丢决策**：OMP `session.compacting` 重注入清单加入 `Decision Log`，压缩后仍能从落盘账本恢复「为什么当初这么定」。Hook 契约明确禁止自动推断决策语义与问题归类。
+6. **文档同步**：`CODEMAP.md`、`README.md`、`spec-init/references/`（hook 契约、runtime 示例、project-agent-roles）同步 Decision Log 与 category 口径；README 与 npm package 版本升级到 2.6.0。
 
 ### v2.5 (2026-06-16) - 运行契约 + loop-design + Skill 生态扩展
 

@@ -194,10 +194,22 @@ updated_at: {ISO8601}
 ## Problem Resolution Log
 
 > 共享维护区：发现或解决问题的角色只追加或更新自己相关的问题行。
+> 不只记 bug，任何影响推进的过程性问题都记：`category` 取 `bug` | `blocker` | `process` | `env` | `dependency` | `scope`。
 
-| issue_id | found_by | owner | problem | resolution | artifacts | status | updated_by |
-|----------|----------|-------|---------|------------|-----------|--------|------------|
-| I-001 | spec-tester | spec-debugger | 待记录 | 待记录 | debugger/debug-001.md / debugger/debug-001-fix.md | open | spec-tester/spec-debugger |
+| issue_id | category | found_by | owner | problem | resolution | artifacts | status | updated_by |
+|----------|----------|----------|-------|---------|------------|-----------|--------|------------|
+| I-001 | bug | spec-tester | spec-debugger | 待记录 | 待记录 | debugger/debug-001.md / debugger/debug-001-fix.md | open | spec-tester/spec-debugger |
+| I-002 | env | spec-executor | spec-executor | 待记录（如缺依赖、脚本报错、环境不一致） | 待记录 | executor/summary.md | open | spec-executor |
+
+## Decision Log
+
+> 共享维护区：任何角色遇到需要用户或角色拍板的岔路口，落一行。记录当时给了哪些选项、
+> 选了什么、为什么、谁拍的板。被否决的选项不要删，它是复盘的关键上下文。
+> 与 `Gate Decisions` 的区别：`Gate Decisions` 只记阶段门禁通过/驳回；`Decision Log` 记每一个实质取舍及其理由。
+
+| dec_id | phase | raised_by | topic | options | decision | rationale | decided_by | decided_at |
+|--------|-------|-----------|-------|---------|----------|-----------|------------|------------|
+| D-001 | intent | TeamLead | 实现路径 | A 最小补丁 / B 抽公共层 | A | 改动面小、可回滚 | user | {ISO8601} |
 
 ## Runtime Handles
 
@@ -250,14 +262,15 @@ updated_at: {ISO8601}
 记录规则：
 - TeamLead 维护 `lead/team-context.md` 的结构、frontmatter、`Current Run Path`、Git/PR 元数据、`Runtime Handles`、`Artifact Registry`、`Gate Decisions`、`Handoffs`、`Open Questions / Blockers` 和 `Next Action`。
 - 所有角色可共同维护 `Task Progress`：只追加或更新自己负责的任务行，完成产物后立即记录 `status`、`artifact`、`completed_at` 和 `updated_by`。
-- 发现或解决问题的角色可共同维护 `Problem Resolution Log`：只追加或更新自己发现/处理的问题行，记录问题、解决方案摘要、关联产物、状态和 `updated_by`。
+- 发现或解决问题的角色可共同维护 `Problem Resolution Log`：只追加或更新自己发现/处理的问题行，记录 `category`、问题、解决方案摘要、关联产物、状态和 `updated_by`。不止 bug——阻塞、环境、依赖、流程、范围偏差等过程性问题都在此记录。
+- 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在 `Decision Log` 追加一行：`options` 记当时的候选项（含被否决项）、`decision` 记结论、`rationale` 记理由、`decided_by` 记 `user` 或角色 id。这是「为什么当初这么定」的唯一权威来源。
 - TeamLead 每次 spawn、resume、send message、stop 或 close 角色线程后更新 `lead/team-context.md` 的控制面信息。
 - TeamLead 每次阶段切换、用户确认、handoff、PR URL 变化后更新 `lead/team-context.md`，并在需要时校准共享完成流水。
 - 如果项目已通过 `spec-init` 配置 Hook 适配器，Hook 可以按 `.agents/hooks/team-context-hook-contract.md` 自动更新事实字段；未配置 Hook 时，TeamLead 和各角色按本节规则手动维护。
 - Hook 只负责文件事件、runtime handle、Git/PR 元数据、artifact 状态、时间戳等事实同步，不负责 `Next Action`、gate decision、handoff reason 或 blocker 业务判断。
 - `lead/team-context.md` 是当前 Spec 的运行账本和 Git/PR 元数据权威来源；角色产物只链接它，不复制运行状态正文。
-- `Current Run Path` 记录当前任务实际走过的流程路径；`Task Progress` 记录已经完成的任务；`Problem Resolution Log` 记录谁发现问题、谁解决问题、解决产物在哪里。
-- 除 `Task Progress` 和 `Problem Resolution Log` 外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
+- `Current Run Path` 记录当前任务实际走过的流程路径；`Task Progress` 记录已经完成的任务；`Problem Resolution Log` 记录谁发现问题、谁解决问题、解决产物在哪里；`Decision Log` 记录每一个实质取舍的选项、结论和理由。
+- 除 `Task Progress`、`Problem Resolution Log` 和 `Decision Log` 外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
 - `agent_id`、`thread_id`、`session_id` 是运行时 handle，不作为跨 Spec 的长期身份；跨 Spec 只复用项目级角色定义。
 - OMP 运行时优先记录 `task` spawn 返回的 `agent_id`（`agent://<id>` 句柄）和子 Agent job id；角色间用 `irc` 协作时按角色 id（如 `spec-tester`）寻址，handoff 仍落盘到 `Handoffs` 与 `Problem Resolution Log`。
 - Claude Code 运行时优先记录 subagent `agent_id` 和对应 transcript/session 信息。

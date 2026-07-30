@@ -69,7 +69,7 @@ description: 当同一个活跃 Spec 在当前工作分支内需要小迭代、�
 14. **经验与规范收尾**：调用 `/exp-reflect`，并审查是否需要维护 AGENTS.md / .agents/rules/
 15. **等待分支收尾确认**：使用当前运行环境的确认方式（节点 3）
 16. **提交并推送当前 Spec 分支**：调用 `/git-work` 的“完成 Spec 分支”模式，提交并推送；如果用户确认该 Spec 已准备整体交付，则创建/更新 PR；如获得 PR URL，写回 `writer/plan.md` / `executor/summary.md` / `updater/update-xxx.md` / `updater/update-xxx-summary.md` 并补充提交
-17. **更新 team-context 共享区**：在 `lead/team-context.md` 的 `Task Progress` 中追加或更新 spec-update 自己的更新任务行，`artifact` 指向 `updater/update-xxx.md` / `updater/update-xxx-summary.md`，`status` 标记为 `done`，填写 `completed_at` 和 `updated_by: spec-update`；若更新解决了问题，同步更新 `Problem Resolution Log`
+17. **更新 team-context 共享区**：在 `lead/team-context.md` 的 `Task Progress` 中追加或更新 spec-update 自己的更新任务行，`artifact` 指向 `updater/update-xxx.md` / `updater/update-xxx-summary.md`，`status` 标记为 `done`，填写 `completed_at` 和 `updated_by: spec-update`；若更新解决了问题，同步更新 `Problem Resolution Log`（按性质填 `category`）；本次更新做的方案取舍（含是否仍在原 Spec 范围内的判断）在 `Decision Log` 记一行
 18. **完成更新**：不归档，保留在原目录
 
 ## 错误处理
@@ -90,5 +90,5 @@ description: 当同一个活跃 Spec 在当前工作分支内需要小迭代、�
 3. 如有经验沉淀，更新 `updater/update-xxx-summary.md` 添加经验引用
 4. 调用 `/git-work` 提交并推送当前 Spec 分支；只有当 Spec 准备整体交付时才创建/更新 PR
 5. 如有 PR URL，写回 `writer/plan.md` / `executor/summary.md` / `updater/update-xxx.md` / `updater/update-xxx-summary.md` 并补充提交
-6. 更新 `lead/team-context.md` 的 `Task Progress`，必要时更新 `Problem Resolution Log`
+6. 更新 `lead/team-context.md` 的 `Task Progress`，必要时更新 `Problem Resolution Log` 和 `Decision Log`
 7. **不归档**，保留在原目录

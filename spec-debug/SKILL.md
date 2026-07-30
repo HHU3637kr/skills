@@ -106,11 +106,13 @@ tags:
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
 - 在 `Problem Resolution Log` 中追加或更新对应问题行
+- `category` 一般为 `bug`；若根因是环境/依赖/流程问题，用对应 `category`
 - `owner` 写 `spec-debugger`
 - `artifacts` 指向 `debugger/debug-xxx.md`
 - `status` 标记为 `diagnosed`
 - `updated_by` 写 `spec-debugger`
-- 只修改 `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- 若存在多个修复路径且做了取舍（如最小补丁 vs 重构、降级 vs 报错），在 `Decision Log` 记一行，`decided_by` 写 `spec-debugger` 或 `user`
+- 只修改 `Problem Resolution Log` / `Decision Log`，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：debugger/debug-001.md 已创建，请向用户确认诊断结果。路径：{路径}
@@ -170,7 +172,7 @@ tags:
 - 在 `Problem Resolution Log` 中更新对应问题行，`resolution` 简述修复方案，`artifacts` 包含 `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`
 - `status` 标记为 `fixed_pending_verification`
 - `completed_at` 使用当前时间，`updated_by` 写 `spec-debugger`
-- 只修改 `Task Progress` / `Problem Resolution Log` / `Loop Budget`，不要修改 TeamLead 其他控制面区块
+- 只修改 `Task Progress` / `Problem Resolution Log` / `Decision Log` / `Loop Budget`，不要修改 TeamLead 其他控制面区块
 
 如果预算未触上限：
 
@@ -210,7 +212,7 @@ spec-debugger → TeamLead → spec-tester（重新验证）
 完成修复后确认：
 1. `debugger/debug-xxx.md` 已创建且用户已确认诊断
 2. `debugger/debug-xxx-fix.md` 已创建
-3. 已更新 `lead/team-context.md` 的 `Task Progress`、`Problem Resolution Log` 和 `Loop Budget`（`rounds_used` / `no_progress_streak` / `status`）
+3. 已更新 `lead/team-context.md` 的 `Task Progress`、`Problem Resolution Log`（含 `category`）、必要的 `Decision Log` 和 `Loop Budget`（`rounds_used` / `no_progress_streak` / `status`）
 4. 已向 TeamLead 提交重新验证请求，或在触发预算上限时请求升级
 5. 未修改 `writer/plan.md`
 

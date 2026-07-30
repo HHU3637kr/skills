@@ -222,6 +222,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
 - 在 `Problem Resolution Log` 中追加或更新该问题行
+- `category` 一般为 `bug`；若是测试环境/依赖问题而非产品缺陷，用 `env` / `dependency`
 - `found_by` 写 `spec-tester`
 - `owner` 建议写 `spec-debugger`
 - `problem` 简述现象，`artifacts` 引用测试证据路径或即将创建的 debug 文档

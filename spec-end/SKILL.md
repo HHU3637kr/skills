@@ -52,10 +52,10 @@ description: >
 - `updater/update-xxx.md` / `updater/update-xxx-summary.md`：更新方案和总结（如有）
 - `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`：问题和修复（如有）
 
-同时读取 `lead/team-context.md` frontmatter：
-- `git_branch`
-- `base_branch`
-- `pr_url`
+同时读取 `lead/team-context.md` 的运行账本：
+- frontmatter 的 `git_branch` / `base_branch` / `pr_url`
+- `Decision Log`：本次所有实质取舍及理由——end-report 的「关键决策」小结直接来自此表，无需重新回忆
+- `Problem Resolution Log`：本次遇到并解决的 bug 与过程性问题，供 exp-reflect 分流沉淀
 
 如果 `git_branch` 为空或为 `none`，说明本 Spec 没有使用 GitHub Flow 分支；收尾时仍可归档文档，但提交/PR 步骤需要先询问用户。
 

@@ -85,7 +85,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - `artifact` 指向 `reviewer/review.md` 或 `reviewer/update-xxx-review.md`
 - `status` 根据审查结果标记为 `done` / `needs-fix`
 - `completed_at` 使用当前时间，`updated_by` 写 `spec-reviewer`
-- 若发现阻塞问题，在 `Problem Resolution Log` 中追加问题行，`found_by` 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
+- 若发现阻塞问题，在 `Problem Resolution Log` 中追加问题行，`category` 按性质选（`bug` / `scope` / `process` 等），`found_by` 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
 - 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
 
 | 响应 | 含义 | 后续操作 |

@@ -259,16 +259,17 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | frontmatter | TeamLead | `runtime`, `git_branch`, `base_branch`, `pr_url`, `phase`, `status` |
 | Current Run Path | TeamLead | 当前任务实际走过的阶段路径 |
 | Task Progress | 各角色共享 | 各角色只追加或更新自己负责的任务行 |
-| Problem Resolution Log | 各角色共享 | 发现/解决问题的角色维护自己相关的问题行 |
+| Problem Resolution Log | 各角色共享 | 发现/解决问题的角色维护自己相关的问题行；`category` 覆盖 bug/blocker/process/env/dependency/scope 等过程性问题 |
+| Decision Log | 各角色共享 | 拍板方记录每个实质取舍的 options/decision/rationale；用户决策由 TeamLead 代记 |
 | Runtime Handles | TeamLead | 记录 agent/thread/session handle |
 | Artifact Registry | TeamLead | 产物路径、状态、是否确认 |
-| Gate Decisions | TeamLead | 用户确认门禁 |
+| Gate Decisions | TeamLead | 用户确认门禁（只记通过/驳回，理由在 Decision Log） |
 | Loop Budget | TeamLead + tester/debugger | 修复循环（test-debug）预算：max_rounds / max_no_progress_rounds 由用户在进入循环前确认；rounds_used / no_progress_streak 每轮由 tester/debugger 更新 |
 | Handoffs | TeamLead | 跨角色交接 |
 | Open Questions / Blockers | TeamLead | 阻塞和开放问题 |
 | Next Action | TeamLead | 下一步动作 |
 
-Hook 适配器只能记录事实事件，例如 artifact 写入、角色启动/结束、PR URL 更新、时间戳更新。门禁决策、业务结论、handoff 原因和下一步动作必须由 TeamLead 或对应角色明确维护。
+Hook 适配器只能记录事实事件，例如 artifact 写入、角色启动/结束、PR URL 更新、时间戳更新。门禁决策、`Decision Log` 的取舍与理由、过程性问题归类、业务结论、handoff 原因和下一步动作必须由 TeamLead 或对应角色明确维护。
 
 ---
 

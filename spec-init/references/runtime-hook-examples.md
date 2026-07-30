@@ -429,6 +429,7 @@ function emitCompactionContext(file) {
   const want = [
     "Current Run Path",
     "Gate Decisions",
+    "Decision Log",
     "Loop Budget",
     "Next Action",
     "Open Questions / Blockers",

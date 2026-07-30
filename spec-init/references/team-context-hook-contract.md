@@ -38,9 +38,10 @@ TeamLead 维护控制面：
 
 所有角色可共同维护共享完成区：
 - `Task Progress`：只追加或更新自己负责的任务行
-- `Problem Resolution Log`：只追加或更新自己发现或解决的问题行
+- `Problem Resolution Log`：只追加或更新自己发现或解决的问题行（含 bug 与过程性问题）
+- `Decision Log`：拍板的一方追加自己相关的决策行
 
-Hook 适配器只能自动更新事实字段，不得改写其他角色的语义内容。
+Hook 适配器只能自动更新事实字段，不得改写其他角色的语义内容，也不得自动推断决策结论或理由。
 
 ## 自动更新边界
 
@@ -59,6 +60,8 @@ Hook 不得自动推断：
 - gate decision
 - handoff reason
 - blocker 是否成立
+- `Decision Log` 的 topic / options / decision / rationale（决策语义只能由拍板方手写）
+- 过程性问题的 `category` 归类与是否成立
 - plan / test / debug 正文摘要
 - 业务结论、风险结论或用户确认结果
 
