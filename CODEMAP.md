@@ -2,19 +2,19 @@
 
 ## 项目总览
 
-本仓库是 **R&K Flow Spec 驱动式开发 Skills 体系**的源码目录。它主要由 Markdown Skill 定义、引用模板和 npm 安装脚本组成，用于把一套项目级 Spec 工作流安装到目标项目的 `.agents/skills/` 中。
+本仓库是 **R&K Flow Spec 驱动式开发 Skills 体系**的源码目录。它由 Markdown Skill 定义和引用模板组成，直接 `git clone` 到目标项目的 `.agents/skills/`，运行时目录通过软链接共享同一份副本。
 
 **仓库地址**：`github.com/HHU3637kr/skills`
 **当前分支**：`master`
-**文档口径**：v2.4.1
-**npm package**：`@rnking3637/rk-flow` v2.3.0
+**文档口径**：v2.6.0
+**分发方式**：git clone + 软链接（不走 npm）
 
 核心架构与 README 保持一致：
 - 5 阶段 Spec 工作流：需求对齐 → 探索/设计/测试计划 → 实现 → 测试/调试/审查 → 收尾
 - 7 个项目级角色：explorer、writer、tester、executor、debugger、reviewer、ender
 - TeamLead 是当前主 Agent，不额外创建 TeamLead 子 Agent
 - 每个 Spec 使用角色目录保存产物，并由 `lead/team-context.md` 记录运行账本
-- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色 + `.omp/hooks/post/` 记账与 `session.compacting` 恢复；Claude Code、Codex 等为备选。OMP 16.4+：`task` 用 batch schema、角色 **默认省略 `tools`（继承完整工具集）**、产品边界靠 role rules、`model` 按需
+- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色定义；Claude Code、Codex 等为备选。OMP 16.4+：`task` 用 batch schema、角色 **默认省略 `tools`（继承完整工具集）**、产品边界靠 role rules、`model` 按需
 
 ---
 
@@ -22,14 +22,12 @@
 
 ```
 skills/
-├── package.json              # npm package 元数据，bin 指向 bin/cli.js
-├── bin/
-│   └── cli.js                # rk-flow init 安装入口
+├── package.json              # 版本元数据（private，不发布 npm）
 ├── README.md                 # 总体说明和工作流规范
 └── CODEMAP.md                # 本文件
 ```
 
-`rk-flow init` 的目标是把核心 Skills 复制到目标项目 `.agents/skills/`，并引导目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。
+安装方式是把本仓库 `git clone` 到目标项目的 `.agents/skills/`，再把 `.claude/skills`、`.codex/skills`、`.omp/skills` 软链接到该目录；目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。更新用 `git pull`，软链接自动同步。
 
 ---
 
@@ -38,11 +36,9 @@ skills/
 ```
 skills/
 ├── spec-init/                         # 项目首次接入 R&K Flow
-│   ├── SKILL.md                       # 创建项目骨架、角色定义、运行时适配和 Hook 协议
+│   ├── SKILL.md                       # 创建项目骨架、角色定义和运行时适配
 │   └── references/
-│       ├── project-agent-roles.md     # 7 个项目级角色中立定义 + OMP/Claude/Codex 适配（默认 omit tools）
-│       ├── team-context-hook-contract.md # lead/team-context.md 自动记账的中立 Hook 协议
-│       └── runtime-hook-examples.md      # Claude Code / Codex 项目级 Hook 配置样例
+│       └── project-agent-roles.md     # 7 个项目级角色中立定义 + OMP/Claude/Codex 适配（默认 omit tools）
 │
 ├── spec-start/                        # 每次启动新 Spec
 │   └── SKILL.md                       # 创建分支、角色目录、Team Context，启动阶段二
@@ -123,22 +119,18 @@ skills/
 │   │   ├── documentation.md
 │   │   └── git-workflow.md
 │   ├── skills/
-│   ├── roles/
-│   │   ├── spec-explorer.md
-│   │   ├── spec-writer.md
-│   │   ├── spec-tester.md
-│   │   ├── spec-executor.md
-│   │   ├── spec-debugger.md
-│   │   ├── spec-reviewer.md
-│   │   └── spec-ender.md
-│   └── hooks/
-│       └── team-context-hook-contract.md
+│   └── roles/
+│       ├── spec-explorer.md
+│       ├── spec-writer.md
+│       ├── spec-tester.md
+│       ├── spec-executor.md
+│       ├── spec-debugger.md
+│       ├── spec-reviewer.md
+│       └── spec-ender.md
 ├── .claude/
-│   ├── settings.json                  # Claude Code 项目级 Hook 配置（如需）
 │   └── agents/<role-id>.md            # Claude Code 项目 Agent 适配
 ├── .codex/
 │   ├── agents/<role-id>.toml          # Codex 项目 Agent 适配
-│   ├── hooks.json                     # Codex 项目级 Hook 配置（如需）
 │   └── config.toml
 └── spec/
     └── context/
@@ -269,7 +261,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | Open Questions / Blockers | TeamLead | 阻塞和开放问题 |
 | Next Action | TeamLead | 下一步动作 |
 
-Hook 适配器只能记录事实事件，例如 artifact 写入、角色启动/结束、PR URL 更新、时间戳更新。门禁决策、`Decision Log` 的取舍与理由、过程性问题归类、业务结论、handoff 原因和下一步动作必须由 TeamLead 或对应角色明确维护。
+全部区块由 TeamLead 和各角色手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，不依赖自动记账。
 
 ---
 
@@ -323,25 +315,13 @@ TeamLead → 下游角色：
 
 直接 Agent-to-Agent 通信不是协议要求。即使运行环境支持直接发消息，也应由 TeamLead 维护 `lead/team-context.md` 的控制面。
 
-### Hook 数据流
-
-```
-Claude Code / Codex 原生 Hook
-  ↓ 运行时适配器
-.agents/hooks/team-context-hook-contract.md 中立事件
-  ↓
-lead/team-context.md 的事实字段
-```
-
-若当前 CLI 不支持 Hook，则保留中立协议，降级为 TeamLead 和各角色手动维护。
-
 ---
 
 ## 依赖关系
 
 | Skill | 直接依赖/常用协作 | 被谁调用 |
 |-------|------------------|----------|
-| `spec-init` | `find-skills`, `project-agent-roles.md`, `team-context-hook-contract.md`, `runtime-hook-examples.md` | 用户一次性调用 |
+| `spec-init` | `find-skills`, `project-agent-roles.md` | 用户一次性调用 |
 | `spec-start` | `intent-confirmation`, `git-work` | 用户启动新 Spec |
 | `spec-explore` | `exp-search` | TeamLead |
 | `spec-write` | `obsidian-markdown`, `spec-test` 协作 | TeamLead |
@@ -365,8 +345,8 @@ lead/team-context.md 的事实字段
 | 文档系统 | Obsidian | wikilink、callout、frontmatter、Bases |
 | 数据格式 | Markdown, YAML, JSON Canvas | 文档和可视化结构 |
 | 版本控制 | Git / GitHub Flow | Spec 分支、提交、推送、PR |
-| AI 运行时 | Claude Code / Codex / compatible coding agents | 项目级 Agent、Hook、resume 能力按环境适配 |
-| 安装分发 | npm CLI | `rk-flow init` |
+| AI 运行时 | OMP / Claude Code / Codex / compatible coding agents | 项目级 Agent、resume 能力按环境适配 |
+| 安装分发 | git clone + 软链接 | 克隆到 `.agents/skills/`，运行时目录软链接共享；`git pull` 更新 |
 
 ---
 
@@ -376,7 +356,7 @@ lead/team-context.md 的事实字段
 - 7 个核心工作流 Skill 和 3 个记忆管理 Skill（exp-search/exp-reflect/exp-write）标题后都有一张「运行契约」表（输入/权限/验证/停止/升级）；修改这些 Skill 的职责或边界时，同步更新其运行契约表。
 - 新增或修改核心 Skill 时，同步更新 README 的 Skills 表、Spec 目录结构和本 CODEMAP。
 - 修改角色协议时，优先更新 `spec-init/references/project-agent-roles.md`，再同步 Claude Code / Codex 适配说明。
-- 修改 Team Context 字段或 Hook 行为时，优先更新 `spec-init/references/team-context-hook-contract.md`、`spec-init/references/runtime-hook-examples.md` 和 `spec-start/SKILL.md`。
+- 修改 Team Context 字段时，优先更新 `spec-start/SKILL.md` 的模板，再同步各角色 Skill 的「更新共享区」步骤和本文档的数据结构表。
 - `AGENTS.md` 保持薄入口定位；详细规则、项目偏好和前端风格落在 `.agents/rules/`。
 - 不把运行时临时上下文当成长期状态；长期状态必须落在 Spec 目录、`.agents/roles/`、`.agents/rules/` 或显式记忆系统中。
 - 测试证据目录中的日志和 JSON 应由测试运行自动生成，Agent 不应手写测试日志冒充证据。

@@ -149,7 +149,7 @@ exp-reflect 会根据经验的重要性分流：
 - `artifact` 指向 `ender/end-report.md`
 - `status` 标记为 `done`
 - `completed_at` 使用当前时间，`updated_by` 写 `spec-ender`
-- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块；PR URL 等控制面字段仍由 TeamLead 或 Hook 更新
+- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块；PR URL 等控制面字段由 TeamLead 更新
 
 ```text
 通知 TeamLead：收尾工作完成，本次 Spec 团队实例结束；项目级角色定义保留。

@@ -9,12 +9,33 @@
 
 ## 安装
 
+直接拉取本仓库到项目的 `.agents/skills/`，再把运行时目录软链接过去。**不走 npm 分发**，仓库即唯一分发源。
+
 ```bash
-npm install -g @rnking3637/rk-flow
-rk-flow init
+# 1. 拉取 Skills 到 .agents/skills/
+git clone https://github.com/HHU3637kr/skills.git .agents/skills
+
+# 2. 运行时目录软链接到 .agents/skills/（按需只建你在用的那一个）
+ln -s ../.agents/skills .claude/skills
+ln -s ../.agents/skills .codex/skills
+ln -s ../.agents/skills .omp/skills
 ```
 
-在任意项目目录执行 `rk-flow init`，核心 R&K Flow Skills 会自动复制到 `.agents/skills/`。
+Windows（PowerShell，需管理员或开启开发者模式）：
+
+```powershell
+git clone https://github.com/HHU3637kr/skills.git .agents\skills
+New-Item -ItemType SymbolicLink -Path .claude\skills -Target ..\.agents\skills
+```
+
+后续更新直接在 `.agents/skills/` 里 `git pull`，软链接的运行时目录自动同步，无需重装：
+
+```bash
+cd .agents/skills && git pull
+```
+
+> [!tip] 为什么用软链接
+> 单一副本、单一版本源。`.claude` / `.codex` / `.omp` 三套运行时共享同一份 Skills，`git pull` 一次全部生效，不会出现多份副本版本漂移。
 
 然后在项目的 `AGENTS.md` 中添加入口导入。`AGENTS.md` 只作为项目身份和路由清单，详细规则、项目偏好和前端风格等长期约束放在 `.agents/rules/`：
 
@@ -124,8 +145,7 @@ rk-flow init
 │                                                                           │
 │  AGENTS.md           → 项目身份 + 入口清单 + 路由（薄入口）                 │
 │  .agents/roles/      → CLI 中立的项目级角色定义                              │
-│  .agents/hooks/      → Team Context 自动记账的中立 Hook 协议                 │
-│  .claude/.codex      → 运行时 Agent / Hook 适配                              │
+│  .claude/.codex/.omp → 运行时 Agent 适配                                     │
 │  .agents/rules/      → 长期规则 + 项目偏好 + 前端风格（每文件 ≤ 20 行）      │
 │  spec/*/*/lead/      → 每个 Spec 的 team-context 运行账本                    │
 │  spec/context/       → 项目级结构化经验与知识（显式层）                       │
@@ -140,7 +160,7 @@ rk-flow init
 
 R&K Flow 文档中的“创建团队、创建角色、通知角色、请求用户确认”都是**抽象协作动作**，不是跨平台固定 API。项目初始化时会创建中立角色定义，运行时再由 OMP（Oh My Pi）、Claude Code、Codex 或其他 CLI 适配成自己的项目级 Agent / Subagent。
 
-> **推荐运行时：OMP（Oh My Pi）。** R&K Flow 优先面向 OMP 设计、并在 OMP 上端到端验证；新项目若无特定约束，**首选 OMP**。原生 `task` spawn 对应角色层、hook 事件总线对应账本记账层、`session.compacting` 对应上下文恢复层——三对三盖住 R&K 的角色 / 账本 / 恢复三大支柱。OMP 16.4+ 适配要点：`task` 使用 `{ context, tasks: [{ name?, agent?, task }] }`；`.omp/agents/*` **默认省略 `tools`** 以继承完整启用工具集（避免窄白名单中断）；产品代码边界写在中立 role rules；`model` 按项目多模型策略可选配置。Claude Code、Codex 及其它 CLI 为受支持的备选适配，按各自能力降级。
+> **推荐运行时：OMP（Oh My Pi）。** R&K Flow 优先面向 OMP 设计、并在 OMP 上端到端验证；新项目若无特定约束，**首选 OMP**。原生 `task` spawn 对应角色层，落盘的 `lead/team-context.md` 承担账本与跨上下文恢复。OMP 16.4+ 适配要点：`task` 使用 `{ context, tasks: [{ name?, agent?, task }] }`；`.omp/agents/*` **默认省略 `tools`** 以继承完整启用工具集（避免窄白名单中断）；产品代码边界写在中立 role rules；`model` 按项目多模型策略可选配置。Claude Code、Codex 及其它 CLI 为受支持的备选适配，按各自能力降级。
 
 | 抽象动作 | 含义 | 不支持多 Agent 时 |
 |----------|------|------------------|
@@ -159,10 +179,8 @@ R&K Flow 文档中的“创建团队、创建角色、通知角色、请求用�
 |------|------|------|
 | 中立角色定义 | `.agents/roles/<role-id>.md` | 项目级角色的权威定义，跨 CLI 共享 |
 | OMP 适配 | `.omp/agents/<role-id>.md` | OMP 通过 `task` 发现并 spawn 的项目 Agent；只发现 `.omp/agents/`；**默认省略 `tools`**（完整工具集），边界靠 role rules |
-| OMP Hook | `.omp/hooks/post/team-context-sync.ts` | 监听 `tool_result`/`agent_*`/`turn_end` 自动记账，并在 `session.compacting` 重注入账本 |
 | Claude Code 适配 | `.claude/agents/<role-id>.md` | Claude Code 可发现的项目 Agent |
 | Codex 适配 | `.codex/agents/<role-id>.toml` | Codex 可 spawn 的项目 Agent，`name` 使用 snake_case |
-| Hook 协议 | `.agents/hooks/team-context-hook-contract.md` | 自动维护 `lead/team-context.md` 的中立事件约定 |
 
 角色定义是项目级、可复用的；角色线程或子 Agent 实例是某次 Spec 运行中的临时 handle。跨 Spec 不依赖隐藏上下文，必须从落盘文档恢复。
 
@@ -190,7 +208,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/lead/team-context.md
 - 发现或解决问题的角色可共同维护 `Problem Resolution Log`，但只追加或更新自己相关的问题行；不止 bug，环境、依赖、阻塞、流程、范围偏差都记。
 - 遇到需要拍板的取舍时，拍板方在 `Decision Log` 追加一行；用户决策由 TeamLead 代记，保留被否决的选项和理由。
 - `Loop Budget` 的上限值由用户在进入修复循环前通过 TeamLead 确认；`rounds_used` / `no_progress_streak` 由 spec-debugger 和 spec-tester 每轮更新，触发上限时停止循环并升级给用户。
-- Hook 只自动记录事实事件，不推断业务结论、门禁决策、handoff 原因或下一步动作。
+- 账本全部手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，不依赖自动记账。
 
 ### GitHub Flow 约定
 
@@ -222,7 +240,7 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 
 ### 初始化
 
-项目首次使用时，调用 `spec-init` 检查/初始化 Git 仓库，并搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、.agents/roles/、.agents/hooks/、spec/ 目录、记忆系统、Obsidian Vault），同时生成 Claude Code / Codex 等运行时适配文件。
+项目首次使用时，调用 `spec-init` 检查/初始化 Git 仓库，并搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、.agents/roles/、spec/ 目录、记忆系统、Obsidian Vault），同时生成 OMP / Claude Code / Codex 等运行时适配文件。
 
 每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
@@ -243,7 +261,7 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + hooks + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 创建 Spec 工作分支、角色目录和 `lead/team-context.md`，加载 7 个项目级角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 `writer/plan.md`（纯代码实现计划，不含测试） | 创建新功能 Spec |
@@ -1087,7 +1105,6 @@ created: YYYY-MM-DD
 - `AGENTS.md` - 项目身份与入口清单
 - `spec/` - 所有 Spec 文档
 - `.agents/roles/` - CLI 中立的项目级角色定义
-- `.agents/hooks/team-context-hook-contract.md` - Team Context 自动记账协议
 - `.agents/skills/*/SKILL.md` - 各 Skill 的详细说明
 
 ### 外部资源
@@ -1125,7 +1142,7 @@ created: YYYY-MM-DD
 
 ## 更新日志
 
-### v2.6.0 (2026-07-30) - 提问情境交代 + Decision Log 决策留痕
+### v2.6.0 (2026-07-30) - 提问情境交代 + Decision Log 决策留痕 + 移除 Hook 机制
 
 **核心改进**：
 
@@ -1133,8 +1150,9 @@ created: YYYY-MM-DD
 2. **新增 `Decision Log` 区块**：`lead/team-context.md` 新增决策留痕区，记录每个实质取舍的 `options`（含被否决项）/ `decision` / `rationale` / `decided_by`。与 `Gate Decisions` 分工：门禁只记通过/驳回，「为什么这么定」进 Decision Log。
 3. **Problem Resolution Log 扩展过程性问题**：新增 `category` 字段（`bug` / `blocker` / `process` / `env` / `dependency` / `scope`），从只记 bug 扩展到环境、依赖、阻塞、范围偏差等过程性问题。
 4. **全链路落盘**：7 个角色 Skill 各自更新共享区步骤——writer 记设计取舍、executor 记实现取舍、debugger 记修复路径、tester/explorer/reviewer 记过程性问题、ender 从 Decision Log 汇总 end-report、updater 记更新范围判断。
-5. **跨上下文不丢决策**：OMP `session.compacting` 重注入清单加入 `Decision Log`，压缩后仍能从落盘账本恢复「为什么当初这么定」。Hook 契约明确禁止自动推断决策语义与问题归类。
-6. **文档同步**：`CODEMAP.md`、`README.md`、`spec-init/references/`（hook 契约、runtime 示例、project-agent-roles）同步 Decision Log 与 category 口径；README 与 npm package 版本升级到 2.6.0。
+5. **移除整套 Hook 机制**：实践下来自动记账不好用——事实字段的自动同步价值有限，却带来运行时配置负担和「区块名被字符串匹配」的隐式耦合。删除 `spec-init/references/team-context-hook-contract.md`、`runtime-hook-examples.md` 和 `spec-init` 的 4.4 节，不再生成 `.agents/hooks/`、`.claude/settings.json`、`.codex/hooks.json`、`.omp/hooks/`；OMP `session.compacting` 自动重注入一并移除。账本回归全手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，跨上下文恢复靠角色主动重读落盘账本。维护边界（TeamLead 控制面 vs 角色共享区）不变。
+6. **分发改为 git clone + 软链接**：不再走 npm（`@rnking3637/rk-flow` 停止发布，`package.json` 标记 `private`）。改为 `git clone` 到 `.agents/skills/`，`.claude/skills` / `.codex/skills` / `.omp/skills` 软链接到同一份副本，`git pull` 一次三套运行时全部生效，避免多副本版本漂移；删除 `bin/cli.js` 与 `rk-flow init`。
+7. **文档同步**：`CODEMAP.md`、`README.md`、`spec-init/references/project-agent-roles.md` 同步 Decision Log 与 category 口径，重写安装章节，清理约 50 处 hook 与 npm 引用。
 
 ### v2.5 (2026-06-16) - 运行契约 + loop-design + Skill 生态扩展
 

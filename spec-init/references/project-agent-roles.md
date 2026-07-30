@@ -13,7 +13,7 @@ Use these definitions when `spec-init` creates project-level roles. The source o
 - TeamLead owns the structure and control-plane sections of `lead/team-context.md`: frontmatter, run path, Git/PR metadata, runtime handles, artifact registry, gate decisions, handoffs, blockers, and next action.
 - All roles may directly maintain the shared sections in `lead/team-context.md`: `Task Progress` for their own completed work, `Problem Resolution Log` for issues they found or resolved (bugs and process issues alike, tagged via `category`), and `Decision Log` for substantive trade-offs they decided (record the options considered, the choice, and the rationale). Do not edit other roles' rows.
 - Non-Lead roles must not edit any other `lead/team-context.md` sections. They return control-plane changes, handoff requests, and blocker updates to TeamLead.
-- If hooks are configured, they must follow `.agents/hooks/team-context-hook-contract.md`: hooks record factual events only, while TeamLead and roles remain responsible for workflow semantics.
+- `lead/team-context.md` is maintained manually by TeamLead and the roles. Update the relevant section as soon as an artifact is produced, an issue is found or resolved, or a trade-off is decided.
 - Required state must be written to `spec/`, `AGENTS.md`, `.agents/rules/`, `.agents/skills/`, or the explicit experience/knowledge store. Do not rely on hidden agent context for workflow correctness.
 - Each role writes its own artifacts under the current Spec role directory: `lead/`, `explorer/`, `writer/`, `tester/`, `executor/`, `debugger/`, `reviewer/`, `updater/`, or `ender/`.
 

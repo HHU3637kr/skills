@@ -266,8 +266,7 @@ updated_at: {ISO8601}
 - 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在 `Decision Log` 追加一行：`options` 记当时的候选项（含被否决项）、`decision` 记结论、`rationale` 记理由、`decided_by` 记 `user` 或角色 id。这是「为什么当初这么定」的唯一权威来源。
 - TeamLead 每次 spawn、resume、send message、stop 或 close 角色线程后更新 `lead/team-context.md` 的控制面信息。
 - TeamLead 每次阶段切换、用户确认、handoff、PR URL 变化后更新 `lead/team-context.md`，并在需要时校准共享完成流水。
-- 如果项目已通过 `spec-init` 配置 Hook 适配器，Hook 可以按 `.agents/hooks/team-context-hook-contract.md` 自动更新事实字段；未配置 Hook 时，TeamLead 和各角色按本节规则手动维护。
-- Hook 只负责文件事件、runtime handle、Git/PR 元数据、artifact 状态、时间戳等事实同步，不负责 `Next Action`、gate decision、handoff reason 或 blocker 业务判断。
+- `lead/team-context.md` 全部由 TeamLead 和各角色手动维护；不依赖任何自动记账机制。角色每产出一个产物、每解决一个问题、每做一次取舍，立即更新对应区块。
 - `lead/team-context.md` 是当前 Spec 的运行账本和 Git/PR 元数据权威来源；角色产物只链接它，不复制运行状态正文。
 - `Current Run Path` 记录当前任务实际走过的流程路径；`Task Progress` 记录已经完成的任务；`Problem Resolution Log` 记录谁发现问题、谁解决问题、解决产物在哪里；`Decision Log` 记录每一个实质取舍的选项、结论和理由。
 - 除 `Task Progress`、`Problem Resolution Log` 和 `Decision Log` 外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
