@@ -84,13 +84,13 @@ description: >
 ### 步骤 8：通知 TeamLead 并等待用户确认
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-executor 自己的任务行
-- `status` 标记为 `done`
-- `artifact` 指向 `executor/summary.md`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-executor`
-- 实现期 plan 未覆盖的取舍（如日志格式、命名、错误处理策略）在 `Decision Log` 记一行，`decided_by` 写 `spec-executor`；若取舍偏离或扩展了 plan，先回报 TeamLead 由用户拍板
-- 实现期遇到的过程性问题（环境不一致、依赖缺失、脚本报错、plan 与现状冲突）在 `Problem Resolution Log` 记一行，`category` 选 `env` / `dependency` / `process` / `scope`
-- 只修改 `Task Progress` / `Decision Log` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- 在「任务进度」中追加或更新 spec-executor 自己的任务行
+- 「状态」标记为 `done`
+- 「产物」指向 `executor/summary.md`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-executor`
+- 实现期 plan 未覆盖的取舍（如日志格式、命名、错误处理策略）在「决策记录」记一行，「拍板者」 写 `spec-executor`；若取舍偏离或扩展了 plan，先回报 TeamLead 由用户拍板
+- 实现期遇到的过程性问题（环境不一致、依赖缺失、脚本报错、plan 与现状冲突）在「问题闭环记录」记一行，「分类」选 `env` / `dependency` / `process` / `scope`
+- 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：executor/summary.md 已完成，请发起用户确认，并在确认后启动 spec-tester 执行测试。
@@ -128,7 +128,7 @@ spec-writer → writer/plan.md → spec-executor（本 Skill）→ executor/summ
 
 完成执行后确认：
 1. `executor/summary.md` 已创建并已通知 TeamLead
-2. 已更新 `lead/team-context.md` 的 `Task Progress` 中自己的任务行，必要时补 `Decision Log` / `Problem Resolution Log`
+2. 已更新 `lead/team-context.md` 的「任务进度」中自己的任务行，必要时补「决策记录」/「问题闭环记录」
 3. 未执行测试，已等待 TeamLead 启动 spec-tester
 4. 未归档、未提交或推送，等待 spec-end 统一收尾
 

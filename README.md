@@ -62,7 +62,7 @@ cd .agents/skills && git pull
 > **运行契约（Run Contract）** - 先写刹车，再写循环
 > - 每个核心工作流 Skill 头部都有一张「运行契约」表：输入、权限、验证、停止、升级
 > - 把 Skill 当成有边界的循环单元，而不是一段无界的提示词；强调"什么时候停、什么时候交还给人"
-> - spec-test ↔ spec-debug 修复循环用 `lead/team-context.md` 的 `Loop Budget` 落实停止条件：`max_rounds` / `max_no_progress_rounds` 由用户进入循环前确认，触发上限即停止并升级
+> - spec-test ↔ spec-debug 修复循环用 `lead/team-context.md` 的「修复循环预算」落实停止条件：`max_rounds` / `max_no_progress_rounds` 由用户进入循环前确认，触发上限即停止并升级
 > - 适用范围：7 个核心工作流 Skill + 3 个记忆管理 Skill（exp-search/exp-reflect/exp-write）；领域 Skill 不强制
 
 
@@ -197,17 +197,17 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/lead/team-context.md
 - `git_branch`、`base_branch`、`pr_url`
 - 角色 runtime handle（如 `agent_id`、`thread_id`、`session_id`）
 - 产物注册表、跨角色 handoff、开放问题和下一步动作
-- 共享完成区：`Task Progress`
-- 共享问题区：`Problem Resolution Log`（bug 与过程性问题，`category` 区分）
-- 共享决策区：`Decision Log`（每个实质取舍的选项、结论、理由）
-- 修复循环预算区：`Loop Budget`（test-debug 循环的 `max_rounds` / `max_no_progress_rounds` / `rounds_used` / `no_progress_streak`）
+- 共享完成区：「任务进度」
+- 共享问题区：「问题闭环记录」（bug 与过程性问题，`category` 区分）
+- 共享决策区：「决策记录」（每个实质取舍的选项、结论、理由）
+- 修复循环预算区：「修复循环预算」（test-debug 循环的 `max_rounds` / `max_no_progress_rounds` / `rounds_used` / `no_progress_streak`）
 
 维护边界：
-- TeamLead 维护 frontmatter、运行路径、Git/PR 元数据、Runtime Handles、Artifact Registry、Gate Decisions、Handoffs、Open Questions / Blockers、Next Action。
-- 所有角色可共同维护 `Task Progress`，但只追加或更新自己负责的任务行。
-- 发现或解决问题的角色可共同维护 `Problem Resolution Log`，但只追加或更新自己相关的问题行；不止 bug，环境、依赖、阻塞、流程、范围偏差都记。
-- 遇到需要拍板的取舍时，拍板方在 `Decision Log` 追加一行；用户决策由 TeamLead 代记，保留被否决的选项和理由。
-- `Loop Budget` 的上限值由用户在进入修复循环前通过 TeamLead 确认；`rounds_used` / `no_progress_streak` 由 spec-debugger 和 spec-tester 每轮更新，触发上限时停止循环并升级给用户。
+- TeamLead 维护 frontmatter、当前运行路径、Git/PR 元数据、角色运行句柄、产物注册表、门禁决策、角色交接、开放问题与阻塞、下一步动作。
+- 所有角色可共同维护「任务进度」，但只追加或更新自己负责的任务行。
+- 发现或解决问题的角色可共同维护「问题闭环记录」，但只追加或更新自己相关的问题行；不止 bug，环境、依赖、阻塞、流程、范围偏差都记。
+- 遇到需要拍板的取舍时，拍板方在「决策记录」追加一行；用户决策由 TeamLead 代记，保留被否决的选项和理由。
+- 「修复循环预算」的上限值由用户在进入修复循环前通过 TeamLead 确认；`rounds_used` / `no_progress_streak` 由 spec-debugger 和 spec-tester 每轮更新，触发上限时停止循环并升级给用户。
 - 账本全部手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，不依赖自动记账。
 
 ### GitHub Flow 约定
@@ -407,19 +407,19 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
 
 #### loop-design 的定位
 
-`loop-design` 不属于某个固定角色，也不在 Spec 执行链路上——它**只产出 Loop 定义，不驱动执行**。先由 `intent-confirmation` 把意图澄清清楚，再把重复任务设计成一个有边界的 Loop（运行契约 + Loop Budget），产出的定义既可套用到 R&K Flow 内的 loop（如 `spec-test ↔ spec-debug` 修复循环），也可用于自定义 loop。
+`loop-design` 不属于某个固定角色，也不在 Spec 执行链路上——它**只产出 Loop 定义，不驱动执行**。先由 `intent-confirmation` 把意图澄清清楚，再把重复任务设计成一个有边界的 Loop（运行契约 + 循环预算），产出的定义既可套用到 R&K Flow 内的 loop（如 `spec-test ↔ spec-debug` 修复循环），也可用于自定义 loop。
 
 ```text
 intent-confirmation（澄清意图）
         │  复用澄清结果
         ▼
 loop-design（设计有边界的 Loop）
-        │  产出 Loop 定义：运行契约 + Loop Budget
+        │  产出 Loop 定义：运行契约 + 循环预算
         ▼
 ┌──────────────────────────────────────────┐
 │ R&K Flow 内 loop                           │  例：spec-test ↔ spec-debug
-│ （套用 Loop Budget：max_rounds /           │       修复循环
-│   max_no_progress_rounds 触发即停并升级）  │
+│ （套用「修复循环预算」：最大轮数 /          │       修复循环
+│   最大无进展轮数 触发即停并升级）           │
 │ 或 自定义 loop                              │
 └──────────────────────────────────────────┘
         ▲
@@ -629,7 +629,7 @@ TeamLead → spec-explorer 开始
 spec-explorer：
   调用 exp-search 检索历史经验...
   探索项目代码库，产出 explorer/exploration-report.md
-  更新 lead/team-context.md 的 Task Progress
+  更新 lead/team-context.md 的「任务进度」
 
 spec-explorer → TeamLead 中转给 spec-writer + spec-tester
 
@@ -650,7 +650,7 @@ spec-executor：
   读取 writer/plan.md 和 lead/team-context.md，检索历史经验
   按计划逐步实现
   创建 executor/summary.md
-  更新 lead/team-context.md 的 Task Progress
+  更新 lead/team-context.md 的「任务进度」
 
 TeamLead → 用户确认 executor/summary.md
 ```
@@ -663,9 +663,9 @@ TeamLead → spec-tester 开始执行测试
 spec-tester：
   按 tester/test-plan.md 执行测试用例
   测试代码自动采集 tester/artifacts/test-logs/<run-id>/ 下的日志/JSON/证据
-  发现 bug → 在 lead/team-context.md 的 Problem Resolution Log 记录问题并通知 TeamLead
+  发现 bug → 在 lead/team-context.md 的「问题闭环记录」记录问题并通知 TeamLead
   TeamLead → 用 intent-confirmation 与用户确认修复循环预算（max_rounds / max_no_progress_rounds）
-           → 写入 lead/team-context.md 的 Loop Budget
+           → 写入 lead/team-context.md 的「修复循环预算」
   TeamLead → spec-debugger 修复（每轮更新 rounds_used / no_progress_streak）→ TeamLead → spec-tester 重新验证
   触发预算上限或连续无进展 → 停止循环 → TeamLead 升级给用户（继续加预算 / 改方案 / 暂停）
   产出 tester/test-report.md
@@ -1039,7 +1039,7 @@ created: YYYY-MM-DD
 
 - **角色职责清晰**：不越权操作（如 spec-executor 不写测试）
 - **TeamLead 中转**：跨角色通信默认通过 TeamLead 转交，角色只声明建议接收方
-- **Team Context 及时更新**：TeamLead 维护控制面；各角色维护自己在 `Task Progress` 和 `Problem Resolution Log` 中的行
+- **Team Context 及时更新**：TeamLead 维护控制面；各角色维护自己在「任务进度」和「问题闭环记录」中的行
 - **闭环通知**：完成工作后必须把产物路径、状态和需要的 handoff 返回 TeamLead
 - **不跳过门禁**：阶段转换必须经过用户确认
 - **TeamLead 统一协调**：所有用户交互由 TeamLead 发起
@@ -1147,12 +1147,13 @@ created: YYYY-MM-DD
 **核心改进**：
 
 1. **提问前强制情境交代（Step 0）**：`intent-confirmation` 把三步工作法升级为四步，任何提问前必须先输出「已做（Did）/ 发现（Found）/ 卡点（Blocked）/ 要你决策（Need）」四段极短情境，解决「Agent 直接抛问题、用户不知道在问什么」。配套模板、提问前三条自检、`ask` 结构化提问情境写在正文而非选项、反模式明确列出「裸问」。
-2. **新增 `Decision Log` 区块**：`lead/team-context.md` 新增决策留痕区，记录每个实质取舍的 `options`（含被否决项）/ `decision` / `rationale` / `decided_by`。与 `Gate Decisions` 分工：门禁只记通过/驳回，「为什么这么定」进 Decision Log。
-3. **Problem Resolution Log 扩展过程性问题**：新增 `category` 字段（`bug` / `blocker` / `process` / `env` / `dependency` / `scope`），从只记 bug 扩展到环境、依赖、阻塞、范围偏差等过程性问题。
-4. **全链路落盘**：7 个角色 Skill 各自更新共享区步骤——writer 记设计取舍、executor 记实现取舍、debugger 记修复路径、tester/explorer/reviewer 记过程性问题、ender 从 Decision Log 汇总 end-report、updater 记更新范围判断。
+2. **新增「决策记录」区块**：`lead/team-context.md` 新增决策留痕区，记录每个实质取舍的候选项（含被否决项）、结论、理由和拍板者。与「门禁决策」分工：门禁只记通过/驳回，「为什么这么定」进「决策记录」。
+3. **「问题闭环记录」扩展过程性问题**：新增「分类」字段（`bug` / `blocker` / `process` / `env` / `dependency` / `scope`），从只记 bug 扩展到环境、依赖、阻塞、范围偏差等过程性问题。
+4. **全链路落盘**：7 个角色 Skill 各自更新共享区步骤——writer 记设计取舍、executor 记实现取舍、debugger 记修复路径、tester/explorer/reviewer 记过程性问题、ender 从「决策记录」汇总 end-report、updater 记更新范围判断。
 5. **移除整套 Hook 机制**：实践下来自动记账不好用——事实字段的自动同步价值有限，却带来运行时配置负担和「区块名被字符串匹配」的隐式耦合。删除 `spec-init/references/team-context-hook-contract.md`、`runtime-hook-examples.md` 和 `spec-init` 的 4.4 节，不再生成 `.agents/hooks/`、`.claude/settings.json`、`.codex/hooks.json`、`.omp/hooks/`；OMP `session.compacting` 自动重注入一并移除。账本回归全手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，跨上下文恢复靠角色主动重读落盘账本。维护边界（TeamLead 控制面 vs 角色共享区）不变。
 6. **分发改为 git clone + 软链接**：不再走 npm（`@rnking3637/rk-flow` 停止发布，`package.json` 标记 `private`）。改为 `git clone` 到 `.agents/skills/`，`.claude/skills` / `.codex/skills` / `.omp/skills` 软链接到同一份副本，`git pull` 一次三套运行时全部生效，避免多副本版本漂移；删除 `bin/cli.js` 与 `rk-flow init`。
-7. **文档同步**：`CODEMAP.md`、`README.md`、`spec-init/references/project-agent-roles.md` 同步 Decision Log 与 category 口径，重写安装章节，清理约 50 处 hook 与 npm 引用。
+7. **team-context 模板全中文化**：区块标题与表头改为中文（`Task Progress` → 「任务进度」、`Problem Resolution Log` → 「问题闭环记录」、`Decision Log` → 「决策记录」、`Gate Decisions` → 「门禁决策」、`Loop Budget` → 「修复循环预算」等），提升账本可读性。hook 移除后区块名不再被字符串匹配，中文化无耦合风险。frontmatter 字段名、角色 id 和状态枚举值（`pending` / `done` / `open` 等）保留英文，它们是跨 Skill 引用的标识符。
+8. **文档同步**：`CODEMAP.md`、`README.md`、`spec-init/references/project-agent-roles.md` 同步区块中文口径与「分类」字段，重写安装章节，清理约 50 处 hook 与 npm 引用。
 
 ### v2.5 (2026-06-16) - 运行契约 + loop-design + Skill 生态扩展
 
@@ -1183,7 +1184,7 @@ created: YYYY-MM-DD
 2. **7 角色团队口径**：新增 `spec-reviewer`，角色列表统一为探索、设计、测试、实现、调试、审查、收尾。
 3. **角色目录化产物**：每个 Spec 按 `lead/`、`explorer/`、`writer/`、`tester/`、`executor/`、`debugger/`、`reviewer/`、`updater/`、`ender/` 保存产物。
 4. **Team Context 运行账本**：`lead/team-context.md` 统一记录运行路径、Git/PR 元数据、runtime handles、产物注册、门禁、handoff、完成项和问题闭环。
-5. **共享维护边界**：TeamLead 维护控制面；各角色可共同维护 `Task Progress` 和 `Problem Resolution Log` 中自己负责的行。
+5. **共享维护边界**：TeamLead 维护控制面；各角色可共同维护「任务进度」和「问题闭环记录」中自己负责的行。
 6. **中立 Hook 协议**：`.agents/hooks/team-context-hook-contract.md` 定义事实事件，Claude Code / Codex 在 `spec-init` 时按自身环境适配。
 
 ### v2.3 (2026-04-28) - 运行时边界收敛 + 文档同步

@@ -67,7 +67,7 @@ git status --short
    每问尽量带推荐默认，帮用户拍板而不是从零设计  
 3. **收敛确认**：输出「编码思路小结」（触点、步骤顺序、关键取舍、验收），用户确认后再往下  
 
-通过门禁后，把思路小结写入后续上下文（`lead/team-context.md` 备注或 Next Action），供 explorer/writer 使用，避免下游重猜需求。
+通过门禁后，把思路小结写入后续上下文（`lead/team-context.md` 备注或「下一步动作」），供 explorer/writer 使用，避免下游重猜需求。
 
 ### 步骤 2：创建 Spec 工作分支
 
@@ -175,103 +175,103 @@ created_at: {ISO8601}
 updated_at: {ISO8601}
 ---
 
-# Team Context
+# 团队运行账本
 
-## Current Run Path
+## 当前运行路径
 
-| step | phase | owner | action | status | artifact | gate | updated_at |
-|------|-------|-------|--------|--------|----------|------|------------|
+| 步骤 | 阶段 | 负责角色 | 动作 | 状态 | 产物 | 门禁 | 更新时间 |
+|------|------|----------|------|------|------|------|----------|
 | 1 | intent | TeamLead | 需求对齐 | done/pending | lead/team-context.md | gate-1 | {ISO8601} |
 
-## Task Progress
+## 任务进度
 
 > 共享维护区：各角色只追加或更新自己负责的任务行。
 
-| task_id | owner | task | status | artifact | completed_at | updated_by |
-|---------|-------|------|--------|----------|--------------|------------|
+| 任务号 | 负责角色 | 任务 | 状态 | 产物 | 完成时间 | 更新者 |
+|--------|----------|------|------|------|----------|--------|
 | T-001 | spec-explorer | 探索项目背景 | pending | explorer/exploration-report.md | | spec-explorer |
 
-## Problem Resolution Log
+## 问题闭环记录
 
 > 共享维护区：发现或解决问题的角色只追加或更新自己相关的问题行。
-> 不只记 bug，任何影响推进的过程性问题都记：`category` 取 `bug` | `blocker` | `process` | `env` | `dependency` | `scope`。
+> 不只记 bug，任何影响推进的过程性问题都记：「分类」取 `bug` | `blocker` | `process` | `env` | `dependency` | `scope`。
 
-| issue_id | category | found_by | owner | problem | resolution | artifacts | status | updated_by |
-|----------|----------|----------|-------|---------|------------|-----------|--------|------------|
+| 问题号 | 分类 | 发现者 | 负责角色 | 问题 | 解决方案 | 关联产物 | 状态 | 更新者 |
+|--------|------|--------|----------|------|----------|----------|------|--------|
 | I-001 | bug | spec-tester | spec-debugger | 待记录 | 待记录 | debugger/debug-001.md / debugger/debug-001-fix.md | open | spec-tester/spec-debugger |
 | I-002 | env | spec-executor | spec-executor | 待记录（如缺依赖、脚本报错、环境不一致） | 待记录 | executor/summary.md | open | spec-executor |
 
-## Decision Log
+## 决策记录
 
 > 共享维护区：任何角色遇到需要用户或角色拍板的岔路口，落一行。记录当时给了哪些选项、
 > 选了什么、为什么、谁拍的板。被否决的选项不要删，它是复盘的关键上下文。
-> 与 `Gate Decisions` 的区别：`Gate Decisions` 只记阶段门禁通过/驳回；`Decision Log` 记每一个实质取舍及其理由。
+> 与「门禁决策」的区别：门禁决策只记阶段门禁通过/驳回；决策记录记每一个实质取舍及其理由。
 
-| dec_id | phase | raised_by | topic | options | decision | rationale | decided_by | decided_at |
-|--------|-------|-----------|-------|---------|----------|-----------|------------|------------|
+| 决策号 | 阶段 | 提出者 | 议题 | 候选项 | 结论 | 理由 | 拍板者 | 决策时间 |
+|--------|------|--------|------|--------|------|------|--------|----------|
 | D-001 | intent | TeamLead | 实现路径 | A 最小补丁 / B 抽公共层 | A | 改动面小、可回滚 | user | {ISO8601} |
 
-## Runtime Handles
+## 角色运行句柄
 
-| role_id | adapter | runtime_agent_name | agent_id | thread_id | session_id | status | resumable | last_artifact | updated_at |
-|---------|---------|--------------------|----------|-----------|------------|--------|-----------|---------------|------------|
+| 角色 id | 适配层 | 运行时角色名 | agent_id | thread_id | session_id | 状态 | 可恢复 | 最近产物 | 更新时间 |
+|---------|--------|--------------|----------|-----------|------------|------|--------|----------|----------|
 | spec-explorer | .claude/.codex/.agents | spec-explorer/spec_explorer | 运行时填写 | 运行时填写 | 运行时填写 | pending | unknown |  | {ISO8601} |
 
-## Artifact Registry
+## 产物注册表
 
-| artifact | owner | status | confirmed | updated_at |
-|----------|-------|--------|-----------|------------|
+| 产物 | 负责角色 | 状态 | 已确认 | 更新时间 |
+|------|----------|------|--------|----------|
 | writer/plan.md | spec-writer | pending | no | |
 
-## Gate Decisions
+## 门禁决策
 
-| gate | target | decision | decided_at | note |
-|------|--------|----------|------------|------|
+| 门禁 | 确认对象 | 决策 | 决策时间 | 备注 |
+|------|----------|------|----------|------|
 | gate-1 | 需求对齐 | pending | | |
 
-## Handoffs
+## 角色交接
 
-| from | to | reason | artifact | status | updated_at |
-|------|----|--------|----------|--------|------------|
+| 来源角色 | 接收角色 | 交接原因 | 产物 | 状态 | 更新时间 |
+|----------|----------|----------|------|------|----------|
 
-## Loop Budget
+## 修复循环预算
 
 > 修复循环（spec-tester ↔ spec-debugger）的运行预算。值不写死在 Skill 中，
 > 由 TeamLead 在进入阶段四修复循环前用 intent-confirmation 与用户确认后填入。
 > 只跟踪两个上限：最大轮数、最大无进展轮数。
 
-| loop | max_rounds | max_no_progress_rounds | rounds_used | no_progress_streak | status | confirmed_by_user | updated_at |
-|------|-----------|------------------------|-------------|--------------------|--------|-------------------|------------|
+| 循环 | 最大轮数 | 最大无进展轮数 | 已用轮数 | 连续无进展 | 状态 | 用户已确认 | 更新时间 |
+|------|----------|----------------|----------|------------|------|------------|----------|
 | test-debug | 待确认 | 待确认 | 0 | 0 | not-started | no | |
 
-- `max_rounds`：本次修复循环最多允许 tester→debugger→tester 走多少轮（建议默认 3，用户可改）。
-- `max_no_progress_rounds`：连续多少轮没有新增进展就停止并升级给人（建议默认 2，用户可改）。
-- `rounds_used` / `no_progress_streak`：由 spec-debugger 和 spec-tester 在每轮重验后更新。
-- `status` 取值：`not-started` | `running` | `passed` | `stopped-budget` | `stopped-no-progress` | `escalated`。
+- 「最大轮数」：本次修复循环最多允许 tester→debugger→tester 走多少轮（建议默认 3，用户可改）。
+- 「最大无进展轮数」：连续多少轮没有新增进展就停止并升级给人（建议默认 2，用户可改）。
+- 「已用轮数」/「连续无进展」：由 spec-debugger 和 spec-tester 在每轮重验后更新。
+- 「状态」取值：`not-started` | `running` | `passed` | `stopped-budget` | `stopped-no-progress` | `escalated`。
 
-## Open Questions / Blockers
+## 开放问题与阻塞
 
-| id | owner | question_or_blocker | status | resolution |
-|----|-------|---------------------|--------|------------|
+| 编号 | 负责角色 | 问题或阻塞 | 状态 | 解决情况 |
+|------|----------|------------|------|----------|
 
-## Next Action
+## 下一步动作
 
 - 待记录 TeamLead 下一步动作。
 ```
 
 记录规则：
-- TeamLead 维护 `lead/team-context.md` 的结构、frontmatter、`Current Run Path`、Git/PR 元数据、`Runtime Handles`、`Artifact Registry`、`Gate Decisions`、`Handoffs`、`Open Questions / Blockers` 和 `Next Action`。
-- 所有角色可共同维护 `Task Progress`：只追加或更新自己负责的任务行，完成产物后立即记录 `status`、`artifact`、`completed_at` 和 `updated_by`。
-- 发现或解决问题的角色可共同维护 `Problem Resolution Log`：只追加或更新自己发现/处理的问题行，记录 `category`、问题、解决方案摘要、关联产物、状态和 `updated_by`。不止 bug——阻塞、环境、依赖、流程、范围偏差等过程性问题都在此记录。
-- 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在 `Decision Log` 追加一行：`options` 记当时的候选项（含被否决项）、`decision` 记结论、`rationale` 记理由、`decided_by` 记 `user` 或角色 id。这是「为什么当初这么定」的唯一权威来源。
+- TeamLead 维护 `lead/team-context.md` 的结构、frontmatter、「当前运行路径」、Git/PR 元数据、「角色运行句柄」、「产物注册表」、「门禁决策」、「角色交接」、「开放问题与阻塞」和「下一步动作」。
+- 所有角色可共同维护「任务进度」：只追加或更新自己负责的任务行，完成产物后立即记录状态、产物、完成时间和更新者。
+- 发现或解决问题的角色可共同维护「问题闭环记录」：只追加或更新自己发现/处理的问题行，记录分类、问题、解决方案摘要、关联产物、状态和更新者。不止 bug——阻塞、环境、依赖、流程、范围偏差等过程性问题都在此记录。
+- 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在「决策记录」追加一行：「候选项」记当时的选项（含被否决项）、「结论」记选了什么、「理由」记为什么、「拍板者」记 `user` 或角色 id。这是「为什么当初这么定」的唯一权威来源。
 - TeamLead 每次 spawn、resume、send message、stop 或 close 角色线程后更新 `lead/team-context.md` 的控制面信息。
 - TeamLead 每次阶段切换、用户确认、handoff、PR URL 变化后更新 `lead/team-context.md`，并在需要时校准共享完成流水。
 - `lead/team-context.md` 全部由 TeamLead 和各角色手动维护；不依赖任何自动记账机制。角色每产出一个产物、每解决一个问题、每做一次取舍，立即更新对应区块。
 - `lead/team-context.md` 是当前 Spec 的运行账本和 Git/PR 元数据权威来源；角色产物只链接它，不复制运行状态正文。
-- `Current Run Path` 记录当前任务实际走过的流程路径；`Task Progress` 记录已经完成的任务；`Problem Resolution Log` 记录谁发现问题、谁解决问题、解决产物在哪里；`Decision Log` 记录每一个实质取舍的选项、结论和理由。
-- 除 `Task Progress`、`Problem Resolution Log` 和 `Decision Log` 外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
+- 「当前运行路径」记录当前任务实际走过的流程路径；「任务进度」记录已经完成的任务；「问题闭环记录」记录谁发现问题、谁解决问题、解决产物在哪里；「决策记录」记录每一个实质取舍的选项、结论和理由。
+- 除「任务进度」、「问题闭环记录」和「决策记录」外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
 - `agent_id`、`thread_id`、`session_id` 是运行时 handle，不作为跨 Spec 的长期身份；跨 Spec 只复用项目级角色定义。
-- OMP 运行时优先记录 `task` spawn 返回的 `agent_id`（`agent://<id>` 句柄）和子 Agent job id；角色间用 `irc` 协作时按角色 id（如 `spec-tester`）寻址，handoff 仍落盘到 `Handoffs` 与 `Problem Resolution Log`。
+- OMP 运行时优先记录 `task` spawn 返回的 `agent_id`（`agent://<id>` 句柄）和子 Agent job id；角色间用 `irc` 协作时按角色 id（如 `spec-tester`）寻址，交接仍落盘到「角色交接」与「问题闭环记录」。
 - Claude Code 运行时优先记录 subagent `agent_id` 和对应 transcript/session 信息。
 - Codex 运行时优先记录 `/agent` 可见线程或当前 session handle；如 CLI 不暴露稳定 ID，记录 runtime agent name、当前 session 线索和最近产物路径。
 - 不记录 token、API key、私有凭据或不可提交的本机绝对敏感路径。
@@ -334,12 +334,12 @@ GitHub Flow 准备
   [如有 bug] spec-tester → bug handoff → TeamLead
              TeamLead → 用 intent-confirmation 与用户确认本次修复循环预算
                         （max_rounds 建议 3，max_no_progress_rounds 建议 2，用户可改）
-                        → 写入 lead/team-context.md 的 Loop Budget，status=running
+                        → 写入 lead/team-context.md 的「修复循环预算」，status=running
              TeamLead → 启动/恢复 spec-debugger
              spec-debugger 修复 → 更新 rounds_used / no_progress_streak → TeamLead
              TeamLead → 启动/恢复 spec-tester 重新验证
-             spec-tester 验证 → 更新 Loop Budget 进展信号
-             [验证通过] Loop Budget status=passed → 继续
+             spec-tester 验证 → 更新「修复循环预算」进展信号
+             [验证通过]「修复循环预算」status=passed → 继续
              [仍失败且未触上限] 回到 spec-debugger 下一轮
              [触发 max_rounds 或 max_no_progress_rounds]
                         → spec-tester/spec-debugger 停止，status=stopped-budget/stopped-no-progress
@@ -366,7 +366,7 @@ GitHub Flow 准备
 | 分支准备 | TeamLead | 仅在工作区不干净、无 Git 仓库或需使用 worktree 时询问 |
 | Spec 审阅 | TeamLead | `writer/plan.md` + `tester/test-plan.md` |
 | 实现确认 | TeamLead | `executor/summary.md` |
-| 修复循环预算 | TeamLead | 进入修复循环前确认 `max_rounds` 和 `max_no_progress_rounds`（带建议默认值，用户可改） |
+| 修复循环预算 | TeamLead | 进入修复循环前确认 「最大轮数」 和 「最大无进展轮数」（带建议默认值，用户可改） |
 | 诊断确认 | TeamLead | `debugger/debug-xxx.md`（如有） |
 | 测试报告确认 | TeamLead | `tester/test-report.md` |
 | 修复循环升级 | TeamLead | 触发预算上限或连续无进展时，确认继续加预算 / 改方案 / 暂停 |
@@ -374,12 +374,12 @@ GitHub Flow 准备
 
 ## 修复循环进展信号
 
-进入阶段四的 spec-tester ↔ spec-debugger 修复循环时，TeamLead 维护 `lead/team-context.md` 的 `Loop Budget`：
+进入阶段四的 spec-tester ↔ spec-debugger 修复循环时，TeamLead 维护 `lead/team-context.md` 的「修复循环预算」：
 
-- **预算来自用户**：`max_rounds` 和 `max_no_progress_rounds` 不写死在 Skill 中。每次进入修复循环前，TeamLead 用 `intent-confirmation` 向用户确认，带建议默认值（3 轮 / 连续 2 轮无进展），用户可直接接受或改写。
-- **每轮记账**：spec-debugger 修复后、spec-tester 重验后，各自更新 `rounds_used` 和 `no_progress_streak`。
-- **进展的定义**：一轮算"有进展"当且仅当出现以下至少一项——新增通过的测试用例、失败范围缩小、定位到此前未知的根因、产生新的可验证证据。仅写了新总结但上述都没有，记为"无进展"，`no_progress_streak` 加一。
-- **停止与升级**：`rounds_used` 达到 `max_rounds`，或 `no_progress_streak` 达到 `max_no_progress_rounds` 时，停止循环并由 TeamLead 升级给用户，不自行无限重试。
+- **预算来自用户**：「最大轮数」 和 「最大无进展轮数」 不写死在 Skill 中。每次进入修复循环前，TeamLead 用 `intent-confirmation` 向用户确认，带建议默认值（3 轮 / 连续 2 轮无进展），用户可直接接受或改写。
+- **每轮记账**：spec-debugger 修复后、spec-tester 重验后，各自更新 「已用轮数」 和 「连续无进展」。
+- **进展的定义**：一轮算"有进展"当且仅当出现以下至少一项——新增通过的测试用例、失败范围缩小、定位到此前未知的根因、产生新的可验证证据。仅写了新总结但上述都没有，记为"无进展"，「连续无进展」 加一。
+- **停止与升级**：「已用轮数」 达到 「最大轮数」，或 「连续无进展」 达到 「最大无进展轮数」 时，停止循环并由 TeamLead 升级给用户，不自行无限重试。
 
 ## 后续动作
 

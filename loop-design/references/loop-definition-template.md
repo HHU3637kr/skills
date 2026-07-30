@@ -69,19 +69,19 @@ status: draft | confirmed
 
 R&K Flow 内的 loop 不另建独立文档，而是写入对应 Spec 的 `lead/team-context.md`：
 
-### 修复循环预算 → `Loop Budget` 区块
+### 修复循环预算 →「修复循环预算」区块
 
 ```markdown
-## Loop Budget
+## 修复循环预算
 
-| loop | max_rounds | max_no_progress_rounds | rounds_used | no_progress_streak | status | confirmed_by_user | updated_at |
-|------|-----------|------------------------|-------------|--------------------|--------|-------------------|------------|
+| 循环 | 最大轮数 | 最大无进展轮数 | 已用轮数 | 连续无进展 | 状态 | 用户已确认 | 更新时间 |
+|------|----------|----------------|----------|------------|------|------------|----------|
 | test-debug | <用户确认值> | <用户确认值> | 0 | 0 | not-started | yes | <ISO8601> |
 ```
 
-### 自定义阶段路径 → `Current Run Path` 区块
+### 自定义阶段路径 →「当前运行路径」区块
 
-如果用户想裁剪本次 Spec 走哪几个阶段（如跳过可选审查），在 `Current Run Path` 中明确列出实际要走的阶段序列，并由 TeamLead 在门禁处对齐用户。
+如果用户想裁剪本次 Spec 走哪几个阶段（如跳过可选审查），在「当前运行路径」中明确列出实际要走的阶段序列，并由 TeamLead 在门禁处对齐用户。
 
 ---
 

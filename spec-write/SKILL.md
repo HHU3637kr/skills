@@ -143,10 +143,10 @@ Frontmatter 格式和字段说明详见 [references/plan-template.md](references
 
 ## 后续流程
 
-1. 更新当前 Spec 的 `lead/team-context.md` 共享区：在 `Task Progress` 中追加或更新 spec-writer 自己的任务行，`artifact` 指向 `writer/plan.md`，`status` 标记为 `done`，填写 `completed_at` 和 `updated_by: spec-writer`
-2. 把 plan 中的关键设计取舍写入 `Decision Log`：每个方案分叉记一行 `topic` / `options`（含被否决项）/ `decision` / `rationale`，`decided_by` 写 `spec-writer`（若该取舍由用户拍板则写 `user`）
-3. 若写方案时遇到过程性问题（依赖缺失、探索报告信息不足、接口边界未定等），在 `Problem Resolution Log` 追加一行，`category` 选 `dependency` / `process` / `scope`
-4. 只修改 `Task Progress` / `Decision Log` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+1. 更新当前 Spec 的 `lead/team-context.md` 共享区：在「任务进度」中追加或更新 spec-writer 自己的任务行，「产物」指向 `writer/plan.md`，「状态」标记为 `done`，填写 「完成时间」 和 `updated_by: spec-writer`
+2. 把 plan 中的关键设计取舍写入「决策记录」：每个方案分叉记一行「议题」/「候选项」（含被否决项）/「结论」/「理由」，「拍板者」写 `spec-writer`（若该取舍由用户拍板则写 `user`）
+3. 若写方案时遇到过程性问题（依赖缺失、探索报告信息不足、接口边界未定等），在「问题闭环记录」追加一行，「分类」选 `dependency` / `process` / `scope`
+4. 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 3. 等待用户确认 `writer/plan.md`
 4. 通知 TeamLead，TeamLead 触发实现阶段（spec-execute）
 5. 如果是功能更新，使用 `spec-update` 执行

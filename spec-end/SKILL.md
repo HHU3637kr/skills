@@ -54,8 +54,8 @@ description: >
 
 同时读取 `lead/team-context.md` 的运行账本：
 - frontmatter 的 `git_branch` / `base_branch` / `pr_url`
-- `Decision Log`：本次所有实质取舍及理由——end-report 的「关键决策」小结直接来自此表，无需重新回忆
-- `Problem Resolution Log`：本次遇到并解决的 bug 与过程性问题，供 exp-reflect 分流沉淀
+- 「决策记录」：本次所有实质取舍及理由——end-report 的「关键决策」小结直接来自此表，无需重新回忆
+- 「问题闭环记录」：本次遇到并解决的 bug 与过程性问题，供 exp-reflect 分流沉淀
 
 如果 `git_branch` 为空或为 `none`，说明本 Spec 没有使用 GitHub Flow 分支；收尾时仍可归档文档，但提交/PR 步骤需要先询问用户。
 
@@ -145,11 +145,11 @@ exp-reflect 会根据经验的重要性分流：
 ### 步骤 8：通知 TeamLead 完成
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-ender 自己的收尾任务行
-- `artifact` 指向 `ender/end-report.md`
-- `status` 标记为 `done`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-ender`
-- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块；PR URL 等控制面字段由 TeamLead 更新
+- 在「任务进度」中追加或更新 spec-ender 自己的收尾任务行
+- 「产物」指向 `ender/end-report.md`
+- 「状态」标记为 `done`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-ender`
+- 只修改「任务进度」，不要修改 TeamLead 控制面区块；PR URL 等控制面字段由 TeamLead 更新
 
 ```text
 通知 TeamLead：收尾工作完成，本次 Spec 团队实例结束；项目级角色定义保留。
@@ -180,7 +180,7 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 4. 已询问用户是否归档
 5. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR
 6. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.md`
-7. 已更新 `lead/team-context.md` 的 `Task Progress` 中自己的收尾任务行
+7. 已更新 `lead/team-context.md` 的「任务进度」中自己的收尾任务行
 8. 已通知 TeamLead
 
 ### 常见陷阱

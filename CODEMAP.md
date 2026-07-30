@@ -249,17 +249,17 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | 区块 | 维护者 | 用途 |
 |------|--------|------|
 | frontmatter | TeamLead | `runtime`, `git_branch`, `base_branch`, `pr_url`, `phase`, `status` |
-| Current Run Path | TeamLead | 当前任务实际走过的阶段路径 |
-| Task Progress | 各角色共享 | 各角色只追加或更新自己负责的任务行 |
-| Problem Resolution Log | 各角色共享 | 发现/解决问题的角色维护自己相关的问题行；`category` 覆盖 bug/blocker/process/env/dependency/scope 等过程性问题 |
-| Decision Log | 各角色共享 | 拍板方记录每个实质取舍的 options/decision/rationale；用户决策由 TeamLead 代记 |
-| Runtime Handles | TeamLead | 记录 agent/thread/session handle |
-| Artifact Registry | TeamLead | 产物路径、状态、是否确认 |
-| Gate Decisions | TeamLead | 用户确认门禁（只记通过/驳回，理由在 Decision Log） |
-| Loop Budget | TeamLead + tester/debugger | 修复循环（test-debug）预算：max_rounds / max_no_progress_rounds 由用户在进入循环前确认；rounds_used / no_progress_streak 每轮由 tester/debugger 更新 |
-| Handoffs | TeamLead | 跨角色交接 |
-| Open Questions / Blockers | TeamLead | 阻塞和开放问题 |
-| Next Action | TeamLead | 下一步动作 |
+| 当前运行路径 | TeamLead | 当前任务实际走过的阶段路径 |
+| 任务进度 | 各角色共享 | 各角色只追加或更新自己负责的任务行 |
+| 问题闭环记录 | 各角色共享 | 发现/解决问题的角色维护自己相关的问题行；「分类」覆盖 bug/blocker/process/env/dependency/scope 等过程性问题 |
+| 决策记录 | 各角色共享 | 拍板方记录每个实质取舍的候选项/结论/理由；用户决策由 TeamLead 代记 |
+| 角色运行句柄 | TeamLead | 记录 agent/thread/session handle |
+| 产物注册表 | TeamLead | 产物路径、状态、是否确认 |
+| 门禁决策 | TeamLead | 用户确认门禁（只记通过/驳回，理由在「决策记录」） |
+| 修复循环预算 | TeamLead + tester/debugger | 修复循环（test-debug）预算：最大轮数 / 最大无进展轮数由用户在进入循环前确认；已用轮数 / 连续无进展每轮由 tester/debugger 更新 |
+| 角色交接 | TeamLead | 跨角色交接 |
+| 开放问题与阻塞 | TeamLead | 阻塞和开放问题 |
+| 下一步动作 | TeamLead | 下一步动作 |
 
 全部区块由 TeamLead 和各角色手动维护：产物落盘、问题闭环、取舍拍板后立即更新对应区块，不依赖自动记账。
 
@@ -332,7 +332,7 @@ TeamLead → 下游角色：
 | `spec-end` | `exp-reflect`, `git-work` | TeamLead |
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
-| `loop-design` | `intent-confirmation`, `spec-start`(Loop Budget), `skill-creator` | 用户在需要设计循环时调用 |
+| `loop-design` | `intent-confirmation`, `spec-start`（修复循环预算）, `skill-creator` | 用户在需要设计循环时调用 |
 | `git-work` | Git CLI / GitHub Flow | `spec-start`, `spec-end`, `spec-update` |
 
 ---

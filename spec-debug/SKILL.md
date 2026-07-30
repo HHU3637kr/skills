@@ -21,7 +21,7 @@ description: >
 | 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.md`、`executor/summary.md`、`tester/test-report.md`、`exp-search` 结果 |
 | 权限 | 写 `debugger/debug-xxx.md` / `debug-xxx-fix.md` + 最小化修复代码；不改已确认的 `writer/plan.md`、不加新功能、不自行判定修复成功 |
 | 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据），由 spec-tester 重新验证 |
-| 停止 | 受 `Loop Budget` 约束：`rounds_used` 达 `max_rounds` 或 `no_progress_streak` 达 `max_no_progress_rounds` 时停止修复 |
+| 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复 |
 | 升级 | 预算未确认、触发预算上限、或根因涉及权限/计费/数据迁移/需绕过测试时，停止并交回 TeamLead 由用户决策 |
 
 ## 核心原则
@@ -29,7 +29,7 @@ description: >
 1. **不修改已确认的 writer/plan.md**：通过创建 debug 文档记录问题，保持设计的可追溯性
 2. **闭环协作**：接收 TeamLead 转交的 bug handoff → 修复 → 向 TeamLead 请求重新验证
 3. **用户确认诊断**：创建 debug-xxx.md 后，由 TeamLead 向用户确认诊断结果
-4. **受预算约束**：修复循环受 `lead/team-context.md` 的 `Loop Budget` 约束（`max_rounds` / `max_no_progress_rounds`，由用户在进入循环前确认）。每轮修复后必须更新 `rounds_used` 和 `no_progress_streak`，触发上限时停止并交还 TeamLead，不自行无限重试。
+4. **受预算约束**：修复循环受 `lead/team-context.md` 的「修复循环预算」约束（「最大轮数」 / 「最大无进展轮数」，由用户在进入循环前确认）。每轮修复后必须更新 「已用轮数」 和 「连续无进展」，触发上限时停止并交还 TeamLead，不自行无限重试。
 
 ## 协作闭环
 
@@ -105,14 +105,14 @@ tags:
 ### 步骤 6：通知 TeamLead 等待用户确认诊断
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Problem Resolution Log` 中追加或更新对应问题行
-- `category` 一般为 `bug`；若根因是环境/依赖/流程问题，用对应 `category`
+- 在「问题闭环记录」中追加或更新对应问题行
+- 「分类」一般为 `bug`；若根因是环境/依赖/流程问题，用对应 `category`
 - `owner` 写 `spec-debugger`
-- `artifacts` 指向 `debugger/debug-xxx.md`
-- `status` 标记为 `diagnosed`
-- `updated_by` 写 `spec-debugger`
-- 若存在多个修复路径且做了取舍（如最小补丁 vs 重构、降级 vs 报错），在 `Decision Log` 记一行，`decided_by` 写 `spec-debugger` 或 `user`
-- 只修改 `Problem Resolution Log` / `Decision Log`，不要修改 TeamLead 控制面区块
+- 「关联产物」 指向 `debugger/debug-xxx.md`
+- 「状态」标记为 `diagnosed`
+- 「更新者」 写 `spec-debugger`
+- 若存在多个修复路径且做了取舍（如最小补丁 vs 重构、降级 vs 报错），在「决策记录」记一行，「拍板者」 写 `spec-debugger` 或 `user`
+- 只修改「问题闭环记录」/「决策记录」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：debugger/debug-001.md 已创建，请向用户确认诊断结果。路径：{路径}
@@ -122,10 +122,10 @@ TeamLead 使用当前运行环境的确认方式向用户确认。等待确认�
 
 ### 步骤 7：检查修复循环预算
 
-开始本轮修复前，读取 `lead/team-context.md` 的 `Loop Budget`（`test-debug` 行）：
+开始本轮修复前，读取 `lead/team-context.md` 的「修复循环预算」（`test-debug` 行）：
 
-1. 如果 `max_rounds` / `max_no_progress_rounds` 仍为「待确认」，说明 TeamLead 尚未与用户确认预算，**先停止并请 TeamLead 用 `intent-confirmation` 确认预算**（建议默认 3 轮 / 连续 2 轮无进展），不要在无预算的情况下进入修复。
-2. 如果 `rounds_used` 已达到 `max_rounds`，或 `no_progress_streak` 已达到 `max_no_progress_rounds`，**不要再修复**，直接向 TeamLead 升级，由用户决定继续加预算、改方案还是暂停。
+1. 如果 「最大轮数」 / 「最大无进展轮数」 仍为「待确认」，说明 TeamLead 尚未与用户确认预算，**先停止并请 TeamLead 用 `intent-confirmation` 确认预算**（建议默认 3 轮 / 连续 2 轮无进展），不要在无预算的情况下进入修复。
+2. 如果 「已用轮数」 已达到 「最大轮数」，或 「连续无进展」 已达到 「最大无进展轮数」，**不要再修复**，直接向 TeamLead 升级，由用户决定继续加预算、改方案还是暂停。
 3. 预算未触上限时，继续步骤 8 的修复。
 
 ### 步骤 8：执行修复
@@ -157,22 +157,22 @@ tags:
 
 ### 步骤 10：更新修复循环记账
 
-更新 `lead/team-context.md` 的 `Loop Budget`（`test-debug` 行）：
-- `rounds_used` 加 1
+更新 `lead/team-context.md` 的「修复循环预算」（`test-debug` 行）：
+- 「已用轮数」 加 1
 - 判断本轮是否「有进展」：是否定位到此前未知的根因、是否缩小了失败范围、是否产生了新的可验证证据。
-  - 有进展：`no_progress_streak` 归零
-  - 无进展（仅写了新总结但根因、范围、证据都没动）：`no_progress_streak` 加 1
-- 若 `rounds_used` 达到 `max_rounds` 或 `no_progress_streak` 达到 `max_no_progress_rounds`，把 `status` 标为 `stopped-budget` 或 `stopped-no-progress`，并在通知中要求 TeamLead 升级给用户；否则保持 `status=running`
+  - 有进展：「连续无进展」 归零
+  - 无进展（仅写了新总结但根因、范围、证据都没动）：「连续无进展」 加 1
+- 若 「已用轮数」 达到 「最大轮数」 或 「连续无进展」 达到 「最大无进展轮数」，把 「状态」标为 `stopped-budget` 或 `stopped-no-progress`，并在通知中要求 TeamLead 升级给用户；否则保持 `status=running`
 - `updated_at` 使用当前时间
 
 ### 步骤 11：向 TeamLead 提交重新验证请求
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-debugger 自己的调试修复任务行，`artifact` 指向 `debugger/debug-xxx-fix.md`
-- 在 `Problem Resolution Log` 中更新对应问题行，`resolution` 简述修复方案，`artifacts` 包含 `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`
-- `status` 标记为 `fixed_pending_verification`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-debugger`
-- 只修改 `Task Progress` / `Problem Resolution Log` / `Decision Log` / `Loop Budget`，不要修改 TeamLead 其他控制面区块
+- 在「任务进度」中追加或更新 spec-debugger 自己的调试修复任务行，「产物」指向 `debugger/debug-xxx-fix.md`
+- 在「问题闭环记录」中更新对应问题行，「解决方案」 简述修复方案，「关联产物」 包含 `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`
+- 「状态」标记为 `fixed_pending_verification`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-debugger`
+- 只修改「任务进度」/「问题闭环记录」/「决策记录」/「修复循环预算」，不要修改 TeamLead 其他控制面区块
 
 如果预算未触上限：
 
@@ -205,14 +205,14 @@ spec-debugger → TeamLead → spec-tester（重新验证）
 - 不直接修改 `writer/plan.md`
 - 不在修复中添加新功能（使用 spec-update）
 - 修复完成后必须向 TeamLead 请求 spec-tester 重新验证，不自行判断修复是否成功
-- 不在 `Loop Budget` 触发上限后继续修复，必须停止并升级给 TeamLead
+- 不在「修复循环预算」触发上限后继续修复，必须停止并升级给 TeamLead
 
 ## 后续动作
 
 完成修复后确认：
 1. `debugger/debug-xxx.md` 已创建且用户已确认诊断
 2. `debugger/debug-xxx-fix.md` 已创建
-3. 已更新 `lead/team-context.md` 的 `Task Progress`、`Problem Resolution Log`（含 `category`）、必要的 `Decision Log` 和 `Loop Budget`（`rounds_used` / `no_progress_streak` / `status`）
+3. 已更新 `lead/team-context.md` 的「任务进度」、「问题闭环记录」（含「分类」）、必要的「决策记录」和「修复循环预算」（「已用轮数」 / 「连续无进展」 / `status`）
 4. 已向 TeamLead 提交重新验证请求，或在触发预算上限时请求升级
 5. 未修改 `writer/plan.md`
 
@@ -220,5 +220,5 @@ spec-debugger → TeamLead → spec-tester（重新验证）
 - 直接修改 `writer/plan.md` 而不是创建 debug 文档
 - 修复后未向 TeamLead 请求 spec-tester 重新验证（破坏闭环）
 - 修复时引入了新功能（应使用 spec-update）
-- 每轮都写新的 debug 文档但没有实质进展，却不更新 `no_progress_streak`（loop 在原地打转）
+- 每轮都写新的 debug 文档但没有实质进展，却不更新 「连续无进展」（loop 在原地打转）
 - 在预算未确认或已触上限时仍继续修复（应停止并升级给 TeamLead）

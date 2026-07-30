@@ -16,7 +16,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 | 权限 | 只写 `reviewer/review.md` / `update-xxx-review.md`（审查结论）；只读代码核对，不修改代码、不修 bug、不归档 |
 | 验证 | 按完成度/一致性/额外实现三维核对，每个检查项标注 Spec 位置 + 代码位置（file:line） |
 | 停止 | 审查报告定稿且通过用户确认即停止；不越界去修复发现的问题（交给 spec-debugger/spec-update） |
-| 升级 | 发现核心功能未实现、数据模型严重不符或需重新实现时，在 `Problem Resolution Log` 记录并交回 TeamLead 由用户决策 |
+| 升级 | 发现核心功能未实现、数据模型严重不符或需重新实现时，在「问题闭环记录」记录并交回 TeamLead 由用户决策 |
 
 ## 核心规则
 
@@ -81,12 +81,12 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 ### 步骤 7：用户确认响应处理
 
 用户确认前，先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-reviewer 自己的审查任务行
-- `artifact` 指向 `reviewer/review.md` 或 `reviewer/update-xxx-review.md`
-- `status` 根据审查结果标记为 `done` / `needs-fix`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-reviewer`
-- 若发现阻塞问题，在 `Problem Resolution Log` 中追加问题行，`category` 按性质选（`bug` / `scope` / `process` 等），`found_by` 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
-- 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- 在「任务进度」中追加或更新 spec-reviewer 自己的审查任务行
+- 「产物」指向 `reviewer/review.md` 或 `reviewer/update-xxx-review.md`
+- 「状态」根据审查结果标记为 `done` / `needs-fix`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-reviewer`
+- 若发现阻塞问题，在「问题闭环记录」中追加问题行，「分类」按性质选（`bug` / `scope` / `process` 等），「发现者」 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
+- 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
 | 响应 | 含义 | 后续操作 |
 |------|------|----------|

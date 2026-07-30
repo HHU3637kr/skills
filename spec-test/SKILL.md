@@ -18,7 +18,7 @@ description: >
 | 输入 | `explorer/exploration-report.md`、`writer/plan.md`、`executor/summary.md`、命中的场景测试策略 |
 | 权限 | 写 `tester/test-plan.md` / `tester/test-report.md`、采集 `tester/artifacts/` 证据、可调整测试脚本/配置；不直接修复 bug、不改业务实现 |
 | 验证 | 验收标准具体可判定、关键路径有可审计证据、证据由测试运行自动生成且已脱敏 |
-| 停止 | 测试计划/报告定稿且通过用户确认即停止；修复循环受 `Loop Budget` 约束，触发 `max_rounds` 或 `max_no_progress_rounds` 时停止发起新一轮 handoff |
+| 停止 | 测试计划/报告定稿且通过用户确认即停止；修复循环受「修复循环预算」约束，触发 「最大轮数」 或 「最大无进展轮数」 时停止发起新一轮 handoff |
 | 升级 | 发现 bug 时向 TeamLead 提交 handoff（不自行修复）；修复循环触上限或证据无法采集时，交回 TeamLead 由用户决策 |
 
 ## 核心原则
@@ -31,7 +31,7 @@ description: >
 6. **证据必须自动采集**：`tester/artifacts/test-logs/<run-id>/` 下的日志、JSON、trace、录屏和截图必须由测试脚本、浏览器自动化、服务日志采集或命令输出生成；Agent 不得手写、补写或伪造这些证据文件内容
 7. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
 8. **策略在 spec-test 内沉淀**：测试过程中发现跨项目可复用的测试方法时，更新本 Skill 的 `references/` 和策略表；不要写入当前项目的 `AGENTS.md` 或 `.agents/rules/`
-9. **修复循环受预算约束**：重验属于 spec-tester ↔ spec-debugger 修复循环的一环，受 `lead/team-context.md` 的 `Loop Budget` 约束。每轮重验后更新 `Loop Budget` 进展信号；触发 `max_rounds` 或 `max_no_progress_rounds` 时停止发起新一轮 handoff，转为通知 TeamLead 升级给用户。
+9. **修复循环受预算约束**：重验属于 spec-tester ↔ spec-debugger 修复循环的一环，受 `lead/team-context.md` 的「修复循环预算」约束。每轮重验后更新「修复循环预算」进展信号；触发 「最大轮数」 或 「最大无进展轮数」 时停止发起新一轮 handoff，转为通知 TeamLead 升级给用户。
 
 ## 测试策略库
 
@@ -167,11 +167,11 @@ tags:
 ### 步骤 4：通知 TeamLead 完成
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-tester 的测试计划任务行
-- `status` 标记为 `done`
-- `artifact` 指向 `tester/test-plan.md`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-tester`
-- 只修改 `Task Progress`，不要修改 TeamLead 控制面区块
+- 在「任务进度」中追加或更新 spec-tester 的测试计划任务行
+- 「状态」标记为 `done`
+- 「产物」指向 `tester/test-plan.md`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
+- 只修改「任务进度」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：tester/test-plan.md 已完成，等待用户确认。
@@ -221,14 +221,14 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 > [!important] 不直接修复，向 TeamLead 提交 bug handoff
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Problem Resolution Log` 中追加或更新该问题行
-- `category` 一般为 `bug`；若是测试环境/依赖问题而非产品缺陷，用 `env` / `dependency`
-- `found_by` 写 `spec-tester`
+- 在「问题闭环记录」中追加或更新该问题行
+- 「分类」一般为 `bug`；若是测试环境/依赖问题而非产品缺陷，用 `env` / `dependency`
+- 「发现者」 写 `spec-tester`
 - `owner` 建议写 `spec-debugger`
-- `problem` 简述现象，`artifacts` 引用测试证据路径或即将创建的 debug 文档
-- `status` 标记为 `open`
-- `updated_by` 写 `spec-tester`
-- 只修改 `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- `problem` 简述现象，「关联产物」 引用测试证据路径或即将创建的 debug 文档
+- 「状态」标记为 `open`
+- 「更新者」 写 `spec-tester`
+- 只修改「问题闭环记录」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：
@@ -244,11 +244,11 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 #### 重验后更新修复循环记账
 
-收到 spec-debugger 的修复完成通知并重新执行相关用例后，更新 `lead/team-context.md` 的 `Loop Budget`（`test-debug` 行）：
+收到 spec-debugger 的修复完成通知并重新执行相关用例后，更新 `lead/team-context.md` 的「修复循环预算」（`test-debug` 行）：
 
-- **验证通过**：把 `status` 标为 `passed`，在 `Problem Resolution Log` 把对应问题行标为 `verified`，结束修复循环。
-- **仍然失败**：与 spec-debugger 的本轮记账保持一致，复核 `rounds_used` 和 `no_progress_streak` 是否已正确递增（重验视角下，本轮是否新增通过用例、是否缩小失败范围）。
-  - 若 `rounds_used` 达到 `max_rounds` 或 `no_progress_streak` 达到 `max_no_progress_rounds`，把 `status` 标为 `stopped-budget` 或 `stopped-no-progress`，**不再发起下一轮 bug handoff**，转而通知 TeamLead 升级给用户。
+- **验证通过**：把 「状态」标为 `passed`，在「问题闭环记录」把对应问题行标为 `verified`，结束修复循环。
+- **仍然失败**：与 spec-debugger 的本轮记账保持一致，复核 「已用轮数」 和 「连续无进展」 是否已正确递增（重验视角下，本轮是否新增通过用例、是否缩小失败范围）。
+  - 若 「已用轮数」 达到 「最大轮数」 或 「连续无进展」 达到 「最大无进展轮数」，把 「状态」标为 `stopped-budget` 或 `stopped-no-progress`，**不再发起下一轮 bug handoff**，转而通知 TeamLead 升级给用户。
   - 若预算未触上限，再向 TeamLead 提交下一轮 bug handoff。
 
 ```text
@@ -358,12 +358,12 @@ tags:
 ### 步骤 7：通知 TeamLead 完成
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-tester 的测试执行任务行
-- `status` 标记为 `done` 或 `blocked`（如仍有未解决问题）
-- `artifact` 指向 `tester/test-report.md`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-tester`
-- 若测试过程中发现的问题已验证修复，在 `Problem Resolution Log` 中把对应行状态更新为 `verified`
-- 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- 在「任务进度」中追加或更新 spec-tester 的测试执行任务行
+- 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
+- 「产物」指向 `tester/test-report.md`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
+- 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
+- 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：tester/test-report.md 已完成，等待用户确认。
@@ -386,7 +386,7 @@ tags:
 阶段一完成后确认：
 1. `tester/test-plan.md` 已在正确路径创建
 2. 已与 spec-writer 讨论并对齐接口边界
-3. 已更新 `lead/team-context.md` 的 `Task Progress` 中测试计划任务行
+3. 已更新 `lead/team-context.md` 的「任务进度」中测试计划任务行
 4. 已通知 TeamLead
 
 阶段二完成后确认：
@@ -396,7 +396,7 @@ tags:
 4. 端侧测试审计日志已保存到当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`
 5. 已完成脱敏检查，未保存 token、密码、密钥或真实用户隐私
 6. 已完成测试策略沉淀判断；如需新增或更新策略，已获得用户确认并维护 `references/` 和策略表
-7. 已更新 `lead/team-context.md` 的 `Task Progress` 和必要的 `Problem Resolution Log`
+7. 已更新 `lead/team-context.md` 的「任务进度」和必要的「问题闭环记录」
 8. 已通知 TeamLead
 
 ### 常见陷阱
@@ -407,4 +407,4 @@ tags:
 - 关键路径没有日志或 trace id，导致失败后无法复盘
 - 审计日志包含未脱敏的 token、密码、密钥或真实用户隐私
 - 把可复用测试策略只写在 `tester/test-report.md`，没有沉淀到 `spec-test/references/`
-- 修复循环重验后忘记更新 `Loop Budget`，或在触发预算上限后仍发起新一轮 bug handoff（应停止并升级给 TeamLead）
+- 修复循环重验后忘记更新「修复循环预算」，或在触发预算上限后仍发起新一轮 bug handoff（应停止并升级给 TeamLead）

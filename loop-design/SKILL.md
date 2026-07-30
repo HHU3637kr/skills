@@ -38,7 +38,7 @@ description: >
 
 | 类型 | 说明 | 产物去向 |
 |------|------|----------|
-| **R&K Flow 内的 loop** | 为某个 Spec 定制要走的阶段路径，或定制 spec-test ↔ spec-debug 修复循环的预算 | 写入该 Spec 的 `lead/team-context.md`（如 `Loop Budget`、`Current Run Path`） |
+| **R&K Flow 内的 loop** | 为某个 Spec 定制要走的阶段路径，或定制 spec-test ↔ spec-debug 修复循环的预算 | 写入该 Spec 的 `lead/team-context.md`（如「修复循环预算」、「当前运行路径」） |
 | **自定义 loop** | 用户自己的重复任务（如"每日汇总""反复打磨直到达标""批量处理直到队列空"） | 产出独立的 loop 定义文档，由用户保存或交给执行方 |
 
 判断不清时，先用 intent-confirmation 问用户这是"一次性任务"还是"会反复执行的循环"。一次性任务不做成 loop。
@@ -76,7 +76,7 @@ description: >
 ### 步骤 4：产出 loop 定义文档
 
 按模板产出一份完整的 loop 定义：
-- **R&K Flow 内的 loop**：把预算写入对应 Spec 的 `lead/team-context.md`（`Loop Budget` / `Current Run Path`），并说明由哪些 Skill 执行。
+- **R&K Flow 内的 loop**：把预算写入对应 Spec 的 `lead/team-context.md`（「修复循环预算」/「当前运行路径」），并说明由哪些 Skill 执行。
 - **自定义 loop**：产出独立的 loop 定义文档（Markdown），交给用户保存或交给执行方。文档放在用户指定路径；未指定时建议放当前工作目录并提示用户。
 
 ### 步骤 5：用户确认
@@ -102,7 +102,7 @@ description: >
 | 场景 | 协作 Skill |
 |------|-----------|
 | 澄清目标和边界 | → `intent-confirmation` |
-| R&K Flow 内的修复循环预算 | → `spec-start`（Loop Budget）、`spec-test` / `spec-debug` 执行 |
+| R&K Flow 内的修复循环预算 | → `spec-start`（修复循环预算）、`spec-test` / `spec-debug` 执行 |
 | 把 loop 固化成可复用流程 | → `skill-creator`（如该 loop 值得变成一个新 Skill） |
 
 ## 后续动作

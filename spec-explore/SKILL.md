@@ -99,12 +99,12 @@ description: >
 ### 步骤 6：向 TeamLead 提交探索完成通知
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在 `Task Progress` 中追加或更新 spec-explorer 自己的任务行
-- `status` 标记为 `done`
-- `artifact` 指向 `explorer/exploration-report.md`
-- `completed_at` 使用当前时间，`updated_by` 写 `spec-explorer`
-- 探索中遇到的过程性问题（代码库缺关键信息、依赖不明、需求与现状冲突）在 `Problem Resolution Log` 记一行，`category` 选 `process` / `dependency` / `scope`
-- 只修改 `Task Progress` / `Problem Resolution Log`，不要修改 TeamLead 控制面区块
+- 在「任务进度」中追加或更新 spec-explorer 自己的任务行
+- 「状态」标记为 `done`
+- 「产物」指向 `explorer/exploration-report.md`
+- 「完成时间」 使用当前时间，「更新者」 写 `spec-explorer`
+- 探索中遇到的过程性问题（代码库缺关键信息、依赖不明、需求与现状冲突）在「问题闭环记录」记一行，「分类」选 `process` / `dependency` / `scope`
+- 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
 ```text
 通知 TeamLead：
@@ -127,7 +127,7 @@ spec-explorer → TeamLead → spec-writer / spec-tester
 完成探索后确认：
 1. `explorer/exploration-report.md` 已在正确路径创建
 2. 探索新内容后已调用 exp-reflect 沉淀知识
-3. 已更新 `lead/team-context.md` 的 `Task Progress` 中自己的任务行，必要时补 `Problem Resolution Log`
+3. 已更新 `lead/team-context.md` 的「任务进度」中自己的任务行，必要时补「问题闭环记录」
 4. 已向 TeamLead 提交探索完成通知，并声明建议分发给 spec-writer 和 spec-tester
 
 ### 常见陷阱
