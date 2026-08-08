@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>更新方案 update-XXX - {功能名称}</title>
+
+<!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略。
+     检索与工具化处理靠这些 meta 读取，等同于原 YAML frontmatter。 -->
+<meta name="rk:type"          content="update">
+<meta name="rk:spec-dir"      content="spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:role"          content="spec-update">
+<meta name="rk:update-number" content="XXX">
+<meta name="rk:status"        content="未确认">
+<meta name="rk:update-type"   content="功能增强">
+<meta name="rk:created"       content="{YYYY-MM-DD}">
+<meta name="rk:updated"       content="{YYYY-MM-DD}">
+<meta name="rk:revision"      content="1">
+<meta name="rk:git-branch"    content="{git_branch，与 writer/plan.html 相同}">
+<meta name="rk:base-branch"   content="{base_branch，与 writer/plan.html 相同}">
+<meta name="rk:pr-url"        content="{pr_url，与 writer/plan.html 相同；创建前留空}">
+<meta name="rk:tags"          content="spec,update">
+<!-- 文档关联，等价原 frontmatter 的 plan: 等字段 -->
+<link rel="rk-plan"           href="../writer/plan.html">
+<link rel="rk-summary"        href="../executor/summary.html">
+<link rel="rk-update-summary" href="update-XXX-summary.html">
+<link rel="rk-review"         href="../reviewer/update-XXX-review.html">
+<link rel="rk-ledger"         href="../../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<!--
+  用法：复制到 spec/<分类>/<spec目录>/updater/update-XXX.html 后逐段替换 {占位符}。
+  样式路径 ../../../../html-report/assets/ 按 updater/ 目录回到项目根的 4 层计算；
+  项目实际层级不同需相应调整，务必保证 file:// 直接打开样式生效。
+  禁止写 <style> 或行内 style=，禁止外部 CDN。
+-->
+
+<header class="rk-head">
+  <h1>功能更新方案：{功能名称}-更新XXX</h1>
+  <!-- 人可读镜像，字段与上方 meta 保持一致 -->
+  <div class="rk-meta">
+    <span><b>类型</b> update</span>
+    <span><b>更新编号</b> update-XXX</span>
+    <span><b>Spec</b> <code>spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}</code></span>
+    <span><b>角色</b> spec-update</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>更新类型</b> 功能增强</span>
+    <span><b>分支</b> <code>{git_branch}</code> ← <code>{base_branch}</code></span>
+    <span><b>PR</b> {pr_url 或 —}</span>
+    <span><b>创建</b> {YYYY-MM-DD}</span>
+    <span><b>修订</b> r1（{YYYY-MM-DD}）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">更新结论</div>
+  <p>{一句话说清本次更新要做什么、为什么必须做、边界在哪里}</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>{YYYY-MM-DD}</td><td>spec-update</td><td>初版</td><td>—</td></tr>
+    <tr><td>r2</td><td>{YYYY-MM-DD}</td><td>spec-update</td><td>{哪句改成了什么}</td><td>按 <code>D-003</code>（{一句话决策摘要}）</td></tr>
+    <tr><td>r3</td><td>{YYYY-MM-DD}</td><td>spec-update</td><td>{措辞/笔误修正}</td><td>{直接写清原因，非决策性修改不编造 D 编号}</td></tr>
+  </tbody>
+</table>
+<p>「原因」列与账本「决策记录」（Decision Log）互相追溯：源于实质取舍的修订写决策编号（如 <code>D-003</code>），
+纯笔误 / 措辞 / 补充说明直接写清即可。决策过程正文留在
+<a href="../../lead/team-context.md">运行账本</a> 的「决策记录」，不复制进本报告。表格保持 5 列，不新增列。</p>
+
+<h2>1. 更新背景</h2>
+
+<h3>1.1 问题描述</h3>
+<p>{描述需要更新的原因：Bug / 新需求 / 性能问题 / 用户反馈}</p>
+
+<h3>1.2 影响范围</h3>
+<ul>
+  <li>受影响的模块：{模块}</li>
+  <li>受影响的功能：{功能}</li>
+</ul>
+
+<h2>2. 更新目标</h2>
+
+<h3>2.1 主要目标</h3>
+<ul>
+  <li>{目标 1}</li>
+  <li>{目标 2}</li>
+</ul>
+
+<h3>2.2 非目标（明确不做的事情）</h3>
+<ul>
+  <li>{非目标 1}</li>
+</ul>
+
+<h2>3. 更新方案</h2>
+
+<h3>3.1 方案概述</h3>
+<p>{简述更新的整体方案}</p>
+
+<div class="rk-cal key"><div class="t">关键决策</div><p>{选定方案与被否方案的取舍理由}</p></div>
+
+<h3>3.2 详细设计</h3>
+
+<h4>3.2.1 修改点 1</h4>
+<ul>
+  <li><b>文件</b>：<span class="rk-ref">src/xxx/xxx.py</span></li>
+  <li><b>修改内容</b>：{描述修改}</li>
+  <li><b>修改原因</b>：{说明原因}</li>
+</ul>
+
+<h3>3.3 数据结构变更（如有）</h3>
+<p>{无 / 描述变更}</p>
+
+<h3>3.4 接口变更（如有）</h3>
+<table>
+  <thead><tr><th>接口</th><th>变更类型</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>{接口}</td><td>{新增/修改/废弃}</td><td>{说明}</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 实现步骤</h2>
+
+<h3>4.1 步骤清单</h3>
+<ul>
+  <li>步骤 1：{描述}</li>
+  <li>步骤 2：{描述}</li>
+</ul>
+
+<h3>4.2 测试计划</h3>
+<ul>
+  <li>单元测试：{描述}</li>
+  <li>回归测试：确保原有功能不受影响</li>
+</ul>
+
+<h2>5. 风险评估</h2>
+
+<h3>5.1 潜在风险</h3>
+<table>
+  <thead><tr><th>风险</th><th>影响</th><th>缓解措施</th></tr></thead>
+  <tbody>
+    <tr><td>{风险}</td><td>{影响}</td><td>{缓解措施}</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal risk"><div class="t">风险</div><p>{最需要下游警惕的一条风险}</p></div>
+
+<h3>5.2 回滚方案</h3>
+<ol>
+  <li>{步骤 1}</li>
+  <li>{步骤 2}</li>
+</ol>
+
+<h2>6. 验收标准</h2>
+<ul>
+  <li>{标准 1}</li>
+  <li>原有功能正常（回归测试通过）</li>
+</ul>
+
+<h2>元信息字段说明</h2>
+<p>下表列出本报告必须保留的全部元信息字段。每个字段都有机器可读（<code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>）与人可读（<code>.rk-meta</code> / 关联产物列表）两轨，缺一不可。</p>
+<table>
+  <thead><tr><th>字段</th><th>必填</th><th>机器可读</th><th>人可读</th><th>说明 / 可选值</th></tr></thead>
+  <tbody>
+    <tr><td>标题</td><td>是</td><td><code>&lt;title&gt;</code></td><td><code>h1</code></td><td><code>{功能名称}-更新XXX</code></td></tr>
+    <tr><td>类型</td><td>是</td><td><code>rk:type</code></td><td>类型</td><td><code>update</code></td></tr>
+    <tr><td>Spec 目录</td><td>是</td><td><code>rk:spec-dir</code></td><td>Spec</td><td>含分类，继承自原 <code>writer/plan.html</code></td></tr>
+    <tr><td>角色</td><td>是</td><td><code>rk:role</code></td><td>角色</td><td><code>spec-update</code></td></tr>
+    <tr><td>更新编号</td><td>是</td><td><code>rk:update-number</code></td><td>更新编号</td><td>与文件名一致，三位数不跳号</td></tr>
+    <tr><td>状态</td><td>是</td><td><code>rk:status</code></td><td>状态</td><td><code>未确认</code> / <code>已确认</code> / <code>已归档</code></td></tr>
+    <tr><td>更新类型</td><td>是</td><td><code>rk:update-type</code></td><td>更新类型</td><td><code>功能增强</code> / <code>Bug修复</code> / <code>性能优化</code> / <code>重构</code> / <code>安全修复</code></td></tr>
+    <tr><td>创建日期</td><td>是</td><td><code>rk:created</code></td><td>创建</td><td><code>YYYY-MM-DD</code></td></tr>
+    <tr><td>更新日期</td><td>是</td><td><code>rk:updated</code></td><td>修订（括号内）</td><td>最近一次修订日期</td></tr>
+    <tr><td>修订号</td><td>是</td><td><code>rk:revision</code></td><td>修订</td><td>每轮修改 +1</td></tr>
+    <tr><td>工作分支</td><td>是</td><td><code>rk:git-branch</code></td><td>分支</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>基准分支</td><td>是</td><td><code>rk:base-branch</code></td><td>分支（← 之后）</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>PR 链接</td><td>否</td><td><code>rk:pr-url</code></td><td>PR</td><td>与 <code>writer/plan.html</code> 相同；创建前留空</td></tr>
+    <tr><td>标签</td><td>是</td><td><code>rk:tags</code></td><td>不必显示</td><td>逗号分隔，至少含 <code>spec</code>、<code>update</code></td></tr>
+    <tr><td>关联 plan</td><td>是</td><td><code>&lt;link rel="rk-plan"&gt;</code></td><td>本报告引用</td><td><code>../writer/plan.html</code></td></tr>
+    <tr><td>关联 summary</td><td>是</td><td><code>&lt;link rel="rk-summary"&gt;</code></td><td>本报告引用</td><td><code>../executor/summary.html</code></td></tr>
+    <tr><td>关联更新总结</td><td>是</td><td><code>&lt;link rel="rk-update-summary"&gt;</code></td><td>本报告引用</td><td><code>update-XXX-summary.html</code></td></tr>
+    <tr><td>关联审查报告</td><td>否</td><td><code>&lt;link rel="rk-review"&gt;</code></td><td>引用本报告</td><td><code>../reviewer/update-XXX-review.html</code></td></tr>
+    <tr><td>运行账本</td><td>是</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../../lead/team-context.md</code>（保持 Markdown）</td></tr>
+  </tbody>
+</table>
+
+<h2>修订约定</h2>
+<p>修改本报告时永不静默改写：修订号 +1（同步 <code>rk:revision</code> 与 <code>rk:updated</code>）、修订历史表追加一行（「原因」列可引用账本「决策记录」的 <code>D-xxx</code>）、正文用
+<code>&lt;del class="rk-del" data-rev="N"&gt;</code> /
+<code>&lt;ins class="rk-ins" data-rev="N"&gt;</code> 标记行内改动，
+<code>&lt;p class="rk-removed|rk-added" data-rev="N"&gt;</code> 标记整段增删。详见 html-report skill。</p>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="update-XXX-summary.html" data-rk-link="update-summary">本次更新总结</a>（待创建）</li>
+  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="update-XXX-summary.html" data-rk-backlink="update-summary">本次更新总结</a></li>
+  <li><a href="../reviewer/update-XXX-review.html" data-rk-backlink="review">审查报告</a></li>
+</ul>
+<p>新建关联时谁引用谁负责补对侧反链：本报告 <code>rk-links</code> 加一条，对侧报告 <code>rk-backlinks</code> 补一条；对侧尚未产出时先在 <code>rk-links</code> 标注（待创建），等产出后补齐。</p>
+
+</body>
+</html>

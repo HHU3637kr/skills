@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现总结 - {功能名称}</title>
+
+<!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 -->
+<meta name="rk:type"        content="summary">
+<meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:title"       content="{功能名称}-实现总结">
+<meta name="rk:category"    content="{与 writer/plan.html 相同}">
+<meta name="rk:status"      content="未确认">
+<meta name="rk:created"     content="{YYYY-MM-DD}">
+<meta name="rk:updated"     content="{YYYY-MM-DD}">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="{git_branch，与 writer/plan.html 相同}">
+<meta name="rk:base-branch" content="{base_branch，与 writer/plan.html 相同}">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,summary">
+<!-- 文档关联，等价原 frontmatter 的 plan: 字段 -->
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../../lead/team-context.md">
+
+<!-- 路径按 spec/<分类>/<spec目录>/executor/ 回到项目根（4 层）计算；层级不同需相应调整 -->
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>实现总结：{功能名称}</h1>
+  <!-- 人可读镜像，字段与上方 meta 保持一致 -->
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>Spec</b> <code>spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分类</b> {与 writer/plan.html 相同}</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>分支</b> <code>{git_branch}</code> ← <code>{base_branch}</code></span>
+    <span><b>PR</b> {pr_url 或 —，spec-end 创建 PR 后写回}</span>
+    <span><b>创建</b> {YYYY-MM-DD}</span>
+    <span><b>修订</b> r1（{YYYY-MM-DD}）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>{一句话结论：plan 定义的 N 项功能全部实现 / 有 M 项未实现，最重要的信息放最前面}</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>{YYYY-MM-DD}</td><td>spec-executor</td><td>初版</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 完成的功能</h2>
+<table>
+  <thead><tr><th>功能</th><th>plan 章节</th><th>实现位置</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td>{功能 1}</td><td>{3.1}</td><td><span class="rk-ref">src/xxx.ts:50</span></td><td>已完成</td></tr>
+    <tr><td>{功能 2}</td><td>{3.2}</td><td><span class="rk-ref">src/yyy.ts:12</span></td><td>已完成</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 变更的文件</h2>
+<table>
+  <thead><tr><th>文件</th><th>变更类型</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td><code>src/{...}</code></td><td>新增</td><td>{说明}</td></tr>
+    <tr><td><code>tests/{...}</code></td><td>修改</td><td>{说明}</td></tr>
+  </tbody>
+</table>
+
+<h2>3. 自检结果</h2>
+<div class="rk-kpis">
+  <div class="rk-kpi"><div class="v">{N}</div><div class="k">变更文件</div></div>
+  <div class="rk-kpi is-pass"><div class="v">{N}</div><div class="k">已实现功能</div></div>
+  <div class="rk-kpi"><div class="v">{N}</div><div class="k">未实现功能</div></div>
+</div>
+<p>{编译/类型检查/本地运行等自检情况。正式测试由 spec-tester 负责，此处不代替测试报告。}</p>
+
+<h2>4. 遇到的问题</h2>
+<div class="rk-cal warn"><div class="t">注意：{问题 1}</div><p>{现象}。<b>解决方案</b>：{如何解决}。</p></div>
+
+<h2>5. 与设计方案的偏差</h2>
+<div class="rk-cal key"><div class="t">关键决策：{设计调整}</div><p>{调整点}——{原因和影响}。plan 未覆盖的取舍已同步登记到运行账本「决策记录」。</p></div>
+
+<h3>未实现的功能（如有）</h3>
+<ul>
+  <li>{功能 X}：{原因}</li>
+</ul>
+
+<h2>6. 后续建议</h2>
+<ul>
+  <li>{优化方向 1}</li>
+  <li>{待完成事项 1}</li>
+</ul>
+
+<!-- 关联产物：双向。等价 Obsidian 双链的正向跳转 + 反向可发现 -->
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../../../context/experience/{经验文件}.md" data-rk-link="experience">沉淀经验</a>（如有）</li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../tester/test-plan.html" data-rk-backlink="test-plan">测试计划</a>（待创建）</li>
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a>（待创建）</li>
+</ul>
+
+<hr>
+
+<section>
+  <h2>模板说明（复制后请删除本节）</h2>
+
+  <h3>frontmatter 双轨字段对照</h3>
+  <table>
+    <thead><tr><th>原 frontmatter</th><th>机器可读</th><th>人可读</th><th>必填</th></tr></thead>
+    <tbody>
+      <tr><td><code>title</code></td><td><code>rk:title</code></td><td><code>&lt;h1&gt;</code></td><td>是</td></tr>
+      <tr><td><code>type</code></td><td><code>rk:type</code>（固定 <code>summary</code>）</td><td>类型</td><td>是</td></tr>
+      <tr><td><code>category</code></td><td><code>rk:category</code></td><td>分类</td><td>是</td></tr>
+      <tr><td><code>status</code></td><td><code>rk:status</code></td><td>状态</td><td>是</td></tr>
+      <tr><td><code>created</code></td><td><code>rk:created</code></td><td>创建</td><td>是</td></tr>
+      <tr><td>（新增）</td><td><code>rk:updated</code> / <code>rk:revision</code></td><td>修订</td><td>是</td></tr>
+      <tr><td><code>git_branch</code></td><td><code>rk:git-branch</code></td><td>分支</td><td>是</td></tr>
+      <tr><td><code>base_branch</code></td><td><code>rk:base-branch</code></td><td>分支（← 基准）</td><td>是</td></tr>
+      <tr><td><code>pr_url</code></td><td><code>rk:pr-url</code></td><td>PR</td><td>否，PR 创建前留空</td></tr>
+      <tr><td><code>tags</code></td><td><code>rk:tags</code>（至少 <code>spec,summary</code>）</td><td>不必显示</td><td>是</td></tr>
+      <tr><td><code>plan</code> 双链</td><td><code>&lt;link rel="rk-plan"&gt;</code></td><td><code>rk-links</code> 条目</td><td>是</td></tr>
+      <tr><td>—</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td><code>rk-links</code> 条目</td><td>是</td></tr>
+    </tbody>
+  </table>
+  <p>原模板有几个 frontmatter 字段，HTML 就要有几个对应 <code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>。禁止因为「HTML 里看不见」就删字段。</p>
+
+  <h3>状态变更规则</h3>
+  <table>
+    <thead><tr><th>触发条件</th><th>状态变更</th></tr></thead>
+    <tbody>
+      <tr><td>创建 <code>executor/summary.html</code></td><td>→ 未确认</td></tr>
+      <tr><td>用户确认内容</td><td>未确认 → 已确认</td></tr>
+      <tr><td>用户要求修改</td><td>已确认 → 未确认</td></tr>
+      <tr><td>归档完成</td><td>已确认 → 已归档</td></tr>
+    </tbody>
+  </table>
+  <p>改 <code>status</code> 时 <code>&lt;meta name="rk:status"&gt;</code> 与 <code>.rk-meta</code> 状态两处同步，缺一即失真。</p>
+
+  <h3>双向关联规则</h3>
+  <ul>
+    <li>正向：本报告引用别人 → <code>rk-links</code> 加一条，<code>data-rk-link</code> 写关系类型。</li>
+    <li>反向：别人引用本报告 → <code>rk-backlinks</code> 加一条，<code>data-rk-backlink</code> 写关系类型。</li>
+    <li>谁新建关联谁负责补对侧；对侧报告尚未产出时先在列表里标注「（待创建）」，等对侧出现再补齐。</li>
+  </ul>
+
+  <h3>撰写要点</h3>
+  <ul>
+    <li>结论块 <code>rk-verdict</code> 一句话说清实现结果；全部实现加 <code>is-pass</code>，有未实现项加 <code>is-fail</code>。</li>
+    <li>Callout 用 <code>rk-cal key</code>（关键决策）/ <code>warn</code>（注意）/ <code>risk</code>（风险）/ <code>ok</code>（通过）。</li>
+    <li>代码位置一律 <code>&lt;span class="rk-ref"&gt;file:line&lt;/span&gt;</code>。</li>
+    <li>修改已确认的总结时永不静默改写：修订号 +1（同步 <code>rk:revision</code> / <code>rk:updated</code>）、修订历史表追加一行、正文用
+      <code>&lt;ins class="rk-ins" data-rev="N"&gt;</code> / <code>&lt;del class="rk-del" data-rev="N"&gt;</code> /
+      <code>&lt;p class="rk-added|rk-removed" data-rev="N"&gt;</code> 标记。详见 <code>html-report</code> skill。</li>
+    <li>禁止写 <code>&lt;style&gt;</code>、行内 <code>style=</code> 或引用外部 CDN。</li>
+  </ul>
+</section>
+
+</body>
+</html>

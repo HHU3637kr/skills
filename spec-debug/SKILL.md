@@ -4,9 +4,9 @@ name: spec-debug
 description: >
   诊断并修复 Spec 执行过程中发现的问题。由角色 spec-debugger 调用。
   触发条件：(1) 角色 spec-debugger 接收到 TeamLead 转交的 bug handoff，
-  (2) spec-executor 执行后出现 bug 或 writer/plan.md 中未考虑到的情况，
+  (2) spec-executor 执行后出现 bug 或 writer/plan.html 中未考虑到的情况，
   (3) 运行时出现问题、依赖环境或配置问题。
-  不修改已确认的 writer/plan.md，而是在 debugger/ 下创建独立的诊断文档（debug-xxx.md）和修复总结（debug-xxx-fix.md）。
+  不修改已确认的 writer/plan.html，而是在 debugger/ 下创建独立的诊断文档（debug-xxx.html）和修复总结（debug-xxx-fix.html）。
   修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动 spec-tester。
 ---
 
@@ -18,17 +18,17 @@ description: >
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.md`、`executor/summary.md`、`tester/test-report.md`、`exp-search` 结果 |
-| 权限 | 写 `debugger/debug-xxx.md` / `debug-xxx-fix.md` + 最小化修复代码；不改已确认的 `writer/plan.md`、不加新功能、不自行判定修复成功 |
+| 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`、`exp-search` 结果 |
+| 权限 | 写 `debugger/debug-xxx.html` / `debug-xxx-fix.html` + 最小化修复代码；不改已确认的 `writer/plan.html`、不加新功能、不自行判定修复成功 |
 | 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据），由 spec-tester 重新验证 |
 | 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复 |
 | 升级 | 预算未确认、触发预算上限、或根因涉及权限/计费/数据迁移/需绕过测试时，停止并交回 TeamLead 由用户决策 |
 
 ## 核心原则
 
-1. **不修改已确认的 writer/plan.md**：通过创建 debug 文档记录问题，保持设计的可追溯性
+1. **不修改已确认的 writer/plan.html**：通过创建 debug 文档记录问题，保持设计的可追溯性
 2. **闭环协作**：接收 TeamLead 转交的 bug handoff → 修复 → 向 TeamLead 请求重新验证
-3. **用户确认诊断**：创建 debug-xxx.md 后，由 TeamLead 向用户确认诊断结果
+3. **用户确认诊断**：创建 debug-xxx.html 后，由 TeamLead 向用户确认诊断结果
 4. **受预算约束**：修复循环受 `lead/team-context.md` 的「修复循环预算」约束（「最大轮数」 / 「最大无进展轮数」，由用户在进入循环前确认）。每轮修复后必须更新 「已用轮数」 和 「连续无进展」，触发上限时停止并交还 TeamLead，不自行无限重试。
 
 ## 协作闭环
@@ -38,12 +38,12 @@ spec-tester 发现 bug
     → 向 TeamLead 提交 bug handoff（含复现步骤）
     → TeamLead 启动 spec-debugger
     → spec-debugger 调用 spec-debug
-    → 诊断 → debugger/debug-xxx.md
+    → 诊断 → debugger/debug-xxx.html
     → TeamLead 向用户确认诊断
-    → 修复 → debugger/debug-xxx-fix.md
+    → 修复 → debugger/debug-xxx-fix.html
     → spec-debugger 向 TeamLead 请求 spec-tester 重新验证
     → TeamLead 启动 spec-tester 重新验证
-    → spec-tester 验证通过 → 记录到 tester/test-report.md
+    → spec-tester 验证通过 → 记录到 tester/test-report.html
 ```
 
 ## 工作流程
@@ -55,7 +55,7 @@ spec-tester 发现 bug
 - 预期行为 vs 实际行为
 - 相关测试用例编号
 
-读取相关文档：`writer/plan.md`、`executor/summary.md`、`tester/test-report.md`（草稿）。
+读取相关文档：`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`（草稿）。
 
 ### 步骤 2：检索历史经验
 
@@ -73,34 +73,53 @@ spec-tester 发现 bug
 
 | 类型 | 说明 |
 |------|------|
-| 设计遗漏 | `writer/plan.md` 未考虑的边界情况 |
-| 实现偏差 | 实现与 `writer/plan.md` 不一致 |
+| 设计遗漏 | `writer/plan.html` 未考虑的边界情况 |
+| 实现偏差 | 实现与 `writer/plan.html` 不一致 |
 | 环境问题 | 依赖、配置、版本问题 |
 | 集成问题 | 模块间交互问题 |
 
-### 步骤 5：创建 debug-xxx.md 诊断文档
+### 步骤 5：创建 debug-xxx.html 诊断文档
 
-**命名规范**：`debugger/debug-001.md`（按发现顺序编号）
+撰写报告前先读 `html-report` skill，确认最新的骨架、修订规范和禁止事项。
 
-**Frontmatter**：
-```yaml
----
-title: 问题诊断-简述
-type: debug
-category: 与 writer/plan.md 相同
-status: 未确认
-severity: 高/中/低
-created: YYYY-MM-DD
-plan: "[[../writer/plan|plan]]"
-tags:
-  - spec
-  - debug
----
+**命名规范**：`debugger/debug-001.html`（按发现顺序编号）
+
+**HTML 骨架**（完整模板见 [references/debug-template.html](references/debug-template.html)）：
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>问题诊断 - {问题简述}</title>
+<meta name="rk:type"         content="debug">
+<meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:role"         content="spec-debugger">
+<meta name="rk:title"        content="问题诊断-{简述}">
+<meta name="rk:debug-number" content="001">
+<meta name="rk:category"     content="{与 writer/plan.html 相同}">
+<meta name="rk:status"       content="未确认">
+<meta name="rk:severity"     content="{高|中|低}">
+<meta name="rk:created"      content="{YYYY-MM-DD}">
+<meta name="rk:updated"      content="{YYYY-MM-DD}">
+<meta name="rk:revision"     content="1">
+<meta name="rk:git-branch"   content="{git_branch}">
+<meta name="rk:base-branch"  content="{base_branch}">
+<meta name="rk:pr-url"       content="{pr_url，创建前留空}">
+<meta name="rk:tags"         content="spec,debug">
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-fix"     href="debug-001-fix.html">
+<link rel="rk-ledger"  href="../../lead/team-context.md">
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
 ```
 
-**必须包含**：问题现象、复现步骤、根因分析、修复方案、与 `writer/plan.md` 的关系。
+`<header class="rk-head">` 里的 `.rk-meta` 镜像同样字段（含 `base_branch` 与 `pr_url`），机器可读与人可读两轨缺一不可。
 
-详细格式见 [references/debug-template.md](references/debug-template.md)。
+**必须包含**：问题现象（`rk-cal risk`）、复现步骤、根因分析（`rk-cal key`）、修复方案、与 `writer/plan.html` 的关系（`rk-cal key` 设计关联）、结论块 `<section class="rk-verdict is-fail">`、修订历史表、双向关联产物（`rk-links` / `rk-backlinks`）。
+
+代码位置一律用 `<span class="rk-ref">src/x.ts:88</span>`。
 
 ### 步骤 6：通知 TeamLead 等待用户确认诊断
 
@@ -108,14 +127,14 @@ tags:
 - 在「问题闭环记录」中追加或更新对应问题行
 - 「分类」一般为 `bug`；若根因是环境/依赖/流程问题，用对应 `category`
 - `owner` 写 `spec-debugger`
-- 「关联产物」 指向 `debugger/debug-xxx.md`
+- 「关联产物」 指向 `debugger/debug-xxx.html`
 - 「状态」标记为 `diagnosed`
 - 「更新者」 写 `spec-debugger`
 - 若存在多个修复路径且做了取舍（如最小补丁 vs 重构、降级 vs 报错），在「决策记录」记一行，「拍板者」 写 `spec-debugger` 或 `user`
 - 只修改「问题闭环记录」/「决策记录」，不要修改 TeamLead 控制面区块
 
 ```text
-通知 TeamLead：debugger/debug-001.md 已创建，请向用户确认诊断结果。路径：{路径}
+通知 TeamLead：debugger/debug-001.html 已创建，请向用户确认诊断结果。路径：{路径}
 ```
 
 TeamLead 使用当前运行环境的确认方式向用户确认。等待确认通过后继续修复。
@@ -133,27 +152,43 @@ TeamLead 使用当前运行环境的确认方式向用户确认。等待确认�
 按照确认的修复方案修改代码：
 - 最小化修改范围
 - 不借机添加新功能
-- 在代码注释中引用 debug 文档：`# 修复: debugger/debug-001.md`
+- 在代码注释中引用 debug 文档：`# 修复: debugger/debug-001.html`
 
-### 步骤 9：创建 debug-xxx-fix.md 修复总结
+### 步骤 9：创建 debug-xxx-fix.html 修复总结
 
-**Frontmatter**：
-```yaml
----
-title: 修复总结-简述
-type: debug-fix
-category: 与 writer/plan.md 相同
-status: 未确认
-created: YYYY-MM-DD
-plan: "[[../writer/plan|plan]]"
-debug: "[[debug-001|debug-001]]"
-tags:
-  - spec
-  - debug-fix
----
+**HTML 骨架**（完整模板见 [references/debug-template.html](references/debug-template.html)）：
+```html
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>修复总结 - {问题简述}</title>
+<meta name="rk:type"         content="debug-fix">
+<meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:role"         content="spec-debugger">
+<meta name="rk:title"        content="修复总结-{简述}">
+<meta name="rk:debug-number" content="001">
+<meta name="rk:category"     content="{与 writer/plan.html 相同}">
+<meta name="rk:status"       content="未确认">
+<meta name="rk:created"      content="{YYYY-MM-DD}">
+<meta name="rk:updated"      content="{YYYY-MM-DD}">
+<meta name="rk:revision"     content="1">
+<meta name="rk:git-branch"   content="{git_branch}">
+<meta name="rk:base-branch"  content="{base_branch}">
+<meta name="rk:pr-url"       content="{pr_url，创建前留空}">
+<meta name="rk:tags"         content="spec,debug-fix">
+<meta name="rk:fix-round"    content="{rounds_used}/{max_rounds}">
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-debug"  href="debug-001.html">
+<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
 ```
 
-**必须包含**：修改的文件、关键修改前后对比、验证结果、本轮相对上一轮的进展（新增定位的根因 / 缩小的失败范围 / 新增证据）。
+**必须包含**：修改的文件、关键修改前后对比（`rk-cal key` 说明为什么这样改）、验证结果（`rk-cal ok` 本地自检 + `rk-cal warn` 待 spec-tester 复验）、本轮相对上一轮的进展（新增定位的根因 / 缩小的失败范围 / 新增证据）、修订历史表、双向关联产物。
+
+复验通过后再把结论块改为 `is-pass`，并按修订规范留痕（修订号 +1、修订历史表追加一行、`data-rev` 标记），永不静默改写。
 
 ### 步骤 10：更新修复循环记账
 
@@ -168,8 +203,8 @@ tags:
 ### 步骤 11：向 TeamLead 提交重新验证请求
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
-- 在「任务进度」中追加或更新 spec-debugger 自己的调试修复任务行，「产物」指向 `debugger/debug-xxx-fix.md`
-- 在「问题闭环记录」中更新对应问题行，「解决方案」 简述修复方案，「关联产物」 包含 `debugger/debug-xxx.md` / `debugger/debug-xxx-fix.md`
+- 在「任务进度」中追加或更新 spec-debugger 自己的调试修复任务行，「产物」指向 `debugger/debug-xxx-fix.html`
+- 在「问题闭环记录」中更新对应问题行，「解决方案」 简述修复方案，「关联产物」 包含 `debugger/debug-xxx.html` / `debugger/debug-xxx-fix.html`
 - 「状态」标记为 `fixed_pending_verification`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-debugger`
 - 只修改「任务进度」/「问题闭环记录」/「决策记录」/「修复循环预算」，不要修改 TeamLead 其他控制面区块
@@ -181,7 +216,7 @@ tags:
 - bug 已修复（第 {rounds_used} 轮）
 - 本轮进展：[新增根因 / 缩小范围 / 新增证据]
 - 请启动 spec-tester 重新验证测试用例 TC-XXX
-- 修复详情：debugger/debug-001-fix.md
+- 修复详情：debugger/debug-001-fix.html
 ```
 
 如果触发了预算上限（`stopped-budget` / `stopped-no-progress`）：
@@ -202,7 +237,7 @@ spec-debugger → 诊断 → 通知 TeamLead（用户确认）→ 修复
 spec-debugger → TeamLead → spec-tester（重新验证）
 ```
 
-- 不直接修改 `writer/plan.md`
+- 不直接修改 `writer/plan.html`
 - 不在修复中添加新功能（使用 spec-update）
 - 修复完成后必须向 TeamLead 请求 spec-tester 重新验证，不自行判断修复是否成功
 - 不在「修复循环预算」触发上限后继续修复，必须停止并升级给 TeamLead
@@ -210,15 +245,16 @@ spec-debugger → TeamLead → spec-tester（重新验证）
 ## 后续动作
 
 完成修复后确认：
-1. `debugger/debug-xxx.md` 已创建且用户已确认诊断
-2. `debugger/debug-xxx-fix.md` 已创建
+1. `debugger/debug-xxx.html` 已创建且用户已确认诊断
+2. `debugger/debug-xxx-fix.html` 已创建
 3. 已更新 `lead/team-context.md` 的「任务进度」、「问题闭环记录」（含「分类」）、必要的「决策记录」和「修复循环预算」（「已用轮数」 / 「连续无进展」 / `status`）
 4. 已向 TeamLead 提交重新验证请求，或在触发预算上限时请求升级
-5. 未修改 `writer/plan.md`
+5. 未修改 `writer/plan.html`
 
 ### 常见陷阱
-- 直接修改 `writer/plan.md` 而不是创建 debug 文档
+- 直接修改 `writer/plan.html` 而不是创建 debug 文档
 - 修复后未向 TeamLead 请求 spec-tester 重新验证（破坏闭环）
 - 修复时引入了新功能（应使用 spec-update）
 - 每轮都写新的 debug 文档但没有实质进展，却不更新 「连续无进展」（loop 在原地打转）
 - 在预算未确认或已触上限时仍继续修复（应停止并升级给 TeamLead）
+- 撰写诊断或修复总结前没读 `html-report` skill，写成 Markdown 或漏掉 `data-rev` 修订标记

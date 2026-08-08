@@ -43,13 +43,13 @@ git status --short
 | 角色 | 调用的 Skill | 产出物 | 活跃阶段 |
 |------|------------|--------|---------|
 | **TeamLead（当前 Agent）** | `intent-confirmation` | `lead/team-context.md` | 全程 |
-| spec-explorer | `spec-explore` | `explorer/exploration-report.md` | 阶段二（前置） |
-| spec-writer | `spec-write` | `writer/plan.md` | 阶段二 |
-| spec-tester | `spec-test` | `tester/test-plan.md`, `tester/test-report.md`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
-| spec-executor | `spec-execute` | `executor/summary.md` | 阶段三 |
-| spec-debugger | `spec-debug` | `debugger/debug-xxx.md`, `debugger/debug-xxx-fix.md` | 阶段三/四（按需） |
-| spec-reviewer | `spec-review` | `reviewer/review.md` | 阶段四后（可选） |
-| spec-ender | `spec-end` | `ender/end-report.md` | 阶段五 |
+| spec-explorer | `spec-explore` | `explorer/exploration-report.html` | 阶段二（前置） |
+| spec-writer | `spec-write` | `writer/plan.html` | 阶段二 |
+| spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
+| spec-executor | `spec-execute` | `executor/summary.html` | 阶段三 |
+| spec-debugger | `spec-debug` | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` | 阶段三/四（按需） |
+| spec-reviewer | `spec-review` | `reviewer/review.html` | 阶段四后（可选） |
+| spec-ender | `spec-end` | `ender/end-report.html` | 阶段五 |
 
 ## 工作流程
 
@@ -120,16 +120,28 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | 归属 | 路径 |
 |------|------|
 | TeamLead | `lead/team-context.md` |
-| spec-explorer | `explorer/exploration-report.md` |
-| spec-writer | `writer/plan.md` |
-| spec-tester | `tester/test-plan.md`, `tester/test-report.md`, `tester/artifacts/test-logs/<run-id>/` |
-| spec-executor | `executor/summary.md` |
-| spec-debugger | `debugger/debug-xxx.md`, `debugger/debug-xxx-fix.md` |
-| spec-reviewer | `reviewer/review.md`, `reviewer/update-xxx-review.md` |
-| spec-update | `updater/update-xxx.md`, `updater/update-xxx-summary.md` |
-| spec-ender | `ender/end-report.md` |
+| spec-explorer | `explorer/exploration-report.html` |
+| spec-writer | `writer/plan.html` |
+| spec-tester | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/<run-id>/` |
+| spec-executor | `executor/summary.html` |
+| spec-debugger | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` |
+| spec-reviewer | `reviewer/review.html`, `reviewer/update-xxx-review.html` |
+| spec-update | `updater/update-xxx.html`, `updater/update-xxx-summary.html` |
+| spec-ender | `ender/end-report.html` |
 
 根目录只作为当前 Spec 容器，不直接平铺角色产物。
+
+格式边界与功能等价：报告类产物统一是 HTML，按 `html-report` Skill 的固定骨架、共享样式和修订标记规范书写。
+HTML 化不得丢功能——原 frontmatter 字段双轨保留（`<head>` 里 `<meta name="rk:*">` 机器可读 +
+`.rk-meta` 人可读镜像，含 `base_branch` 与 `pr_url`），文档关联用 `<link rel="rk-*">`；
+关联产物双向维护（`rk-links` 正向 + `rk-backlinks` 反向）。
+运行账本 `lead/team-context.md` 与 `spec/context/` 下的经验/知识记忆文件保持 Markdown。
+不要把账本或记忆文件改成 HTML，也不要用 Markdown 写报告。
+
+修订与决策互相追溯：报告的「修订历史」表记文本变更，账本的「决策记录」记决策本身。
+源于实质取舍的修订，在修订历史「原因」列写决策编号（如「按 D-003（多实例部署需共享缓存）」）；
+纯笔误、措辞、补充直接写清原因，不编造编号。决策过程正文只留在账本，不复制进报告；
+修订历史表固定 5 列（修订/日期/修改人/改了什么/原因），不新增列。
 
 ### 步骤 4：创建本次 Spec Team Context
 
@@ -189,7 +201,7 @@ updated_at: {ISO8601}
 
 | 任务号 | 负责角色 | 任务 | 状态 | 产物 | 完成时间 | 更新者 |
 |--------|----------|------|------|------|----------|--------|
-| T-001 | spec-explorer | 探索项目背景 | pending | explorer/exploration-report.md | | spec-explorer |
+| T-001 | spec-explorer | 探索项目背景 | pending | explorer/exploration-report.html | | spec-explorer |
 
 ## 问题闭环记录
 
@@ -198,8 +210,8 @@ updated_at: {ISO8601}
 
 | 问题号 | 分类 | 发现者 | 负责角色 | 问题 | 解决方案 | 关联产物 | 状态 | 更新者 |
 |--------|------|--------|----------|------|----------|----------|------|--------|
-| I-001 | bug | spec-tester | spec-debugger | 待记录 | 待记录 | debugger/debug-001.md / debugger/debug-001-fix.md | open | spec-tester/spec-debugger |
-| I-002 | env | spec-executor | spec-executor | 待记录（如缺依赖、脚本报错、环境不一致） | 待记录 | executor/summary.md | open | spec-executor |
+| I-001 | bug | spec-tester | spec-debugger | 待记录 | 待记录 | debugger/debug-001.html / debugger/debug-001-fix.html | open | spec-tester/spec-debugger |
+| I-002 | env | spec-executor | spec-executor | 待记录（如缺依赖、脚本报错、环境不一致） | 待记录 | executor/summary.html | open | spec-executor |
 
 ## 决策记录
 
@@ -221,7 +233,7 @@ updated_at: {ISO8601}
 
 | 产物 | 负责角色 | 状态 | 已确认 | 更新时间 |
 |------|----------|------|--------|----------|
-| writer/plan.md | spec-writer | pending | no | |
+| writer/plan.html | spec-writer | pending | no | |
 
 ## 门禁决策
 
@@ -314,19 +326,19 @@ GitHub Flow 准备
 
 阶段二：Spec 创建
   TeamLead → 启动/恢复 spec-explorer
-  spec-explorer → explorer/exploration-report.md → TeamLead
-  TeamLead → 启动/恢复 spec-writer，传递 explorer/exploration-report.md + lead/team-context.md
-  TeamLead → 启动/恢复 spec-tester，传递 explorer/exploration-report.md 并进入测试计划阶段
+  spec-explorer → explorer/exploration-report.html → TeamLead
+  TeamLead → 启动/恢复 spec-writer，传递 explorer/exploration-report.html + lead/team-context.md
+  TeamLead → 启动/恢复 spec-tester，传递 explorer/exploration-report.html 并进入测试计划阶段
   TeamLead 中转 spec-writer 与 spec-tester 的接口边界问题
-  spec-writer → writer/plan.md 定稿 → TeamLead
-  spec-tester → tester/test-plan.md 定稿 → TeamLead
-  TeamLead → 用户确认 writer/plan.md + tester/test-plan.md
+  spec-writer → writer/plan.html 定稿 → TeamLead
+  spec-tester → tester/test-plan.html 定稿 → TeamLead
+  TeamLead → 用户确认 writer/plan.html + tester/test-plan.html
       ↓ 【门禁 2 通过】
 
 阶段三：实现
   TeamLead → 启动/恢复 spec-executor
-  spec-executor → executor/summary.md → TeamLead
-  TeamLead → 用户确认 executor/summary.md
+  spec-executor → executor/summary.html → TeamLead
+  TeamLead → 用户确认 executor/summary.html
       ↓ 【门禁 3 通过】
 
 阶段四：测试
@@ -344,11 +356,11 @@ GitHub Flow 准备
              [触发 max_rounds 或 max_no_progress_rounds]
                         → spec-tester/spec-debugger 停止，status=stopped-budget/stopped-no-progress
                         → TeamLead 升级给用户决定（继续加预算 / 改方案 / 暂停）
-  spec-tester → tester/test-report.md → TeamLead
-  TeamLead → 用户确认 tester/test-report.md
+  spec-tester → tester/test-report.html → TeamLead
+  TeamLead → 用户确认 tester/test-report.html
   [可选审查] TeamLead → 启动/恢复 spec-reviewer
-             spec-reviewer → reviewer/review.md → TeamLead
-             TeamLead → 用户确认 reviewer/review.md
+             spec-reviewer → reviewer/review.html → TeamLead
+             TeamLead → 用户确认 reviewer/review.html
       ↓ 【门禁 4 通过】
 
 阶段五：收尾
@@ -364,11 +376,11 @@ GitHub Flow 准备
 |------|---------|---------|
 | 需求对齐 | TeamLead | 目标/范围/验收 + 反问后的编码思路小结（非单纯「理解正确」） |
 | 分支准备 | TeamLead | 仅在工作区不干净、无 Git 仓库或需使用 worktree 时询问 |
-| Spec 审阅 | TeamLead | `writer/plan.md` + `tester/test-plan.md` |
-| 实现确认 | TeamLead | `executor/summary.md` |
+| Spec 审阅 | TeamLead | `writer/plan.html` + `tester/test-plan.html` |
+| 实现确认 | TeamLead | `executor/summary.html` |
 | 修复循环预算 | TeamLead | 进入修复循环前确认 「最大轮数」 和 「最大无进展轮数」（带建议默认值，用户可改） |
-| 诊断确认 | TeamLead | `debugger/debug-xxx.md`（如有） |
-| 测试报告确认 | TeamLead | `tester/test-report.md` |
+| 诊断确认 | TeamLead | `debugger/debug-xxx.html`（如有） |
+| 测试报告确认 | TeamLead | `tester/test-report.html` |
 | 修复循环升级 | TeamLead | 触发预算上限或连续无进展时，确认继续加预算 / 改方案 / 暂停 |
 | 归档确认 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
 

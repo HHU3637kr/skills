@@ -3,7 +3,7 @@ disable-model-invocation: true
 name: spec-init
 description: >
   当项目首次接入 Spec 驱动开发 / R&K Flow，需要创建 AGENTS.md、.agents/rules/、
-  .agents/skills/、spec/ 目录、记忆系统和 Obsidian Vault 时使用。
+  .agents/skills/、spec/ 目录、记忆系统和 HTML 报告资产时使用。
   典型信号：用户说"初始化项目"/"搭建 Spec 环境"/"创建开发环境"，或项目根目录缺少 AGENTS.md / spec/。
   不要用于已有项目的单个 Spec 开发、功能更新或少量规范修改。
 ---
@@ -75,8 +75,8 @@ git branch -M main
 
 记录用户选择为 `<runtime>`（`omp` / `claude` / `codex`）。后续步骤 4.3 只为 `<runtime>` 生成运行时适配文件，不创建其它环境的目录和文件。中立产物（`.agents/roles/`）始终创建，与运行环境无关。
 
-> [!important] 只建当前环境
-> 不要默认三套全建。`.agents/roles/`（中立角色定义）是权威源，必须创建；`.claude` / `.codex` / `.omp` 三套运行时适配只生成 `<runtime>` 对应的那一套。
+**只建当前环境**：不要默认三套全建。`.agents/roles/`（中立角色定义）是权威源，必须创建；`.claude` / `.codex` / `.omp` 三套运行时适配只生成 `<runtime>` 对应的那一套。
+
 ### 步骤 3：创建 AGENTS.md
 
 在项目根目录创建 `AGENTS.md`，这是项目的身份文件和路由入口。保持精简：只写项目身份、最高优先级工作方式、详细目录入口；具体规则和项目偏好写入 `.agents/rules/`。
@@ -111,8 +111,7 @@ git branch -M main
 > AGENTS.md 是入口清单，不承载长篇规范。每个 Spec 收尾时由 spec-end 审查是否需要维护 AGENTS.md 或 `.agents/rules/`。
 ```
 
-> [!important] AGENTS.md 是模板
-> 根据用户提供的项目信息填充模板。如果用户有额外的长期项目规范或偏好，优先写入 `.agents/rules/`，只在需要修改入口、导入或项目身份摘要时更新 AGENTS.md。
+**AGENTS.md 是模板**：根据用户提供的项目信息填充模板。如果用户有额外的长期项目规范或偏好，优先写入 `.agents/rules/`，只在需要修改入口、导入或项目身份摘要时更新 AGENTS.md。
 
 ### 步骤 4：创建 .agents/ 配置目录
 
@@ -148,7 +147,7 @@ mkdir -p ".agents/rules"
 ```markdown
 # Spec 工作流规范
 
-- 实现前必须有已确认的 writer/plan.md
+- 实现前必须有已确认的 writer/plan.html
 - 不添加 Spec 未定义的功能
 - 每个关键节点等待用户确认
 - 收尾时使用 exp-reflect 沉淀经验，并由 spec-end 审查是否维护 AGENTS.md / rules
@@ -159,10 +158,13 @@ mkdir -p ".agents/rules"
 ```markdown
 # 文档规范
 
-- 所有 Spec 文档使用 Obsidian Flavored Markdown
+- 报告类产物使用 HTML（见 html-report skill）：exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report 一律 `.html`
+- 账本与记忆保持 Markdown：`lead/team-context.md`、`spec/context/experience/*.md`、`spec/context/knowledge/*.md`
+- 报告元信息双轨保留：`<head>` 的 `<meta name="rk:*">` / `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像
+- 文档关联双向：`<ul class="rk-links">` 正向引用 + `<ul class="rk-backlinks">` 反向被引，新建关联时补齐对侧
+- 报告修订必须递增修订号，并保留 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` 标记，永不静默改写原文
 - Spec 目录命名：`YYYYMMDD-HHMM-任务描述`，任务描述使用中文
-- 使用 `[[wikilink]]` 建立文档关联
-- 每个文档包含完整 YAML frontmatter
+- 报告样式只在 `html-report/assets/rk-report.css`，禁止在报告内写 `<style>` 或行内 `style=`
 - 长篇背景写入 `spec/context/knowledge/`，不要塞进 AGENTS.md
 ```
 
@@ -173,13 +175,12 @@ mkdir -p ".agents/rules"
 - 每个新 Spec 从 main 创建短生命周期分支
 - 同一活跃 Spec 的 update 复用原 Spec 分支
 - 禁止直接在 main 上实现、测试或归档 Spec
-- writer/plan.md / updater/update-xxx.md 必须记录 git_branch、base_branch、pr_url
+- writer/plan.html / updater/update-xxx.html 的 `rk:git-branch` / `rk:base-branch` / `rk:pr-url` 必须记录分支与 PR
 - 收尾时提交、推送当前分支并创建 PR
 - PR 合并后同步 main 并删除本地/远程工作分支
 ```
 
-> [!tip] rules/ 每文件 ≤ 20 行
-> `.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。新增长期规则时优先更新已有文件，必要时再创建新的规则文件。
+**rules/ 每文件 ≤ 20 行**：`.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。新增长期规则时优先更新已有文件，必要时再创建新的规则文件。
 
 #### 4.2 创建 skills/ 目录并安装 Skills
 
@@ -209,8 +210,7 @@ New-Item -ItemType SymbolicLink -Path .claude\skills -Target ..\.agents\skills
 
 #### 4.3 创建项目级角色定义与运行时 Agent 适配
 
-> [!important] 角色定义属于 spec-init
-> `spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。7 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
+**角色定义属于 spec-init**：`spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。7 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
 
 创建中立角色定义目录（始终创建），以及 **仅当前运行环境** 的适配目录：
 
@@ -369,36 +369,36 @@ updated: {当前日期}
 （暂无知识记录）
 ```
 
-### 步骤 7：注册 Obsidian Vault
+### 步骤 7：安装 HTML 报告资产
 
-检查项目根目录是否已有 `.obsidian/` 目录：
+R&K Flow 的报告类产物统一用 HTML 承载，样式与脚本集中在**单一样式源** `html-report/assets/`，
+改样式即全局改版；报告内禁止写 `<style>`、行内 `style=` 与外部 CDN。
 
-```bash
-ls .obsidian/
-```
-
-如果不存在，创建最小化的 Obsidian Vault 配置：
+先确认 Skills 是否已随 `.agents/skills/` 安装到位：
 
 ```bash
-mkdir -p ".obsidian"
+ls .agents/skills/html-report/assets/
 ```
 
-创建 `.obsidian/app.json`（基础配置）：
-```json
-{
-  "alwaysUpdateLinks": true,
-  "newLinkFormat": "relative",
-  "useMarkdownLinks": false,
-  "showFrontmatter": true
-}
+如果存在（步骤 4.2 clone 后即自带），说明契约与资产已就位，报告直接引用该目录即可，本步骤到此结束。
+
+如果项目希望资产独立于 skills 目录（例如报告需要脱离 skills 单独分发），把两个文件复制到项目根的 `html-report/assets/`：
+
+```bash
+mkdir -p "html-report/assets"
+cp .agents/skills/html-report/assets/rk-report.css html-report/assets/
+cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 ```
 
-创建 `.obsidian/community-plugins.json`（推荐插件列表）：
-```json
-[
-  "obsidian-bases"
-]
+报告从 `spec/<分类>/<spec目录>/<角色>/` 引用样式表的相对路径是 4 层：
+
+```html
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
 ```
+
+项目实际层级不同就相应调整，务必保证 `file://` 直接打开报告时样式生效。
+格式边界：报告用 `.html`，`lead/team-context.md` 与 `spec/context/experience|knowledge/*.md` 保持 Markdown。
 
 ### 步骤 8：向用户确认初始化结果
 
@@ -415,7 +415,7 @@ mkdir -p ".obsidian"
   - claude → .claude/agents/
   - codex  → .codex/agents/
 - spec/（Spec 目录 + 记忆系统）
-- .obsidian/（Obsidian Vault）
+- html-report/assets/（报告样式与脚本）
 
 是否需要立即启动一个开发任务？
 - 启动开发任务：调用 spec-start 加载项目级角色并开始 5 阶段流程
@@ -464,10 +464,8 @@ mkdir -p ".obsidian"
 │       ├── git-work/SKILL.md
 │       ├── skill-creator/SKILL.md
 │       ├── find-skills/SKILL.md
-│       ├── obsidian-markdown/SKILL.md
-│       ├── obsidian-bases/SKILL.md
-│       ├── obsidian-plugin-dev/SKILL.md
-│       └── json-canvas/SKILL.md
+│       ├── html-report/SKILL.md      # HTML 报告契约 + assets/（样式与脚本单一源）
+│       └── html-report/assets/       # rk-report.css / rk-report.js
 ├── .claude/                          # 仅当 <runtime> == claude 生成
 │   └── agents/                      # Claude Code 项目级 Agent 适配
 │       ├── spec-explorer.md
@@ -504,27 +502,27 @@ mkdir -p ".obsidian"
 │   │       ├── lead/                  # TeamLead 运行上下文
 │   │       │   └── team-context.md
 │   │       ├── explorer/              # spec-explorer 产物
-│   │       │   └── exploration-report.md
+│   │       │   └── exploration-report.html
 │   │       ├── writer/                # spec-writer 产物
-│   │       │   └── plan.md
+│   │       │   └── plan.html
 │   │       ├── tester/                # spec-tester 产物
-│   │       │   ├── test-plan.md
-│   │       │   ├── test-report.md
+│   │       │   ├── test-plan.html
+│   │       │   ├── test-report.html
 │   │       │   └── artifacts/
 │   │       │       └── test-logs/
 │   │       ├── executor/              # spec-executor 产物
-│   │       │   └── summary.md
+│   │       │   └── summary.html
 │   │       ├── debugger/              # spec-debugger 产物（按需）
-│   │       │   ├── debug-001.md
-│   │       │   └── debug-001-fix.md
+│   │       │   ├── debug-001.html
+│   │       │   └── debug-001-fix.html
 │   │       ├── reviewer/              # spec-reviewer 产物（按需）
-│   │       │   ├── review.md
-│   │       │   └── update-001-review.md
+│   │       │   ├── review.html
+│   │       │   └── update-001-review.html
 │   │       ├── updater/               # spec-update 产物（按需）
-│   │       │   ├── update-001.md
-│   │       │   └── update-001-summary.md
+│   │       │   ├── update-001.html
+│   │       │   └── update-001-summary.html
 │   │       └── ender/                 # spec-ender 产物
-│   │           └── end-report.md
+│   │           └── end-report.html
 │   ├── 04-系统改进/
 │   ├── 05-验证工程/
 │   ├── 06-已归档/
@@ -533,9 +531,10 @@ mkdir -p ".obsidian"
 │       │   └── index.md             # 经验索引
 │       └── knowledge/
 │           └── index.md             # 知识索引
-└── .obsidian/                       # Obsidian Vault 配置
-    ├── app.json                     # 基础配置
-    └── community-plugins.json       # 推荐插件
+└── html-report/                      # 报告资产（可选：独立于 .agents/skills/ 分发时）
+    └── assets/
+        ├── rk-report.css             # 唯一样式源
+        └── rk-report.js              # 三视图切换脚本
 ```
 
 ## 后续动作
@@ -552,7 +551,7 @@ mkdir -p ".obsidian"
    - codex  → `.codex/agents/`（+ `.codex/config.toml` 的 `[agents]`）
 7. spec/ 目录结构已创建（6 个分类目录 + context/；单个 Spec 内由 spec-start 创建角色子目录）
 8. 经验/知识索引文件已创建
-9. Obsidian Vault 已注册（.obsidian/ + app.json）
+9. HTML 报告资产已就位（`.agents/skills/html-report/assets/`，或项目根 `html-report/assets/`）
 10. 已询问用户是否启动开发任务（spec-start）
 
 ### 常见陷阱
@@ -567,6 +566,8 @@ mkdir -p ".obsidian"
 - 在未启用 per-role 多模型时仍乱写 `model:`（可选字段；无规划则省略，继承 session 默认）
 - 用旧 `task` schema（top-level `agent`、`assignment`、`id`）spawn 角色；OMP 16.4+ 用 `{ context, tasks: [{ name?, agent?, task }] }`
 - 已有 spec/ 目录时重复创建（应先检查）
-- 覆盖已有的 .obsidian/ 自定义配置（应先检查）
+- 报告样式表相对路径层级算错，`file://` 打开报告时丢样式（从角色目录回项目根是 4 层）
+- 在报告 HTML 里写 `<style>` 或行内 `style=`，绕开单一样式源导致改版失效
+- 把 `lead/team-context.md` 或 `spec/context/experience|knowledge/*.md` 一并改成 HTML（必须保持 Markdown）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段
 - AGENTS.md 中的技术栈信息与实际项目不符（应根据用户回答填充）

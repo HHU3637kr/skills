@@ -16,6 +16,10 @@ Use these definitions when `spec-init` creates project-level roles. The source o
 - `lead/team-context.md` is maintained manually by TeamLead and the roles. Update the relevant section as soon as an artifact is produced, an issue is found or resolved, or a trade-off is decided.
 - Required state must be written to `spec/`, `AGENTS.md`, `.agents/rules/`, `.agents/skills/`, or the explicit experience/knowledge store. Do not rely on hidden agent context for workflow correctness.
 - Each role writes its own artifacts under the current Spec role directory: `lead/`, `explorer/`, `writer/`, `tester/`, `executor/`, `debugger/`, `reviewer/`, `updater/`, or `ender/`.
+- Report artifacts are HTML (`*.html`) and follow the `html-report` skill contract: shared stylesheet, fixed skeleton, and traceable revision markers. The run ledger `lead/team-context.md` stays Markdown, as do the experience/knowledge memory files under `spec/context/`. Never convert the ledger or memory files to HTML, and never author a report as Markdown.
+- Going HTML must not drop capability. Every former frontmatter field survives on two tracks: machine-readable `<meta name="rk:*">` in `<head>` (`rk:type`, `rk:spec-dir`, `rk:role`, `rk:created`, `rk:updated`, `rk:revision`, `rk:git-branch`, `rk:base-branch`, `rk:pr-url`, `rk:tags`) plus a human-readable `.rk-meta` mirror in the header. Document relations use `<link rel="rk-plan|rk-debug|rk-update|rk-ledger" href="...">`. Do not drop a field because HTML does not display it.
+- Cross-report relations stay bidirectional: a report lists what it cites in `<ul class="rk-links">` (`data-rk-link="{type}"`) and who cites it in `<ul class="rk-backlinks">` (`data-rk-backlink="{type}"`). Whoever creates a relation also adds the reverse entry on the other side; when the other report does not exist yet, mark it `（待创建）` and backfill once it lands.
+- Report revision history and the ledger Decision Log are complementary and must cross-reference. A revision driven by a substantive trade-off names the decision id in the「原因」column (e.g. `按 D-003（多实例部署需共享缓存）`); a typo, wording, or pure addition states the plain reason without inventing an id. The decision narrative itself stays in the Decision Log of `lead/team-context.md` — do not copy it into the report. The revision table keeps its 5 columns; never add one.
 
 ## Neutral Role File Format
 
@@ -158,12 +162,12 @@ These are the recommended OMP task-agent frontmatter fields per role. Tune
 
 | role-id | tools | spawns | thinkingLevel | read-summarize | rationale |
 |---------|-------|--------|---------------|----------------|-----------|
-| spec-explorer | *(omit — full default)* | `""` | high | (keep summaries) | Wide scan + write `explorer/exploration-report.md`. Product code stays untouched via role rules, not tool locks. |
+| spec-explorer | *(omit — full default)* | `""` | high | (keep summaries) | Wide scan + write `explorer/exploration-report.html`. Product code stays untouched via role rules, not tool locks. |
 | spec-writer | *(omit — full default)* | `""` | high | false | Designs plan; reads source verbatim. Role rules: Spec docs only, not product code. |
 | spec-tester | *(omit — full default)* | `""` | medium | (keep summaries) | **Delegation exception**: MUST run real tests and collect evidence. Do NOT apply "subagents skip verification". |
-| spec-executor | *(omit — full default)* | `""` | medium | false | Implements per已确认 plan; product edits + `executor/summary.md` within scope. |
-| spec-debugger | *(omit — full default)* | `""` | xhigh | false | Root-cause + fixes; does not touch已确认 `writer/plan.md`. |
-| spec-reviewer | *(omit — full default)* | `""` | high | false | Audits only; role rules forbid product edits; must still write `reviewer/review.md`. |
+| spec-executor | *(omit — full default)* | `""` | medium | false | Implements per已确认 plan; product edits + `executor/summary.html` within scope. |
+| spec-debugger | *(omit — full default)* | `""` | xhigh | false | Root-cause + fixes; does not touch已确认 `writer/plan.html`. |
+| spec-reviewer | *(omit — full default)* | `""` | high | false | Audits only; role rules forbid product edits; must still write `reviewer/review.html`. |
 | spec-ender | *(omit — full default)* | `""` | medium | (keep summaries) | 收尾 / git / PR / archive; needs full tool access by default. |
 
 Notes:
@@ -205,7 +209,7 @@ Return results to TeamLead only, with artifact paths and any requested downstrea
 ```markdown
 ---
 name: spec-writer
-description: 撰写代码实现计划 writer/plan.md；TeamLead 提供探索报告后启动。
+description: 撰写代码实现计划 writer/plan.html；TeamLead 提供探索报告后启动。
 thinkingLevel: high
 spawns: ""
 read-summarize: false
@@ -221,7 +225,7 @@ Return results to TeamLead only, with artifact paths and any requested downstrea
 ```markdown
 ---
 name: spec-executor
-description: 严格按已确认的 writer/plan.md 实现代码；TeamLead 在用户确认计划后启动。
+description: 严格按已确认的 writer/plan.html 实现代码；TeamLead 在用户确认计划后启动。
 thinkingLevel: medium
 spawns: ""
 read-summarize: false
@@ -262,11 +266,11 @@ inputs:
   - exploration_scope
   - spec_dir
 outputs:
-  - explorer/exploration-report.md
+  - explorer/exploration-report.html
 handoff:
   to: TeamLead
   includes:
-    - explorer/exploration-report.md path
+    - explorer/exploration-report.html path
     - key risks and unknowns
     - suggested downstream recipients: spec-writer, spec-tester
 rules:
@@ -280,25 +284,25 @@ rules:
 ```yaml
 role_id: spec-writer
 required_skill: spec-write
-purpose: 撰写代码实现计划 writer/plan.md。
-activation: TeamLead 提供 explorer/exploration-report.md 与 lead/team-context.md 后启动。
+purpose: 撰写代码实现计划 writer/plan.html。
+activation: TeamLead 提供 explorer/exploration-report.html 与 lead/team-context.md 后启动。
 inputs:
-  - explorer/exploration-report.md
+  - explorer/exploration-report.html
   - lead/team-context.md
   - task_description
 outputs:
-  - writer/plan.md
+  - writer/plan.html
 handoff:
   to: TeamLead
   includes:
-    - writer/plan.md path
+    - writer/plan.html path
     - implementation risks
     - questions for spec-tester about boundaries and acceptance criteria
 rules:
-  - writer/plan.md 不包含测试计划章节。
-  - writer/plan.md 的 execution_mode 表示实现阶段执行模式，固定为 single-agent。
+  - writer/plan.html 不包含测试计划章节。
+  - writer/plan.html 的 execution_mode 表示实现阶段执行模式，固定为 single-agent。
   - 需要与 spec-tester 对齐时，向 TeamLead 提交讨论问题，由 TeamLead 中转。
-  - writer/plan.md 定稿后只通知 TeamLead。
+  - writer/plan.html 定稿后只通知 TeamLead。
 ```
 
 ### spec-tester
@@ -310,19 +314,19 @@ purpose: 设计测试计划并在实现后执行验证。
 activation: TeamLead 在 Spec 阶段或测试阶段启动。
 inputs:
   - lead/team-context.md
-  - explorer/exploration-report.md
-  - writer/plan.md
-  - executor/summary.md
-  - debugger/debug-xxx-fix.md when re-validating
+  - explorer/exploration-report.html
+  - writer/plan.html
+  - executor/summary.html
+  - debugger/debug-xxx-fix.html when re-validating
 outputs:
-  - tester/test-plan.md
-  - tester/test-report.md
+  - tester/test-plan.html
+  - tester/test-report.html
   - tester/artifacts/test-logs/<run-id>/
   - bug handoff when defects are found
 handoff:
   to: TeamLead
   includes:
-    - tester/test-plan.md or tester/test-report.md path
+    - tester/test-plan.html or tester/test-report.html path
     - bug reproduction steps when applicable
     - suggested downstream recipient: spec-debugger when a bug is found
 rules:
@@ -337,22 +341,22 @@ rules:
 ```yaml
 role_id: spec-executor
 required_skill: spec-execute
-purpose: 严格按已确认的 writer/plan.md 实现代码。
-activation: TeamLead 在用户确认 writer/plan.md 与 tester/test-plan.md 后启动。
+purpose: 严格按已确认的 writer/plan.html 实现代码。
+activation: TeamLead 在用户确认 writer/plan.html 与 tester/test-plan.html 后启动。
 inputs:
   - lead/team-context.md
-  - writer/plan.md
+  - writer/plan.html
   - approved scope
 outputs:
-  - executor/summary.md
+  - executor/summary.html
 handoff:
   to: TeamLead
   includes:
-    - executor/summary.md path
+    - executor/summary.html path
     - changed files
     - deviations, if any
 rules:
-  - 不添加 writer/plan.md 未定义的功能。
+  - 不添加 writer/plan.html 未定义的功能。
   - 不编写或执行测试；测试由 spec-tester 负责。
   - 不归档、不提交、不推送。
   - 完成后只通知 TeamLead。
@@ -368,21 +372,21 @@ activation: TeamLead 提供 bug handoff 后启动。
 inputs:
   - bug handoff from TeamLead
   - lead/team-context.md
-  - writer/plan.md
-  - executor/summary.md
-  - tester/test-report.md draft when available
+  - writer/plan.html
+  - executor/summary.html
+  - tester/test-report.html draft when available
 outputs:
-  - debugger/debug-xxx.md
-  - debugger/debug-xxx-fix.md
+  - debugger/debug-xxx.html
+  - debugger/debug-xxx-fix.html
 handoff:
   to: TeamLead
   includes:
-    - debugger/debug-xxx.md path
-    - debugger/debug-xxx-fix.md path
+    - debugger/debug-xxx.html path
+    - debugger/debug-xxx-fix.html path
     - test cases needing re-validation
 rules:
-  - 不修改已确认的 writer/plan.md。
-  - 创建 debugger/debug-xxx.md 后等待 TeamLead 完成用户诊断确认。
+  - 不修改已确认的 writer/plan.html。
+  - 创建 debugger/debug-xxx.html 后等待 TeamLead 完成用户诊断确认。
   - 修复完成后向 TeamLead 提交重新验证请求，不直接通知 spec-tester。
 ```
 
@@ -392,26 +396,26 @@ rules:
 role_id: spec-reviewer
 required_skill: spec-review
 purpose: 审查 Spec 执行完成情况，检验实现是否严格按 Spec 完成。
-activation: TeamLead 在 executor/summary.md 完成且需要归档前审查时启动。
+activation: TeamLead 在 executor/summary.html 完成且需要归档前审查时启动。
 inputs:
   - lead/team-context.md
-  - writer/plan.md
-  - executor/summary.md
-  - tester/test-plan.md
-  - tester/test-report.md
-  - debugger/debug-xxx-fix.md when present
+  - writer/plan.html
+  - executor/summary.html
+  - tester/test-plan.html
+  - tester/test-report.html
+  - debugger/debug-xxx-fix.html when present
 outputs:
-  - reviewer/review.md
+  - reviewer/review.html
 handoff:
   to: TeamLead
   includes:
-    - reviewer/review.md path
+    - reviewer/review.html path
     - blocking findings, if any
     - suggested downstream recipient: spec-debugger when remediation is required
 rules:
   - 只审查一致性、完成度、风险和测试缺口；不直接修改实现。
   - 发现问题时向 TeamLead 提交审查结论，由 TeamLead 决定是否启动 spec-debugger 或 spec-executor。
-  - 审查报告必须写入 reviewer/review.md。
+  - 审查报告必须写入 reviewer/review.html。
 ```
 
 ### spec-ender
@@ -424,16 +428,16 @@ activation: TeamLead 在测试报告确认后启动。
 inputs:
   - current spec_dir
   - lead/team-context.md
-  - writer/plan.md
-  - explorer/exploration-report.md
-  - executor/summary.md
-  - tester/test-plan.md
-  - tester/test-report.md
-  - reviewer/review.md or reviewer/update-xxx-review.md when present
-  - updater/update-xxx.md and updater/update-xxx-summary.md when present
+  - writer/plan.html
+  - explorer/exploration-report.html
+  - executor/summary.html
+  - tester/test-plan.html
+  - tester/test-report.html
+  - reviewer/review.html or reviewer/update-xxx-review.html when present
+  - updater/update-xxx.html and updater/update-xxx-summary.html when present
   - debugger/debug documents when present
 outputs:
-  - ender/end-report.md
+  - ender/end-report.html
   - updated experience or knowledge entries when exp-reflect routes them
   - optional AGENTS.md or .agents/rules updates
   - archived Spec directory

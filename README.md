@@ -2,7 +2,7 @@
 
 ## 概述
 
-**R&K Flow** 是一套完整的 Spec 驱动式开发 Skills 体系，通过 **Obsidian** 管理文档，用 **Agent Teams 多角色协作架构** 驱动开发流程。当前版本将开发拆分为 5 个阶段，由 7 个项目级专职角色分工协作，并通过每个 Spec 的 `lead/team-context.md` 保留运行账本、Git/PR 元数据、跨角色交接和问题闭环。
+**R&K Flow** 是一套完整的 Spec 驱动式开发 Skills 体系，报告统一用 **HTML** 承载（固定样式 + 可追溯修订），用 **Agent Teams 多角色协作架构** 驱动开发流程。当前版本将开发拆分为 5 个阶段，由 7 个项目级专职角色分工协作，并通过每个 Spec 的 `lead/team-context.md` 保留运行账本、Git/PR 元数据、跨角色交接和问题闭环。
 
 
 如果你对该工作流感兴趣,或者有疑问,欢迎加入我们的社群讨论
@@ -50,7 +50,7 @@ cd .agents/skills && git pull
 > - 先设计，后实现
 > - 严格遵循 Spec，不添加额外功能
 > - 每个实现都可追溯到 Spec 文档
-> - 完整的开发过程记录在 Obsidian 中
+> - 完整的开发过程记录为 HTML 报告，修改可追溯
 
 > **Agent Teams** - 多角色协作，各司其职
 > - TeamLead（当前 Agent）统一协调全局
@@ -85,19 +85,19 @@ cd .agents/skills && git pull
 │      ↓                                                                    │
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段二：Spec 创建                                        │              │
-│  │ spec-explorer → explorer/exploration-report.md            │              │
+│  │ spec-explorer → explorer/exploration-report.html          │              │
 │  │ spec-writer ↔ spec-tester 协作讨论                        │              │
-│  │ → writer/plan.md + tester/test-plan.md                    │              │
+│  │ → writer/plan.html + tester/test-plan.html                │              │
 │  └────────────────────────┬────────────────────────────────┘              │
 │      ↓ 【门禁 2：设计方案 + 测试计划确认】                                   │
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段三：实现                                              │              │
-│  │ spec-executor → executor/summary.md                       │              │
+│  │ spec-executor → executor/summary.html                     │              │
 │  └────────────────────────┬────────────────────────────────┘              │
 │      ↓ 【门禁 3：实现确认】                                                │
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段四：测试                                              │              │
-│  │ spec-tester 执行测试 → tester/test-report.md              │              │
+│  │ spec-tester 执行测试 → tester/test-report.html            │              │
 │  │ [如有 bug] spec-tester ↔ spec-debugger 修复闭环           │              │
 │  └────────────────────────┬────────────────────────────────┘              │
 │      ↓ 【门禁 4：测试报告确认】                                             │
@@ -127,7 +127,7 @@ cd .agents/skills && git pull
 │  │  │    └────┬─────┘      └────┬─────┘      └────┬─────┘         │    │  │
 │  │  │         └─────────────────┼─────────────────┘               │    │  │
 │  │  │                           ↓                                  │    │  │
-│  │  │  • 重大困境-策略对，需要 Obsidian 双链关联                    │    │  │
+│  │  │  • 重大困境-策略对，Markdown 记忆库 + 索引检索              │    │  │
 │  │  │  • 存储：spec/context/experience/ + knowledge/               │    │  │
 │  │  └─────────────────────────────────────────────────────────────┘    │  │
 │  │                                                                     │  │
@@ -217,7 +217,7 @@ R&K Flow 把 GitHub Flow 作为 Spec 生命周期的一部分，而不是最后�
 | 时机 | Git 动作 | 记录位置 |
 |------|----------|----------|
 | `spec-start` | 从 `main` 创建 Spec 工作分支 | `lead/team-context.md` 的 `git_branch` / `base_branch` |
-| `spec-update` | 复用并校验当前 Spec 工作分支 | 读取 `lead/team-context.md`，更新 `updater/update-xxx.md` |
+| `spec-update` | 复用并校验当前 Spec 工作分支 | 读取 `lead/team-context.md`，更新 `updater/update-xxx.html` |
 | `spec-end` | 归档后提交、推送、创建 PR | `lead/team-context.md` 的 `pr_url` |
 | update 收尾 | 提交、推送当前 Spec 分支；必要时创建/更新 PR，不归档 | `lead/team-context.md` 的 `pr_url` |
 
@@ -230,17 +230,17 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 | 角色（Agent 成员） | 调用的 Skill | 产出物 | 活跃阶段 |
 |-------------------|------------|--------|---------|
 | **TeamLead（当前 Agent）** | `intent-confirmation`, `spec-start` | `lead/team-context.md` | 全程 |
-| spec-explorer | `spec-explore` | `explorer/exploration-report.md` | 阶段二（前置） |
-| spec-writer | `spec-write` | `writer/plan.md` | 阶段二 |
-| spec-tester | `spec-test` | `tester/test-plan.md`, `tester/test-report.md`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
-| spec-executor | `spec-execute` | `executor/summary.md` | 阶段三 |
-| spec-debugger | `spec-debug` | `debugger/debug-xxx.md`, `debugger/debug-xxx-fix.md` | 阶段三/四（按需） |
-| spec-reviewer | `spec-review` | `reviewer/review.md`, `reviewer/update-xxx-review.md` | 阶段四后（可选） |
-| spec-ender | `spec-end` | `ender/end-report.md` + 经验沉淀 + 规范维护 + 归档 + 推送 PR | 阶段五 |
+| spec-explorer | `spec-explore` | `explorer/exploration-report.html` | 阶段二（前置） |
+| spec-writer | `spec-write` | `writer/plan.html` | 阶段二 |
+| spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
+| spec-executor | `spec-execute` | `executor/summary.html` | 阶段三 |
+| spec-debugger | `spec-debug` | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` | 阶段三/四（按需） |
+| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-xxx-review.html` | 阶段四后（可选） |
+| spec-ender | `spec-end` | `ender/end-report.html` + 经验沉淀 + 规范维护 + 归档 + 推送 PR | 阶段五 |
 
 ### 初始化
 
-项目首次使用时，调用 `spec-init` 检查/初始化 Git 仓库，并搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、.agents/roles/、spec/ 目录、记忆系统、Obsidian Vault），同时生成 OMP / Claude Code / Codex 等运行时适配文件。
+项目首次使用时，调用 `spec-init` 检查/初始化 Git 仓库，并搭建完整项目骨架（AGENTS.md、.agents/rules/、.agents/skills/、.agents/roles/、spec/ 目录、记忆系统、HTML 报告资产），同时生成 OMP / Claude Code / Codex 等运行时适配文件。
 
 每次开始新任务时，调用 `spec-start` 启动 Agent Teams：
 
@@ -261,16 +261,16 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 
 | Skill | 对应角色 | 功能 | 使用场景 |
 |-------|---------|------|----------|
-| `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + spec/ + Obsidian Vault） | 新项目首次使用，一次性 |
+| `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + spec/ + HTML 报告资产） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 创建 Spec 工作分支、角色目录和 `lead/team-context.md`，加载 7 个项目级角色 | 每次开始新开发任务 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
-| `spec-write` | spec-writer | 撰写 `writer/plan.md`（纯代码实现计划，不含测试） | 创建新功能 Spec |
-| `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.md` + 执行测试产出 `tester/test-report.md` | 测试计划和测试执行 |
-| `spec-execute` | spec-executor | 严格按 `writer/plan.md` 实现代码，产出 `executor/summary.md` | 新功能开发 |
+| `spec-write` | spec-writer | 撰写 `writer/plan.html`（纯代码实现计划，不含测试） | 创建新功能 Spec |
+| `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.html` + 执行测试产出 `tester/test-report.html` | 测试计划和测试执行 |
+| `spec-execute` | spec-executor | 严格按 `writer/plan.html` 实现代码，产出 `executor/summary.html` | 新功能开发 |
 | `spec-debug` | spec-debugger | 诊断并修复 bug，产出 debug 文档 | 测试发现问题时 |
-| `spec-review` | spec-reviewer | 审查实现情况，产出 `reviewer/review.md` | 可选：验证是否严格遵循 Spec |
-| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 规范维护 + 归档 + 推送 PR，产出 `ender/end-report.md` | 开发周期收尾 |
-| `spec-update` | — | 在当前 Spec 分支内执行小更新，产出 `updater/update-xxx.md` 与 `updater/update-xxx-summary.md` | 修改同一活跃 Spec 的既有功能（不归档） |
+| `spec-review` | spec-reviewer | 审查实现情况，产出 `reviewer/review.html` | 可选：验证是否严格遵循 Spec |
+| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 规范维护 + 归档 + 推送 PR，产出 `ender/end-report.html` | 开发周期收尾 |
+| `spec-update` | — | 在当前 Spec 分支内执行小更新，产出 `updater/update-xxx.html` 与 `updater/update-xxx-summary.html` | 修改同一活跃 Spec 的既有功能（不归档） |
 
 #### 新功能开发流程（5 阶段）
 
@@ -287,29 +287,29 @@ GitHub Flow 准备
 
 阶段二：Spec 创建
   TeamLead → spec-explorer 开始
-  spec-explorer → explorer/exploration-report.md → TeamLead 中转给 spec-writer + spec-tester
+  spec-explorer → explorer/exploration-report.html → TeamLead 中转给 spec-writer + spec-tester
   spec-writer ↔ spec-tester 协作讨论接口边界
   两者完成 → 通知 TeamLead
-  TeamLead → 用户确认 writer/plan.md + tester/test-plan.md
+  TeamLead → 用户确认 writer/plan.html + tester/test-plan.html
       ↓ 【门禁 2】
 
 阶段三：实现
   TeamLead → spec-executor 开始
-  spec-executor → executor/summary.md → 通知 TeamLead
-  TeamLead → 用户确认 executor/summary.md
+  spec-executor → executor/summary.html → 通知 TeamLead
+  TeamLead → 用户确认 executor/summary.html
       ↓ 【门禁 3】
 
 阶段四：测试
   TeamLead → spec-tester 执行测试
   [如有 bug] spec-tester → spec-debugger → 修复 → 重新验证
-  spec-tester → tester/test-report.md → 通知 TeamLead
-  可选：TeamLead → spec-reviewer → reviewer/review.md
-  TeamLead → 用户确认 tester/test-report.md（和可选 reviewer/review.md）
+  spec-tester → tester/test-report.html → 通知 TeamLead
+  可选：TeamLead → spec-reviewer → reviewer/review.html
+  TeamLead → 用户确认 tester/test-report.html（和可选 reviewer/review.html）
       ↓ 【门禁 4】
 
 阶段五：收尾
   TeamLead → spec-ender 开始
-  spec-ender → ender/end-report.md + 多角色讨论 + exp-reflect → 规范维护审查 → 用户确认归档
+  spec-ender → ender/end-report.html + 多角色讨论 + exp-reflect → 规范维护审查 → 用户确认归档
   spec-ender → git-work 提交 + 推送 + 创建 PR
   spec-ender → 通知 TeamLead，Teams 进入待机
 
@@ -325,22 +325,22 @@ spec-tester 发现 bug
     ↓
 spec-debugger 诊断问题
     ↓
-创建 debugger/debug-xxx.md（诊断文档）
+创建 debugger/debug-xxx.html（诊断文档）
     ↓
 TeamLead 向用户确认诊断
     ↓
 执行修复
     ↓
-创建 debugger/debug-xxx-fix.md（修复总结）
+创建 debugger/debug-xxx-fix.html（修复总结）
     ↓
 通知 spec-tester 重新验证
     ↓
-spec-tester 验证通过 → 记录到 tester/test-report.md
+spec-tester 验证通过 → 记录到 tester/test-report.html
 ```
 
-> **⚠️ 为什么不直接修改 writer/plan.md？**
+> **⚠️ 为什么不直接修改 writer/plan.html？**
 >
-> `writer/plan.md` 是已经用户确认的设计文档，不应因为执行问题而被修改。通过创建 debug 文档：
+> `writer/plan.html` 是已经用户确认的设计文档，不应因为执行问题而被修改。通过创建 debug 文档：
 > - 保持设计的完整性和可追溯性
 > - 记录问题和修复历史，形成知识库
 > - 与 spec-update 区分（update 用于主动迭代，debug 用于被动修复）
@@ -350,19 +350,19 @@ spec-tester 验证通过 → 记录到 tester/test-report.md
 适用场景：同一个活跃 Spec 在当前工作分支内需要小迭代、补充需求、修正方案或优化实现。若原 Spec 分支已合并/关闭，后续需求默认新建 Spec。
 
 ```
-同一活跃 Spec 的需求/设计发生小变化（原 `writer/plan.md` + `executor/summary.md` 已存在）
+同一活跃 Spec 的需求/设计发生小变化（原 `writer/plan.html` + `executor/summary.html` 已存在）
     ↓
 git-work 确认当前分支等于 lead/team-context.md 的 git_branch
     ↓
-spec-update 创建 updater/update-xxx.md（放在原 Spec 的 updater/ 目录）
+spec-update 创建 updater/update-xxx.html（放在原 Spec 的 updater/ 目录）
     ↓
 用户确认更新方案
     ↓
 spec-update 执行更新
     ↓
-spec-update 创建 updater/update-xxx-summary.md
+spec-update 创建 updater/update-xxx-summary.html
     ↓
-spec-review 创建 reviewer/update-xxx-review.md + 用户确认
+spec-review 创建 reviewer/update-xxx-review.html + 用户确认
     ↓
 exp-reflect 经验反思 + 规范维护审查
     ↓
@@ -381,21 +381,13 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
 | `exp-reflect` | 记忆反思 | 分析 Spec 文档提取经验、知识、SOP、工具记忆、项目规范/规则，按类型分流 |
 | `exp-write` | 记忆写入 | 将经验写入 experience/ 或知识写入 knowledge/，更新索引 |
 
-### 3. Obsidian 支持 Skills
+### 3. 报告与呈现 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
-| `obsidian-markdown` | 创建和编辑 Obsidian Flavored Markdown | 所有 Spec 文档的格式基础 |
-| `obsidian-bases` | 创建和管理数据库视图 | 动态 Spec 索引、状态跟踪 |
-| `json-canvas` | 创建可视化 Canvas | Spec 依赖关系图、架构图 |
+| `html-report` | HTML 报告契约：固定骨架与样式、重点突出组件、可追溯修订标记、双向关联 | 所有报告类产物的格式基础 |
 
-### 4. Obsidian 插件开发支持
-
-| Skill | 功能 | 使用场景 |
-|-------|------|----------|
-| `obsidian-plugin-dev` | Obsidian 插件开发指南 | 开发 Obsidian 插件时参考 |
-
-### 5. 辅助 Skills
+### 4. 辅助 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
@@ -454,116 +446,151 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 ├── lead/
 │   └── team-context.md        # TeamLead 维护的运行账本与 Git/PR 元数据
 ├── explorer/
-│   └── exploration-report.md  # 探索报告（spec-explore 创建）
+│   └── exploration-report.html # 探索报告（spec-explore 创建）
 ├── writer/
-│   └── plan.md                # 设计方案（spec-write 创建）
+│   └── plan.html              # 设计方案（spec-write 创建）
 ├── tester/
-│   ├── test-plan.md           # 测试计划（spec-test 创建）
-│   ├── test-report.md         # 测试报告（spec-test 创建）
+│   ├── test-plan.html         # 测试计划（spec-test 创建）
+│   ├── test-report.html       # 测试报告（spec-test 创建）
 │   └── artifacts/
 │       └── test-logs/         # 测试代码自动采集的日志/JSON/证据
 ├── executor/
-│   └── summary.md             # 实现总结（spec-execute 创建）
+│   └── summary.html           # 实现总结（spec-execute 创建）
 ├── debugger/
-│   ├── debug-001.md           # 问题诊断（spec-debug 创建）
-│   └── debug-001-fix.md       # 修复总结（spec-debug 创建）
+│   ├── debug-001.html         # 问题诊断（spec-debug 创建）
+│   └── debug-001-fix.html     # 修复总结（spec-debug 创建）
 ├── reviewer/
-│   ├── review.md              # 审查报告（可选，spec-review 创建）
-│   └── update-001-review.md   # 更新审查（可选，spec-review 创建）
+│   ├── review.html            # 审查报告（可选，spec-review 创建）
+│   └── update-001-review.html # 更新审查（可选，spec-review 创建）
 ├── updater/
-│   ├── update-001.md          # 更新方案（spec-update 创建）
-│   └── update-001-summary.md  # 更新总结（spec-update 创建）
+│   ├── update-001.html        # 更新方案（spec-update 创建）
+│   └── update-001-summary.html # 更新总结（spec-update 创建）
 └── ender/
-    └── end-report.md          # 收尾报告（spec-end 创建）
+    └── end-report.html        # 收尾报告（spec-end 创建）
 ```
 
 外层目录分类的是“这个 Spec 作为一件工作的主意图”；目录内部按角色目录保存生命周期产物，根目录不再平铺角色产物。`03-能力交付` 只用于新增用户可感知能力；修复、优化、重构、技术债默认优先考虑 `04-系统改进`；架构和数据模型优先考虑 `02-技术设计`；独立测试工作优先考虑 `05-验证工程`。同一活跃 Spec 分支内的小变化使用 `spec-update` 留在原目录；已合并/已关闭后的新需求默认新建 Spec。
 
-## Obsidian 在 Spec 流程中的关键作用
+## HTML 报告在 Spec 流程中的作用
 
-### 1. 双链建立文档关联
+R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-report/SKILL.md`。目标只有三条：阅读体验好、重点突出、反复修改可追溯。
 
-使用 `[[wikilink]]` 语法建立文档间的关系：
+### 1. 哪些是报告（用 HTML），哪些不是（保持 Markdown）
 
-```markdown
-## 文档关联
+9 类报告类产物一律 `.html`：
 
-- 团队上下文: [[lead/team-context|Team Context]]
-- 探索报告: [[explorer/exploration-report|探索报告]]
-- 设计文档: [[writer/plan|设计方案]]
-- 测试计划: [[tester/test-plan|测试计划]]
-- 实现总结: [[executor/summary|实现总结]]
-- 测试报告: [[tester/test-report|测试报告]]
-- 审查报告: [[reviewer/review|审查报告]]
+| 报告 | 产出角色 |
+|------|---------|
+| `explorer/exploration-report.html` | spec-explorer |
+| `writer/plan.html` | spec-writer |
+| `tester/test-plan.html`、`tester/test-report.html` | spec-tester |
+| `executor/summary.html` | spec-executor |
+| `debugger/debug-001.html`、`debugger/debug-001-fix.html` | spec-debugger |
+| `reviewer/review.html`、`reviewer/update-001-review.html` | spec-reviewer |
+| `updater/update-001.html`、`updater/update-001-summary.html` | spec-update |
+| `ender/end-report.html` | spec-ender |
+
+两类文件**必须保持 Markdown**，不是遗漏，是刻意的：
+
+| 文件 | 为什么保持 Markdown |
+|------|--------------------|
+| `lead/team-context.md` | 运行账本，按区块结构手动维护并被各角色重读，改格式会破坏区块解析 |
+| `spec/context/experience/*.md`、`knowledge/*.md` | 记忆库，被 `exp-search` 按文本检索 |
+
+`tester/artifacts/test-logs/**` 保持测试运行的原始格式，属于证据不是报告。
+
+### 2. 修订可追溯：永不静默改写
+
+这是 HTML 报告最核心的能力。报告被反复修改是常态，但**用户必须能看清两版之间改了什么**。每轮修改四件事一起做：
+
+1. 报告头修订号 `+1`（r1 → r2），同步 `<meta name="rk:revision">`
+2. 「修订历史」表**追加一行**，写清改了什么、为什么、谁改的
+3. 正文用语义标签标记，每个标记都带 `data-rev="{本轮修订号}"`
+4. 原文永远保留在 `<del>` 里，不删除
+
+```html
+<!-- 行内修订 -->
+超时设为 <del class="rk-del" data-rev="2">30s</del>
+         <ins class="rk-ins" data-rev="2">10s</ins>
+
+<!-- 块级修订 -->
+<p class="rk-removed" data-rev="2">删掉的整段旧方案。</p>
+<p class="rk-added" data-rev="2">新增的整段新方案。</p>
 ```
 
-**优势**：
-- 文档关联可视化（在 Obsidian 的关系图中查看）
-- 快速导航到相关文档
-- 自动反向链接追踪
+`rk-report.js` 自动在 `.rk-revbar` 渲染三视图切换按钮，同一个文件三种读法：
 
-### 2. Frontmatter 元数据管理
+| 视图 | 作用 |
+|------|------|
+| 全部修订 | 所有 `ins`/`del` 高亮并带 `rN` 角标——看完整演进 |
+| 仅最新修订 | 只高亮最新一轮，旧修订降为正文——看本次改了什么 |
+| 终稿 | 隐藏 `del`、`ins` 去高亮——当干净最终版阅读 |
 
-每个 Spec 文档使用 YAML frontmatter 存储元数据：
+修订历史表固定 5 列（修订 / 日期 / 修改人 / 改了什么 / 原因），与 `lead/team-context.md` 的「决策记录」互补：账本记「为什么这么定」（选项、结论、理由，编号 `D-001`），报告修订历史记「文本上改了什么」。修订源于实质取舍时，「原因」列引用决策编号，例如 `按 D-003（多实例部署需共享缓存）`；纯笔误、措辞、补充说明就直接写清原因，不编造编号。决策过程正文留在账本，不复制进报告。
 
-```yaml
----
-title: 功能名称
-type: plan
-category: 选择 01-05 工作类型目录
-status: 未确认
-priority: 高
-created: 2026-01-09
-execution_mode: single-agent
-team_context: ../lead/team-context.md
-tags:
-  - spec
-  - plan
-related: []
----
+### 3. 元信息双轨保留：机器可读 + 人可读
+
+原 YAML frontmatter 有两个作用，HTML 两个都保留，缺一不可。`<head>` 里逐字段写 `<meta name="rk:*">` 供脚本和检索读取，`<header class="rk-head">` 的 `.rk-meta` 镜像同样字段给人看：
+
+```html
+<meta name="rk:type"        content="plan">
+<meta name="rk:spec-dir"    content="spec/03-能力交付/20260109-1430-登录限流">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:created"     content="2026-01-09">
+<meta name="rk:updated"     content="2026-01-11">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="feat/spec-20260109-1430-login-throttle">
+<meta name="rk:base-branch" content="main">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,plan">
 ```
 
-Git/PR 元数据统一记录在 `lead/team-context.md`，角色产物只链接 Team Context，不复制运行状态正文。
+原模板有几个 frontmatter 字段，HTML 就要有几个对应的 `<meta>` / `<link>`。**不因为"HTML 里看不见"就删字段。** Git/PR 元数据仍以 `lead/team-context.md` 为准，报告只镜像不作为权威源。
 
-**优势**：
-- 支持结构化查询和过滤
-- 与 obsidian-bases 无缝集成
-- 便于生成索引和统计
+### 4. 关联产物双向：正向跳转 + 反向发现
 
-### 3. Callout 突出关键信息
+关联的价值不只是能跳过去，还要能反查「谁引用了我」。报告末尾「关联产物」拆成两段：
 
-使用 Callout 语法突出不同类型的信息：
-
-```markdown
-> [!warning] 注意事项
-> 这个实现必须保证可追溯性
-
-> [!tip] 最佳实践
-> 优先使用异步操作处理并发
-
-> [!success] 已完成
-> 所有功能已按计划实现
+```html
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a></li>
+</ul>
 ```
 
-### 4. 动态索引（obsidian-bases）
+规则：报告 A 引用 B 时，A 的 `rk-links` 加一条，同时 B 的 `rk-backlinks` 补一条；谁新建关联谁负责补对侧。对侧报告还没产出时先在自己的 `rk-links` 里标注「（待创建）」，等它产出再补反链。`data-rk-link` / `data-rk-backlink` 可被脚本提取，构成可查询的关联图谱。
 
-使用 `.base` 文件创建动态 Spec 索引：
+### 5. 突出重点的固定组件
 
-```yaml
-filters:
-  and:
-    - file.inFolder("spec")
-    - 'file.ext == "md"'
-    - 'status != "已归档"'
+```html
+<!-- 结论块：is-pass 绿 / is-fail 红 / 默认蓝，放在最前面 -->
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论</div>
+  <p>42 项用例全部通过。</p>
+</section>
 
-views:
-  - type: table
-    name: "进行中的 Spec"
-    order:
-      - file.name
-      - status
-      - priority
+<!-- 指标卡 -->
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="v">42</div><div class="k">通过</div></div>
+  <div class="rk-kpi is-fail"><div class="v">1</div><div class="k">失败</div></div>
+</div>
+
+<!-- Callout：key 关键决策 / warn 注意 / risk 风险 / ok 通过 -->
+<div class="rk-cal key"><div class="t">关键决策</div><p>选 A 方案，因为 B 会引入循环依赖。</p></div>
+
+<!-- 代码位置引用 -->
+<span class="rk-ref">src/auth/token.ts:88</span>
 ```
+
+### 6. 样式集中 + 离线可读
+
+所有样式集中在 `html-report/assets/rk-report.css`，报告本身不写 `<style>` 也不写行内 `style=`。**改一处样式，全部历史报告一起改版**；换配色、调排版都不需要动任何报告文件。同理禁止外部 CDN 和网络字体——报告双击 `file://` 打开就能完整阅读，断网、离线归档、打包发给别人都不掉样式。
 
 ## 门禁设计：用户确认机制
 
@@ -579,16 +606,16 @@ views:
 | 门禁 | 触发时机 | 由谁发起 | 确认内容 |
 |------|---------|---------|---------|
 | **门禁 1：需求对齐** | 阶段一完成 | TeamLead | 需求理解正确 |
-| **门禁 2：Spec 审阅** | 阶段二完成 | TeamLead | `writer/plan.md` + `tester/test-plan.md` |
-| **门禁 3：实现确认** | 阶段三完成 | TeamLead | `executor/summary.md` |
-| **门禁 4：测试确认** | 阶段四完成 | TeamLead | `tester/test-report.md` + 可选 `reviewer/review.md` |
-| **诊断确认** | bug 诊断完成 | TeamLead | `debugger/debug-xxx.md`（如有） |
+| **门禁 2：Spec 审阅** | 阶段二完成 | TeamLead | `writer/plan.html` + `tester/test-plan.html` |
+| **门禁 3：实现确认** | 阶段三完成 | TeamLead | `executor/summary.html` |
+| **门禁 4：测试确认** | 阶段四完成 | TeamLead | `tester/test-report.html` + 可选 `reviewer/review.html` |
+| **诊断确认** | bug 诊断完成 | TeamLead | `debugger/debug-xxx.html`（如有） |
 | **归档确认** | 阶段五 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
 
 ### 确认示例
 
 ```text
-确认目标：writer/plan.md 与 tester/test-plan.md 已创建完成，是否可以开始实现？
+确认目标：writer/plan.html 与 tester/test-plan.html 已创建完成，是否可以开始实现？
 确认选项：
 - 确认，开始实现
 - 需要修改（请说明修改要求）
@@ -628,16 +655,16 @@ TeamLead → spec-explorer 开始
 
 spec-explorer：
   调用 exp-search 检索历史经验...
-  探索项目代码库，产出 explorer/exploration-report.md
+  探索项目代码库，产出 explorer/exploration-report.html
   更新 lead/team-context.md 的「任务进度」
 
 spec-explorer → TeamLead 中转给 spec-writer + spec-tester
 
 spec-writer ↔ spec-tester 协作讨论接口边界
-spec-writer：创建 writer/plan.md（设计方案）
-spec-tester：创建 tester/test-plan.md（测试计划）
+spec-writer：创建 writer/plan.html（设计方案）
+spec-tester：创建 tester/test-plan.html（测试计划）
 
-TeamLead → 用户确认 writer/plan.md + tester/test-plan.md
+TeamLead → 用户确认 writer/plan.html + tester/test-plan.html
 ```
 
 #### 步骤 3：实现（阶段三）
@@ -647,12 +674,12 @@ TeamLead → 用户确认 writer/plan.md + tester/test-plan.md
 
 TeamLead → spec-executor 开始
 spec-executor：
-  读取 writer/plan.md 和 lead/team-context.md，检索历史经验
+  读取 writer/plan.html 和 lead/team-context.md，检索历史经验
   按计划逐步实现
-  创建 executor/summary.md
+  创建 executor/summary.html
   更新 lead/team-context.md 的「任务进度」
 
-TeamLead → 用户确认 executor/summary.md
+TeamLead → 用户确认 executor/summary.html
 ```
 
 #### 步骤 4：测试（阶段四）
@@ -661,19 +688,19 @@ TeamLead → 用户确认 executor/summary.md
 TeamLead → spec-tester 开始执行测试
 
 spec-tester：
-  按 tester/test-plan.md 执行测试用例
+  按 tester/test-plan.html 执行测试用例
   测试代码自动采集 tester/artifacts/test-logs/<run-id>/ 下的日志/JSON/证据
   发现 bug → 在 lead/team-context.md 的「问题闭环记录」记录问题并通知 TeamLead
   TeamLead → 用 intent-confirmation 与用户确认修复循环预算（max_rounds / max_no_progress_rounds）
            → 写入 lead/team-context.md 的「修复循环预算」
   TeamLead → spec-debugger 修复（每轮更新 rounds_used / no_progress_streak）→ TeamLead → spec-tester 重新验证
   触发预算上限或连续无进展 → 停止循环 → TeamLead 升级给用户（继续加预算 / 改方案 / 暂停）
-  产出 tester/test-report.md
+  产出 tester/test-report.html
 
 可选：
-  TeamLead → spec-reviewer 审查 → reviewer/review.md
+  TeamLead → spec-reviewer 审查 → reviewer/review.html
 
-TeamLead → 用户确认 tester/test-report.md（和可选 reviewer/review.md）
+TeamLead → 用户确认 tester/test-report.html（和可选 reviewer/review.html）
 ```
 
 #### 步骤 5：收尾（阶段五）
@@ -685,7 +712,7 @@ spec-ender：
   向各角色发起讨论，收集经验素材
   调用 exp-reflect 分流沉淀
   审查是否需要维护 AGENTS.md / .agents/rules/
-  创建 ender/end-report.md
+  创建 ender/end-report.html
   询问用户：是否归档、提交、推送并创建 PR？
 
 用户：确认归档
@@ -715,13 +742,13 @@ R&K Flow 不依赖 Claude Code 的 `/goal` 或 Dynamic Workflows；它们只是 
 
 ```text
 /goal 使用 /spec-start 启动一个新 Spec，目标是实现「用户登录失败次数限制」功能。
-请按 R&K Flow 推进：探索 → plan.md → 实现 → 测试 → review。
+请按 R&K Flow 推进：探索 → plan.html → 实现 → 测试 → review。
 无需在每个阶段停下来问我，除非发现需求不清、会破坏现有接口、需要删除数据或涉及高风险改动。
 
 完成条件：
-1. executor/summary.md 已生成
-2. tester/test-report.md 显示关键用例通过
-3. reviewer/review.md 没有高优先级问题
+1. executor/summary.html 已生成
+2. tester/test-report.html 显示关键用例通过
+3. reviewer/review.html 没有高优先级问题
 4. 构建和相关测试命令通过
 5. 最后给出改动摘要和验证证据
 ```
@@ -737,7 +764,7 @@ R&K Flow 不依赖 Claude Code 的 `/goal` 或 Dynamic Workflows；它们只是 
 ```text
 /goal 从当前 Spec 继续推进，直到实现完成、测试通过、review 无阻塞问题。
 阶段间不用反复确认，按 R&K Flow 写回所有角色产物。
-如果 plan.md 与实际代码冲突，停止并说明冲突点。
+如果 plan.html 与实际代码冲突，停止并说明冲突点。
 ```
 
 #### 示例 3：让 TeamLead 发起 Dynamic Workflow 做探索
@@ -755,18 +782,18 @@ TeamLead：在 spec-explore 阶段使用 Claude Code Dynamic Workflow 做并行�
 
 要求：
 - workflow 只读代码，不修改文件
-- 最终汇总到 explorer/exploration-report.md
+- 最终汇总到 explorer/exploration-report.html
 - 标出高风险区域、建议改动边界和测试重点
 ```
 
 #### 示例 4：让 TeamLead 发起 Dynamic Workflow 做审查
 
 ```text
-TeamLead：当前 executor/summary.md 已完成。
+TeamLead：当前 executor/summary.html 已完成。
 请在 spec-review 阶段使用 Dynamic Workflow 并行审查实现。
 
 分工：
-1. 对照 writer/plan.md 检查功能完整性
+1. 对照 writer/plan.html 检查功能完整性
 2. 检查接口签名、数据结构、命名是否一致
 3. 检查是否有 Spec 未定义的额外实现
 4. 检查测试证据是否覆盖关键路径
@@ -774,7 +801,7 @@ TeamLead：当前 executor/summary.md 已完成。
 
 要求：
 - 不修改代码
-- 所有发现汇总进 reviewer/review.md
+- 所有发现汇总进 reviewer/review.html
 - 每个问题必须带 Spec 位置和代码位置
 ```
 
@@ -790,10 +817,10 @@ TeamLead：让 spec-tester 使用 Dynamic Workflow 扩展测试覆盖。
 5. 回归风险路径
 
 输出：
-- 更新 tester/test-plan.md
+- 更新 tester/test-plan.html
 - 执行可运行的测试
 - 把日志、截图、trace 或命令输出放入 tester/artifacts/test-logs/
-- 最终生成 tester/test-report.md
+- 最终生成 tester/test-report.html
 ```
 
 ## 记忆系统
@@ -819,7 +846,7 @@ TeamLead：让 spec-tester 使用 Dynamic Workflow 扩展测试覆盖。
 │  │  ├─ 知识记忆：项目理解/技术调研 → spec/context/knowledge/     │  │
 │  │  ├─ 程序记忆：可复用 SOP → sop-xxx Skill                     │  │
 │  │  ├─ 工具记忆：Skill 后续动作 → Skill 末尾                    │  │
-│  │  └─ 覆盖 ~20% 的重要记忆，需要 Obsidian 双链关联到 Spec      │  │
+│  │  └─ 覆盖 ~20% 的重要记忆，Markdown 记忆库 + 索引检索          │  │
 │  └───────────────────────────────────────────────────────────────┘  │
 │                                                                     │
 │  职责边界：                                                          │
@@ -952,7 +979,7 @@ created: YYYY-MM-DD
 
 | 类型 | 核心问题 | 内容特征 | 示例 |
 |------|---------|---------|------|
-| **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | Hook 状态管理原理、指标评估流程理解 |
+| **经验记忆** | 为什么 | 困境-策略对、决策依据、踩坑经验 | 并发写入加锁踩坑、指标评估流程理解 |
 | **知识记忆** | 是什么 | 项目理解、技术调研、代码分析 | TeachingAnalyzer 架构、AgentScope 框架对比 |
 | **程序记忆（SOP）** | 怎么做 | 可机械执行的步骤序列 | Docker 部署流程、数据库迁移流程 |
 | **项目规范/规则** | 必须遵守什么 | 长期项目约束、项目偏好、前端风格、编码/安全/测试/日志/审计规则 | 薄入口 AGENTS.md、.agents/rules/*.md |
@@ -1022,8 +1049,8 @@ created: YYYY-MM-DD
 
 - **命名规范**：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
 - **分类存放**：必须按任务主意图放入对应工作类型目录，不要默认放入 `03-能力交付`
-- **双链关联**：使用 `[[wikilink]]` 建立文档关系
-- **元数据完整**：每个文档都有完整的 frontmatter
+- **关联可追溯**：报告末尾「关联产物」用相对路径 `<a href>` 链接上下游产物
+- **元数据完整**：报告头 `.rk-meta` 写全类型/Spec/角色/分支/创建日期/修订号；Markdown 文档保留完整 frontmatter
 
 ### 4. 质量把关
 
@@ -1058,10 +1085,9 @@ created: YYYY-MM-DD
    - 了解 `lead/team-context.md` 的维护边界
    - 阅读各 Skill 的 SKILL.md 了解具体流程
 
-3. **配置 Obsidian**
-   - 安装 Obsidian（如需要本地查看）
-   - 安装 Obsidian Base 插件（支持 .base 文件）
-   - 打开项目根目录作为 Vault
+3. **熟悉 HTML 报告规范**
+   - 阅读 `html-report/SKILL.md` 了解固定骨架、组件和修订标记
+   - 打开 `html-report/example/test-report.html` 直观感受三视图切换
 
 4. **开始第一个 Spec**
    - 使用 `spec-init` 初始化项目基础设施
@@ -1092,11 +1118,11 @@ created: YYYY-MM-DD
 
 ## 技术栈
 
-- **AI Agent**: Claude Code / Codex / 兼容 AI 编程 Agent
-- **文档系统**: Obsidian
+- **AI Agent**: OMP（推荐）/ Claude Code / Codex / 兼容 AI 编程 Agent
+- **报告格式**: HTML（固定样式 + `ins`/`del` 修订标记 + 三视图）
 - **版本控制**: Git
-- **文档格式**: Obsidian Flavored Markdown
-- **数据格式**: YAML (frontmatter), JSON (canvas)
+- **文档格式**: 标准 Markdown（账本与记忆）+ HTML（报告）
+- **数据格式**: YAML (frontmatter)
 
 ## 参考资源
 
@@ -1106,12 +1132,10 @@ created: YYYY-MM-DD
 - `spec/` - 所有 Spec 文档
 - `.agents/roles/` - CLI 中立的项目级角色定义
 - `.agents/skills/*/SKILL.md` - 各 Skill 的详细说明
+- `html-report/SKILL.md` - 报告 HTML 契约；`html-report/assets/` - 共享样式与脚本
 
 ### 外部资源
 
-- [Obsidian Help](https://help.obsidian.md/)
-- [Obsidian Bases Syntax](https://help.obsidian.md/bases/syntax)
-- [JSON Canvas Spec](https://jsoncanvas.org/spec/1.0/)
 - [Claude Code Documentation](https://claude.ai/code)
 - [Skills CLI & Ecosystem](https://skills.sh/)
 
@@ -1163,7 +1187,7 @@ created: YYYY-MM-DD
 2. **Loop Budget 停止条件**：`spec-test ↔ spec-debug` 修复循环在 `lead/team-context.md` 新增 `Loop Budget` 区，`max_rounds` / `max_no_progress_rounds` 由用户进入循环前确认，触发上限即停止并升级。
 3. **新增 `loop-design` Skill**：复用 `intent-confirmation` 澄清后，把重复任务设计成有边界的 Loop（运行契约 + 预算），只产出定义不驱动执行，可服务 R&K Flow 内 loop 或自定义 loop。
 4. **Lark Skill 套件**：新增 lark-base / sheets / docs / im / mail / drive / calendar / task / wiki / okr / slides / whiteboard / vc / minutes / workflows 等飞书生态 Skill。
-5. **辅助 Skill 扩充**：新增 token-efficiency、agent-browser、obsidian-spec-confirm 等 Skill；38 个 Skill 标记 `disable-model-invocation`（仅显式调用）。
+5. **辅助 Skill 扩充**：新增 token-efficiency、agent-browser 等 Skill；38 个 Skill 标记 `disable-model-invocation`（仅显式调用）。
 6. **token-efficiency v0.3.1**：从 v0.2.0 升级，新增 L2 大输出压缩（`shrink.py` + `--vault` 还原）、`perf.py` 前后对比基线、能力保障护栏（「省浪费不省智能」，避免效率规则阻断任务完成），扩展 Hermes / OpenClaw / Codex 适配。
 7. **仓库治理**：`.gitignore` 增加 `*.gatebak`、运行时产物（`*.zip`/`*.sqlite*`/`*.log`）、`.system/` 和 R&K flow 运行时文件忽略规则；移除已废弃的 minimax-* / pptx-generator / ding-yuanying-perspective Skill；README 与 npm package 版本同步到 2.5.0。
 
@@ -1185,7 +1209,7 @@ created: YYYY-MM-DD
 3. **角色目录化产物**：每个 Spec 按 `lead/`、`explorer/`、`writer/`、`tester/`、`executor/`、`debugger/`、`reviewer/`、`updater/`、`ender/` 保存产物。
 4. **Team Context 运行账本**：`lead/team-context.md` 统一记录运行路径、Git/PR 元数据、runtime handles、产物注册、门禁、handoff、完成项和问题闭环。
 5. **共享维护边界**：TeamLead 维护控制面；各角色可共同维护「任务进度」和「问题闭环记录」中自己负责的行。
-6. **中立 Hook 协议**：`.agents/hooks/team-context-hook-contract.md` 定义事实事件，Claude Code / Codex 在 `spec-init` 时按自身环境适配。
+6. **中立 Hook 协议**：定义事实事件由 Claude Code / Codex 在 `spec-init` 时按自身环境适配（该机制已于 v2.6.0 整套移除）。
 
 ### v2.3 (2026-04-28) - 运行时边界收敛 + 文档同步
 
@@ -1249,7 +1273,7 @@ created: YYYY-MM-DD
    - `spec-updater` → `spec-update`（Skill）
 
 4. **新增 Skill**：
-   - `spec-init`：完整项目骨架搭建（AGENTS.md + .agents/rules/ + .agents/skills/ + spec/ + Obsidian Vault）
+   - `spec-init`：完整项目骨架搭建（AGENTS.md + .agents/rules/ + .agents/skills/ + spec/ + 报告资产）
    - `spec-start`：启动 Agent Teams，创建 6 个专职角色（与 spec-end 对应）
    - `spec-explore`：Spec 前置信息收集（经验检索 + 代码探索 + 外部资源）
    - `spec-test`：测试计划撰写（test-plan.md）+ 测试执行（test-report.md）
@@ -1308,7 +1332,7 @@ created: YYYY-MM-DD
 **核心改进**：
 
 1. **废弃 MCP 确认插件，改用 Claude Code 原生特性**：
-   - `obsidian-spec-confirm` MCP 插件目前存在 Bug，暂时废弃
+   - MCP 确认插件（后已移除）目前存在 Bug，暂时废弃
    - 所有 Spec 确认流程改用运行环境提供的原生确认能力
    - 后续 MCP 插件完善后再投入使用
 
@@ -1329,7 +1353,7 @@ created: YYYY-MM-DD
 
 **文档更新**：
 - README.md：删除 MCP 插件章节，新增"用户确认机制"章节
-- obsidian-spec-confirm/README.md：添加废弃警告
+- MCP 确认插件 README：添加废弃警告
 
 ### v1.4 (2026-02-07) - Claude Code 原生特性集成
 
@@ -1337,7 +1361,7 @@ created: YYYY-MM-DD
 
 1. **双层互补记忆架构**：
    - 新增 Auto Memory（自动层）：Claude Code 原生跨会话记忆，自主管理，零摩擦
-   - exp-* 系统定位为显式层：仅处理重大困境-策略对，需要 Obsidian 双链关联
+   - exp-* 系统定位为显式层：仅处理重大困境-策略对，需要结构化文件关联
    - 明确职责边界：exp-* 不写 MEMORY.md，exp-search 可读 MEMORY.md（只读）
 
 2. **exp-reflect 经验权重分流**：
@@ -1399,9 +1423,9 @@ skills/            → 工作流程定义（按需加载）
    - 解决了「归档只是移动文件，不是学习」的问题
    - 将执行过程中的知识转化为可复用经验
 
-2. **summary.md 通过双链引用沉淀的经验**：
+2. **summary.md 通过相对链接引用沉淀的经验**：
    - 文档关联章节新增「沉淀经验」字段
-   - 使用 `[[spec/context/experience/exp-xxx-标题|EXP-xxx 标题]]` 格式引用
+   - 使用相对路径链接 `spec/context/experience/exp-xxx-标题.md` 引用
    - 实现 Spec 文档与经验记忆的关联
 
 3. **经验记忆目录迁移到 spec/ 下**：

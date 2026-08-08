@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>debug 文档模板 - 诊断 + 修复总结</title>
+
+<meta name="rk:type" content="template">
+<meta name="rk:role" content="spec-debugger">
+<meta name="rk:tags" content="spec,debug,template">
+<link rel="rk-contract" href="../../html-report/SKILL.md">
+
+<!-- 本文件位于 spec-debug/references/，回到项目根是 2 层 -->
+<link rel="stylesheet" href="../../html-report/assets/rk-report.css">
+<script defer src="../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>debug 文档模板</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> template</span>
+    <span><b>角色</b> spec-debugger</span>
+    <span><b>骨架 A</b> <code>debugger/debug-001.html</code></span>
+    <span><b>骨架 B</b> <code>debugger/debug-001-fix.html</code></span>
+    <span><b>契约</b> <code>html-report</code> skill</span>
+  </div>
+</header>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">用法</div>
+  <p>下面两个代码块各是一份<strong>完整可直接另存的 HTML 文档</strong>：整块复制（含 <code>&lt;!DOCTYPE&gt;</code> 到 <code>&lt;/html&gt;</code>）
+  另存为 <code>debugger/debug-001.html</code> 或 <code>debugger/debug-001-fix.html</code>，再逐个替换 <code>{占位符}</code>。
+  样式路径 <code>../../../../html-report/assets/</code> 按 <code>debugger/</code> 回到项目根的 4 层计算，项目实际层级不同需相应调整。</p>
+</section>
+
+<div class="rk-cal key">
+  <div class="t">不允许功能退化</div>
+  <p>骨架里的 <code>&lt;meta name="rk:*"&gt;</code> 与 <code>&lt;link rel="rk-*"&gt;</code> 是原 YAML frontmatter 的机器可读等价物，
+  <code>.rk-meta</code> 是同字段的人可读镜像，两轨缺一不可。关联产物分「本报告引用」（<code>rk-links</code>）与
+  「引用本报告」（<code>rk-backlinks</code>）两向，等价 Obsidian 双链的正向跳转 + 反向可发现。禁止删字段，禁止只写单向链接。</p>
+</div>
+
+<h2>骨架 A：debug-001.html（诊断文档）</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;title&gt;问题诊断 - {问题简述}&lt;/title&gt;
+
+&lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
+&lt;meta name="rk:type"         content="debug"&gt;
+&lt;meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:role"         content="spec-debugger"&gt;
+&lt;meta name="rk:title"        content="问题诊断-{简述}"&gt;
+&lt;meta name="rk:debug-number" content="001"&gt;
+&lt;meta name="rk:category"     content="{与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:status"       content="未确认"&gt;
+&lt;meta name="rk:severity"     content="{高|中|低}"&gt;
+&lt;meta name="rk:created"      content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:updated"      content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:revision"     content="1"&gt;
+&lt;meta name="rk:git-branch"   content="{git_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:base-branch"  content="{base_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:pr-url"       content="{pr_url，创建前留空}"&gt;
+&lt;meta name="rk:tags"         content="spec,debug"&gt;
+&lt;!-- 文档关联，等价原 frontmatter 的 plan: 字段 --&gt;
+&lt;link rel="rk-plan"    href="../writer/plan.html"&gt;
+&lt;link rel="rk-summary" href="../executor/summary.html"&gt;
+&lt;link rel="rk-fix"     href="debug-001-fix.html"&gt;
+&lt;link rel="rk-ledger"  href="../../lead/team-context.md"&gt;
+
+&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header class="rk-head"&gt;
+  &lt;h1&gt;问题诊断：{问题简述}&lt;/h1&gt;
+  &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
+  &lt;div class="rk-meta"&gt;
+    &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; debug&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;编号&lt;/b&gt; debug-001&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-debugger&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;严重程度&lt;/b&gt; {高|中|低}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分支&lt;/b&gt; &lt;code&gt;{git_branch}&lt;/code&gt; ← &lt;code&gt;{base_branch}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;PR&lt;/b&gt; {pr_url 或 —}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;创建&lt;/b&gt; {YYYY-MM-DD}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;修订&lt;/b&gt; r1（{YYYY-MM-DD}）&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;nav class="rk-revbar"&gt;&lt;/nav&gt;
+
+&lt;section class="rk-verdict is-fail"&gt;
+  &lt;div class="rk-verdict-label"&gt;诊断结论&lt;/div&gt;
+  &lt;p&gt;根因是 {一句话根因}，位于 &lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;，修复方案见第 4 节。&lt;/p&gt;
+&lt;/section&gt;
+
+&lt;h2&gt;修订历史&lt;/h2&gt;
+&lt;table class="rk-revs"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;修订&lt;/th&gt;&lt;th&gt;日期&lt;/th&gt;&lt;th&gt;修改人&lt;/th&gt;&lt;th&gt;改了什么&lt;/th&gt;&lt;th&gt;原因&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;r1&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-debugger&lt;/td&gt;&lt;td&gt;初版诊断&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+    &lt;!-- 源于实质取舍时「原因」引用账本决策编号，例如：
+    &lt;tr&gt;&lt;td&gt;r2&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-debugger&lt;/td&gt;
+        &lt;td&gt;根因从并发时序改判为缓存键冲突&lt;/td&gt;
+        &lt;td&gt;按 &lt;code&gt;D-004&lt;/code&gt;（改走最小补丁而非重构）&lt;/td&gt;&lt;/tr&gt; --&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;1. 问题概述&lt;/h2&gt;
+&lt;div class="rk-cal risk"&gt;&lt;div class="t"&gt;问题现象&lt;/div&gt;&lt;p&gt;{用户看到的问题表现}&lt;/p&gt;&lt;/div&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;项&lt;/th&gt;&lt;th&gt;内容&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;预期行为&lt;/td&gt;&lt;td&gt;{正确行为应该是什么}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;严重程度&lt;/td&gt;&lt;td&gt;{高|中|低}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;影响范围&lt;/td&gt;&lt;td&gt;{受影响的功能/用户}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;2. 复现步骤&lt;/h2&gt;
+&lt;ol&gt;
+  &lt;li&gt;{步骤 1}&lt;/li&gt;
+  &lt;li&gt;{步骤 2}&lt;/li&gt;
+  &lt;li&gt;&lt;b&gt;结果&lt;/b&gt;：{问题现象}&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2&gt;3. 根因分析&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;项&lt;/th&gt;&lt;th&gt;内容&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;问题代码位置&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;问题类型&lt;/td&gt;&lt;td&gt;{设计遗漏 | 实现偏差 | 环境问题 | 集成问题}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="rk-cal key"&gt;&lt;div class="t"&gt;根因&lt;/div&gt;&lt;p&gt;{详细说明为什么会发生这个问题}&lt;/p&gt;&lt;/div&gt;
+
+&lt;h3&gt;3.1 与设计方案的关系&lt;/h3&gt;
+&lt;div class="rk-cal key"&gt;&lt;div class="t"&gt;设计关联&lt;/div&gt;&lt;p&gt;
+  &lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt; 章节 {X.X} 未考虑 {某种情况}；
+  本问题不修改已确认的 plan，只在本诊断文档中记录，保持设计可追溯。
+&lt;/p&gt;&lt;/div&gt;
+
+&lt;h2&gt;4. 修复方案&lt;/h2&gt;
+&lt;p&gt;{描述如何修复这个问题}&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;待改文件&lt;/th&gt;&lt;th&gt;修改说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;code&gt;src/xxx/xxx.ts&lt;/code&gt;&lt;/td&gt;&lt;td&gt;{修改说明}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;风险评估&lt;/div&gt;&lt;p&gt;是否影响其他功能：{是|否}——{说明}。&lt;/p&gt;&lt;/div&gt;
+&lt;p&gt;若在多个修复路径间做了取舍（最小补丁 vs 重构、降级 vs 报错），决策本身记在账本
+&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;的 Decision Log，此处只引用编号 &lt;code&gt;D-xxx&lt;/code&gt;。&lt;/p&gt;
+
+&lt;!-- 关联产物：双向。等价 Obsidian 双链的正向跳转 + 反向可发现 --&gt;
+&lt;h2&gt;关联产物&lt;/h2&gt;
+&lt;h3&gt;本报告引用&lt;/h3&gt;
+&lt;ul class="rk-links"&gt;
+  &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../executor/summary.html" data-rk-link="summary"&gt;实现总结&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../tester/test-report.html" data-rk-link="test-report"&gt;测试报告&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;引用本报告&lt;/h3&gt;
+&lt;ul class="rk-backlinks"&gt;
+  &lt;li&gt;&lt;a href="debug-001-fix.html" data-rk-backlink="debug-fix"&gt;修复总结 debug-001-fix&lt;/a&gt;（待创建）&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../tester/test-report.html" data-rk-backlink="test-report"&gt;测试报告（复验记录）&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>骨架 B：debug-001-fix.html（修复总结）</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;title&gt;修复总结 - {问题简述}&lt;/title&gt;
+
+&lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
+&lt;meta name="rk:type"         content="debug-fix"&gt;
+&lt;meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:role"         content="spec-debugger"&gt;
+&lt;meta name="rk:title"        content="修复总结-{简述}"&gt;
+&lt;meta name="rk:debug-number" content="001"&gt;
+&lt;meta name="rk:category"     content="{与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:status"       content="未确认"&gt;
+&lt;meta name="rk:created"      content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:updated"      content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:revision"     content="1"&gt;
+&lt;meta name="rk:git-branch"   content="{git_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:base-branch"  content="{base_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:pr-url"       content="{pr_url，创建前留空}"&gt;
+&lt;meta name="rk:tags"         content="spec,debug-fix"&gt;
+&lt;meta name="rk:fix-round"    content="{rounds_used}/{max_rounds}"&gt;
+&lt;!-- 文档关联，等价原 frontmatter 的 plan: / debug: 字段 --&gt;
+&lt;link rel="rk-plan"   href="../writer/plan.html"&gt;
+&lt;link rel="rk-debug"  href="debug-001.html"&gt;
+&lt;link rel="rk-ledger" href="../../lead/team-context.md"&gt;
+
+&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header class="rk-head"&gt;
+  &lt;h1&gt;修复总结：{问题简述}&lt;/h1&gt;
+  &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
+  &lt;div class="rk-meta"&gt;
+    &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; debug-fix&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;编号&lt;/b&gt; debug-001-fix&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-debugger&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;修复轮次&lt;/b&gt; 第 {rounds_used}/{max_rounds} 轮&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分支&lt;/b&gt; &lt;code&gt;{git_branch}&lt;/code&gt; ← &lt;code&gt;{base_branch}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;PR&lt;/b&gt; {pr_url 或 —}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;创建&lt;/b&gt; {YYYY-MM-DD}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;修订&lt;/b&gt; r1（{YYYY-MM-DD}）&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;nav class="rk-revbar"&gt;&lt;/nav&gt;
+
+&lt;section class="rk-verdict"&gt;
+  &lt;div class="rk-verdict-label"&gt;修复结论&lt;/div&gt;
+  &lt;p&gt;{一句话：改了什么、原问题是否已无法复现}。是否修复成功由 spec-tester 重新验证判定，本文档不自行判定；
+  复验通过后按修订规范把结论块改为 &lt;code&gt;is-pass&lt;/code&gt; 并留下修订痕迹。&lt;/p&gt;
+&lt;/section&gt;
+
+&lt;h2&gt;修订历史&lt;/h2&gt;
+&lt;table class="rk-revs"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;修订&lt;/th&gt;&lt;th&gt;日期&lt;/th&gt;&lt;th&gt;修改人&lt;/th&gt;&lt;th&gt;改了什么&lt;/th&gt;&lt;th&gt;原因&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;r1&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-debugger&lt;/td&gt;&lt;td&gt;初版修复总结&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+    &lt;!-- 复验通过后追加，例如：
+    &lt;tr&gt;&lt;td&gt;r2&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-debugger&lt;/td&gt;
+        &lt;td&gt;结论块改为 is-pass，验证结果补复验证据&lt;/td&gt;
+        &lt;td&gt;spec-tester 复验 TC-XXX 通过&lt;/td&gt;&lt;/tr&gt; --&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;1. 修复概述&lt;/h2&gt;
+&lt;p&gt;关联诊断：&lt;a href="debug-001.html" data-rk-link="debug"&gt;debug-001 问题诊断&lt;/a&gt;，修复日期 {YYYY-MM-DD}。&lt;/p&gt;
+
+&lt;h2&gt;2. 修改的文件&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;文件&lt;/th&gt;&lt;th&gt;修改类型&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;code&gt;src/xxx.ts&lt;/code&gt;&lt;/td&gt;&lt;td&gt;修改&lt;/td&gt;&lt;td&gt;{修改说明}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;3. 关键修改前后对比&lt;/h2&gt;
+&lt;p&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;// 修改前
+{原代码}
+
+// 修改后
+{新代码}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;div class="rk-cal key"&gt;&lt;div class="t"&gt;为什么这样改&lt;/div&gt;&lt;p&gt;{对应 debug-001 的根因}。最小化修改范围，不借机添加新功能；
+若涉及方案取舍，引用账本 Decision Log 编号 &lt;code&gt;D-xxx&lt;/code&gt;，不复制决策过程正文。&lt;/p&gt;&lt;/div&gt;
+
+&lt;h2&gt;4. 验证结果&lt;/h2&gt;
+&lt;div class="rk-cal ok"&gt;&lt;div class="t"&gt;本地自检通过&lt;/div&gt;&lt;p&gt;按 debug-001 第 2 节复现步骤已无法复现：{证据}。&lt;/p&gt;&lt;/div&gt;
+&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;待重新验证&lt;/div&gt;&lt;p&gt;需 spec-tester 重跑测试用例 {TC-XXX} 才算闭环，本角色不自行判定修复成功。&lt;/p&gt;&lt;/div&gt;
+
+&lt;h2&gt;5. 本轮相对上一轮的进展&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;维度&lt;/th&gt;&lt;th&gt;本轮情况&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;新增定位的根因&lt;/td&gt;&lt;td&gt;{有|无}——{说明}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;缩小的失败范围&lt;/td&gt;&lt;td&gt;{有|无}——{说明}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;新增可验证证据&lt;/td&gt;&lt;td&gt;{有|无}——{说明}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;判定&lt;/td&gt;&lt;td&gt;{有进展 → 连续无进展归零 | 无进展 → 连续无进展 +1}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- 关联产物：双向 --&gt;
+&lt;h2&gt;关联产物&lt;/h2&gt;
+&lt;h3&gt;本报告引用&lt;/h3&gt;
+&lt;ul class="rk-links"&gt;
+  &lt;li&gt;&lt;a href="debug-001.html" data-rk-link="debug"&gt;问题诊断 debug-001&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;引用本报告&lt;/h3&gt;
+&lt;ul class="rk-backlinks"&gt;
+  &lt;li&gt;&lt;a href="../tester/test-report.html" data-rk-backlink="test-report"&gt;测试报告（复验记录）&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../ender/end-report.html" data-rk-backlink="end-report"&gt;收尾报告&lt;/a&gt;（待创建）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>元信息字段说明</h2>
+<p>每个字段都有机器可读（<code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>）与人可读（<code>.rk-meta</code> / 关联产物列表）两轨，缺一不可。
+原模板有几个 frontmatter 字段，HTML 就要有几个对应 <code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>，禁止因为「HTML 里看不见」就删字段。</p>
+<table>
+  <thead><tr><th>字段</th><th>debug-001</th><th>debug-001-fix</th><th>机器可读</th><th>人可读</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>标题</td><td>必填</td><td>必填</td><td><code>rk:title</code> / <code>&lt;title&gt;</code></td><td><code>h1</code></td><td><code>问题诊断-简述</code> / <code>修复总结-简述</code></td></tr>
+    <tr><td>类型</td><td>必填</td><td>必填</td><td><code>rk:type</code></td><td>类型</td><td><code>debug</code> / <code>debug-fix</code></td></tr>
+    <tr><td>Spec 目录</td><td>必填</td><td>必填</td><td><code>rk:spec-dir</code></td><td>Spec</td><td>含分类目录</td></tr>
+    <tr><td>角色</td><td>必填</td><td>必填</td><td><code>rk:role</code></td><td>角色</td><td>固定 <code>spec-debugger</code></td></tr>
+    <tr><td>编号</td><td>必填</td><td>必填</td><td><code>rk:debug-number</code></td><td>编号</td><td>按发现顺序三位数编号，两文档一致</td></tr>
+    <tr><td>分类</td><td>必填</td><td>必填</td><td><code>rk:category</code></td><td>分类</td><td>继承 <code>writer/plan.html</code></td></tr>
+    <tr><td>状态</td><td>必填</td><td>必填</td><td><code>rk:status</code></td><td>状态</td><td><code>未确认</code> / <code>已确认</code> / <code>已归档</code></td></tr>
+    <tr><td>严重程度</td><td>必填</td><td>—</td><td><code>rk:severity</code></td><td>严重程度</td><td><code>高</code> / <code>中</code> / <code>低</code></td></tr>
+    <tr><td>创建日期</td><td>必填</td><td>必填</td><td><code>rk:created</code></td><td>创建</td><td><code>YYYY-MM-DD</code></td></tr>
+    <tr><td>更新日期</td><td>必填</td><td>必填</td><td><code>rk:updated</code></td><td>修订（括号内）</td><td>最近一次修订日期</td></tr>
+    <tr><td>修订号</td><td>必填</td><td>必填</td><td><code>rk:revision</code></td><td>修订</td><td>每轮修改 +1</td></tr>
+    <tr><td>工作分支</td><td>必填</td><td>必填</td><td><code>rk:git-branch</code></td><td>分支</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>基准分支</td><td>必填</td><td>必填</td><td><code>rk:base-branch</code></td><td>分支（← 之后）</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>PR 链接</td><td>否</td><td>否</td><td><code>rk:pr-url</code></td><td>PR</td><td>spec-end 创建 PR 后写回，创建前留空</td></tr>
+    <tr><td>标签</td><td>必填</td><td>必填</td><td><code>rk:tags</code></td><td>不必显示</td><td>逗号分隔，至少含 <code>spec</code> 与 <code>debug</code> / <code>debug-fix</code></td></tr>
+    <tr><td>修复轮次</td><td>—</td><td>必填</td><td><code>rk:fix-round</code></td><td>修复轮次</td><td>与运行账本「修复循环预算」一致</td></tr>
+    <tr><td>关联 plan</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-plan"&gt;</code></td><td>本报告引用</td><td><code>../writer/plan.html</code></td></tr>
+    <tr><td>关联诊断</td><td>—</td><td>必填</td><td><code>&lt;link rel="rk-debug"&gt;</code></td><td>本报告引用</td><td><code>debug-001.html</code></td></tr>
+    <tr><td>关联修复</td><td>必填</td><td>—</td><td><code>&lt;link rel="rk-fix"&gt;</code></td><td>引用本报告</td><td><code>debug-001-fix.html</code>，未产出前在列表标注（待创建）</td></tr>
+    <tr><td>关联 summary</td><td>必填</td><td>否</td><td><code>&lt;link rel="rk-summary"&gt;</code></td><td>本报告引用</td><td><code>../executor/summary.html</code></td></tr>
+    <tr><td>运行账本</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../../lead/team-context.md</code>（保持 Markdown）</td></tr>
+  </tbody>
+</table>
+
+<h2>状态变更规则</h2>
+<table>
+  <thead><tr><th>触发条件</th><th>状态变更</th></tr></thead>
+  <tbody>
+    <tr><td>创建诊断或修复总结</td><td>→ 未确认</td></tr>
+    <tr><td>TeamLead 转达用户确认诊断</td><td>未确认 → 已确认</td></tr>
+    <tr><td>用户要求调整</td><td>已确认 → 未确认</td></tr>
+    <tr><td>归档完成</td><td>已确认 → 已归档</td></tr>
+  </tbody>
+</table>
+<p>改状态时 <code>&lt;meta name="rk:status"&gt;</code> 与 <code>.rk-meta</code> 状态两处同步，缺一即失真。</p>
+
+<h2>撰写要点</h2>
+<ul>
+  <li>诊断：<code>rk-cal risk</code> 标问题现象，<code>rk-cal key</code> 标根因与设计关联，<code>rk-cal warn</code> 标风险评估；结论块用 <code>is-fail</code>（问题尚未解决）。</li>
+  <li>修复：<code>rk-cal ok</code> 标已自检通过，<code>rk-cal warn</code> 标待 spec-tester 复验，<code>rk-cal key</code> 标为什么这样改；结论块先用中性，复验通过后改 <code>is-pass</code>。</li>
+  <li>所有代码位置一律 <code>&lt;span class="rk-ref"&gt;file:line&lt;/span&gt;</code>。</li>
+  <li>双向关联：本报告 <code>rk-links</code> 加一条时，对侧报告 <code>rk-backlinks</code> 补一条；对侧尚未产出先标注「（待创建）」，等产出后补齐。</li>
+  <li>修改已确认文档时永不静默改写：修订号 +1（同步 <code>rk:revision</code> 与 <code>rk:updated</code>）、修订历史表追加一行、正文用
+    <code>&lt;del class="rk-del" data-rev="N"&gt;</code> / <code>&lt;ins class="rk-ins" data-rev="N"&gt;</code> 标记行内改动，
+    <code>&lt;p class="rk-removed|rk-added" data-rev="N"&gt;</code> 标记整段增删。详见 <code>html-report</code> skill。</li>
+  <li>修订历史保持 5 列不变。源于实质取舍的修订，「原因」列引用账本 Decision Log 编号（如 <code>按 D-004（改走最小补丁）</code>）；
+    纯笔误、措辞、补充说明直接写清原因，不编造决策编号；决策过程正文留在账本，不复制进报告。</li>
+  <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN；编号递增时同步替换文件名与全部链接（<code>debug-002.html</code> / <code>debug-002-fix.html</code>）。</li>
+</ul>
+
+</body>
+</html>

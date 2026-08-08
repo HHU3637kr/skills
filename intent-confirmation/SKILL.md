@@ -324,7 +324,7 @@ ask({
 - **阶段一必须反问梳理**，不能只「需求 ok 吗」
 - TeamLead 对用户；子角色默认不直接连环问用户
 - 子角色向 TeamLead 上报时也按 `Did / Found / Blocked / Need` 四段写，TeamLead 才能不改写就转述给用户
-- 已批准的 `writer/plan.md` 执行期不重开需求研讨会，除非需求变更
+- 已批准的 `writer/plan.html` 执行期不重开需求研讨会，除非需求变更
 - 反问得到的「编码思路小结」应能直接喂给 spec-explorer / spec-writer 作为输入
 - 用户拍板后立即在 `lead/team-context.md` 的「决策记录」追加一行，记录「候选项」（当时给的选项）、「结论」、「理由」、「拍板者」: `user`；被否决的选项不要丢，它是后续复盘的关键上下文
 

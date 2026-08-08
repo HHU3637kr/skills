@@ -2,13 +2,13 @@
 disable-model-invocation: true
 name: spec-write
 description: >
-  撰写代码实现计划（writer/plan.md）。由角色 spec-writer 调用。
+  撰写代码实现计划（writer/plan.html）。由角色 spec-writer 调用。
   触发条件：(1) 角色 spec-writer 需要创建设计方案、API 规范、数据模型、架构设计、重构方案，
   (2) 用户说"创建 Spec"/"撰写设计文档"/"写技术规格"/"设计方案"，
-  (3) 当前 Spec 目录下需要新建 writer/plan.md。
-  注意：v2.0 起 writer/plan.md 不含测试计划章节（由 spec-tester 用 spec-test 单独创建），
+  (3) 当前 Spec 目录下需要新建 writer/plan.html。
+  注意：v2.0 起 writer/plan.html 不含测试计划章节（由 spec-tester 用 spec-test 单独创建），
   execution_mode 固定为 single-agent，且仅表示实现阶段执行模式，不否定项目级角色协作。
-  如果目录下已有 executor/summary.md 且仍在该 Spec 的活跃分支内，应使用 spec-update 而非本 Skill；若原分支已合并/关闭，后续需求默认新建 Spec。
+  如果目录下已有 executor/summary.html 且仍在该 Spec 的活跃分支内，应使用 spec-update 而非本 Skill；若原分支已合并/关闭，后续需求默认新建 Spec。
 ---
 
 # Spec Write
@@ -19,9 +19,9 @@ description: >
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | `explorer/exploration-report.md`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据 |
-| 权限 | 只写 `writer/plan.md`（设计方案）；不写测试计划、不实现代码、不归档、不提交；目录分类错误时通过 TeamLead 请求修正 |
-| 验证 | plan 含 7 个必需章节、工作类型目录正确、命名为中文 `YYYYMMDD-HHMM-任务描述`、git_branch 与当前分支一致 |
+| 输入 | `explorer/exploration-report.html`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据、`html-report` skill 的报告契约 |
+| 权限 | 只写 `writer/plan.html`（设计方案）；不写测试计划、不实现代码、不归档、不提交；目录分类错误时通过 TeamLead 请求修正 |
+| 验证 | plan 含 7 个必需章节、工作类型目录正确、命名为中文 `YYYYMMDD-HHMM-任务描述`、分支字段与当前分支一致、HTML 骨架与修订标记符合 `html-report` 规范 |
 | 停止 | plan 定稿且通过用户确认即停止，不在确认前编写代码、不"顺手"加 Spec 未要求的设计 |
 | 升级 | 探索背景不足、接口边界与 spec-tester 无法对齐、或需求超出当前 Spec 范围时，交回 TeamLead 由用户决策 |
 
@@ -29,10 +29,10 @@ description: >
 
 ### 用户确认（必须执行）
 
-> [!important] 完成 `writer/plan.md` 撰写后，**必须**使用当前运行环境的确认方式等待用户确认。
+**重要**：完成 `writer/plan.html` 撰写后，**必须**使用当前运行环境的确认方式等待用户确认。
 
 ```text
-确认目标：writer/plan.md 已创建完成，请确认设计方案是否可以开始实现？
+确认目标：writer/plan.html 已创建完成，请确认设计方案是否可以开始实现？
 确认选项：
 - 确认，开始实现
 - 需要修改（请说明修改要求）
@@ -48,7 +48,7 @@ description: >
 | `02-技术设计` | 技术结构设计：系统架构、数据模型、模块边界、服务层、技术选型、迁移方案、跨模块契约 | 单个功能的常规实现细节 |
 | `03-能力交付` | 新增用户可感知能力：新功能、新接口、新页面、新集成、新工作流、新模块 | 修复已有行为、重构、性能优化、测试补充、配置/依赖问题 |
 | `04-系统改进` | 让已有系统变正确或更稳：Bug、回归、报错、异常边界、性能瓶颈、安全问题、数据不一致、配置/依赖问题、无新能力的重构/清理/技术债 | 新增能力；纯架构方案且暂不实现 |
-| `05-验证工程` | 独立验证工作：测试策略、回归验证、覆盖率提升、测试基础设施、端侧审计日志方案 | 某个功能 Spec 内配套生成的 tester/test-plan.md 与 tester/test-report.md |
+| `05-验证工程` | 独立验证工作：测试策略、回归验证、覆盖率提升、测试基础设施、端侧审计日志方案 | 某个功能 Spec 内配套生成的 tester/test-plan.html 与 tester/test-report.html |
 | `06-已归档` | 已完成 Spec 的最终归档目录 | 新建 Spec 时手动选择；归档只由 spec-end 执行 |
 
 #### 分类决策顺序
@@ -79,33 +79,35 @@ description: >
 
 **路径示例**：
 ```
-✅ spec/03-能力交付/20260104-0900-专业评价Agent设计/writer/plan.md
-✅ spec/04-系统改进/20260104-1030-登录超时错误修复/writer/plan.md
-✅ spec/02-技术设计/20260104-1100-权限模型重构方案/writer/plan.md
-❌ spec/20260104-design/plan.md          （未放入分类目录）
-❌ spec/03-能力交付/20260104-feature/writer/plan.md  （任务描述必须中文）
+✅ spec/03-能力交付/20260104-0900-专业评价Agent设计/writer/plan.html
+✅ spec/04-系统改进/20260104-1030-登录超时错误修复/writer/plan.html
+✅ spec/02-技术设计/20260104-1100-权限模型重构方案/writer/plan.html
+❌ spec/20260104-design/plan.html          （未放入分类目录）
+❌ spec/03-能力交付/20260104-feature/writer/plan.html  （任务描述必须中文）
 ```
 
 ## 工作流程
 
 | 步骤 | 操作 | 要点 |
 |------|------|------|
-| 1 | 读取 `explorer/exploration-report.md`（如有） | 了解背景、现状、历史经验 |
-| 2 | 通过 TeamLead 与 spec-tester 讨论接口边界 | 确认异常处理、验收边界 |
-| 3 | 复核当前 Spec 工作类型目录 | 按“分类决策顺序”检查 01-05 目录，发现错误时通过 TeamLead 请求修正目录 |
-| 4 | 复核文件夹命名 | `YYYYMMDD-HHMM-中文任务描述` |
-| 5 | 确认 writer 目录存在 | `writer/` 应由 spec-start 创建；缺失时创建，不重建整个 Spec 目录 |
-| 6 | 选择模板 | 详见 [references/templates.md](references/templates.md) |
-| 7 | 撰写 `writer/plan.md` | 详见 [references/plan-template.md](references/plan-template.md)，写入 TeamLead 提供的 Git 元数据 |
-| 8 | 验证路径和命名 | 工作类型目录正确、日期时间当前、任务描述中文 |
-| 9 | 保存文件 | `Write` 工具保存到目标路径 |
-| 10 | 等待用户确认 | **必须**使用当前运行环境的确认方式 |
+| 1 | 读取 `html-report` skill | **撰写报告前必读**：HTML 骨架、frontmatter 双轨等价字段、双向关联、修订标记规范 |
+| 2 | 读取 `explorer/exploration-report.html`（如有） | 了解背景、现状、历史经验 |
+| 3 | 通过 TeamLead 与 spec-tester 讨论接口边界 | 确认异常处理、验收边界 |
+| 4 | 复核当前 Spec 工作类型目录 | 按“分类决策顺序”检查 01-05 目录，发现错误时通过 TeamLead 请求修正目录 |
+| 5 | 复核文件夹命名 | `YYYYMMDD-HHMM-中文任务描述` |
+| 6 | 确认 writer 目录存在 | `writer/` 应由 spec-start 创建；缺失时创建，不重建整个 Spec 目录 |
+| 7 | 选择正文模板 | 详见 [references/templates.md](references/templates.md) |
+| 8 | 撰写 `writer/plan.html` | 复制 [references/plan-template.html](references/plan-template.html) 骨架，写入 TeamLead 提供的 Git 元数据 |
+| 9 | 验证路径和命名 | 工作类型目录正确、日期时间当前、任务描述中文 |
+| 10 | 自检 HTML | 浏览器能打开且样式生效、`rk-meta` 与 `<meta name="rk:*">` 字段一致、`rk-links` 有对应反链登记、无 `<style>` 与行内 `style=` |
+| 11 | 保存文件 | `Write` 工具保存到目标路径 |
+| 12 | 等待用户确认 | **必须**使用当前运行环境的确认方式 |
 
-### 步骤 7：writer/plan.md 内容要求（v2.0）
+### 步骤 7：writer/plan.html 内容要求（v2.0）
 
-> [!important] v2.0 变更：移除测试计划章节
-> `writer/plan.md` **不再包含**测试计划章节（由 spec-tester 用 spec-test 单独创建 `tester/test-plan.md`）。
-> `execution_mode` **固定为 `single-agent`**，仅表示 spec-executor 的实现阶段执行模式；项目级角色协作由 spec-init/spec-start 管理。
+**v2.0 变更：移除测试计划章节**
+`writer/plan.html` **不再包含**测试计划章节（由 spec-tester 用 spec-test 单独创建 `tester/test-plan.html`）。
+`execution_mode` **固定为 `single-agent`**，仅表示 spec-executor 的实现阶段执行模式；项目级角色协作由 spec-init/spec-start 管理。
 
 **必须包含的章节**：
 1. 概述（背景、目标、范围）
@@ -114,39 +116,45 @@ description: >
 4. 执行模式（固定 single-agent，说明这是实现阶段执行模式）
 5. 实现步骤
 6. 风险和依赖
-7. 文档关联
+7. 关联产物（双向：`rk-links` 正向 + `rk-backlinks` 反向）
 
-Frontmatter 格式和字段说明详见 [references/plan-template.md](references/plan-template.md)。
+原 frontmatter 字段一律双轨保留：机器可读写进 `<head>` 的 `<meta name="rk:*">` / `<link rel="rk-*">`，人可读镜像到 `.rk-meta`。字段清单与对照表详见 [references/plan-template.html](references/plan-template.html)，禁止因为"HTML 里看不见"就删字段。
 
-**GitHub Flow 字段**：
-- `git_branch`：必须使用 spec-start / git-work 创建的当前分支
-- `base_branch`：通常为 `main`
-- `pr_url`：创建 PR 前留空，由 spec-end 写回
-- 如果项目无 Git 仓库或用户确认无分支模式，`git_branch` 写 `none` 并在风险/依赖中说明
+**GitHub Flow 字段**（双轨保留：`<meta name="rk:*">` + `.rk-meta`）：
+- `rk:git-branch`：必须使用 spec-start / git-work 创建的当前分支
+- `rk:base-branch`：通常为 `main`
+- `rk:pr-url`：创建 PR 前留空，由 spec-end 写回
+- 如果项目无 Git 仓库或用户确认无分支模式，`rk:git-branch` 写 `none` 并在风险/依赖中说明
 
 ## 禁止与推荐
 
 **禁止**：
 - ❌ Spec 确认前开始编写代码
-- ❌ 在 `writer/plan.md` 中包含测试计划章节（v2.0 起移除）
+- ❌ 在 `writer/plan.html` 中包含测试计划章节（v2.0 起移除）
 - ❌ 将 execution_mode 设为 agent-teams 或把该字段解释为整个工作流不使用角色协作
-- ❌ 手写一个未创建的 `git_branch`
+- ❌ 手写一个未创建的分支名
 - ❌ 直接在 `spec/` 下创建文件夹（必须放入工作类型目录）
 - ❌ 任务描述使用英文
 - ❌ 跳过用户确认步骤
+- ❌ 在报告 HTML 里写 `<style>`、行内 `style=` 或引用外部 CDN
+- ❌ 用 Obsidian 专有语法（`[[wikilink]]`、`> [!note]` Callout、`#tag`）
+- ❌ 迁移时丢掉原 frontmatter 字段，或只写单向链接不补反链
+- ❌ 静默改写已确认报告内容（必须递增修订号 + 追加修订历史 + `ins`/`del` 标记）
 
 **推荐**：
-- ✅ 先读取 `explorer/exploration-report.md` 了解背景
+- ✅ 撰写前先读 `html-report` skill，按其骨架与类名产出
+- ✅ 先读取 `explorer/exploration-report.html` 了解背景
 - ✅ 通过 TeamLead 与 spec-tester 讨论接口边界
-- ✅ 使用 Obsidian Callout 和双链增强文档
-- ✅ 确认 `writer/plan.md` 的 `git_branch` 与当前分支一致
+- ✅ 使用 html-report 的 `rk-cal` / `rk-verdict` 组件突出重点，修订遵循 `data-rev` 规范
+- ✅ 原 frontmatter 字段双轨保留（`<meta name="rk:*">` + `.rk-meta`），关联产物双向（`rk-links` + `rk-backlinks`）
+- ✅ 确认 `writer/plan.html` 的 `rk:git-branch` 与当前分支一致
 
 ## 后续流程
 
-1. 更新当前 Spec 的 `lead/team-context.md` 共享区：在「任务进度」中追加或更新 spec-writer 自己的任务行，「产物」指向 `writer/plan.md`，「状态」标记为 `done`，填写 「完成时间」 和 `updated_by: spec-writer`
+1. 更新当前 Spec 的 `lead/team-context.md` 共享区：在「任务进度」中追加或更新 spec-writer 自己的任务行，「产物」指向 `writer/plan.html`，「状态」标记为 `done`，填写 「完成时间」 和 `updated_by: spec-writer`
 2. 把 plan 中的关键设计取舍写入「决策记录」：每个方案分叉记一行「议题」/「候选项」（含被否决项）/「结论」/「理由」，「拍板者」写 `spec-writer`（若该取舍由用户拍板则写 `user`）
 3. 若写方案时遇到过程性问题（依赖缺失、探索报告信息不足、接口边界未定等），在「问题闭环记录」追加一行，「分类」选 `dependency` / `process` / `scope`
 4. 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
-3. 等待用户确认 `writer/plan.md`
+3. 等待用户确认 `writer/plan.html`
 4. 通知 TeamLead，TeamLead 触发实现阶段（spec-execute）
 5. 如果是功能更新，使用 `spec-update` 执行

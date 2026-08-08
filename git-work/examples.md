@@ -13,12 +13,12 @@ git switch -c feat/spec-20260428-1430-user-auth
 git push -u origin feat/spec-20260428-1430-user-auth
 ```
 
-`plan.md` frontmatter：
+`plan.html` 的 `<head>` Git 元数据（`.rk-meta` 同步镜像同样字段）：
 
-```yaml
-git_branch: feat/spec-20260428-1430-user-auth
-base_branch: main
-pr_url:
+```html
+<meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
+<meta name="rk:base-branch" content="main">
+<meta name="rk:pr-url"      content="">
 ```
 
 开发、测试、文档都在该分支完成。
@@ -33,7 +33,7 @@ git push
 gh pr create --base main --head feat/spec-20260428-1430-user-auth --title "feat: user auth" --body-file pr-body.md
 ```
 
-拿到 PR URL 后写回 `plan.md` / `summary.md` 的 `pr_url`，再补充提交：
+拿到 PR URL 后写回 `plan.html` / `summary.html` 的 `rk:pr-url`（`<meta>` 与 `.rk-meta` 镜像都要更新），再补充提交：
 
 ```bash
 git add spec/
@@ -51,14 +51,14 @@ git branch --show-current
 git status --short
 ```
 
-在同一个 Spec 目录创建 `update-001.md`，继承 plan.md 的 Git 元数据：
+在同一个 Spec 目录创建 `update-001.html`，继承 plan.html 的 Git 元数据：
 
-```yaml
-type: update
-update_number: 1
-git_branch: feat/spec-20260428-1430-user-auth
-base_branch: main
-pr_url:
+```html
+<meta name="rk:type"        content="update">
+<meta name="rk:update-number" content="1">
+<meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
+<meta name="rk:base-branch" content="main">
+<meta name="rk:pr-url"      content="">
 ```
 
 完成 update、回归测试和 review 后，仍提交到同一分支：

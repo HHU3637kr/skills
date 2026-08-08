@@ -53,6 +53,9 @@ allowed-tools: Read, Write, Edit, Glob
 - **知识索引**：`spec/context/knowledge/index.md`
 - **知识详情**：`spec/context/knowledge/know-{ID}-{中文标题}.md`
 
+记忆文件（详情 + 索引）一律是 Markdown（`.md`），`exp-search` 靠文本检索它们；即使 Spec 报告已改用 HTML，记忆文件也不改格式。
+记忆之间的关联用普通相对链接或 `[EXP-001]` / `[KNOW-001]` 形式的 ID 引用，不用双链语法。
+
 ---
 
 ## 执行流程

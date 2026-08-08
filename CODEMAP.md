@@ -44,33 +44,33 @@ skills/
 │   └── SKILL.md                       # 创建分支、角色目录、Team Context，启动阶段二
 │
 ├── spec-explore/                      # spec-explorer
-│   └── SKILL.md                       # 经验检索 + 代码探索 → explorer/exploration-report.md
+│   └── SKILL.md                       # 经验检索 + 代码探索 → explorer/exploration-report.html
 │
 ├── spec-write/                        # spec-writer
-│   ├── SKILL.md                       # 撰写 writer/plan.md
+│   ├── SKILL.md                       # 撰写 writer/plan.html
 │   └── references/
-│       ├── plan-template.md           # writer/plan.md 模板
+│       ├── plan-template.html         # writer/plan.html 模板
 │       └── templates.md               # 设计文档辅助模板
 │
 ├── spec-test/                         # spec-tester
-│   ├── SKILL.md                       # tester/test-plan.md + tester/test-report.md
+│   ├── SKILL.md                       # tester/test-plan.html + tester/test-report.html
 │   └── references/
 │       └── web-e2e-testing.md         # Web E2E 测试策略
 │
 ├── spec-execute/                      # spec-executor
-│   ├── SKILL.md                       # 按 writer/plan.md 实现 → executor/summary.md
+│   ├── SKILL.md                       # 按 writer/plan.html 实现 → executor/summary.html
 │   └── references/
-│       └── summary-template.md
+│       └── summary-template.html      # executor/summary.html 模板
 │
 ├── spec-debug/                        # spec-debugger
-│   ├── SKILL.md                       # 诊断/修复 bug → debugger/debug-*.md
+│   ├── SKILL.md                       # 诊断/修复 bug → debugger/debug-*.html
 │   └── references/
-│       └── debug-template.md
+│       └── debug-template.html        # debug-001.html + debug-001-fix.html 骨架
 │
 ├── spec-review/                       # spec-reviewer
-│   ├── SKILL.md                       # 审查 Spec 执行情况 → reviewer/review.md
+│   ├── SKILL.md                       # 审查 Spec 执行情况 → reviewer/review.html
 │   └── references/
-│       └── review-template.md
+│       └── review-template.html       # review.html + update-XXX-review.html 骨架
 │
 ├── spec-end/                          # spec-ender
 │   └── SKILL.md                       # 经验沉淀、规范审查、归档、提交、推送、PR
@@ -78,8 +78,8 @@ skills/
 ├── spec-update/                       # 同一活跃 Spec 内的小迭代
 │   ├── SKILL.md
 │   └── references/
-│       ├── update-template.md         # updater/update-xxx.md 模板
-│       └── summary-template.md        # updater/update-xxx-summary.md 模板
+│       ├── update-template.html       # updater/update-xxx.html 模板
+│       └── summary-template.html      # updater/update-xxx-summary.html 模板
 │
 ├── exp-search/                        # 显式记忆检索
 ├── exp-reflect/                       # Spec 收尾经验反思与分流
@@ -90,10 +90,10 @@ skills/
 │   ├── SKILL.md                       # 交互式产出 loop 定义（只产出不执行）
 │   └── references/
 │       └── loop-definition-template.md
-├── obsidian-markdown/                 # Obsidian Markdown 支持
-├── obsidian-bases/                    # Obsidian Bases 支持
-├── obsidian-plugin-dev/               # Obsidian 插件开发参考
-├── json-canvas/                       # JSON Canvas 支持
+├── html-report/                       # 报告 HTML 契约与共享资产
+│   ├── SKILL.md                       # 固定骨架、修订规范、组件、双向关联
+│   ├── assets/                        # rk-report.css（唯一样式源）+ rk-report.js（三视图）
+│   └── example/                       # 已验证的完整报告范例
 ├── skill-creator/                     # Skill 创建/验证工具
 └── find-skills/                       # Skill 生态发现
 ```
@@ -145,13 +145,13 @@ skills/
 | 角色 | Skill | 主要产物 | 运行时规则 |
 |------|-------|----------|------------|
 | TeamLead | `spec-start`, `intent-confirmation` | `lead/team-context.md` | 当前主 Agent，负责阶段、门禁、handoff、用户交互；OMP 下即 OMP 主 Agent，用 `task` spawn 角色、`irc` 协作 |
-| spec-explorer | `spec-explore` | `explorer/exploration-report.md` | 收集背景和风险，结果交回 TeamLead |
-| spec-writer | `spec-write` | `writer/plan.md` | 只写实现方案，不写测试计划 |
-| spec-tester | `spec-test` | `tester/test-plan.md`, `tester/test-report.md` | 设计和执行测试，不直接修 bug |
-| spec-executor | `spec-execute` | `executor/summary.md` | 严格按 plan 实现，不提交不归档 |
-| spec-debugger | `spec-debug` | `debugger/debug-*.md`, `debugger/debug-*-fix.md` | 不改已确认 plan，修复后交 TeamLead 重新验证 |
-| spec-reviewer | `spec-review` | `reviewer/review.md`, `reviewer/update-*-review.md` | 审查一致性、完成度、风险和测试缺口 |
-| spec-ender | `spec-end` | `ender/end-report.md` | 收尾、沉淀、规范审查、归档、PR |
+| spec-explorer | `spec-explore` | `explorer/exploration-report.html` | 收集背景和风险，结果交回 TeamLead |
+| spec-writer | `spec-write` | `writer/plan.html` | 只写实现方案，不写测试计划 |
+| spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html` | 设计和执行测试，不直接修 bug |
+| spec-executor | `spec-execute` | `executor/summary.html` | 严格按 plan 实现，不提交不归档 |
+| spec-debugger | `spec-debug` | `debugger/debug-*.html`, `debugger/debug-*-fix.html` | 不改已确认 plan，修复后交 TeamLead 重新验证 |
+| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-*-review.html` | 审查一致性、完成度、风险和测试缺口 |
+| spec-ender | `spec-end` | `ender/end-report.html` | 收尾、沉淀、规范审查、归档、PR |
 
 ---
 
@@ -175,7 +175,7 @@ spec-start → git-work → lead/team-context.md
 阶段五：spec-end → exp-reflect / exp-write → git-work
 ```
 
-`spec-update` 是同一活跃 Spec 分支内的小迭代流程，不创建新 Spec，不归档；它读取 `lead/team-context.md` 的分支信息，把更新产物写入 `updater/`，并可由 `spec-review` 产出 `reviewer/update-xxx-review.md`。
+`spec-update` 是同一活跃 Spec 分支内的小迭代流程，不创建新 Spec，不归档；它读取 `lead/team-context.md` 的分支信息，把更新产物写入 `updater/`，并可由 `spec-review` 产出 `reviewer/update-xxx-review.html`。
 
 ### 2. 经验管理
 
@@ -185,14 +185,11 @@ spec-start → git-work → lead/team-context.md
 | `exp-reflect` | 从 Spec 文档中判断是否沉淀经验、知识、SOP、工具记忆或项目规则 | 收尾/更新时触发 |
 | `exp-write` | 写入经验或知识并维护索引 | `spec/context/experience/`, `spec/context/knowledge/` |
 
-### 3. Obsidian 支持
+### 3. 报告与呈现
 
 | Skill | 作用 |
 |-------|------|
-| `obsidian-markdown` | Obsidian Flavored Markdown、wikilink、callout、frontmatter |
-| `obsidian-bases` | 动态索引和状态视图 |
-| `json-canvas` | Canvas 可视化图 |
-| `obsidian-plugin-dev` | 插件开发参考 |
+| `html-report` | HTML 报告契约：固定骨架与样式、重点组件、`ins`/`del` 修订标记与三视图、`rk:*` 元数据、双向关联 |
 
 ### 4. 辅助能力
 
@@ -215,27 +212,27 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 ├── lead/
 │   └── team-context.md
 ├── explorer/
-│   └── exploration-report.md
+│   └── exploration-report.html
 ├── writer/
-│   └── plan.md
+│   └── plan.html
 ├── tester/
-│   ├── test-plan.md
-│   ├── test-report.md
+│   ├── test-plan.html
+│   ├── test-report.html
 │   └── artifacts/
 │       └── test-logs/<run-id>/
 ├── executor/
-│   └── summary.md
+│   └── summary.html
 ├── debugger/
-│   ├── debug-001.md
-│   └── debug-001-fix.md
+│   ├── debug-001.html
+│   └── debug-001-fix.html
 ├── reviewer/
-│   ├── review.md
-│   └── update-001-review.md
+│   ├── review.html
+│   └── update-001-review.html
 ├── updater/
-│   ├── update-001.md
-│   └── update-001-summary.md
+│   ├── update-001.html
+│   └── update-001-summary.html
 └── ender/
-    └── end-report.md
+    └── end-report.html
 ```
 
 `tester/artifacts/test-logs/<run-id>/` 中的日志和 JSON 证据应由测试代码或测试运行自动生成，不由 Agent 手工编写。
@@ -271,15 +268,15 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 
 ```
 spec-start     → lead/team-context.md
-spec-explore   → explorer/exploration-report.md
-spec-write     → writer/plan.md
-spec-test      → tester/test-plan.md
-spec-execute   → executor/summary.md
-spec-test      → tester/test-report.md + tester/artifacts/test-logs/<run-id>/
-spec-debug     → debugger/debug-*.md + debugger/debug-*-fix.md
-spec-review    → reviewer/review.md 或 reviewer/update-*-review.md
-spec-update    → updater/update-*.md + updater/update-*-summary.md
-spec-end       → ender/end-report.md + archive / PR
+spec-explore   → explorer/exploration-report.html
+spec-write     → writer/plan.html
+spec-test      → tester/test-plan.html
+spec-execute   → executor/summary.html
+spec-test      → tester/test-report.html + tester/artifacts/test-logs/<run-id>/
+spec-debug     → debugger/debug-*.html + debugger/debug-*-fix.html
+spec-review    → reviewer/review.html 或 reviewer/update-*-review.html
+spec-update    → updater/update-*.html + updater/update-*-summary.html
+spec-end       → ender/end-report.html + archive / PR
 exp-write      → spec/context/experience/*.md 或 spec/context/knowledge/*.md
 ```
 
@@ -294,8 +291,8 @@ exp-write      → spec/context/experience/*.md 或 spec/context/knowledge/*.md
 
 同一 Spec 更新：
   spec-update → 读取 lead/team-context.md 校验当前分支
-              → updater/update-xxx.md / updater/update-xxx-summary.md
-              → 必要时 reviewer/update-xxx-review.md
+              → updater/update-xxx.html / updater/update-xxx-summary.html
+              → 必要时 reviewer/update-xxx-review.html
               → git-work commit + push；必要时创建或更新 PR
               → lead/team-context.md 写回 pr_url
 ```
@@ -324,11 +321,11 @@ TeamLead → 下游角色：
 | `spec-init` | `find-skills`, `project-agent-roles.md` | 用户一次性调用 |
 | `spec-start` | `intent-confirmation`, `git-work` | 用户启动新 Spec |
 | `spec-explore` | `exp-search` | TeamLead |
-| `spec-write` | `obsidian-markdown`, `spec-test` 协作 | TeamLead |
+| `spec-write` | `html-report`, `spec-test` 协作 | TeamLead |
 | `spec-test` | `spec-debug` handoff, 测试工具链 | TeamLead |
-| `spec-execute` | `exp-search`, `writer/plan.md` | TeamLead |
+| `spec-execute` | `exp-search`, `writer/plan.html` | TeamLead |
 | `spec-debug` | `spec-test` 复验 | TeamLead |
-| `spec-review` | `obsidian-markdown` | TeamLead 或用户可选调用 |
+| `spec-review` | `html-report` | TeamLead 或用户可选调用 |
 | `spec-end` | `exp-reflect`, `git-work` | TeamLead |
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
@@ -342,8 +339,8 @@ TeamLead → 下游角色：
 | 组件 | 技术 | 说明 |
 |------|------|------|
 | Skill 定义 | Markdown `SKILL.md` | YAML frontmatter + 工作流协议 |
-| 文档系统 | Obsidian | wikilink、callout、frontmatter、Bases |
-| 数据格式 | Markdown, YAML, JSON Canvas | 文档和可视化结构 |
+| 报告格式 | HTML | 固定样式 + `ins`/`del` 修订标记 + 三视图 + 双向关联 |
+| 数据格式 | Markdown, YAML | 账本/记忆文档与元数据结构 |
 | 版本控制 | Git / GitHub Flow | Spec 分支、提交、推送、PR |
 | AI 运行时 | OMP / Claude Code / Codex / compatible coding agents | 项目级 Agent、resume 能力按环境适配 |
 | 安装分发 | git clone + 软链接 | 克隆到 `.agents/skills/`，运行时目录软链接共享；`git pull` 更新 |
