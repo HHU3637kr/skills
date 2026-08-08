@@ -32,10 +32,10 @@ git branch --show-current
 git status --short
 ```
 
-当前分支必须等于 `plan.md` 的 `git_branch`。如果不一致：
+当前分支必须等于 `plan.html` 的 `rk:git-branch`（`<head>` 里的 `<meta name="rk:git-branch">`）。如果不一致：
 
 ```bash
-git switch <plan.git_branch>
+git switch <plan 的 rk:git-branch>
 ```
 
 如果分支已合并或不存在，不要默认继续 `spec-update`；新需求应新建 Spec，或让用户明确选择独立 update 分支。

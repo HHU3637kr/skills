@@ -6,7 +6,7 @@
 
 不要用于纯后端 API、纯 CLI、纯文档变更；这些场景应使用对应测试策略或常规测试计划。
 
-## tester/test-plan.md 必须补充
+## tester/test-plan.html 必须补充
 
 ### 用户使用场景
 
@@ -72,7 +72,7 @@ tester/artifacts/test-logs/<RUN_ID>/
 - `backend.log` 由服务日志按 RUN_ID / trace id 过滤导出，或由测试命令启动服务时重定向生成
 - `audit.log` 由测试 runner 记录 run id、用例编号、时间戳和执行状态
 
-禁止 Agent 在测试结束后手写或编辑这些日志、JSON、trace、录屏和截图内容。Agent 只可以在 `tester/test-report.md` 中总结测试结论并引用证据路径。若无法自动采集某项证据，必须在 `tester/test-report.md` 说明缺失原因，不得伪造或补写证据文件。
+禁止 Agent 在测试结束后手写或编辑这些日志、JSON、trace、录屏和截图内容。Agent 只可以在 `tester/test-report.html` 中总结测试结论并引用证据路径。若无法自动采集某项证据，必须在 `tester/test-report.html` 说明缺失原因，不得伪造或补写证据文件。
 
 ### 2. 启动并标记测试
 
@@ -83,7 +83,7 @@ tester/artifacts/test-logs/<RUN_ID>/
 
 ### 3. 浏览器自动化模拟用户
 
-按 `tester/test-plan.md` 的用户场景执行：
+按 `tester/test-plan.html` 的用户场景执行：
 
 1. 打开入口页面
 2. 按用户可见控件点击、输入、提交
@@ -150,21 +150,34 @@ tester/artifacts/test-logs/<RUN_ID>/
 - network 摘要
 - 后端日志片段或 trace id
 
-## tester/test-report.md 必须补充
+## tester/test-report.html 必须补充
 
 ### 用户场景执行结果
 
-| 场景编号 | 结果 | UI 证据 | Console | Network | 后端日志 | 备注 |
-|---------|------|---------|---------|---------|----------|------|
-| US-001 | 通过/失败 | screenshots/... | browser-console.ndjson | network-summary.json | backend.log / trace id | |
+```html
+<h3>用户场景执行结果</h3>
+<table>
+  <thead><tr><th>场景编号</th><th>结果</th><th>UI 证据</th><th>Console</th><th>Network</th><th>后端日志</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td>US-001</td><td>通过/失败</td><td>screenshots/...</td><td>browser-console.ndjson</td><td>network-summary.json</td><td>backend.log / trace id</td><td></td></tr>
+  </tbody>
+</table>
+```
 
 ### Web E2E 审计结论
 
-- 控制台错误：无 / 有，说明
-- 网络失败：无 / 有，说明
-- 后端异常：无 / 有，说明
-- 截图/trace/录屏：已归档到 `tester/artifacts/test-logs/<RUN_ID>/`
-- 脱敏检查：已确认未保存敏感信息
+```html
+<h3>Web E2E 审计结论</h3>
+<ul>
+  <li>控制台错误：无 / 有，说明</li>
+  <li>网络失败：无 / 有，说明</li>
+  <li>后端异常：无 / 有，说明</li>
+  <li>截图/trace/录屏：已归档到 <code>tester/artifacts/test-logs/&lt;RUN_ID&gt;/</code></li>
+</ul>
+<div class="rk-cal ok"><div class="t">脱敏检查</div><p>已确认未保存敏感信息。</p></div>
+```
+
+失败场景在报告里用 `rk-verdict is-fail` 标结论，并按 `html-report` 的修订规范记录复验前后的变化（`del`/`ins` + `data-rev`）。
 
 ## 证据与脱敏
 

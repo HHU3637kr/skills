@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - 用户认证模块</title>
+
+<!-- 原 frontmatter 的机器可读等价物 -->
+<meta name="rk:type"        content="test-report">
+<meta name="rk:spec-dir"    content="spec/03-能力交付/20260626-1030-用户认证">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:created"     content="2026-06-24">
+<meta name="rk:updated"     content="2026-06-26">
+<meta name="rk:revision"    content="3">
+<meta name="rk:git-branch"  content="feat/spec-20260626-1030-auth">
+<meta name="rk:base-branch" content="main">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-report">
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="stylesheet" href="../assets/rk-report.css">
+<script defer src="../assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试报告：用户认证模块</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>Spec</b> <code>spec/03-能力交付/20260626-1030-用户认证</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>feat/spec-20260626-1030-auth</code> ← <code>main</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-06-24</span>
+    <span><b>修订</b> r3（2026-06-26）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论</div>
+  <p>43 项用例全部通过，<del class="rk-del" data-rev="3">遗留 1 项并发写入失败</del><ins class="rk-ins" data-rev="3">并发写入问题已由 debug-001-fix 修复并复验通过</ins>。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-06-24</td><td>spec-tester</td><td>初版，42 项用例</td><td>—</td></tr>
+    <tr><td>r2</td><td>2026-06-25</td><td>spec-tester</td><td>补 1 项并发用例，标记失败</td><td>评审提出并发场景缺口</td></tr>
+    <tr><td>r3</td><td>2026-06-26</td><td>spec-tester</td><td>并发用例改为通过，更新结论</td><td>debug-001-fix 修复后复验</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="v">43</div><div class="k">通过</div></div>
+  <div class="rk-kpi"><div class="v">0</div><div class="k">失败</div></div>
+  <div class="rk-kpi"><div class="v">96%</div><div class="k">覆盖率</div></div>
+</div>
+
+<h2>用例结果</h2>
+<table>
+  <thead><tr><th>ID</th><th>场景</th><th>结果</th></tr></thead>
+  <tbody>
+    <tr><td>T-001</td><td>正常登录</td><td>通过</td></tr>
+    <tr><td>T-042</td><td>Token 过期</td><td>通过</td></tr>
+    <tr><td>T-043</td><td>并发写入 session</td><td><del class="rk-del" data-rev="3">失败</del><ins class="rk-ins" data-rev="3">通过</ins></td></tr>
+  </tbody>
+</table>
+
+<p class="rk-removed" data-rev="3">遗留问题：T-043 并发写入 session 时偶发覆盖，需 spec-debugger 介入。</p>
+<p class="rk-added" data-rev="3">T-043 已修复：<span class="rk-ref">src/auth/session.ts:88</span> 增加乐观锁，连续 200 次并发无覆盖。</p>
+
+<div class="rk-cal ok"><div class="t">通过</div><p>全部验收标准满足。</p></div>
+<div class="rk-cal warn"><div class="t">注意</div><p>覆盖率未达 100%，缺口在错误分支。</p></div>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../debugger/debug-001-fix.html" data-rk-link="debug-fix">问题修复 debug-001-fix</a></li>
+  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a></li>
+  <li><a href="../ender/end-report.html" data-rk-backlink="end-report">收尾报告</a></li>
+</ul>
+
+</body>
+</html>

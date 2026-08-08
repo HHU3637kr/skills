@@ -24,11 +24,11 @@ R&K Flow 默认采用 **GitHub Flow**：
 ```text
 spec-start
   → git-work：从 main 创建 Spec 工作分支
-  → plan.md 记录 git_branch、base_branch、pr_url
+  → plan.html 记录 git_branch、base_branch、pr_url
 
 spec-update
-  → git-work：确认当前分支与 plan.md 的 git_branch 一致
-  → update-xxx.md 继承 plan.md 的 git_branch、base_branch、pr_url
+  → git-work：确认当前分支与 plan.html 的 git_branch 一致
+  → update-xxx.html 继承 plan.html 的 git_branch、base_branch、pr_url
 
 开发与测试阶段
   → 始终留在当前 Spec 分支
@@ -150,12 +150,14 @@ git worktree add ../<repo>-<spec-slug> -b <branch-name> main
 
 由 `spec-update` 在创建 update 文档前调用。
 
-### 1. 读取 plan.md Git 元数据
+### 1. 读取 plan.html Git 元数据
 
-```yaml
-git_branch: <branch-name>
-base_branch: main
-pr_url:
+报告是 HTML，Git 元数据在 `<head>` 的 `<meta name="rk:*">` 里（`.rk-meta` 是同字段的人可读镜像）：
+
+```html
+<meta name="rk:git-branch"  content="<branch-name>">
+<meta name="rk:base-branch" content="main">
+<meta name="rk:pr-url"      content="">
 ```
 
 ### 2. 校验当前分支
@@ -166,10 +168,10 @@ git status --short
 ```
 
 规则：
-- 当前分支必须等于 plan.md 的 `git_branch`
+- 当前分支必须等于 plan.html 的 `rk:git-branch`
 - 如果当前分支是 `main`，停止并切回 Spec 分支
 - 如果原分支已合并或不存在，默认不继续 spec-update；应新建 Spec 或让用户明确选择独立 update 分支
-- update-xxx.md 继承 plan.md 的 `git_branch` / `base_branch` / `pr_url`
+- update-xxx.html 继承 plan.html 的 `rk:git-branch` / `rk:base-branch` / `rk:pr-url`
 
 ## 模式四：完成 Spec 分支
 

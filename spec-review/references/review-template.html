@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>审查报告模板 - 新功能审查 + 更新审查</title>
+
+<meta name="rk:type" content="template">
+<meta name="rk:role" content="spec-reviewer">
+<meta name="rk:tags" content="spec,review,template">
+<link rel="rk-contract" href="../../html-report/SKILL.md">
+
+<!-- 本文件位于 spec-review/references/，回到项目根是 2 层 -->
+<link rel="stylesheet" href="../../html-report/assets/rk-report.css">
+<script defer src="../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>审查报告模板</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> template</span>
+    <span><b>角色</b> spec-reviewer</span>
+    <span><b>骨架 A</b> <code>reviewer/review.html</code>（新功能审查）</span>
+    <span><b>骨架 B</b> <code>reviewer/update-XXX-review.html</code>（更新审查）</span>
+    <span><b>契约</b> <code>html-report</code> skill</span>
+  </div>
+</header>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">用法</div>
+  <p>下面两个代码块各是一份<strong>完整可直接另存的 HTML 文档</strong>：整块复制（含 <code>&lt;!DOCTYPE&gt;</code> 到 <code>&lt;/html&gt;</code>）
+  另存为 <code>reviewer/review.html</code> 或 <code>reviewer/update-XXX-review.html</code>，再逐个替换 <code>{占位符}</code>。
+  样式路径 <code>../../../../html-report/assets/</code> 按 <code>reviewer/</code> 回到项目根的 4 层计算，项目实际层级不同需相应调整。</p>
+</section>
+
+<div class="rk-cal key">
+  <div class="t">不允许功能退化</div>
+  <p>骨架里的 <code>&lt;meta name="rk:*"&gt;</code> 与 <code>&lt;link rel="rk-*"&gt;</code> 是原 YAML frontmatter 的机器可读等价物，
+  <code>.rk-meta</code> 是同字段的人可读镜像，两轨缺一不可。关联产物分「本报告引用」（<code>rk-links</code>）与
+  「引用本报告」（<code>rk-backlinks</code>）两向，等价 Obsidian 双链的正向跳转 + 反向可发现。禁止删字段，禁止只写单向链接。</p>
+</div>
+
+<h2>骨架 A：review.html（新功能审查）</h2>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;title&gt;审查报告 - {功能名称}&lt;/title&gt;
+
+&lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
+&lt;meta name="rk:type"        content="review"&gt;
+&lt;meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:role"        content="spec-reviewer"&gt;
+&lt;meta name="rk:title"       content="{功能名称}-审查报告"&gt;
+&lt;meta name="rk:category"    content="{与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:status"      content="未确认"&gt;
+&lt;meta name="rk:result"      content="{通过|需修复|严重不符}"&gt;
+&lt;meta name="rk:strictness"  content="{严格|宽松}"&gt;
+&lt;meta name="rk:created"     content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:updated"     content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:revision"    content="1"&gt;
+&lt;meta name="rk:git-branch"  content="{git_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:base-branch" content="{base_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:pr-url"      content="{pr_url，创建前留空}"&gt;
+&lt;meta name="rk:tags"        content="spec,review"&gt;
+&lt;!-- 文档关联，等价原 frontmatter 的 plan: / summary: 字段 --&gt;
+&lt;link rel="rk-plan"    href="../writer/plan.html"&gt;
+&lt;link rel="rk-summary" href="../executor/summary.html"&gt;
+&lt;link rel="rk-ledger"  href="../../lead/team-context.md"&gt;
+
+&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header class="rk-head"&gt;
+  &lt;h1&gt;审查报告：{功能名称}&lt;/h1&gt;
+  &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
+  &lt;div class="rk-meta"&gt;
+    &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; review&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-reviewer&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;审查结果&lt;/b&gt; {通过|需修复|严重不符}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;严格程度&lt;/b&gt; {严格|宽松}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;审查对象&lt;/b&gt; &lt;code&gt;writer/plan.html&lt;/code&gt; + &lt;code&gt;executor/summary.html&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分支&lt;/b&gt; &lt;code&gt;{git_branch}&lt;/code&gt; ← &lt;code&gt;{base_branch}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;PR&lt;/b&gt; {pr_url 或 —}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;创建&lt;/b&gt; {YYYY-MM-DD}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;修订&lt;/b&gt; r1（{YYYY-MM-DD}）&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;nav class="rk-revbar"&gt;&lt;/nav&gt;
+
+&lt;section class="rk-verdict is-pass"&gt;
+  &lt;div class="rk-verdict-label"&gt;审查结论&lt;/div&gt;
+  &lt;p&gt;{一句话结论：N 项功能全部实现、无不符项，可以归档 / 有 M 项不符需修复后再归档}。
+  结果为「需修复」或「严重不符」时把 &lt;code&gt;is-pass&lt;/code&gt; 换成 &lt;code&gt;is-fail&lt;/code&gt;。&lt;/p&gt;
+&lt;/section&gt;
+
+&lt;h2&gt;修订历史&lt;/h2&gt;
+&lt;table class="rk-revs"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;修订&lt;/th&gt;&lt;th&gt;日期&lt;/th&gt;&lt;th&gt;修改人&lt;/th&gt;&lt;th&gt;改了什么&lt;/th&gt;&lt;th&gt;原因&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;r1&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-reviewer&lt;/td&gt;&lt;td&gt;初版审查&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+    &lt;!-- 复审后追加，例如：
+    &lt;tr&gt;&lt;td&gt;r2&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-reviewer&lt;/td&gt;
+        &lt;td&gt;不符项 2 改判为通过，结果由需修复改为通过&lt;/td&gt;
+        &lt;td&gt;debug-001-fix 修复后复核&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;r3&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-reviewer&lt;/td&gt;
+        &lt;td&gt;额外实现由不符项降级为可接受&lt;/td&gt;
+        &lt;td&gt;按 &lt;code&gt;D-005&lt;/code&gt;（本 Spec 采用宽松模式）&lt;/td&gt;&lt;/tr&gt; --&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;1. 审查摘要&lt;/h2&gt;
+&lt;div class="rk-kpis"&gt;
+  &lt;div class="rk-kpi is-pass"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;已完成&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi is-fail"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;未完成&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;不符项&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;额外项&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;审查日期 {YYYY-MM-DD HH:MM}，严格程度 {严格|宽松}。&lt;/p&gt;
+
+&lt;h2&gt;2. 详细检查结果&lt;/h2&gt;
+
+&lt;h3&gt;2.1 功能完成度&lt;/h3&gt;
+
+&lt;div class="rk-cal ok"&gt;&lt;div class="t"&gt;已完成&lt;/div&gt;&lt;p&gt;下列功能实现与 Spec 一致。&lt;/p&gt;&lt;/div&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{功能 1}&lt;/td&gt;&lt;td&gt;plan 3.1&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:50&lt;/span&gt;&lt;/td&gt;&lt;td&gt;符合预期&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="rk-cal risk"&gt;&lt;div class="t"&gt;未完成&lt;/div&gt;&lt;p&gt;下列 Spec 定义的功能未找到实现。&lt;/p&gt;&lt;/div&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;查证范围&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{功能 X}&lt;/td&gt;&lt;td&gt;plan 3.5&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts&lt;/span&gt;&lt;/td&gt;&lt;td&gt;未找到实现&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;不符项&lt;/div&gt;&lt;p&gt;实现存在但与 Spec 定义有差异。&lt;/p&gt;&lt;/div&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;Spec 定义&lt;/th&gt;&lt;th&gt;实际实现&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;差异说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{接口 Y}&lt;/td&gt;&lt;td&gt;&lt;code&gt;foo(a, b)&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;foo(a)&lt;/code&gt;&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/yyy.ts:31&lt;/span&gt;&lt;/td&gt;&lt;td&gt;缺少参数 b&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h4&gt;额外项（Spec 未定义）&lt;/h4&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{（无）}&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;2.2 数据模型检查&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;模型/字段&lt;/th&gt;&lt;th&gt;Spec 定义&lt;/th&gt;&lt;th&gt;实际实现&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{模型 A}&lt;/td&gt;&lt;td&gt;{字段清单}&lt;/td&gt;&lt;td&gt;{字段清单}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/model.ts:12&lt;/span&gt;&lt;/td&gt;&lt;td&gt;一致&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;2.3 API 接口检查&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;接口&lt;/th&gt;&lt;th&gt;Spec 定义&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;code&gt;GET /api/xxx&lt;/code&gt;&lt;/td&gt;&lt;td&gt;返回列表&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/api/xxx.ts:20&lt;/span&gt;&lt;/td&gt;&lt;td&gt;符合&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h3&gt;2.4 测试检查&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;测试项&lt;/th&gt;&lt;th&gt;计划&lt;/th&gt;&lt;th&gt;实际&lt;/th&gt;&lt;th&gt;证据&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;单元测试&lt;/td&gt;&lt;td&gt;{10}&lt;/td&gt;&lt;td&gt;{10}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;tests/xxx.test.ts&lt;/span&gt;&lt;/td&gt;&lt;td&gt;符合&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;3. 问题清单&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;优先级&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;高&lt;/td&gt;&lt;td&gt;{核心功能未实现 / 数据模型严重不符}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;中&lt;/td&gt;&lt;td&gt;{接口参数不一致 / 测试缺失}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/yyy.ts:31&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;低&lt;/td&gt;&lt;td&gt;{命名差异 / 额外实现}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/zzz.ts:7&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="rk-cal risk"&gt;&lt;div class="t"&gt;需升级给用户决策&lt;/div&gt;&lt;p&gt;
+  {核心功能未实现 / 数据模型严重不符 / 需重新实现}——已在运行账本「问题闭环记录」登记，交回 TeamLead 由用户决策。无此类问题时删除本块。
+&lt;/p&gt;&lt;/div&gt;
+
+&lt;h2&gt;4. 归档判定&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;result&lt;/th&gt;&lt;th&gt;本次&lt;/th&gt;&lt;th&gt;后续操作&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;通过&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;所有功能已完成、无不符项 → 交给 spec-end 归档&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;需修复&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;列出问题清单 → 等待修复 → 重新审查&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;严重不符&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;实现与 Spec 严重不符 → 需要重新实现&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;本审查只出结论，不修复发现的问题；修复交 spec-debugger 或 spec-update。&lt;/p&gt;
+
+&lt;!-- 关联产物：双向。等价 Obsidian 双链的正向跳转 + 反向可发现 --&gt;
+&lt;h2&gt;关联产物&lt;/h2&gt;
+&lt;h3&gt;本报告引用&lt;/h3&gt;
+&lt;ul class="rk-links"&gt;
+  &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../executor/summary.html" data-rk-link="summary"&gt;实现总结&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../tester/test-report.html" data-rk-link="test-report"&gt;测试报告&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;引用本报告&lt;/h3&gt;
+&lt;ul class="rk-backlinks"&gt;
+  &lt;li&gt;&lt;a href="../ender/end-report.html" data-rk-backlink="end-report"&gt;收尾报告&lt;/a&gt;（待创建）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>骨架 B：update-XXX-review.html（更新审查）</h2>
+
+<p>与骨架 A 结构相同，差异集中在元信息与审查对象：<code>rk:type</code> 仍是 <code>review</code>，增加
+<code>rk:update-number</code>，关联对象从 <code>plan</code> + <code>summary</code> 换成 <code>plan</code> +
+<code>update-XXX</code> + <code>update-XXX-summary</code>。正文各检查章节（2.1–2.4、问题清单、归档判定）照骨架 A 原样保留。</p>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="zh-CN"&gt;
+&lt;head&gt;
+&lt;meta charset="utf-8"&gt;
+&lt;title&gt;更新审查报告 update-XXX - {功能名称}&lt;/title&gt;
+
+&lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
+&lt;meta name="rk:type"          content="review"&gt;
+&lt;meta name="rk:spec-dir"      content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:role"          content="spec-reviewer"&gt;
+&lt;meta name="rk:title"         content="{功能名称}-更新XXX-审查报告"&gt;
+&lt;meta name="rk:update-number" content="XXX"&gt;
+&lt;meta name="rk:category"      content="{与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:status"        content="未确认"&gt;
+&lt;meta name="rk:result"        content="{通过|需修复|严重不符}"&gt;
+&lt;meta name="rk:strictness"    content="{严格|宽松}"&gt;
+&lt;meta name="rk:created"       content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:updated"       content="{YYYY-MM-DD}"&gt;
+&lt;meta name="rk:revision"      content="1"&gt;
+&lt;meta name="rk:git-branch"    content="{git_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:base-branch"   content="{base_branch，与 writer/plan.html 相同}"&gt;
+&lt;meta name="rk:pr-url"        content="{pr_url，创建前留空}"&gt;
+&lt;meta name="rk:tags"          content="spec,review"&gt;
+&lt;!-- 文档关联，等价原 frontmatter 的 plan: / update: / update_summary: 字段 --&gt;
+&lt;link rel="rk-plan"           href="../writer/plan.html"&gt;
+&lt;link rel="rk-update"         href="../updater/update-XXX.html"&gt;
+&lt;link rel="rk-update-summary" href="../updater/update-XXX-summary.html"&gt;
+&lt;link rel="rk-ledger"         href="../../lead/team-context.md"&gt;
+
+&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;header class="rk-head"&gt;
+  &lt;h1&gt;更新审查报告：{功能名称}-更新XXX&lt;/h1&gt;
+  &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
+  &lt;div class="rk-meta"&gt;
+    &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; review&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;更新编号&lt;/b&gt; update-XXX&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-reviewer&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;审查结果&lt;/b&gt; {通过|需修复|严重不符}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;严格程度&lt;/b&gt; {严格|宽松}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;审查对象&lt;/b&gt; &lt;code&gt;updater/update-XXX.html&lt;/code&gt; + &lt;code&gt;update-XXX-summary.html&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;分支&lt;/b&gt; &lt;code&gt;{git_branch}&lt;/code&gt; ← &lt;code&gt;{base_branch}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;PR&lt;/b&gt; {pr_url 或 —}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;创建&lt;/b&gt; {YYYY-MM-DD}&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;修订&lt;/b&gt; r1（{YYYY-MM-DD}）&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;nav class="rk-revbar"&gt;&lt;/nav&gt;
+
+&lt;section class="rk-verdict is-pass"&gt;
+  &lt;div class="rk-verdict-label"&gt;审查结论&lt;/div&gt;
+  &lt;p&gt;{一句话结论：update-XXX 定义的变更全部落地、原有功能无回归 / 有 M 项不符需修复}。
+  结果为「需修复」或「严重不符」时把 &lt;code&gt;is-pass&lt;/code&gt; 换成 &lt;code&gt;is-fail&lt;/code&gt;。&lt;/p&gt;
+&lt;/section&gt;
+
+&lt;h2&gt;修订历史&lt;/h2&gt;
+&lt;table class="rk-revs"&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;修订&lt;/th&gt;&lt;th&gt;日期&lt;/th&gt;&lt;th&gt;修改人&lt;/th&gt;&lt;th&gt;改了什么&lt;/th&gt;&lt;th&gt;原因&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;r1&lt;/td&gt;&lt;td&gt;{YYYY-MM-DD}&lt;/td&gt;&lt;td&gt;spec-reviewer&lt;/td&gt;&lt;td&gt;初版审查&lt;/td&gt;&lt;td&gt;—&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;1. 审查摘要&lt;/h2&gt;
+&lt;div class="rk-kpis"&gt;
+  &lt;div class="rk-kpi is-pass"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;已完成&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi is-fail"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;未完成&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;不符项&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="k"&gt;额外项&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;h2&gt;2. 详细检查结果&lt;/h2&gt;
+&lt;p&gt;章节结构与新功能审查一致：2.1 功能完成度（&lt;code&gt;rk-cal ok&lt;/code&gt; 已完成 / &lt;code&gt;rk-cal risk&lt;/code&gt; 未完成 /
+&lt;code&gt;rk-cal warn&lt;/code&gt; 不符项 + 额外项）、2.2 数据模型、2.3 API 接口、2.4 测试；每个检查项都带
+&lt;code&gt;Spec 位置&lt;/code&gt; 与 &lt;span class="rk-ref"&gt;file:line&lt;/span&gt; 代码位置。&lt;/p&gt;
+
+&lt;h3&gt;2.5 回归检查（更新审查特有）&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;原有功能&lt;/th&gt;&lt;th&gt;是否受影响&lt;/th&gt;&lt;th&gt;证据&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{功能 A}&lt;/td&gt;&lt;td&gt;{否}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;tests/a.test.ts&lt;/span&gt;&lt;/td&gt;&lt;td&gt;无回归&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;注意&lt;/div&gt;&lt;p&gt;{更新引入的兼容性风险或需人工验证的场景}&lt;/p&gt;&lt;/div&gt;
+
+&lt;h2&gt;3. 问题清单&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;优先级&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;高&lt;/td&gt;&lt;td&gt;{问题}&lt;/td&gt;&lt;td&gt;update-XXX {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;4. 归档判定&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;result&lt;/th&gt;&lt;th&gt;本次&lt;/th&gt;&lt;th&gt;后续操作&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;通过&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;更新审查通过 → 保留原目录，不重新归档&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;需修复&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;列出问题清单 → 等待修复 → 重新审查&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;严重不符&lt;/td&gt;&lt;td&gt;{是|否}&lt;/td&gt;&lt;td&gt;需要重新实现&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;!-- 关联产物：双向 --&gt;
+&lt;h2&gt;关联产物&lt;/h2&gt;
+&lt;h3&gt;本报告引用&lt;/h3&gt;
+&lt;ul class="rk-links"&gt;
+  &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../updater/update-XXX.html" data-rk-link="update"&gt;更新方案 update-XXX&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../updater/update-XXX-summary.html" data-rk-link="update-summary"&gt;更新总结 update-XXX-summary&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;引用本报告&lt;/h3&gt;
+&lt;ul class="rk-backlinks"&gt;
+  &lt;li&gt;&lt;a href="../updater/update-XXX.html" data-rk-backlink="update"&gt;更新方案 update-XXX&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h2>元信息字段说明</h2>
+<p>每个字段都有机器可读（<code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>）与人可读（<code>.rk-meta</code> / 关联产物列表）两轨，缺一不可。
+原模板有几个 frontmatter 字段，HTML 就要有几个对应 <code>&lt;meta&gt;</code> / <code>&lt;link&gt;</code>，禁止因为「HTML 里看不见」就删字段。</p>
+<table>
+  <thead><tr><th>字段</th><th>review.html</th><th>update-XXX-review.html</th><th>机器可读</th><th>人可读</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>标题</td><td>必填</td><td>必填</td><td><code>rk:title</code> / <code>&lt;title&gt;</code></td><td><code>h1</code></td><td><code>功能名称-审查报告</code> / <code>功能名称-更新XXX-审查报告</code></td></tr>
+    <tr><td>类型</td><td>必填</td><td>必填</td><td><code>rk:type</code></td><td>类型</td><td>固定 <code>review</code></td></tr>
+    <tr><td>Spec 目录</td><td>必填</td><td>必填</td><td><code>rk:spec-dir</code></td><td>Spec</td><td>含分类目录</td></tr>
+    <tr><td>角色</td><td>必填</td><td>必填</td><td><code>rk:role</code></td><td>角色</td><td>固定 <code>spec-reviewer</code></td></tr>
+    <tr><td>更新编号</td><td>—</td><td>必填</td><td><code>rk:update-number</code></td><td>更新编号</td><td>与 update 文档一致</td></tr>
+    <tr><td>分类</td><td>必填</td><td>必填</td><td><code>rk:category</code></td><td>分类</td><td>继承 <code>writer/plan.html</code></td></tr>
+    <tr><td>状态</td><td>必填</td><td>必填</td><td><code>rk:status</code></td><td>状态</td><td><code>未确认</code> / <code>已确认</code> / <code>已归档</code></td></tr>
+    <tr><td>审查结果</td><td>必填</td><td>必填</td><td><code>rk:result</code></td><td>审查结果</td><td><code>通过</code> / <code>需修复</code> / <code>严重不符</code>，与结论块 <code>is-pass|is-fail</code> 一致</td></tr>
+    <tr><td>严格程度</td><td>必填</td><td>必填</td><td><code>rk:strictness</code></td><td>严格程度</td><td><code>严格</code>（默认）/ <code>宽松</code>（用户指定）</td></tr>
+    <tr><td>创建日期</td><td>必填</td><td>必填</td><td><code>rk:created</code></td><td>创建</td><td><code>YYYY-MM-DD</code></td></tr>
+    <tr><td>更新日期</td><td>必填</td><td>必填</td><td><code>rk:updated</code></td><td>修订（括号内）</td><td>最近一次修订日期</td></tr>
+    <tr><td>修订号</td><td>必填</td><td>必填</td><td><code>rk:revision</code></td><td>修订</td><td>每轮修改 +1</td></tr>
+    <tr><td>工作分支</td><td>必填</td><td>必填</td><td><code>rk:git-branch</code></td><td>分支</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>基准分支</td><td>必填</td><td>必填</td><td><code>rk:base-branch</code></td><td>分支（← 之后）</td><td>与 <code>writer/plan.html</code> 相同</td></tr>
+    <tr><td>PR 链接</td><td>否</td><td>否</td><td><code>rk:pr-url</code></td><td>PR</td><td>spec-end 创建 PR 后写回，创建前留空</td></tr>
+    <tr><td>标签</td><td>必填</td><td>必填</td><td><code>rk:tags</code></td><td>不必显示</td><td>逗号分隔，至少含 <code>spec</code> 与 <code>review</code></td></tr>
+    <tr><td>关联 plan</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-plan"&gt;</code></td><td>本报告引用</td><td><code>../writer/plan.html</code></td></tr>
+    <tr><td>关联 summary</td><td>必填</td><td>—</td><td><code>&lt;link rel="rk-summary"&gt;</code></td><td>本报告引用</td><td><code>../executor/summary.html</code></td></tr>
+    <tr><td>关联 update</td><td>—</td><td>必填</td><td><code>&lt;link rel="rk-update"&gt;</code></td><td>本报告引用</td><td><code>../updater/update-XXX.html</code></td></tr>
+    <tr><td>关联更新总结</td><td>—</td><td>必填</td><td><code>&lt;link rel="rk-update-summary"&gt;</code></td><td>本报告引用</td><td><code>../updater/update-XXX-summary.html</code></td></tr>
+    <tr><td>运行账本</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../../lead/team-context.md</code>（保持 Markdown）</td></tr>
+  </tbody>
+</table>
+
+<h2>result 可选值</h2>
+<table>
+  <thead><tr><th>值</th><th>使用场景</th><th>结论块</th></tr></thead>
+  <tbody>
+    <tr><td>通过</td><td>所有功能已完成，无不符项，可以归档</td><td><code>rk-verdict is-pass</code></td></tr>
+    <tr><td>需修复</td><td>存在未完成或不符项，需要修复后再归档</td><td><code>rk-verdict is-fail</code></td></tr>
+    <tr><td>严重不符</td><td>实现与 Spec 严重不符，需要重新实现</td><td><code>rk-verdict is-fail</code></td></tr>
+  </tbody>
+</table>
+
+<h2>状态变更规则</h2>
+<table>
+  <thead><tr><th>触发条件</th><th>状态变更</th></tr></thead>
+  <tbody>
+    <tr><td>创建 <code>reviewer/review.html</code></td><td>→ 未确认</td></tr>
+    <tr><td>用户确认审查报告</td><td>未确认 → 已确认</td></tr>
+    <tr><td>用户要求调整</td><td>已确认 → 未确认</td></tr>
+    <tr><td>归档完成</td><td>已确认 → 已归档</td></tr>
+  </tbody>
+</table>
+<p>改状态或审查结果时，<code>&lt;meta name="rk:status"&gt;</code> / <code>&lt;meta name="rk:result"&gt;</code> 与 <code>.rk-meta</code>
+对应字段、结论块修饰类三处同步，缺一即失真。</p>
+
+<h2>修订规范</h2>
+<p>修改已确认的审查报告时永不静默改写：修订号 +1（同步 <code>rk:revision</code> 与 <code>rk:updated</code>）、修订历史表追加一行、正文用
+<code>&lt;del class="rk-del" data-rev="N"&gt;</code> / <code>&lt;ins class="rk-ins" data-rev="N"&gt;</code> 标记行内改动，
+<code>&lt;p class="rk-removed|rk-added" data-rev="N"&gt;</code> 标记整段增删。完整规范见 <code>html-report</code> skill。</p>
+<p>修订历史保持 5 列不变。源于实质取舍的修订，「原因」列引用运行账本 Decision Log 编号（如
+<code>按 D-005（本 Spec 采用宽松模式）</code>）；纯笔误、措辞、补充说明直接写清原因，不编造决策编号；决策过程正文留在账本，不复制进报告。</p>
+
+<h2>撰写要点</h2>
+<ul>
+  <li>审查结果用 Callout 分组：<code>rk-cal ok</code> 已完成、<code>rk-cal risk</code> 未完成/严重不符、<code>rk-cal warn</code> 不符项与需关注风险。</li>
+  <li>结论块 <code>rk-verdict is-pass|is-fail</code> 与 <code>rk:result</code> 保持一致，一句话说清能否归档。</li>
+  <li>每个检查项必须同时给出 Spec 位置与代码位置，代码位置一律 <code>&lt;span class="rk-ref"&gt;src/x.ts:88&lt;/span&gt;</code>。</li>
+  <li>问题按高/中/低优先级分类，写进问题清单表；发现需升级的问题时同步登记运行账本「问题闭环记录」。</li>
+  <li>双向关联：本报告 <code>rk-links</code> 加一条时，对侧报告 <code>rk-backlinks</code> 补一条；对侧尚未产出先标注「（待创建）」，等产出后补齐。</li>
+  <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN；更新审查编号递增时同步替换文件名与全部链接。</li>
+</ul>
+
+</body>
+</html>

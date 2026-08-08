@@ -48,6 +48,8 @@ allowed-tools: Read, Glob, Grep
 - **SOP Skill**：`.agents/skills/sop-xxx-名称/SKILL.md`
 - **Auto Memory**：`~/.claude/projects/*/memory/*.md`（只读）
 
+记忆文件一律是 Markdown（`.md`），本 Skill 靠文本检索它们；Spec 报告是 HTML 阶段产物，不是记忆源，不在检索范围内。
+
 ---
 
 ## 执行流程
@@ -130,7 +132,7 @@ allowed-tools: Read, Glob, Grep
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 [spec-executor] 后续动作
-摘要：创建 summary.md → spec-reviewer 审查 → 归档
+摘要：创建 summary.html → spec-reviewer 审查 → 归档
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🧠 Auto Memory（跨会话记忆·只读）

@@ -1,0 +1,326 @@
+/* R&K Flow HTML Report - 固定样式（唯一样式源）
+ * 所有 Spec 报告通过 <link> 引用本文件，改这里即全部报告统一改版。
+ * 修订语义：ins=新增 del=删除 data-rev=修订序号
+ */
+
+:root {
+  --fg: #1c2024;
+  --fg-dim: #5b6570;
+  --bg: #ffffff;
+  --bg-soft: #f6f8fa;
+  --line: #d8dee4;
+  --accent: #0b62d0;
+  --ins: #1a7f37;
+  --ins-bg: #dafbe1;
+  --del: #cf222e;
+  --del-bg: #ffebe9;
+  --warn: #9a6700;
+  --warn-bg: #fff8c5;
+  --key: #8250df;
+  --key-bg: #f3eefd;
+  --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0 auto;
+  padding: 32px 28px 96px;
+  max-width: 980px;
+  font: 16px/1.75 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+}
+
+/* ---------- 报告头 ---------- */
+
+.rk-head {
+  border-bottom: 2px solid var(--fg);
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.rk-head h1 { margin: 0 0 12px; font-size: 28px; line-height: 1.3; }
+
+.rk-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 4px 20px;
+  font-size: 14px;
+  color: var(--fg-dim);
+}
+
+.rk-meta b { color: var(--fg); font-weight: 600; }
+.rk-meta code { font-family: var(--mono); font-size: 13px; }
+
+/* ---------- 结论块：最突出 ---------- */
+
+.rk-verdict {
+  border: 2px solid var(--accent);
+  border-left-width: 8px;
+  border-radius: 6px;
+  background: var(--bg-soft);
+  padding: 16px 20px;
+  margin: 24px 0;
+}
+
+.rk-verdict > .rk-verdict-label {
+  font-size: 12px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.rk-verdict > p:last-child { margin-bottom: 0; }
+.rk-verdict.is-pass { border-color: var(--ins); }
+.rk-verdict.is-pass > .rk-verdict-label { color: var(--ins); }
+.rk-verdict.is-fail { border-color: var(--del); }
+.rk-verdict.is-fail > .rk-verdict-label { color: var(--del); }
+
+/* ---------- 指标卡 ---------- */
+
+.rk-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.rk-kpi {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  background: var(--bg-soft);
+}
+
+.rk-kpi .v { font-size: 24px; font-weight: 700; line-height: 1.2; }
+.rk-kpi .k { font-size: 12px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: .06em; }
+.rk-kpi.is-pass .v { color: var(--ins); }
+.rk-kpi.is-fail .v { color: var(--del); }
+
+/* ---------- Callout（替代 Obsidian Callout） ---------- */
+
+.rk-cal {
+  border-left: 5px solid var(--line);
+  border-radius: 4px;
+  background: var(--bg-soft);
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.rk-cal > .t { font-weight: 700; margin-bottom: 4px; }
+.rk-cal > :last-child { margin-bottom: 0; }
+.rk-cal.key  { border-color: var(--key);  background: var(--key-bg); }
+.rk-cal.key  > .t { color: var(--key); }
+.rk-cal.warn { border-color: var(--warn); background: var(--warn-bg); }
+.rk-cal.warn > .t { color: var(--warn); }
+.rk-cal.risk { border-color: var(--del);  background: var(--del-bg); }
+.rk-cal.risk > .t { color: var(--del); }
+.rk-cal.ok   { border-color: var(--ins);  background: var(--ins-bg); }
+.rk-cal.ok   > .t { color: var(--ins); }
+
+/* ---------- 正文 ---------- */
+
+h2 {
+  font-size: 21px;
+  margin: 36px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line);
+}
+
+h3 { font-size: 17px; margin: 24px 0 8px; }
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  font-size: 15px;
+}
+
+th, td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th { background: var(--bg-soft); font-weight: 600; }
+
+code {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+pre {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+pre code { background: none; border: 0; padding: 0; font-size: 13px; }
+
+mark, .rk-hl { background: var(--warn-bg); padding: 0 3px; border-radius: 2px; }
+
+a { color: var(--accent); }
+
+.rk-ref { font-family: var(--mono); font-size: 13px; color: var(--fg-dim); }
+
+/* ---------- 修订：核心可追溯样式 ---------- */
+
+.rk-revbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.rk-revbar .lbl { color: var(--fg-dim); margin-right: 4px; }
+
+.rk-revbar button {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 4px 14px;
+}
+
+.rk-revbar button[aria-pressed="true"] {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+table.rk-revs { font-size: 14px; }
+table.rk-revs td:first-child, table.rk-revs th:first-child { width: 64px; white-space: nowrap; }
+
+/* 修订标记本体 */
+
+ins.rk-ins, .rk-added {
+  background: var(--ins-bg);
+  color: var(--ins);
+  text-decoration: none;
+  border-bottom: 2px solid var(--ins);
+}
+
+del.rk-del, .rk-removed {
+  background: var(--del-bg);
+  color: var(--del);
+  text-decoration: line-through;
+}
+
+.rk-added, .rk-removed {
+  display: block;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 10px 0;
+  border-left: 5px solid currentColor;
+}
+
+/* 修订角标：显示 rN */
+ins.rk-ins::after, del.rk-del::after,
+.rk-added::after, .rk-removed::after {
+  content: "r" attr(data-rev);
+  font-family: var(--mono);
+  font-size: 10px;
+  vertical-align: super;
+  margin-left: 3px;
+  opacity: .75;
+}
+
+/* 视图：仅最新修订（旧修订降为普通正文，最新仍高亮） */
+body.rk-view-latest ins.rk-ins:not(.is-latest),
+body.rk-view-latest .rk-added:not(.is-latest) {
+  background: none;
+  color: inherit;
+  border-bottom: 0;
+  border-left-color: var(--line);
+}
+
+body.rk-view-latest ins.rk-ins:not(.is-latest)::after,
+body.rk-view-latest .rk-added:not(.is-latest)::after { content: none; }
+
+body.rk-view-latest del.rk-del:not(.is-latest),
+body.rk-view-latest .rk-removed:not(.is-latest) { display: none; }
+
+/* 视图：终稿（隐藏删除、新增去高亮，读起来是干净的最终版） */
+body.rk-view-clean del.rk-del,
+body.rk-view-clean .rk-removed { display: none; }
+
+body.rk-view-clean ins.rk-ins,
+body.rk-view-clean .rk-added {
+  background: none;
+  color: inherit;
+  border-bottom: 0;
+  border-left-color: var(--line);
+}
+
+body.rk-view-clean ins.rk-ins::after,
+body.rk-view-clean .rk-added::after { content: none; }
+
+/* ---------- 打印 ---------- */
+
+@media print {
+  .rk-revbar { display: none; }
+  body { max-width: none; padding: 0; }
+  ins.rk-ins, .rk-added { border-bottom: 1px solid #000; }
+}
+
+/* ---------- 关联产物：双向链接（等价双链） ---------- */
+
+ul.rk-links, ul.rk-backlinks {
+  list-style: none;
+  padding-left: 0;
+  margin: 8px 0 16px;
+}
+
+ul.rk-links li, ul.rk-backlinks li {
+  padding: 4px 0 4px 22px;
+  position: relative;
+}
+
+/* 正向：→ 本报告引用 */
+ul.rk-links li::before {
+  content: "\2192";
+  position: absolute;
+  left: 2px;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* 反向：← 引用本报告 */
+ul.rk-backlinks li::before {
+  content: "\2190";
+  position: absolute;
+  left: 2px;
+  color: var(--key);
+  font-weight: 700;
+}
+
+/* 关联类型角标，取自 data-rk-link / data-rk-backlink */
+ul.rk-links a[data-rk-link]::after,
+ul.rk-backlinks a[data-rk-backlink]::after {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--fg-dim);
+  margin-left: 6px;
+}
+
+ul.rk-links a[data-rk-link]::after { content: "[" attr(data-rk-link) "]"; }
+ul.rk-backlinks a[data-rk-backlink]::after { content: "[" attr(data-rk-backlink) "]"; }
