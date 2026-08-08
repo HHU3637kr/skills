@@ -6,7 +6,7 @@
 
 **仓库地址**：`github.com/HHU3637kr/skills`
 **当前分支**：`master`
-**文档口径**：v2.6.0
+**文档口径**：v2.7.0
 **分发方式**：git clone + 软链接（不走 npm）
 
 核心架构与 README 保持一致：

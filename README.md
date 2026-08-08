@@ -70,7 +70,7 @@ cd .agents/skills && git pull
 
 ```
 ┌───────────────────────────────────────────────────────────────────────────┐
-│                    Spec 驱动式开发工作流 v2.6                              │
+│                    Spec 驱动式开发工作流 v2.7                              │
 │                     Agent Teams 多角色协作架构                             │
 ├───────────────────────────────────────────────────────────────────────────┤
 │                                                                           │
@@ -1165,6 +1165,25 @@ created: YYYY-MM-DD
 ---
 
 ## 更新日志
+
+### v2.7.0 (2026-08-08) - 报告改 HTML 承载 + 可追溯修订 + 移除 Obsidian
+
+**核心改进**：
+
+1. **报告统一用 HTML 承载**：9 类报告产物（`exploration-report` / `plan` / `test-plan` / `test-report` / `summary` / `debug-*` / `debug-*-fix` / `review` / `update-*` / `end-report`）从 Markdown 改为 `.html`。动因是 Markdown 在「重点突出」和「反复修改可追溯」两件事上做不到位——报告是给人读的决策依据，需要固定版式和视觉层次，而不是纯文本流。
+2. **新增 `html-report` Skill 作为报告契约**：固定骨架、修订规范、组件用法、双向关联规则集中在一处。`assets/rk-report.css` 是**唯一样式源**（改一处即全部报告改版），`assets/rk-report.js` 提供修订视图切换。禁止在报告内写 `<style>` / 行内 `style=` / 外部 CDN，报告离线可读。
+3. **可追溯修订机制**：铁律是**永不静默改写原文**。每轮修改必须递增修订号、在「修订历史」表追加一行（改了什么 + 为什么），正文用 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` 标记并带 `rN` 角标。配套三视图切换：**全部修订**（看完整演进）/ **仅最新修订**（只看本轮改动）/ **终稿**（隐藏删除、去高亮，当干净最终版读）。
+4. **与「决策记录」联动**：修订源于实质取舍时，「原因」列引用 v2.6.0 的决策编号（如 `按 D-003（多实例部署需共享缓存）`）；纯笔误、措辞类修改直接写清，不编造决策编号。决策正文仍留在账本，不复制进报告。
+5. **功能等价保留，不因换格式而丢能力**：
+   - **frontmatter 双轨**：原 YAML 字段逐项映射为 `<meta name="rk:type|spec-dir|role|created|updated|revision|git-branch|base-branch|pr-url|tags">`（机器可读，供检索与工具化处理）+ `.rk-meta` 可视镜像（人可读）；文档关联字段映射为 `<link rel="rk-plan|rk-debug|rk-update|rk-ledger">`。禁止因为「HTML 里看不见」就删字段。
+   - **双链双向**：Obsidian 双链的价值不只是跳转，更是**反向可发现**。关联产物拆成「本报告引用」（`rk-links` + `data-rk-link`）与「引用本报告」（`rk-backlinks` + `data-rk-backlink`）两组，关系可被脚本提取；谁新建关联谁补对侧反链，对侧未产出时标注（待创建）。
+   - **Callout 语义**：`> [!important]` → `rk-cal key`、`> [!warning]` → `rk-cal warn`、`> [!failure]` → `rk-cal risk`、`> [!success]` → `rk-cal ok`。
+6. **重点突出组件**：`rk-verdict`（结论块，`is-pass` 绿 / `is-fail` 红，置顶显示最重要结论）、`rk-kpis`（指标卡，测试报告用于通过/失败/覆盖率）、`rk-cal`（四色 Callout）、`rk-ref`（`src/x.ts:88` 代码位置引用）。
+7. **格式边界明确划分**：`lead/team-context.md` 与 `spec/context/experience|knowledge/*.md` **保持 Markdown**——账本需要被读写与结构化维护、记忆库需要被 `exp-search` 文本检索，改 HTML 会破坏这两条链路；`tester/artifacts/test-logs/**` 保持测试运行产出的原始格式。`exp-reflect` 读报告时按「终稿」语义取内容，不得把 `<del>` 里已删除的内容当作有效结论。
+8. **移除 Obsidian 依赖**：删除 `obsidian-markdown`、`obsidian-bases`、`obsidian-plugin-dev`、`json-canvas` 四个 Skill 与 `.obsidian/` vault 配置及 `.gitignore` 条目；`spec-init` 不再注册 Obsidian Vault，改为交付 HTML 报告资产；清除全链路 `[[wikilink]]`、`> [!note]` Callout、`#tag` 语法。
+9. **模板与文档同步**：6 个模板重构为可直接打开的 HTML 骨架（`plan-template` / `spec-execute` 与 `spec-update` 两个 `summary-template` / `update-template` / `debug-template` 含诊断+修复双骨架 / `review-template` 含新功能+更新双骨架）；`README.md`、`CODEMAP.md`、`AGENTS.md`、`CLAUDE.md`、`.agents/rules/` 同步 HTML 口径。
+
+**验证**：6 个模板骨架与范例报告在真实 4 层目录深度（`spec/<分类>/<spec目录>/<角色>/`）以 `file://` 实渲通过——样式表与脚本相对路径生效、`rk:*` meta 与双向链接全部解析、三视图切换实测（终稿视图 `del` 隐藏且 `ins` 去高亮）、无内嵌样式、无外部请求。
 
 ### v2.6.0 (2026-07-30) - 提问情境交代 + Decision Log 决策留痕 + 移除 Hook 机制
 
