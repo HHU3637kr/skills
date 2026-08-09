@@ -20,16 +20,18 @@ description: >
 |----|----------------|
 | 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`、`exp-search` 结果 |
 | 权限 | 写 `debugger/debug-xxx.html` / `debug-xxx-fix.html` + 最小化修复代码；不改已确认的 `writer/plan.html`、不加新功能、不自行判定修复成功 |
-| 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据），由 spec-tester 重新验证 |
-| 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复 |
-| 升级 | 预算未确认、触发预算上限、或根因涉及权限/计费/数据迁移/需绕过测试时，停止并交回 TeamLead 由用户决策 |
+| 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据）。**未验证根因不得改码**；修复后必须在当前工作树上跑一次复现步骤并观察输出，最终结论由 spec-tester 重新验证 |
+| 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复。另：连续几轮都有进展、但每轮都翻出新的共享状态或耦合时（Phase 4.5），停下质疑架构而非继续修 |
+| 升级 | 触发预算上限、Phase 4.5 触发、或根因涉及权限/计费/数据迁移/需绕过测试时，停止并交回 TeamLead 由用户决策 |
+| 参考 | 进入诊断 → 必读 `references/root-cause-tracing.md`；涉及超时/竞态/等待 → 必读 `references/condition-based-waiting.md`；同类 bug 反复出现 → 必读 `references/defense-in-depth.md` |
 
 ## 核心原则
 
-1. **不修改已确认的 writer/plan.html**：通过创建 debug 文档记录问题，保持设计的可追溯性
-2. **闭环协作**：接收 TeamLead 转交的 bug handoff → 修复 → 向 TeamLead 请求重新验证
-3. **用户确认诊断**：创建 debug-xxx.html 后，由 TeamLead 向用户确认诊断结果
-4. **受预算约束**：修复循环受 `lead/team-context.md` 的「修复循环预算」约束（「最大轮数」 / 「最大无进展轮数」，由用户在进入循环前确认）。每轮修复后必须更新 「已用轮数」 和 「连续无进展」，触发上限时停止并交还 TeamLead，不自行无限重试。
+1. **根因优先**：没有验证过的根因，不改代码。先写下**单一可证伪的假设**，再设计能推翻它的最小实验，跑完再判断。一次改五处会让你不知道哪处起了作用
+2. **不修改已确认的 writer/plan.html**：通过创建 debug 文档记录问题，保持设计的可追溯性
+3. **闭环协作**：接收 TeamLead 转交的 bug handoff → 修复 → 向 TeamLead 请求重新验证
+4. **诊断确认随模式**：`gated` 模式下创建 debug-xxx.html 后由 TeamLead 向用户确认诊断；`autopilot` 模式下由「单一可证伪假设 + 已跑过的最小实验输出」替代该确认——没有实验输出就不算确认通过
+5. **受预算约束**：修复循环受 `lead/team-context.md` 的「修复循环预算」约束。每轮修复后必须更新 「已用轮数」 和 「连续无进展」，触发上限时停止并交还 TeamLead，不自行无限重试
 
 ## 协作闭环
 
@@ -94,6 +96,7 @@ spec-tester 发现 bug
 <meta name="rk:type"         content="debug">
 <meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
 <meta name="rk:role"         content="spec-debugger">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:title"        content="问题诊断-{简述}">
 <meta name="rk:debug-number" content="001">
 <meta name="rk:category"     content="{与 writer/plan.html 相同}">
@@ -109,8 +112,9 @@ spec-tester 发现 bug
 <link rel="rk-plan"    href="../writer/plan.html">
 <link rel="rk-summary" href="../executor/summary.html">
 <link rel="rk-fix"     href="debug-001-fix.html">
-<link rel="rk-ledger"  href="../../lead/team-context.md">
+<link rel="rk-ledger"  href="../lead/team-context.md">
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 ```
@@ -137,13 +141,17 @@ spec-tester 发现 bug
 通知 TeamLead：debugger/debug-001.html 已创建，请向用户确认诊断结果。路径：{路径}
 ```
 
-TeamLead 使用当前运行环境的确认方式向用户确认。等待确认通过后继续修复。
+`gated` 模式：TeamLead 使用当前运行环境的确认方式向用户确认，等待确认通过后继续修复。
+
+`autopilot` 模式：不等人，但放行条件是诊断文档里已写下单一可证伪的假设、且已附最小实验的实际输出（命令 + 退出码 + 关键输出）。缺任一项则视为诊断未完成，回到步骤 5 补齐，不得直接进入修复。
 
 ### 步骤 7：检查修复循环预算
 
 开始本轮修复前，读取 `lead/team-context.md` 的「修复循环预算」（`test-debug` 行）：
 
-1. 如果 「最大轮数」 / 「最大无进展轮数」 仍为「待确认」，说明 TeamLead 尚未与用户确认预算，**先停止并请 TeamLead 用 `intent-confirmation` 确认预算**（建议默认 3 轮 / 连续 2 轮无进展），不要在无预算的情况下进入修复。
+1. 如果 「最大轮数」 / 「最大无进展轮数」 仍为「待确认」：`gated` 模式下先停止并请 TeamLead 用 `intent-confirmation` 确认预算，不要在无预算的情况下进入修复；`autopilot` 模式下取模式预设值（3 轮 / 连续 2 轮无进展）并立即写回账本，不停等人——自动驾驶下没有人可确认，停等会死锁。
+
+   另：如果连续几轮修复**都有进展**，但每轮都翻出新的共享状态、隐式耦合或全局副作用（Phase 4.5 信号），不要继续修——这个信号独立于「连续无进展」，现有预算抓不到它。停下并向 TeamLead 升级，议题是架构而不是这个 bug。
 2. 如果 「已用轮数」 已达到 「最大轮数」，或 「连续无进展」 已达到 「最大无进展轮数」，**不要再修复**，直接向 TeamLead 升级，由用户决定继续加预算、改方案还是暂停。
 3. 预算未触上限时，继续步骤 8 的修复。
 
@@ -166,6 +174,7 @@ TeamLead 使用当前运行环境的确认方式向用户确认。等待确认�
 <meta name="rk:type"         content="debug-fix">
 <meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
 <meta name="rk:role"         content="spec-debugger">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:title"        content="修复总结-{简述}">
 <meta name="rk:debug-number" content="001">
 <meta name="rk:category"     content="{与 writer/plan.html 相同}">
@@ -180,8 +189,9 @@ TeamLead 使用当前运行环境的确认方式向用户确认。等待确认�
 <meta name="rk:fix-round"    content="{rounds_used}/{max_rounds}">
 <link rel="rk-plan"   href="../writer/plan.html">
 <link rel="rk-debug"  href="debug-001.html">
-<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="rk-ledger" href="../lead/team-context.md">
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 ```

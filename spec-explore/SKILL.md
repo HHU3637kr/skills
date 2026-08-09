@@ -92,6 +92,7 @@ description: >
 <meta name="rk:type"        content="exploration-report">
 <meta name="rk:spec-dir"    content="spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}">
 <meta name="rk:role"        content="spec-explorer">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:created"     content="{YYYY-MM-DD}">
 <meta name="rk:updated"     content="{YYYY-MM-DD}">
 <meta name="rk:revision"    content="1">
@@ -99,13 +100,16 @@ description: >
 <meta name="rk:base-branch" content="{base_branch}">
 <meta name="rk:pr-url"      content="{pr_url，未创建留空}">
 <meta name="rk:tags"        content="spec,exploration">
-<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="rk-ledger" href="../lead/team-context.md">
 <link rel="rk-plan"   href="../writer/plan.html">
 
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <header class="rk-head">
   <h1>探索报告：{任务描述}</h1>
@@ -164,7 +168,7 @@ description: >
 <ul class="rk-links">
   <li><a href="../../../context/experience/{经验文件}.md" data-rk-link="experience">{经验标题}</a></li>
   <li><a href="../../../context/knowledge/{知识文件}.md" data-rk-link="knowledge">{知识标题}</a></li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">

@@ -21,15 +21,18 @@ description: >
 |----|----------------|
 | 输入 | `explorer/exploration-report.html`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据、`html-report` skill 的报告契约 |
 | 权限 | 只写 `writer/plan.html`（设计方案）；不写测试计划、不实现代码、不归档、不提交；目录分类错误时通过 TeamLead 请求修正 |
-| 验证 | plan 含 7 个必需章节、工作类型目录正确、命名为中文 `YYYYMMDD-HHMM-任务描述`、分支字段与当前分支一致、HTML 骨架与修订标记符合 `html-report` 规范 |
-| 停止 | plan 定稿且通过用户确认即停止，不在确认前编写代码、不"顺手"加 Spec 未要求的设计 |
+| 验证 | plan 含 7 个必需章节、工作类型目录正确、命名为中文 `YYYYMMDD-HHMM-任务描述`、分支字段与当前分支一致、HTML 骨架与修订标记符合 `html-report` 规范；plan 必须含接口签名、数据结构、文件清单、每个任务的验证命令，缺任一项不得进入实现 |
+| 停止 | plan 定稿且通过确认即停止，不在确认前编写代码、不"顺手"加 Spec 未要求的设计 |
 | 升级 | 探索背景不足、接口边界与 spec-tester 无法对齐、或需求超出当前 Spec 范围时，交回 TeamLead 由用户决策 |
+| 参考 | plan 定稿前 → 必读 `references/plan-quality.md` |
 
 ## 核心规则
 
-### 用户确认（必须执行）
+### 确认方式随模式（必须执行）
 
-**重要**：完成 `writer/plan.html` 撰写后，**必须**使用当前运行环境的确认方式等待用户确认。
+**确认方式随模式**：`gated` 模式下完成 `writer/plan.html` 撰写后必须用当前运行环境的确认方式向用户确认；`autopilot` 模式下由「plan 完备度闸门（接口签名/数据结构/文件清单/每任务验证命令四项齐备）+ Spec 自审四问全部通过」替代该确认，两者缺一不可放行。四项与四问的细则见 [references/plan-quality.md](references/plan-quality.md)。
+
+`gated` 模式的确认话术：
 
 ```text
 确认目标：writer/plan.html 已创建完成，请确认设计方案是否可以开始实现？
@@ -37,6 +40,8 @@ description: >
 - 确认，开始实现
 - 需要修改（请说明修改要求）
 ```
+
+`autopilot` 模式下把闸门四项与自审四问的逐条结论写入账本，任一项不齐或任一问未过即停止，不得放行到实现阶段。
 
 ### 工作类型目录与命名规范
 
@@ -101,7 +106,7 @@ description: >
 | 9 | 验证路径和命名 | 工作类型目录正确、日期时间当前、任务描述中文 |
 | 10 | 自检 HTML | 浏览器能打开且样式生效、`rk-meta` 与 `<meta name="rk:*">` 字段一致、`rk-links` 有对应反链登记、无 `<style>` 与行内 `style=` |
 | 11 | 保存文件 | `Write` 工具保存到目标路径 |
-| 12 | 等待用户确认 | **必须**使用当前运行环境的确认方式 |
+| 12 | 等待确认 | `gated`：**必须**使用当前运行环境的确认方式；`autopilot`：以 plan 完备度闸门四项齐备 + Spec 自审四问全部通过替代，逐条结论落账本 |
 
 ### 步骤 7：writer/plan.html 内容要求（v2.0）
 
@@ -135,7 +140,7 @@ description: >
 - ❌ 手写一个未创建的分支名
 - ❌ 直接在 `spec/` 下创建文件夹（必须放入工作类型目录）
 - ❌ 任务描述使用英文
-- ❌ 跳过用户确认步骤
+- ❌ 跳过确认步骤（`gated` 下未向用户确认，或 `autopilot` 下未过 plan 完备度闸门与 Spec 自审四问就放行）
 - ❌ 在报告 HTML 里写 `<style>`、行内 `style=` 或引用外部 CDN
 - ❌ 用 Obsidian 专有语法（`[[wikilink]]`、`> [!note]` Callout、`#tag`）
 - ❌ 迁移时丢掉原 frontmatter 字段，或只写单向链接不补反链
@@ -155,6 +160,6 @@ description: >
 2. 把 plan 中的关键设计取舍写入「决策记录」：每个方案分叉记一行「议题」/「候选项」（含被否决项）/「结论」/「理由」，「拍板者」写 `spec-writer`（若该取舍由用户拍板则写 `user`）
 3. 若写方案时遇到过程性问题（依赖缺失、探索报告信息不足、接口边界未定等），在「问题闭环记录」追加一行，「分类」选 `dependency` / `process` / `scope`
 4. 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
-3. 等待用户确认 `writer/plan.html`
+3. 等待 `writer/plan.html` 通过确认：`gated` 等用户确认，`autopilot` 以完备度闸门四项 + 自审四问的逐条结论落账本替代
 4. 通知 TeamLead，TeamLead 触发实现阶段（spec-execute）
 5. 如果是功能更新，使用 `spec-update` 执行

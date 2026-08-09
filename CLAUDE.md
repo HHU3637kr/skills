@@ -28,7 +28,7 @@ R&K Flow：完整的 Spec 驱动式开发 Skills 体系。开发流程拆分为 
 ### 文档规范
 
 - 报告类产物使用 HTML，遵循 `html-report` skill 契约
-- 运行账本 `lead/team-context.md` 与 `spec/context/` 记忆保持 Markdown
+- 运行账本 `lead/team-context.md` 或 `.html` 二者皆可（用 HTML 时豁免修订标记）；`spec/context/` 记忆保持 Markdown
 - 命名规范：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
 - 报告每次修改递增修订号、追加修订历史行、用 `ins`/`del` + `data-rev` 标记
 - 样式只改 `html-report/assets/rk-report.css`，不在报告内写 style

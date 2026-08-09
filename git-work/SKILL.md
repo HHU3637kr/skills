@@ -12,18 +12,26 @@ description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，
 
 R&K Flow 默认采用 **GitHub Flow**：
 
-1. `main` 是唯一长期分支，始终保持可部署
+1. 远程默认分支（下文记作 `<base>`）是唯一长期分支，始终保持可部署
 2. 每个 Spec 使用一条短生命周期分支
 3. 同一活跃 Spec 的 update 默认复用该 Spec 分支
 4. 所有开发、测试、文档、归档都在该分支完成
 5. 收尾时提交、推送并创建 Pull Request
 6. PR 合并后删除本地和远程分支
 
+`<base>` 不写死为 `main`。始终先读远程默认分支：
+
+```bash
+git symbolic-ref refs/remotes/origin/HEAD
+```
+
+输出形如 `refs/remotes/origin/master`，取最后一段即 `<base>`（常见值为 `main` 或 `master`，也可能是别的名字）。若命令失败（没有远程，或远程未设置 HEAD），退回当前分支作为 `<base>`，并向用户说明这一推断。
+
 ## 在 Spec 生命周期中的位置
 
 ```text
 spec-start
-  → git-work：从 main 创建 Spec 工作分支
+  → git-work：从 `<base>` 创建 Spec 工作分支
   → plan.html 记录 git_branch、base_branch、pr_url
 
 spec-update
@@ -40,7 +48,7 @@ spec-end / spec-update 收尾
   → 如有 PR，记录 PR URL
 
 PR 合并后
-  → git-work：同步 main，删除本地和远程工作分支
+  → git-work：同步 `<base>`，删除本地和远程工作分支
 ```
 
 ## 分支命名
@@ -95,21 +103,25 @@ git status --short
 如果工作区不干净：
 - 若改动属于当前即将启动的 Spec，先让用户确认是否纳入本分支
 - 若改动无关，先提交、stash 或切换到干净工作区
-- 不要在脏工作区直接切换到 `main`
+- 不要在脏工作区直接切换到 `<base>`
 
 ### 2. 同步 base 分支
 
-默认 base 分支为 `main`。如果仓库没有 `main`，读取远程默认分支：
+先读远程默认分支，取得 `<base>`：
 
 ```bash
 git symbolic-ref refs/remotes/origin/HEAD
 ```
 
-同步：
+输出形如 `refs/remotes/origin/master`，取最后一段作为 `<base>`。不要假设它是 `main`。
+
+如果命令报错（没有 `origin`，或远程未设置 HEAD），退回当前分支作为 `<base>`，并明确告知用户：本次 Spec 将以当前分支为 base。
+
+拿到 `<base>` 后再同步。下文所有命令中的 `<base>` 都用这里读到的名字替换：
 
 ```bash
-git switch main
-git pull --ff-only origin main
+git switch <base>
+git pull --ff-only origin <base>
 ```
 
 ### 3. 创建工作分支
@@ -130,18 +142,20 @@ git push -u origin <branch-name>
 
 ```yaml
 git_branch: <branch-name>
-base_branch: main
+base_branch: <base>
 pr_url:
 ```
+
+`base_branch` 写第 2 步实际读到的默认分支名，不要写死 `main`。
 
 ## 模式二：并发开发使用 worktree
 
 当同一仓库需要同时开发多个 Spec，不要在同一个 working tree 里来回切分支。使用 worktree：
 
 ```bash
-git switch main
-git pull --ff-only origin main
-git worktree add ../<repo>-<spec-slug> -b <branch-name> main
+git switch <base>
+git pull --ff-only origin <base>
+git worktree add ../<repo>-<spec-slug> -b <branch-name> <base>
 ```
 
 进入新 worktree 后再运行对应的 Spec 流程。每个并行 Spec 独占一个目录和一条分支。
@@ -156,7 +170,7 @@ git worktree add ../<repo>-<spec-slug> -b <branch-name> main
 
 ```html
 <meta name="rk:git-branch"  content="<branch-name>">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="{base_branch}">
 <meta name="rk:pr-url"      content="">
 ```
 
@@ -169,7 +183,7 @@ git status --short
 
 规则：
 - 当前分支必须等于 plan.html 的 `rk:git-branch`
-- 如果当前分支是 `main`，停止并切回 Spec 分支
+- 如果当前分支是 `<base>`，停止并切回 Spec 分支
 - 如果原分支已合并或不存在，默认不继续 spec-update；应新建 Spec 或让用户明确选择独立 update 分支
 - update-xxx.html 继承 plan.html 的 `rk:git-branch` / `rk:base-branch` / `rk:pr-url`
 
@@ -184,7 +198,7 @@ git branch --show-current
 git status --short
 ```
 
-禁止直接在 `main` 上提交 Spec 成果。若当前分支不是 plan/update 文档记录的 `git_branch`，先确认原因。
+禁止直接在 `<base>` 上提交 Spec 成果。若当前分支不是 plan/update 文档记录的 `git_branch`，先确认原因。
 
 ### 2. 审查变更
 
@@ -225,13 +239,13 @@ git push -u origin <branch-name>
 如果可用，优先使用 GitHub CLI：
 
 ```bash
-gh pr create --base main --head <branch-name> --title "<PR title>" --body-file <pr-body.md>
+gh pr create --base <base> --head <branch-name> --title "<PR title>" --body-file <pr-body.md>
 ```
 
 如果没有 `gh`，输出 GitHub compare URL，让用户手动创建 PR：
 
 ```text
-https://github.com/<owner>/<repo>/compare/main...<branch-name>
+https://github.com/<owner>/<repo>/compare/<base>...<branch-name>
 ```
 
 PR 内容至少包含：
@@ -262,8 +276,8 @@ git push
 只有在 PR 已合并后执行：
 
 ```bash
-git switch main
-git pull --ff-only origin main
+git switch <base>
+git pull --ff-only origin <base>
 git branch -d <branch-name>
 git push origin --delete <branch-name>
 ```
@@ -276,14 +290,14 @@ git push origin --delete <branch-name>
 |------|------|
 | 不在 Git 仓库 | 询问是否继续无分支模式，并在 Spec 文档中记录 `git_branch: none` |
 | 工作区已有无关改动 | 先提交、stash 或使用 worktree |
-| 当前在 `main` 且已有开发改动 | 立即创建分支承接当前改动，不要继续在 `main` 上开发 |
-| 分支落后 `main` | 在工作分支中合并或 rebase 最新 `main`，解决冲突后继续 |
+| 当前在 `<base>` 且已有开发改动 | 立即创建分支承接当前改动，不要继续在 `<base>` 上开发 |
+| 分支落后 `<base>` | 在工作分支中合并或 rebase 最新 `<base>`，解决冲突后继续 |
 | 多个 Spec 并发 | 使用 `git worktree`，每个 Spec 独占分支和目录 |
 | 无法创建 PR | 推送分支并给出 compare URL |
 
 ## 禁止事项
 
-- 不要在 `main` 上实现 Spec
+- 不要在 `<base>` 上实现 Spec
 - 不要在脏工作区切换分支
 - 不要把多个无关 Spec 混在同一分支
 - 不要在测试失败时创建 PR，除非 PR 明确标记为 Draft

@@ -16,10 +16,11 @@ description: >
 | 项 | 本 Skill 的约定 |
 |----|----------------|
 | 输入 | `explorer/exploration-report.html`、`writer/plan.html`、`executor/summary.html`、命中的场景测试策略、`html-report` skill 的报告契约 |
-| 权限 | 写 `tester/test-plan.html` / `tester/test-report.html`、采集 `tester/artifacts/` 证据、可调整测试脚本/配置；不直接修复 bug、不改业务实现 |
-| 验证 | 验收标准具体可判定、关键路径有可审计证据、证据由测试运行自动生成且已脱敏、报告 HTML 符合 `html-report` 规范 |
-| 停止 | 测试计划/报告定稿且通过用户确认即停止；修复循环受「修复循环预算」约束，触发 「最大轮数」 或 「最大无进展轮数」 时停止发起新一轮 handoff |
+| 权限 | 写 `tester/test-plan.html` / `tester/test-report.html`、采集 `tester/artifacts/` 证据、可调整测试脚本/配置，但 `spec-executor` 拥有的单元/聚焦测试文件只读不改；发现其测试无效时记入测试报告的质量评估，交回 TeamLead，不直接改写；不直接修复 bug、不改业务实现 |
+| 验证 | 验收标准具体可判定、关键路径有可审计证据、证据由测试运行自动生成且已脱敏、报告 HTML 符合 `html-report` 规范。**最终测试结论必须基于本轮在当前工作树上的实际运行**，不得引用上一轮的测试结果，也不得引用 `spec-executor` 的自测结论 |
+| 停止 | 测试计划/报告定稿且「已确认」即停止：`gated` 模式下用当前运行环境的确认方式向用户确认 `tester/test-report.html`；`autopilot` 模式下由「`spec-reviewer` 强制介入并产出 `reviewer/review.html`」替代该确认——自动驾驶下 reviewer 是唯一独立视角，因此不再可选。修复循环受「修复循环预算」约束，触发 「最大轮数」 或 「最大无进展轮数」 时停止发起新一轮 handoff |
 | 升级 | 发现 bug 时向 TeamLead 提交 handoff（不自行修复）；修复循环触上限或证据无法采集时，交回 TeamLead 由用户决策 |
+| 参考 | 评估 `spec-executor` 的单元测试质量 → 必读 `../spec-execute/references/tdd-discipline.md`（含测试有效性门函数与假测试形态，是评估依据） |
 
 ## 核心原则
 
@@ -28,7 +29,7 @@ description: >
 3. **通过 TeamLead 与 spec-writer 协作**：Spec 阶段需讨论接口边界和异常情况，确保测试覆盖完整
 4. **关键路径可观测**：测试必须验证系统关键路径有日志、trace id、事件或其他可审计证据
 5. **证据归属 tester**：端侧测试和关键路径测试的审计日志必须保存在当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`（原始格式，不转 HTML）
-6. **证据必须自动采集**：`tester/artifacts/test-logs/<run-id>/` 下的日志、JSON、trace、录屏和截图必须由测试脚本、浏览器自动化、服务日志采集或命令输出生成；Agent 不得手写、补写或伪造这些证据文件内容
+6. **证据必须自动采集**：`tester/artifacts/test-logs/<run-id>/` 下的日志、JSON、trace、录屏和截图必须由测试脚本、浏览器自动化、服务日志采集或命令输出生成；Agent 不得手写、补写或伪造这些证据文件内容。同一规则同样适用于 `executor/artifacts/`：评估 `spec-executor` 的测试质量时以 `executor/artifacts/` 里的实际运行输出为准，不以 `executor/summary.html` 的自然语言描述为准
 7. **策略按场景加载**：不同开发场景的测试策略沉淀在 `references/`，命中场景时先读取对应策略
 8. **策略在 spec-test 内沉淀**：测试过程中发现跨项目可复用的测试方法时，更新本 Skill 的 `references/` 和策略表；不要写入当前项目的 `AGENTS.md` 或 `.agents/rules/`
 9. **修复循环受预算约束**：重验属于 spec-tester ↔ spec-debugger 修复循环的一环，受 `lead/team-context.md` 的「修复循环预算」约束。每轮重验后更新「修复循环预算」进展信号；触发 「最大轮数」 或 「最大无进展轮数」 时停止发起新一轮 handoff，转为通知 TeamLead 升级给用户。
@@ -123,6 +124,7 @@ description: >
 <meta name="rk:type"        content="test-plan">
 <meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}">
 <meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:status"      content="未确认">
 <meta name="rk:created"     content="YYYY-MM-DD">
 <meta name="rk:updated"     content="YYYY-MM-DD">
@@ -133,12 +135,15 @@ description: >
 <meta name="rk:tags"        content="spec,test-plan">
 <!-- 关联声明，等价原 frontmatter 的 plan: 字段 -->
 <link rel="rk-plan"   href="../writer/plan.html">
-<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="rk-ledger" href="../lead/team-context.md">
 
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <header class="rk-head">
   <h1>测试计划：{任务描述}</h1>
@@ -226,7 +231,7 @@ description: >
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -353,6 +358,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <meta name="rk:type"        content="test-report">
 <meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}">
 <meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:status"      content="未确认">
 <meta name="rk:created"     content="YYYY-MM-DD">
 <meta name="rk:updated"     content="YYYY-MM-DD">
@@ -365,12 +371,15 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <link rel="rk-plan"      href="../writer/plan.html">
 <link rel="rk-test-plan" href="test-plan.html">
 <link rel="rk-debug"     href="../debugger/debug-001.html">
-<link rel="rk-ledger"    href="../../lead/team-context.md">
+<link rel="rk-ledger"    href="../lead/team-context.md">
 
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <header class="rk-head">
   <h1>测试报告：{任务描述}</h1>
@@ -477,7 +486,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
   <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
   <li><a href="test-plan.html" data-rk-link="test-plan">测试计划</a></li>
   <li><a href="../debugger/debug-001.html" data-rk-link="debug">问题修复 debug-001</a></li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -520,8 +529,12 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
+确认方式随模式：
+- `gated`：用当前运行环境的确认方式向用户确认 `tester/test-report.html`，得到放行才算完成。
+- `autopilot`：由「`spec-reviewer` 强制介入并产出 `reviewer/review.html`」替代用户确认。自动驾驶下 reviewer 是唯一独立视角，因此不再可选；review 未产出前测试结论不放行。
+
 ```text
-通知 TeamLead：tester/test-report.html 已完成，等待用户确认。
+通知 TeamLead：tester/test-report.html 已完成。gated 模式等待用户确认；autopilot 模式请求启动 spec-reviewer 产出 reviewer/review.html。
 ```
 
 ## 与其他角色的协作
@@ -554,6 +567,8 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 7. 已更新 `lead/team-context.md` 的「任务进度」和必要的「问题闭环记录」
 8. `rk-meta` 与 `<meta name="rk:*">` 字段一致、`rk-links` 有对应反链登记、报告内无 `<style>` 与行内 `style=`
 9. 已通知 TeamLead
+10. 最终测试结论基于本轮在当前工作树上的实际运行，未引用上一轮结果或 `spec-executor` 的自测结论
+11. 已按模式完成确认：`gated` 得到用户放行；`autopilot` 已由 `spec-reviewer` 产出 `reviewer/review.html`
 
 ### 常见陷阱
 - 直接修复 bug 或绕过 TeamLead 联系 spec-debugger（破坏协作闭环）

@@ -1,5 +1,7 @@
 # GitHub Flow 示例（R&K Flow）
 
+下文示例里的默认分支均写作 `main`，仅为举例。实际使用时必须先跑 `git symbolic-ref refs/remotes/origin/HEAD` 取得真实默认分支名（本仓库实测为 `master`），不要直接把 `main` 拷贴进命令。示例 1 演示了正确的读取写法。
+
 ## 示例 1：新功能 Spec
 
 场景：实现用户认证能力。
@@ -7,8 +9,10 @@
 ```bash
 # spec-start 阶段
 git status --short
-git switch main
-git pull --ff-only origin main
+base=$(git symbolic-ref --short refs/remotes/origin/HEAD)
+base=${base#origin/}
+git switch "$base"
+git pull --ff-only origin "$base"
 git switch -c feat/spec-20260428-1430-user-auth
 git push -u origin feat/spec-20260428-1430-user-auth
 ```
@@ -17,7 +21,7 @@ git push -u origin feat/spec-20260428-1430-user-auth
 
 ```html
 <meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="master">  <!-- 写实际读到的默认分支名，不要写死 main -->
 <meta name="rk:pr-url"      content="">
 ```
 
@@ -57,7 +61,7 @@ git status --short
 <meta name="rk:type"        content="update">
 <meta name="rk:update-number" content="1">
 <meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="master">  <!-- 继承 plan.html 实际记录的默认分支名 -->
 <meta name="rk:pr-url"      content="">
 ```
 

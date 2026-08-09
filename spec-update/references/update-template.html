@@ -9,6 +9,7 @@
 <meta name="rk:type"          content="update">
 <meta name="rk:spec-dir"      content="spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}">
 <meta name="rk:role"          content="spec-update">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:update-number" content="XXX">
 <meta name="rk:status"        content="未确认">
 <meta name="rk:update-type"   content="功能增强">
@@ -24,12 +25,15 @@
 <link rel="rk-summary"        href="../executor/summary.html">
 <link rel="rk-update-summary" href="update-XXX-summary.html">
 <link rel="rk-review"         href="../reviewer/update-XXX-review.html">
-<link rel="rk-ledger"         href="../../lead/team-context.md">
+<link rel="rk-ledger"         href="../lead/team-context.md">
 
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <!--
   用法：复制到 spec/<分类>/<spec目录>/updater/update-XXX.html 后逐段替换 {占位符}。
@@ -73,7 +77,7 @@
 </table>
 <p>「原因」列与账本「决策记录」（Decision Log）互相追溯：源于实质取舍的修订写决策编号（如 <code>D-003</code>），
 纯笔误 / 措辞 / 补充说明直接写清即可。决策过程正文留在
-<a href="../../lead/team-context.md">运行账本</a> 的「决策记录」，不复制进本报告。表格保持 5 列，不新增列。</p>
+<a href="../lead/team-context.md">运行账本</a> 的「决策记录」，不复制进本报告。表格保持 5 列，不新增列。</p>
 
 <h2>1. 更新背景</h2>
 
@@ -187,7 +191,7 @@
     <tr><td>关联 summary</td><td>是</td><td><code>&lt;link rel="rk-summary"&gt;</code></td><td>本报告引用</td><td><code>../executor/summary.html</code></td></tr>
     <tr><td>关联更新总结</td><td>是</td><td><code>&lt;link rel="rk-update-summary"&gt;</code></td><td>本报告引用</td><td><code>update-XXX-summary.html</code></td></tr>
     <tr><td>关联审查报告</td><td>否</td><td><code>&lt;link rel="rk-review"&gt;</code></td><td>引用本报告</td><td><code>../reviewer/update-XXX-review.html</code></td></tr>
-    <tr><td>运行账本</td><td>是</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../../lead/team-context.md</code>（保持 Markdown）</td></tr>
+    <tr><td>运行账本</td><td>是</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../lead/team-context.md</code> 或 <code>../lead/team-context.html</code></td></tr>
   </tbody>
 </table>
 
@@ -203,7 +207,7 @@
   <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
   <li><a href="update-XXX-summary.html" data-rk-link="update-summary">本次更新总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
