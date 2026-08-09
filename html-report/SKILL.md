@@ -5,7 +5,7 @@ description: >
   test-report / summary / debug / review / update / end-report）时使用。
   定义 HTML 报告的固定结构、固定样式和可追溯修订标记规范。
   典型信号：要写某个 Spec 阶段的报告、要修订已有报告、要让用户看清两版之间改了什么。
-  不要用于 lead/team-context.md（运行账本，保持 Markdown）或经验/知识记忆文件。
+  不要用于记忆库文件（`spec/context/**/*.md`，保持 Markdown 供 `exp-search` 检索）。
 ---
 
 # HTML Report
@@ -20,7 +20,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 | 输入 | 报告类型、Spec 目录、本轮内容或修订点 |
 | 权限 | 只写当前 Spec 目录下自己角色的 `*.html`；不改他人产物 |
 | 验证 | 文件能在浏览器打开；修订标记带 `data-rev`；修订历史表有本轮行 |
-| 停止 | 报告写完并在 `lead/team-context.md` 登记产物路径 |
+| 停止 | 报告写完并在运行账本（`lead/team-context.md` 或 `.html`）登记产物路径 |
 | 升级 | 需要改动已确认报告的结论时，先交 TeamLead 走门禁，不自行改写 |
 
 ## 边界：什么用 HTML，什么保持 Markdown
@@ -35,7 +35,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 | `reviewer/review.html`、`reviewer/update-*-review.html` | HTML | 报告 |
 | `updater/update-*.html`、`updater/update-*-summary.html` | HTML | 报告 |
 | `ender/end-report.html` | HTML | 报告 |
-| `lead/team-context.md` | **Markdown** | 运行账本，被 hook 同步脚本解析 |
+| `lead/team-context.md` / `lead/team-context.html` | 两者皆可 | 运行账本。用 HTML 时复用同一套样式与导航树，但**豁免修订标记**（不需 `data-rev` / `ins` / `del`）——账本是高频追写的运行流水，不是「定稿后修订」的报告，强制修订标记只会让它膨胀 |
 | `spec/context/experience/*.md`、`knowledge/*.md` | **Markdown** | 记忆库，被 `exp-search` 检索 |
 | `tester/artifacts/test-logs/**` | 原始格式 | 测试运行自动产出的证据 |
 
@@ -51,10 +51,11 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 <title>{报告标题} - {任务描述}</title>
 
 <!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略。
-     hook 同步脚本与检索工具靠这些 meta 读取，等同于原 YAML frontmatter。 -->
+     导航树、检索与工具化处理（批量提取、跨报告统计）靠这些 meta 读取，等同于原 YAML frontmatter。 -->
 <meta name="rk:type"        content="{plan|test-plan|test-report|summary|debug|debug-fix|review|update|update-summary|exploration-report|end-report}">
 <meta name="rk:spec-dir"    content="{spec/<分类>/<YYYYMMDD-HHMM-任务描述>}">
 <meta name="rk:role"        content="{spec-writer|spec-tester|...}">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:created"     content="{YYYY-MM-DD}">
 <meta name="rk:updated"     content="{YYYY-MM-DD}">
 <meta name="rk:revision"    content="{N}">
@@ -64,12 +65,15 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 <meta name="rk:tags"        content="{spec,plan；逗号分隔，等价原 tags}">
 <!-- 文档关联，等价原 frontmatter 的 plan: / update: / debug: 字段 -->
 <link rel="rk-plan"   href="../writer/plan.html">
-<link rel="rk-ledger" href="../../lead/team-context.md">
+<link rel="rk-ledger" href="../lead/team-context.md">
 
 <link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <header class="rk-head">
   <h1>{报告标题}</h1>
@@ -78,6 +82,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
     <span><b>类型</b> {type}</span>
     <span><b>Spec</b> <code>{spec_dir}</code></span>
     <span><b>角色</b> {role}</span>
+    <span><b>模式</b> {mode}</span>
     <span><b>分支</b> <code>{git_branch}</code> ← <code>{base_branch}</code></span>
     <span><b>PR</b> {pr_url 或 —}</span>
     <span><b>创建</b> {created}</span>
@@ -107,7 +112,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -121,17 +126,83 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 `../../../../html-report/assets/` 是从 `spec/<分类>/<spec目录>/<角色>/` 回到项目根的相对路径（4 层）。
 项目实际层级不同就相应调整，务必保证 `file://` 直接打开样式生效。
 
+## 导航树（左侧文件树）
+
+报告左侧渲染一列本 Spec 内的文档导航，可在同一 Spec 的各角色报告之间直接跳转。
+渐进增强：清单缺失时导航区不渲染，正文阅读完全不受影响。
+
+### 为什么不用 `fetch` 探测
+
+`file://` 下 `fetch` 被浏览器安全策略直接拒绝——**同级已存在的文件也会返回 `Failed to fetch`**，
+所以「逐个探测哪些报告存在」这条路在本地直开场景下走不通（已实测）。`<script src>` 不受这条限制，
+因此改用声明式清单：Spec 目录根放一份 `rk-manifest.js`，各报告用 `<script src>` 载入。
+
+### `rk-manifest.js` 结构
+
+位置：`spec/<分类>/<spec目录>/rk-manifest.js`（Spec 目录根，与各角色目录同级）。
+
+```js
+window.RK_SPEC_TREE = {
+  specDir: "spec/<分类>/<spec目录>",
+  docs: [
+    { role: "lead", path: "lead/team-context.html", title: "运行账本", type: "team-context" }
+  ]
+};
+```
+
+`path` 一律相对 Spec 目录根；报告位于角色目录内，渲染时前缀 `../` 即可。
+`type` 与 `rk:type` 同一套枚举（账本用 `team-context`）。
+
+各报告在 `<head>` 里加载，放在 `rk-report.js` **之前**（两者都 `defer`，按文档顺序执行）：
+
+```html
+<script defer src="../rk-manifest.js"></script>
+```
+
+### 维护责任与高亮
+
+| 项 | 约定 |
+|----|------|
+| 谁更新 manifest | **TeamLead**，在新增报告落盘后统一更新——各角色并发写各自报告，manifest 单点维护才不会互相覆盖 |
+| 当前页高亮 | 比对 `<meta name="rk:spec-dir">` 与自身路径，定位到 manifest 中对应条目，命中项加 `is-current` |
+| manifest 缺失 | `window.RK_SPEC_TREE` 未定义时不渲染任何节点，`.rk-nav:empty` 使导航区隐藏，正文不受影响 |
+| 窄屏 / 打印 | 由 `rk-report.css` 处理：≤900px 隐藏，打印 `display: none` |
+
+渲染由共享脚本 `rk-report.js` 负责（读 `window.RK_SPEC_TREE`，按 `role` 分组写入 `.rk-nav`），
+报告本身只放一个空的 `<nav class="rk-nav"></nav>` 挂载点，**不手写节点**。渲染结果的结构约定：
+
+```html
+<nav class="rk-nav">
+  <div class="rk-nav-title">本 Spec 文档</div>
+  <ul class="rk-nav-tree">
+    <li class="rk-nav-group">
+      <span class="rk-nav-role">lead</span>
+      <ul>
+        <li><a href="../lead/team-context.html">运行账本</a></li>
+      </ul>
+    </li>
+    <li class="rk-nav-group">
+      <span class="rk-nav-role">writer</span>
+      <ul>
+        <li><a href="../writer/plan.html" class="is-current">设计方案</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+```
+
 ## 功能等价：原 Markdown 能力必须一一保留
 
 换成 HTML 不等于砍功能。原模板的每项能力都要有等价物，**不允许只保留"看起来像"的部分**。
 
 ### frontmatter → `<meta name="rk:*">` + `.rk-meta`（双轨）
 
-原 YAML frontmatter 有两个作用：机器可读（hook 同步脚本、检索）和人可读。所以要双轨保留，缺一不可。
+原 YAML frontmatter 有两个作用：机器可读（导航树、检索与工具化处理）和人可读。所以要双轨保留，缺一不可。
 
 | 原 frontmatter 字段 | HTML 机器可读 | HTML 人可读 |
 |---------------------|---------------|-------------|
 | `type` | `<meta name="rk:type">` | `.rk-meta` 类型 |
+| `mode`（账本 frontmatter） | `<meta name="rk:mode">` | `.rk-meta` 模式 |
 | `created` | `<meta name="rk:created">` | `.rk-meta` 创建 |
 | `git_branch` | `<meta name="rk:git-branch">` | `.rk-meta` 分支 |
 | `base_branch` | `<meta name="rk:base-branch">` | `.rk-meta` 分支（← 基准） |
@@ -251,18 +322,41 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 <span class="rk-ref">src/auth/token.ts:88</span>
 ```
 
+## 用户批注（人写，Agent 读）
+
+用户可以直接在报告 HTML 里写批注，表达评审意见。这是**人写给 Agent** 的通道，与 Agent 自己的 `rk-cal` 区分开（橙色虚线框 + 「批注」角标）。
+
+```html
+<!-- 块级批注：整段意见 -->
+<div class="rk-note">这个方案没考虑离线场景，补一下。</div>
+
+<!-- 处理完标记 is-done：降饱和，人一眼看出哪条已闭环 -->
+<div class="rk-note is-done">这个方案没考虑离线场景，补一下。</div>
+
+<!-- 行内批注：附在任意元素上，用于细粒度意见 -->
+<td data-rk-note="这里的退出码应该是 1">exit 0</td>
+```
+
+**Agent 侧义务**（详见 `.agents/rules/spec-workflow.md`「报告批注」）：接手报告前必须全文搜 `rk-note`，把每条登记进账本「问题闭环记录」（分类 `review`，状态 `pending`）。漏读批注等同于漏读用户指令。
+
+批注是短期沟通载体，Agent 重写报告时会被覆盖，不需要长期保留——但账本里的登记必须留下。所以批注**不受修订规范约束**，写批注不必加 `data-rev`。
+
 ## 禁止事项
 
 - 禁止 Obsidian 专有语法：`[[wikilink]]`、`> [!note]` Callout、`#tag`、Bases、Canvas
 - 禁止在报告 HTML 里写 `<style>` 或行内 `style=`（样式只在 `rk-report.css`，改样式即全局改版）
 - 禁止外部 CDN / 网络字体（报告必须离线可读）
 - 禁止直接覆盖已确认报告的结论而不留修订痕迹
-- 禁止把 `lead/team-context.md` 或记忆文件改成 HTML
+- 禁止把记忆库文件（`spec/context/**/*.md`）改成 HTML——`exp-search` 依赖 Markdown 文本检索
+- 禁止给账本补修订标记（`data-rev` / `ins` / `del`）：账本豁免修订规范
 
 ## 常见陷阱
 
 - 改了内容但忘记递增修订号 → 用户无法分辨版本
 - 加了 `ins`/`del` 但漏 `data-rev` → 视图切换和角标失效
 - 修订历史表没追加行 → 有标记但说不清为什么改
-- 相对路径层数算错 → `file://` 打开丢样式
+- 账本相对路径多算一层（写成两级 `..`）→ 从角色目录出发上一级就是 Spec 目录，正确是 `../lead/team-context.md`
+- 其它相对路径层数算错 → `file://` 打开丢样式
 - 用 `<b>`/`<i>` 假冒修订标记 → 必须用 `ins`/`del` 语义标签
+- 新增报告后忘记更新 `rk-manifest.js` → 导航树里看不到新文件（由 TeamLead 统一更新）
+- 用 `fetch` 探测同级报告是否存在 → `file://` 下必然失败，只能读 `window.RK_SPEC_TREE`

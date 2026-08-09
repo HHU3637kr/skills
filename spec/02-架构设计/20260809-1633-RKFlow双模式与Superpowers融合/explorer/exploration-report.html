@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>探索报告 - R&amp;K Flow 双模式与 Superpowers 融合</title>
+
+<meta name="rk:type"        content="exploration-report">
+<meta name="rk:spec-dir"    content="spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合">
+<meta name="rk:role"        content="spec-explorer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-08-09">
+<meta name="rk:updated"     content="2026-08-09">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="docs/spec-20260809-rk-flow-dual-mode-superpowers">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,exploration,rk-flow,superpowers,dual-mode">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan"   href="../writer/plan.html">
+
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>探索报告：R&amp;K Flow 双模式与 Superpowers 融合</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> exploration-report</span>
+    <span><b>Spec</b> <code>spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合</code></span>
+    <span><b>角色</b> spec-explorer</span>
+    <span><b>分支</b> <code>docs/spec-20260809-rk-flow-dual-mode-superpowers</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-08-09</span>
+    <span><b>修订</b> r1（2026-08-09）</span>
+  </div>
+</header>
+<nav class="rk-toc"></nav>
+
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">探索结论</div>
+  <p>已逐文件读完 Superpowers 全部 14 个 skill 与 R&amp;K 全部 11 个 spec-* / exp-* skill，足以支撑 spec-writer 直接开工。最大的不确定性不在「吸收什么」，而在<strong>强制力载体</strong>：R&amp;K 所有 spec-* 都是 <code>disable-model-invocation: true</code>，只在角色显式调用时加载，唯一每次会话自动进上下文的是 <code>.agents/rules/</code>。任何只改 Skill 正文而不改 rules 的方案都不会改变运行时行为。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-08-09</td><td>spec-explorer</td><td>初版</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 探索范围与方法</h2>
+
+<p>本次探索覆盖三个对象，全部逐文件读取而非依赖记忆：</p>
+
+<div class="rk-note">这一节只说了读了什么，没说哪些是「读完发现不适用」的。把否决掉的 skill 也列出来，否则后面无法判断范围是否完整。</div>
+
+<div class="rk-note is-done">补充：并行任务的数量（5 个）需要说明依据，为什么不是 3 个或 10 个。</div>
+
+
+<table>
+  <thead><tr><th>对象</th><th>范围</th><th>方法</th></tr></thead>
+  <tbody>
+    <tr><td>Superpowers 上游</td><td><code>github.com/obra/superpowers</code> main 分支，14 个 skill 目录 + hooks + README</td><td data-rk-note="5 个并行任务的拆分依据要写出来">5 个并行 librarian 提取任务，逐文件读 raw 内容，要求逐字引用</td></tr>
+    <tr><td>R&amp;K 本仓库</td><td>11 个 spec-* / exp-* skill、<code>.agents/rules/</code> 5 个文件、README.md、CODEMAP.md、<code>html-report</code> 契约</td><td>直接读文件 + grep 定位冲突面</td></tr>
+    <tr><td>待审方案</td><td>GPT 产出的 r2 方案（项目外生成）</td><td>逐条与上述两方核对</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal warn">
+  <div class="t">方法上的教训</div>
+  <p>首轮探索只提取了 Superpowers 的「头条机制」（TDD 铁律、四阶段调试、验证门、SDD 循环），导致对 <code>brainstorming</code> 的判断出错——用 one-question-per-message 一条边缘规则代表了整个 skill 并将其否决。第二轮改为「逐条可移植内容」提取后，同一个 skill 里发现 5 块应吸收内容。<strong>探索粒度决定方案质量</strong>：按 skill 名字做取舍会漏掉 skill 内部的可移植单元。</p>
+</div>
+
+<h2>2. 检索到的历史经验</h2>
+
+<p>调用 <code>exp-search</code> 检索本仓库记忆库：<code>spec/context/experience/index.md</code> 与 <code>spec/context/knowledge/index.md</code> 均只有索引骨架，<strong>无历史经验条目</strong>。本次 Spec 结束时应通过 <code>exp-reflect</code> 沉淀首批经验，尤其是上面那条「探索粒度」教训。</p>
+
+<h2>3. Superpowers 实际内容（逐条核实）</h2>
+
+<h3>3.1 三条独立纪律（可直接移植）</h3>
+
+<p>这三条各自靠顶部一条 Iron Law 生效，不依赖其他机制，是唯一可以单独摘出来的部分。</p>
+
+<table>
+  <thead><tr><th>Skill</th><th>Iron Law 原文</th><th>关键机制</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="rk-ref">skills/test-driven-development/SKILL.md</span></td>
+      <td><code>NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST</code></td>
+      <td>验证 RED 三确认（失败而非报错 / 失败信息符合预期 / 因功能缺失而非拼写错）；验证 GREEN 三确认（本测试过 / 其他测试仍过 / 输出洁净无警告）；先写码则<strong>删掉重来</strong>，不留作参考</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">skills/systematic-debugging/SKILL.md</span></td>
+      <td><code>NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST</code></td>
+      <td>四阶段各有出口条件；单一假设「I think X is the root cause because Y」并写下来；假设错了要形成<strong>新</strong>假设而非在旧修复上叠加</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">skills/verification-before-completion/SKILL.md</span></td>
+      <td><code>NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE</code></td>
+      <td>五步门：IDENTIFY → RUN（完整、新鲜）→ READ（全量输出+退出码+失败计数）→ VERIFY → 才可声明。原文：<code>Skip any step = lying, not verifying</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>三者共用一句基础原则：<code>Violating the letter of the rules is violating the spirit of the rules.</code></p>
+
+<h3>3.2 测试有效性规则（首轮完全漏掉）</h3>
+
+<p><span class="rk-ref">skills/test-driven-development/writing-good-tests.md</span> 的内容比 SKILL.md 本身更可移植，且直接命中 R&amp;K 的真实风险：</p>
+
+<div class="rk-cal key">
+  <div class="t">门函数：写测试体之前先回答</div>
+  <p>「什么样的生产代码改动会让这条测试失败？」——说不出来就重新设计测试。期望值必须是<strong>手工推导的字面量或 fixture</strong>，不能由被测代码或其 helper 算出来。</p>
+</div>
+
+<table>
+  <thead><tr><th>规则</th><th>原文要点</th><th>对 R&amp;K 的意义</th></tr></thead>
+  <tbody>
+    <tr><td>Mock 不配断言</td><td><code>A mock assertion passes when mock is present, fails when absent—it says nothing about the component.</code></td><td>直接可进 <code>spec-execute</code> 与 <code>spec-review</code> 的 Testing 检查项</td></tr>
+    <tr><td>Mock 数据要完整镜像</td><td>部分 mock 会「静默通过而集成挂掉」——下游读到被省略的字段时测试仍绿</td><td>R&amp;K 现有测试规范未覆盖</td></tr>
+    <tr><td>生产类只带生产方法</td><td>只被测试调用的 <code>destroy()</code> 属于测试工具，不属于生产类</td><td>可进 <code>.agents/rules/coding-style.md</code></td></tr>
+    <tr><td><strong>断言源文本 = 假测试</strong></td><td><code>Asserting that a script, skill, or config contains an exact line proves only that the source is the source.</code> 要运行产物并断言效果</td><td><strong>对 R&amp;K 尤其关键</strong>：本仓库大量改的是 Skill 文档与 HTML 报告，最容易写出这种自证式假测试</td></tr>
+    <tr><td>面向 Agent 的文档怎么测</td><td>由「消费该文档的 Agent 的行为」来测（指向 writing-skills）；纯人类散文不配测试</td><td>这是 R&amp;K 改 Skill 时唯一正确的验证路径，见 3.5</td></tr>
+  </tbody>
+</table>
+
+<h3>3.3 调试家族的四个附属技法</h3>
+
+<table>
+  <thead><tr><th>文件</th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td><span class="rk-ref">systematic-debugging/root-cause-tracing.md</span></td><td>向上追溯：症状 → 直接原因 → 谁调用的 → 传了什么值 → 坏值从哪来。手工追不动时加 stack trace 并记录 cwd/env</td></tr>
+    <tr><td><span class="rk-ref">systematic-debugging/defense-in-depth.md</span></td><td>四层校验（入口 / 业务逻辑 / 环境守卫 / 调试埋点），<code>DO NOT stop at one validation point</code></td></tr>
+    <tr><td><span class="rk-ref">systematic-debugging/condition-based-waiting.md</span></td><td>禁止裸 <code>sleep</code>/<code>setTimeout</code>，改等真实条件、10ms 轮询、必带超时与清晰报错</td></tr>
+    <tr><td><span class="rk-ref">systematic-debugging/find-polluter.sh</span></td><td>二分定位污染测试状态的那个测试文件</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal key">
+  <div class="t">Phase 4.5 与 R&amp;K「连续无进展」不是同一个信号</div>
+  <p>Phase 4.5 触发条件是：每次修复<strong>都有进展</strong>，但每次都在不同位置翻出新的共享状态 / 耦合，或修复要求「大规模重构」。原文断言 <code>This is NOT a failed hypothesis - this is a wrong architecture</code>。R&amp;K 的 <code>连续无进展</code>（<span class="rk-ref">spec-debug/SKILL.md:197-199</span>）抓的是「原地打转」，抓不到这种「一直在前进但方向错」的失败。两者必须并存，不能合并。</p>
+</div>
+
+<h3>3.4 审查与收尾家族</h3>
+
+<table>
+  <thead><tr><th>内容</th><th>出处与要点</th></tr></thead>
+  <tbody>
+    <tr><td>严重度三级定义</td><td><span class="rk-ref">requesting-code-review/code-reviewer.md</span>：Critical(Must Fix)=bug/安全/数据丢失/功能损坏；Important(Should Fix)=架构问题/缺功能/错误处理差/测试缺口；Minor(Nice to Have)=风格/优化/文档润色</td></tr>
+    <tr><td>审查五类清单</td><td>Plan alignment / Code quality / Architecture / Testing / Production readiness。其中 Testing 问的是 <code>Tests verify real behavior, not mocks?</code>——与 3.2 闭环</td></tr>
+    <tr><td>限定复审</td><td><span class="rk-ref">subagent-driven-development/SKILL.md</span>：修复后只审「原发现 + 修复 diff」；范围外观察记为延后次要项，<strong>不得延长循环</strong></td></tr>
+    <tr><td>禁止表演式赞同</td><td><span class="rk-ref">receiving-code-review/SKILL.md</span>：<code>Code review requires technical evaluation, not emotional performance.</code> 禁 <code>You're absolutely right!</code> / <code>Great point!</code> / 任何感谢表达。理由：<code>Actions speak. Just fix it.</code></td></tr>
+    <tr><td>六步响应</td><td>READ（读完不反应）→ UNDERSTAND（复述或问）→ VERIFY（对照代码现状）→ EVALUATE（对本代码库是否正确）→ RESPOND → IMPLEMENT（一次一项各自测试）</td></tr>
+    <tr><td>部分理解即停</td><td><code>Items may be related. Partial understanding = wrong implementation.</code> 6 项懂 4 项，不许先做那 4 项</td></tr>
+    <tr><td>YAGNI 反查</td><td>审查者说「应该正确实现这个」→ 先 grep 有无真实调用方；没有则问「这个端点没人调用，删掉（YAGNI）？」</td></tr>
+    <tr><td>高危操作精确确认词</td><td><span class="rk-ref">finishing-a-development-branch/SKILL.md</span>：只有键入 <code>discard</code> 才授权删除；<code>"Yeah, get rid of it" counts as confirmation</code> 被明确列为错误合理化</td></tr>
+    <tr><td>收尾顺序纪律</td><td>先跑全量测试 → <strong>绿了才出菜单</strong> → 合并后在合并结果上再跑一次 → 失败则一切停住、分支与 worktree 原地保留</td></tr>
+  </tbody>
+</table>
+
+<h3>3.5 元技能：如何让规则真的被遵守</h3>
+
+<p>这是本次探索最重要的发现，也是决定整个改造成败的部分。<span class="rk-ref">skills/writing-skills/</span> 三份文件构成一套完整方法论。</p>
+
+<div class="rk-cal key">
+  <div class="t">核心洞察：写 Skill 就是对流程文档做 TDD</div>
+  <p><code>If you didn't watch an agent fail without the skill, you don't know if the skill teaches the right thing.</code> 映射关系：压力场景=测试用例；SKILL.md=生产代码；<strong>无 skill 时 Agent 违规=RED</strong>；有 skill 时合规=GREEN；堵漏洞同时保持合规=REFACTOR。</p>
+</div>
+
+<p><strong>压力测试构造法</strong>（<span class="rk-ref">writing-skills/testing-skills-with-subagents.md</span>）：</p>
+
+<ul>
+  <li>七种压力：时间 / 沉没成本 / 权威 / 经济 / 疲劳 / 社交（怕显得教条）/ 实用主义（「要务实不要教条」）</li>
+  <li><strong>最佳测试组合 3 种以上压力</strong></li>
+  <li>好场景五要素：具体 A/B/C 选项（非开放式）、真实约束（具体时间与后果）、真实文件路径、让 Agent <strong>行动</strong>（「你会怎么做」而非「应该怎么做」）、无逃逸出口（不能靠「我会问人类伙伴」绕过选择）</li>
+  <li>设置话术：<code>IMPORTANT: This is a real scenario. You must choose and act.</code></li>
+  <li>通过判据：最大压力下选对 + 引用 skill 章节作依据 + 承认诱惑但仍遵守。<strong>不算通过</strong>：找到新合理化说法 / 争论 skill 是错的 / 造「混合方案」 / 请求许可但强烈论证违规</li>
+  <li><strong>元测试三分法</strong>：Agent 选错后追问「这个 skill 该怎么写才能让 A 成为唯一可接受答案」。①「skill 很清楚，我选择忽略」→ 不是文档问题，加更强的基础原则 ②「skill 该说 X」→ 文档问题，原话加进去 ③「我没看到 Y 节」→ 组织问题，要点提前</li>
+</ul>
+
+<p><strong>说服原则</strong>（<span class="rk-ref">writing-skills/persuasion-principles.md</span>）——这套解释了为什么「一张对照表」不会生效：</p>
+
+<table>
+  <thead><tr><th>Skill 类型</th><th>应使用</th><th>应避免</th></tr></thead>
+  <tbody>
+    <tr><td>纪律型（TDD、验证要求）</td><td>权威（祈使句、「无例外」）+ 承诺（要求声明、强制显式选择）+ 社会认同（「每一次」、「X 没有 Y = 失败」）</td><td>喜好、互惠</td></tr>
+    <tr><td>指导/技法型</td><td>适度权威 + 统一（「我们是同事」）</td><td>重度权威</td></tr>
+    <tr><td>参考型</td><td>只要清晰</td><td>全部说服术</td></tr>
+  </tbody>
+</table>
+
+<p>伦理检验：<code>Would this technique serve the user's genuine interests if they fully understood it?</code></p>
+
+<p><strong>尺寸预算</strong>：常驻/高频 skill &lt;200 词，其他 &lt;500 词，SKILL.md 正文 &lt;500 行；重型参考（100+ 行）拆 <code>references/</code>。描述必须<strong>第三人称</strong>（因为被注入系统提示，人称不一致会破坏发现）。</p>
+
+<h3>3.6 强制力机制</h3>
+
+<p><span class="rk-ref">hooks/session-start</span>：每次会话读取 <code>skills/using-superpowers/SKILL.md</code> 全文，包进 <code>&lt;EXTREMELY_IMPORTANT&gt;</code> 标签，按运行时输出不同 JSON 格式注入上下文。即入口 skill 从第一条消息起就<strong>常驻</strong>，不是懒加载。</p>
+
+<p><span class="rk-ref">using-superpowers/SKILL.md</span> 三块可移植结构：</p>
+<ul>
+  <li><strong>技能优先级</strong>：<code>process skills come first — they set the approach, then implementation skills carry it out</code></li>
+  <li><strong>优先级链</strong>：用户指令（CLAUDE.md/AGENTS.md）&gt; skills &gt; 默认行为</li>
+  <li><strong><code>&lt;SUBAGENT-STOP&gt;</code></strong>：被派作具体任务的 subagent 忽略入口 skill——R&amp;K 七角色都是 subagent，需要等价规则防止每个角色重跑入口流程</li>
+</ul>
+
+<h3>3.7 SDD 簇（整体不可拆）</h3>
+
+<p><code>subagent-driven-development</code> 的四个要素互为前提：每任务全新 implementer + 2–5 分钟任务粒度 + plan 内嵌完整代码 + 每任务两段 review（含 5 轮修复上限，R1–3 同一 implementer、R4+ 升级模型）。</p>
+
+<div class="rk-cal warn">
+  <div class="t">但其中一条教训必须吸收</div>
+  <p>原文：账本必须落盘、不能只靠 todo，因为 <code>conversation memory does not survive compaction</code>；控制器丢账本导致<strong>重发整段已完成任务序列</strong>是他们观察到最贵的故障。这是对 R&amp;K <code>lead/team-context.md</code> 设计方向的独立佐证——要补的只是「每个角色完成即写、不攒批」这条纪律。</p>
+</div>
+
+<h3>3.8 brainstorming 的五块内容</h3>
+
+<p>首轮误判的来源。逐块核实后：</p>
+
+<table>
+  <thead><tr><th>内容</th><th>判断</th></tr></thead>
+  <tbody>
+    <tr><td>one-question-per-message</td><td>拒。R&amp;K <span class="rk-ref">intent-confirmation/SKILL.md:33</span> 已有「2–5 问 + 带推荐默认」，OMP <code>ask</code> 支持结构化多问，在此运行时严格更优</td></tr>
+    <tr><td>HARD-GATE：设计获批前不得写码/搭脚手架/调用任何实现 skill</td><td>吸收</td></tr>
+    <tr><td>反模式「这太简单不需要设计」：<code>'Simple' projects are where unexamined assumptions cause the most wasted work</code>，设计可以只有几句话但必须出示并获批</td><td>吸收。R&amp;K 现在「小修小改」直接跳过（<span class="rk-ref">intent-confirmation/SKILL.md:170-173</span>）</td></tr>
+    <tr><td>范围分解闸门：先评估是否多个独立子系统，过大则拆子项目各走一轮 spec</td><td>吸收。R&amp;K 只有分类决策，没有「这需求太大要拆」的判断</td></tr>
+    <tr><td>Spec 自审四问：占位符 / 内部一致性 / 范围是否够聚焦 / 歧义是否可两解（<code>pick one and make it explicit</code>）</td><td>吸收。<span class="rk-ref">spec-write/SKILL.md</span> 步骤 10 只自检 HTML 格式，不检内容</td></tr>
+    <tr><td>Visual Companion 浏览器可视化伴侣</td><td>拒。与 R&amp;K 的 HTML 报告体系无关</td></tr>
+  </tbody>
+</table>
+
+<h2>4. R&amp;K 现状与接收面</h2>
+
+<h3>4.1 强制力三级（决定优先级排序）</h3>
+
+<div class="rk-cal risk">
+  <div class="t">最高优先级事实</div>
+  <p>所有 spec-* skill 都是 <code>disable-model-invocation: true</code>（已逐个 grep 确认：spec-start / write / execute / test / debug / review / end / explore / update / intent-confirmation / exp-reflect），只在角色显式调用时加载。OMP 下唯一每次会话自动进上下文的是 <code>.agents/rules/</code>（本次会话即通过 <code>AGENTS.md</code> 的 <code>@import .agents/rules/</code> 装载）。<strong>只改 Skill 正文不改 rules，运行时行为不会变。</strong></p>
+</div>
+
+<p>但 <code>.agents/rules/spec-workflow.md</code> 当前只有 9 行，且其中两行与双模式直接冲突：</p>
+<ul>
+  <li>第 5 行「实现前必须有已确认的 <code>writer/plan.html</code>」</li>
+  <li>第 7 行「每个关键节点等待用户确认」</li>
+</ul>
+<p>自动驾驶模式在规则层<strong>非法</strong>，必须先把「确认」定义为含「用户确认」与「自门禁通过（带证据）」两义。另注：<code>.claude/rules/</code> 只有 2 个文件而 <code>.agents/rules/</code> 有 5 个，同步时易漏。</p>
+
+<h3>4.2 四个完成声明点</h3>
+
+<table>
+  <thead><tr><th>声明点</th><th>现状</th><th>门禁模式验证者</th></tr></thead>
+  <tbody>
+    <tr><td>门禁 3 <code>executor/summary.html</code></td><td><strong>运行契约对验证零要求</strong>（<span class="rk-ref">spec-execute/SKILL.md:26</span> 的「验证」行只讲「按 plan 实现、用 plan 的命名」）</td><td>用户读报告后点「开始测试」</td></tr>
+    <tr><td>门禁 4 <code>tester/test-report.html</code></td><td>有证据规则且要求自动生成</td><td>用户确认</td></tr>
+    <tr><td>debugger fix</td><td>已不能自判通过，须 tester 复验（这块设计是对的）</td><td>tester 独立复验</td></tr>
+    <tr><td>ender 收尾</td><td>有分支校验，无「本轮重新验证」要求</td><td>用户确认归档</td></tr>
+  </tbody>
+</table>
+
+<p>门禁 3 是唯一裸奔的：既无验证要求，又是用户放行下游的关口。</p>
+
+<h3>4.3 executor 测试禁令的六处分布</h3>
+
+<p>「executor 不写测试」不是一处，是六处；改造必须同时清理，否则规则自相矛盾：</p>
+<ol>
+  <li><span class="rk-ref">spec-execute/SKILL.md:25</span> 运行契约·权限「不写测试」</li>
+  <li><span class="rk-ref">spec-execute/SKILL.md:38-40</span> v2.0 变更说明</li>
+  <li><span class="rk-ref">spec-execute/SKILL.md:143</span> 常见陷阱「在 spec-execute 内直接编写和运行测试」</li>
+  <li><span class="rk-ref">README.md:1067</span>「角色职责清晰：不越权操作（如 spec-executor 不写测试）」</li>
+  <li><span class="rk-ref">spec-init/references/project-agent-roles.md:360</span>「不编写或执行测试」</li>
+  <li><span class="rk-ref">CODEMAP.md:151</span> 角色表</li>
+</ol>
+
+<h3>4.4 reviewer「可选」的八处分布</h3>
+
+<p>若采纳「自动驾驶下 reviewer 强制」，需同步：<span class="rk-ref">README.md:238</span>、<span class="rk-ref">README.md:271</span>、<span class="rk-ref">README.md:306</span>、<span class="rk-ref">README.md:463</span>、<span class="rk-ref">README.md:611</span>（门禁 4 定义）、<span class="rk-ref">CODEMAP.md:173</span>、<span class="rk-ref">CODEMAP.md:328</span>、<span class="rk-ref">spec-start/SKILL.md:51</span>、<span class="rk-ref">spec-start/SKILL.md:361</span>。</p>
+
+<h3>4.5 账本的结构缺口</h3>
+
+<p><span class="rk-ref">spec-start/SKILL.md:222-224</span> 决策记录九列：决策号/阶段/提出者/议题/候选项/结论/<strong>理由</strong>/拍板者/决策时间。</p>
+
+<div class="rk-cal key">
+  <div class="t">有理由，没有依据</div>
+  <p>理由是自然语言，可以被生成；依据必须可追。自动驾驶下这个差别是致命的——没有依据列，就无法事后判断 Agent 的自决是有据的还是编的。</p>
+</div>
+
+<h3>4.6 现有可复用内核（避免新造词汇）</h3>
+
+<table>
+  <thead><tr><th>R&amp;K 已有</th><th>可承载的 Superpowers 概念</th></tr></thead>
+  <tbody>
+    <tr><td>每个 Skill 顶部的「运行契约」六要素（输入/权限/验证/停止/升级）</td><td>三条 Iron Law 翻译进「验证」与「停止」两行，不另起章节</td></tr>
+    <tr><td><code>loop-design</code>「先写刹车，再写循环」，<span class="rk-ref">loop-design/SKILL.md:31</span> 明确「没有停止条件的 loop 不允许产出」</td><td>自动驾驶模式本身就是一个标准 loop；风险路由不必新造三级分类学</td></tr>
+    <tr><td>「修复循环预算」（最大轮数 / 最大无进展轮数，用户确认）</td><td>SDD 的 5 轮上限的等价物，且更好——预算来自用户而非写死</td></tr>
+    <tr><td><span class="rk-ref">spec-test/SKILL.md:31</span>「证据必须由测试运行自动生成，Agent 不得手写、补写或伪造」</td><td>自动驾驶诚实性的物理基础，应从局部原则升格为根规则</td></tr>
+    <tr><td><code>intent-confirmation</code> Step 0 情境交代（Did/Found/Blocked/Need）+ 反问维度表 + R&amp;K 集成表</td><td>brainstorming 的接收面已相当成熟，只需补 HARD-GATE、简单任务反模式、范围分解</td></tr>
+  </tbody>
+</table>
+
+<h3>4.7 尺寸现状（影响吸收方式）</h3>
+
+<p><code>spec-test</code> 28.8KB、<code>spec-init</code> 26.5KB、<code>spec-start</code> 23.8KB、<code>spec-debug</code> 13.4KB。按 3.5 的预算标准均已超标，而本次还要往里加规则。<strong>吸收动作必须伴随拆 <code>references/</code></strong>，否则新规则会被稀释——这正是元测试三分法里的「组织问题」。</p>
+
+<h2>5. GPT r2 方案的事实错误（供 writer 避坑）</h2>
+
+<table>
+  <thead><tr><th>r2 的说法</th><th>核实结果</th></tr></thead>
+  <tbody>
+    <tr><td>「不引入 <code>.superpowers/sdd/</code>」，视其为要拒绝的 SDD 文件体系</td><td>它是按 plan 分目录、git-ignore、最终 review 干净后 <code>rm -rf</code> 的临时工作区，唯一职责是 mid-plan compaction recovery。<strong>恰好是 R&amp;K 账本的对标物</strong>，被当成要拒绝的东西</td></tr>
+    <tr><td>「不新增 Execution Capsule、JSONL Trace」</td><td>仓库中<strong>不存在</strong>这两个概念。拒绝不存在的东西，占了「本次不包含」两条</td></tr>
+    <tr><td>「不改成固定五轮」（指调试）</td><td>5 轮来自每任务 code review 修复循环（R1–3 同一 implementer、R4+ 升级模型），不是调试。调试的数字是 Phase 4.5 的「3 次修复失败」。Skill 与数字全挂错</td></tr>
+    <tr><td>「不把 Plan 写成含完整代码的超细脚本」</td><td><code>writing-plans</code> 明确要求 embedded code、no placeholders，因为 implementer 是零历史 subagent。而 R&amp;K 的 <code>spec-executor</code> 在 OMP 下<strong>同样是 <code>task</code> spawn 的零历史 subagent</strong>（<span class="rk-ref">spec-init/references/project-agent-roles.md:116-117</span>、<span class="rk-ref">:223-236</span>）——同样病因，却把药拒了，同时还要求任务级 TDD</td></tr>
+    <tr><td>「不强制每个任务使用 Fresh Agent」</td><td>答错了题。R&amp;K 本来就是 fresh 角色；真正的差异是 per-task fresh implementer vs per-phase 单 executor</td></tr>
+  </tbody>
+</table>
+
+<h2>6. 对 Spec 创建的建议</h2>
+
+<div class="rk-cal key">
+  <div class="t">建议一：方案按「接收方」组织，不按「七角色」组织</div>
+  <p>映射结果显示同一个 Superpowers skill 常要拆到多个 R&amp;K 接收方（<code>brainstorming</code> → <code>intent-confirmation</code> + <code>spec-write</code>；<code>writing-good-tests</code> → <code>spec-execute</code> + <code>spec-review</code> + <code>coding-style</code>）。按角色组织会把它们打散。</p>
+</div>
+
+<div class="rk-cal key">
+  <div class="t">建议二：纪律层不是「均匀撒在七角色上的一层」</div>
+  <p>正确结构是「一个门禁 = 一个验证器」：门禁模式下人是验证器；自动驾驶下每条纪律替代一个具体门禁。这样才能区分哪些纪律在门禁模式可放宽、哪些是自动驾驶硬底线。</p>
+</div>
+
+<div class="rk-cal key">
+  <div class="t">建议三：优先级按强制力载体排，不按「改动大小」排</div>
+  <p><code>.agents/rules/</code> 必须 P0-1（唯一常驻面 + 当前规则与自动驾驶冲突）；<code>skill-creator</code> 必须早于任何「行为验证」步骤（它是压力测试法的宿主，现在零相关内容）。</p>
+</div>
+
+<p>可复用的现有组件：<code>loop-design</code>（表达自动驾驶 loop）、「修复循环预算」（预算机制）、各 Skill 的「运行契约」表（纪律落点）、<code>spec-test</code> 原则 6（证据自动生成）。</p>
+
+<h2>7. 已知风险与边界情况</h2>
+
+<div class="rk-cal risk">
+  <div class="t">风险 1：规则层非法</div>
+  <p><code>.agents/rules/spec-workflow.md:5,7</code> 要求「实现前必须有已确认 plan」「每个关键节点等待用户确认」。自动驾驶违反现行项目规则。若不先改这条，整个模式在规则层站不住。</p>
+</div>
+
+<div class="rk-cal risk">
+  <div class="t">风险 2：<code>spec-debug</code> 存在自动驾驶死锁</div>
+  <p><span class="rk-ref">spec-debug/SKILL.md:146</span>：预算若为「待确认」，<strong>先停止并请 TeamLead 用 intent-confirmation 确认</strong>。自动驾驶下没有人可确认，此处直接卡死。必须规定自动驾驶取模式档案预设值。</p>
+</div>
+
+<div class="rk-cal risk">
+  <div class="t">风险 3：证据规则与 executor 拿测试所有权冲突</div>
+  <p><span class="rk-ref">spec-test/SKILL.md:31</span> 禁止 Agent 手写证据且要求落 <code>tester/artifacts/</code>。若让 executor 做 TDD 却只在 summary 里用自然语言总结「验证了什么」，正好落进这条禁令。必须给 executor 开 <code>executor/artifacts/</code> 并套同一规则。</p>
+</div>
+
+<div class="rk-cal risk">
+  <div class="t">风险 4：测试质量出现两个 owner</div>
+  <p>若同时让 tester 审 executor 的测试质量、又给 reviewer 加 Test Quality 一栏，会造出职责重叠。另外 reviewer 要判 Test Quality 就得读 tester 产物，而 <span class="rk-ref">spec-review/SKILL.md:15</span> 的输入只有 plan + summary + 代码，运行契约需同步改。</p>
+</div>
+
+<div class="rk-cal warn">
+  <div class="t">需 spec-tester 特别覆盖的边界</div>
+  <p>本次 Spec 按决策 D-005 只产出设计方案，不进入测试阶段。但方案的验收关注点必须是<strong>可机械判定</strong>的，不能写成「Agent 是否遵守」这类不可证伪的表述。建议两条：①扫账本决策记录，每行「依据」列必须匹配三种合法形式之一；②<code>executor/artifacts/</code> 存在测试运行自动产出的 RED（含失败断言原文）与 GREEN（含退出码），且 summary 引用的命令与文件内容一致。</p>
+</div>
+
+<div class="rk-cal warn">
+  <div class="t">三处既存漂移（方案应列为待修项）</div>
+  <p>①分类目录名两套并存（<span class="rk-ref">spec-write/SKILL.md:47-52</span> vs 仓库实际）；②<code>main</code> 写死于 <span class="rk-ref">spec-start/SKILL.md</span> 步骤 2 与 <span class="rk-ref">spec-end/SKILL.md:138</span>，而仓库主分支是 <code>master</code>；③<code>.agents/roles/</code> 完全缺失，spec-start 前置检查无法通过。</p>
+</div>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="https://github.com/obra/superpowers" data-rk-link="source">Superpowers 官方仓库</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a>（待创建）</li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../writer/plan.html" data-rk-backlink="plan">设计方案</a>（待创建）</li>
+</ul>
+
+</body>
+</html>

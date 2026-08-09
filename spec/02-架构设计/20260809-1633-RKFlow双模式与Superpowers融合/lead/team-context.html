@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>运行账本 - spec-20260809-1633-RKFlow双模式融合</title>
+
+<!-- frontmatter 双轨：机器可读。账本按 D-012 豁免修订标记，故无 rk:revision -->
+<meta name="rk:type"        content="team-context">
+<meta name="rk:spec-dir"    content="spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合">
+<meta name="rk:role"        content="TeamLead">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:status"      content="running">
+<meta name="rk:phase"       content="testing">
+<meta name="rk:runtime"     content="omp">
+<meta name="rk:team-name"   content="spec-20260809-1633-RKFlow双模式融合">
+<meta name="rk:created"     content="2026-08-09T16:33:00+08:00">
+<meta name="rk:updated"     content="2026-08-09T20:10:00+08:00">
+<meta name="rk:git-branch"  content="docs/spec-20260809-rk-flow-dual-mode-superpowers">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,team-context,ledger">
+
+<link rel="rk-exploration" href="../explorer/exploration-report.html">
+<link rel="rk-plan"        href="../writer/plan.html">
+
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>团队运行账本</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> team-context</span>
+    <span><b>模式</b> gated</span>
+    <span><b>Spec</b> <code>spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合</code></span>
+    <span><b>团队</b> spec-20260809-1633-RKFlow双模式融合</span>
+    <span><b>状态</b> running</span>
+    <span><b>阶段</b> testing</span>
+    <span><b>运行时</b> omp</span>
+    <span><b>分支</b> <code>docs/spec-20260809-rk-flow-dual-mode-superpowers</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-08-09T16:33:00+08:00</span>
+    <span><b>更新</b> 2026-08-09T20:10:00+08:00</span>
+  </div>
+</header>
+<nav class="rk-toc"></nav>
+
+
+<div class="rk-cal key">
+  <div class="t">本文件是运行账本，不是报告</div>
+  <p>按决策 <code>D-012</code> <strong>豁免修订标记</strong>：账本是高频追写的运行流水，不是定稿后修订的报告，强制 <code>data-rev</code> 会让它膨胀。追写时直接改表格、不留 <code>ins</code>/<code>del</code> 痕迹。</p>
+</div>
+
+<p><strong>任务</strong>：R&K Flow 引入门禁/自动驾驶双运行模式，并按接收方吸收 Superpowers 行为纪律</p>
+
+<h2>当前运行路径</h2>
+<table>
+  <thead><tr><th>步骤</th><th>阶段</th><th>负责角色</th><th>动作</th><th>状态</th><th>产物</th><th>门禁</th><th>更新时间</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>intent</td><td>TeamLead</td><td>需求对齐（理解转述 → 反问梳理 → 收敛确认）</td><td>done</td><td>lead/team-context.md</td><td>gate-1</td><td>2026-08-09T16:33:00+08:00</td></tr>
+    <tr><td>2</td><td>intent</td><td>TeamLead</td><td>创建 Spec 工作分支（base=master）</td><td>done</td><td>—</td><td>—</td><td>2026-08-09T16:33:00+08:00</td></tr>
+    <tr><td>3</td><td>exploration</td><td>spec-explorer</td><td>探索 Superpowers 全量内容 + R&amp;K 接收面</td><td>done</td><td>explorer/exploration-report.html</td><td>—</td><td>2026-08-09T17:10:00+08:00</td></tr>
+    <tr><td>4</td><td>spec-writing</td><td>spec-writer</td><td>撰写设计方案</td><td>done</td><td>writer/plan.html</td><td>gate-2</td><td>2026-08-09T18:05:00+08:00</td></tr>
+    <tr><td>5</td><td>spec-writing</td><td>TeamLead</td><td>发起门禁 2 用户确认</td><td>done</td><td>—</td><td>gate-2</td><td>2026-08-09T18:15:00+08:00</td></tr>
+    <tr><td>6</td><td>implementation</td><td>spec-executor</td><td>P0-1 常驻规则层（.agents/rules/ + .claude/ 镜像）</td><td>done</td><td>.agents/rules/spec-workflow.md</td><td>—</td><td>2026-08-09T18:30:00+08:00</td></tr>
+    <tr><td>7</td><td>implementation</td><td>spec-executor</td><td>P0-2 账本模板（mode/依据列/判定方式/角色句柄三列）</td><td>done</td><td>spec-start/SKILL.md</td><td>—</td><td>2026-08-09T18:40:00+08:00</td></tr>
+    <tr><td>8</td><td>implementation</td><td>spec-executor</td><td>P0-3~P0-5 六 Skill 模式化 + executor 测试所有权</td><td>done</td><td>spec-execute/SKILL.md 等</td><td>—</td><td>2026-08-09T19:00:00+08:00</td></tr>
+    <tr><td>9</td><td>implementation</td><td>spec-executor</td><td>P1-1~P1-6 debug/review/write/skill-creator/update</td><td>done</td><td>各 SKILL.md + 6 个 references</td><td>—</td><td>2026-08-09T19:15:00+08:00</td></tr>
+    <tr><td>10</td><td>implementation</td><td>spec-executor</td><td>P2 账本格式放开 + 导航树实现 + 路径修正</td><td>done</td><td>rk-report.js、rk-report.css、15 个模板</td><td>—</td><td>2026-08-09T19:30:00+08:00</td></tr>
+    <tr><td>11</td><td>testing</td><td>spec-tester</td><td>P3-1 行为验证：三条 Iron Law 压力测试（基线 → 加规则 → 封堵后回归）</td><td>done</td><td>tester/artifacts/pressure-tests/run-2026-08-09/</td><td>—</td><td>2026-08-09T20:10:00+08:00</td></tr>
+  </tbody>
+</table>
+<div class="rk-cal warn">
+  <p>本次为单 Agent 串行执行模式（用户决策 D-002）：无角色 spawn，由当前 Agent 按七角色协议依次承担职责。</p>
+</div>
+<h2>任务进度</h2>
+<div class="rk-cal warn">
+  <p>共享维护区：各角色只追加或更新自己负责的任务行。</p>
+</div>
+<table>
+  <thead><tr><th>任务号</th><th>负责角色</th><th>任务</th><th>状态</th><th>产物</th><th>完成时间</th><th>更新者</th></tr></thead>
+  <tbody>
+    <tr><td>T-001</td><td>TeamLead</td><td>需求对齐与前置检查</td><td>done</td><td>lead/team-context.md</td><td>2026-08-09T16:33:00+08:00</td><td>TeamLead</td></tr>
+    <tr><td>T-002</td><td>spec-explorer</td><td>探索 Superpowers 14 skill + R&amp;K 接收面</td><td>done</td><td>explorer/exploration-report.html</td><td>2026-08-09T17:10:00+08:00</td><td>spec-explorer</td></tr>
+    <tr><td>T-003</td><td>spec-writer</td><td>撰写双模式融合设计方案</td><td>done</td><td>writer/plan.html</td><td>2026-08-09T18:05:00+08:00</td><td>spec-writer</td></tr>
+  </tbody>
+</table>
+<h2>问题闭环记录</h2>
+<div class="rk-cal warn">
+  <p>共享维护区：发现或解决问题的角色只追加或更新自己相关的问题行。<br>
+不只记 bug，任何影响推进的过程性问题都记：「分类」取 <code>bug</code> | <code>blocker</code> | <code>process</code> | <code>env</code> | <code>dependency</code> | <code>scope</code>。</p>
+</div>
+<table>
+  <thead><tr><th>问题号</th><th>分类</th><th>发现者</th><th>负责角色</th><th>问题</th><th>解决方案</th><th>关联产物</th><th>状态</th><th>更新者</th></tr></thead>
+  <tbody>
+    <tr><td>I-001</td><td>dependency</td><td>TeamLead</td><td>TeamLead</td><td><code>.agents/roles/</code> 不存在，7 个项目级角色定义缺失，不满足 spec-start 前置检查</td><td>本次按用户决策 D-002 走单 Agent 串行执行；补齐角色定义列为方案的待修项</td><td>lead/team-context.md</td><td>open</td><td>TeamLead</td></tr>
+    <tr><td>I-002</td><td>process</td><td>TeamLead</td><td>TeamLead</td><td>主分支实际名为 <code>master</code>，但 spec-start 步骤 2 与 spec-end 步骤 7 写死 <code>main</code></td><td>本次 base 分支用 <code>master</code>（决策 D-003）；「main 写死」列为方案待修项</td><td>lead/team-context.md</td><td>open</td><td>TeamLead</td></tr>
+    <tr><td>I-003</td><td>process</td><td>TeamLead</td><td>spec-writer</td><td>分类目录名两套并存：spec-write 规定 <code>01-产品规划/02-技术设计/03-能力交付/04-系统改进/05-验证工程</code>，仓库实际为 <code>01-项目规划/02-架构设计/03-功能实现/04-问题修复/05-测试文档</code></td><td>本次落仓库实际的 <code>02-架构设计</code>（决策 D-004）；目录名漂移列为方案待修项</td><td>lead/team-context.md</td><td>open</td><td>TeamLead</td></tr>
+    <tr><td>I-004</td><td>scope</td><td>TeamLead</td><td>spec-writer</td><td>待审的 GPT r2 方案存在多处与 Superpowers 仓库不符的事实陈述（拒绝了不存在的 Execution Capsule / JSONL Trace；把 SDD 工作区误认为要拒绝的文件体系；5 轮修复上限挂错到调试）</td><td>本次方案基于实际仓库重写，并在方案中列明被纠正的事实</td><td>writer/plan.html</td><td>open</td><td>TeamLead</td></tr>
+    <tr><td>I-005</td><td>process</td><td>spec-writer</td><td>spec-writer</td><td><code>html-report/SKILL.md:38</code> 规定账本保持 Markdown 的理由是「被 hook 同步脚本解析」，但 hook 机制已在 v2.6.0 整套移除（<code>README.md:1196</code>），该理由已失效</td><td>账本改 HTML 无需推翻原设计，只需同步删除失效理由；<code>:54</code>、<code>:130</code> 两处 hook 表述一并清理</td><td>writer/plan.html</td><td>open</td><td>spec-writer</td></tr>
+    <tr><td>I-006</td><td>bug</td><td>spec-writer</td><td>spec-writer</td><td>账本相对路径错误：<code>plan-template.html:28</code> 与 <code>html-report/SKILL.md:67</code> 都写 <code>../../lead/team-context.md</code>，但从角色目录 <code>../..</code> 是分类目录，正确应为 <code>../lead/</code></td><td>本报告使用正确路径 <code>../lead/</code>；模板与契约的路径错误列为方案待修项（P2-3）</td><td>writer/plan.html</td><td>open</td><td>spec-writer</td></tr>
+    <tr><td>I-007</td><td>env</td><td>spec-writer</td><td>spec-writer</td><td>导航树无法用 <code>fetch</code> 探测同级文件：<code>file://</code> 下浏览器安全策略直接拒绝 fetch，已存在的 <code>exploration-report.html</code> 也返回 <code>Failed to fetch</code>（本地实测确认）</td><td>改用 <code>rk-manifest.js</code> + <code>&lt;script src&gt;</code> 声明式清单，实测在 <code>file://</code> 下正常加载；方案 6.1 节记录</td><td>writer/plan.html</td><td>resolved</td><td>spec-writer</td></tr>
+    <tr><td>I-008</td><td>scope</td><td>spec-writer</td><td>spec-writer</td><td>GPT r2 方案自述「只写 README 就只剩口号」为最高风险，却把唯一常驻加载的 <code>.agents/rules/</code> 排在最低优先级档 —— 自相矛盾</td><td>本方案实施顺序按「强制力载体」排序，<code>.agents/rules/</code> 定为 P0-1 必须最先</td><td>writer/plan.html</td><td>resolved</td><td>spec-writer</td></tr>
+    <tr><td>I-009</td><td>process</td><td>spec-executor</td><td>spec-executor</td><td><code>.claude/rules/</code> 镜像严重漂移：只有 2 个文件（<code>.agents/rules/</code> 有 5 个），且 <code>spec-workflow.md</code> 还写着 <code>plan.md</code>（早已改为 <code>plan.html</code>）、<code>execution_mode 固定为 single-agent</code>（与多模式矛盾）、<code>coding-style.md</code> 仍引用 Obsidian（v2.7.0 已移除）</td><td>以 <code>.agents/rules/</code> 为准同步全部 5 个文件，逐一 <code>cmp</code> 校验一致</td><td>.claude/rules/</td><td>resolved</td><td>spec-executor</td></tr>
+    <tr><td>I-010</td><td>bug</td><td>spec-executor</td><td>spec-executor</td><td>账本相对路径错误扩散范围远超预估：不是 2 处而是 <strong>40 处</strong>，横跨 13 个文件（含全部 6 个报告模板）</td><td>脚本批量改为 <code>../lead/</code>；同时验证跨 Spec 引用 <code>../../{分类目录}/</code> 与记忆库 <code>../../../context/</code> 未被误伤</td><td>13 个文件</td><td>resolved</td><td>spec-executor</td></tr>
+    <tr><td>I-011</td><td>bug</td><td>spec-executor</td><td>spec-executor</td><td>「账本必须保持 Markdown」的论断散布 9 个文件，其中 <code>.agents/rules/documentation.md</code>（常驻层，优先级最高）与 <code>spec-start</code>（账本的创建者）会直接否决 D-012——不改则 HTML 账本永远不会被创建</td><td>九处统一改为「<code>.md</code> / <code>.html</code> 皆可，HTML 时豁免修订标记」；记忆库保持 Markdown 不变</td><td>.agents/rules/documentation.md 等</td><td>resolved</td><td>spec-executor</td></tr>
+    <tr><td>I-012</td><td>bug</td><td>spec-executor</td><td>spec-executor</td><td>导航树是死功能：<code>html-report/SKILL.md</code> 写了完整契约，但 <code>rk-report.js</code> 只有 66 行修订逻辑、无任何 nav 渲染代码；且 15 个报告模板全部缺 <code>&lt;script src="../rk-manifest.js"&gt;</code> 与 <code>&lt;nav class="rk-nav"&gt;</code> 挂载点</td><td>实现 <code>renderNav()</code>（读 <code>RK_SPEC_TREE</code> → 按 role 分组 → 建树 → 比对路径高亮）；脚本批量给 9 个模板文件接线；<code>spec-start</code> 加 manifest 脚手架与「登记产物即追加条目」规则</td><td>rk-report.js、15 个模板</td><td>resolved</td><td>spec-executor</td></tr>
+    <tr><td>I-013</td><td>process</td><td>spec-executor</td><td>spec-executor</td><td><code>git-work/reference.md:43</code> 与 <code>SKILL.md:102</code> 都把「读远程默认分支」写成 <code>main</code> 不存在时的回退路径，即把回退当主路径</td><td>改为始终先读 <code>git symbolic-ref refs/remotes/origin/HEAD</code>，仅命令失败才退回当前分支；实跑确认本仓库返回 <code>master</code></td><td>git-work/ 三个文件</td><td>resolved</td><td>spec-executor</td></tr>
+    <tr><td>I-014</td><td>bug</td><td>spec-tester</td><td>spec-executor</td><td>压力测试发现「测试先行」被<strong>规避</strong>（三分法最危险的一类）：加规则后模型不再直说「不写测试」，改为「把偏离登记进账本 + 照样往下写」——它用「依据：用户原话」满足了我自己定的依据三形式，从而自认合规。等于把 Iron Law 降级成可登记的偏离项</td><td>在 <code>.agents/rules/spec-workflow.md</code> 三条 Iron Law 后补三段封堵：①不因用户授权失效（「我担责」「就这一次」是压力不是授权）②登记进账本不等于合规（依据列不是破例开票）③唯一跳过路径=降级门禁模式+用户明确同意+此后禁用「已验证」字样。封堵后同场景重跑两次均为遵守</td><td>tester/artifacts/pressure-tests/run-2026-08-09/</td><td>resolved</td><td>spec-tester</td></tr>
+  </tbody>
+</table>
+<h2>决策记录</h2>
+<div class="rk-cal warn">
+  <p>共享维护区：任何角色遇到需要用户或角色拍板的岔路口，落一行。记录当时给了哪些选项、<br>
+选了什么、为什么、谁拍的板。被否决的选项不要删，它是复盘的关键上下文。<br>
+与「门禁决策」的区别：门禁决策只记阶段门禁通过/驳回；决策记录记每一个实质取舍及其理由。</p>
+</div>
+<table>
+  <thead><tr><th>决策号</th><th>阶段</th><th>提出者</th><th>议题</th><th>候选项</th><th>结论</th><th>理由</th><th>拍板者</th><th>决策时间</th><th>依据</th></tr></thead>
+  <tbody>
+    <tr><td>D-001</td><td>intent</td><td>TeamLead</td><td>融合层级</td><td>A 完整移植 Superpowers 架构 / B 行为层融合 / C 只在 README 写原则</td><td>B 行为层融合</td><td>保留 R&amp;K 的项目治理与人类可读产物，只吸收工程执行纪律；A 与 R&amp;K 重复且削弱阅读体验，C 无强制力只剩口号</td><td>user</td><td>2026-08-09T16:20:00+08:00</td><td>用户原话「结合你对 OMP 与 Superpowers 的实际理解，重写为贴近 R&amp;K Flow 真实仓库现状的方案」</td></tr>
+    <tr><td>D-002</td><td>intent</td><td>TeamLead</td><td>缺失的 7 个项目级角色定义如何处理</td><td>A 先按 spec-init 源文本补齐 .agents/roles/ / B 本次跳过，单 Agent 串行执行 / C 补齐并同时创建 .omp/agents/</td><td>B 单 Agent 串行执行</td><td>本次 Spec 只产出设计方案不改实现，串行足够；spec-start 明确允许无团队能力时由当前 Agent 按同一角色协议串行执行</td><td>user</td><td>2026-08-09T16:30:00+08:00</td><td><code>.agents/roles/</code>、<code>.omp/agents/</code>、<code>.claude/agents/</code> 三处均不存在（glob 确认）；<code>spec-start/SKILL.md</code> 允许串行降级</td></tr>
+    <tr><td>D-003</td><td>intent</td><td>TeamLead</td><td>base 分支用哪个</td><td>A 用 master（仓库现状）/ B 先把 master 改名为 main / C 用 master 但不写进方案待修项</td><td>A 用 master，并把「main 写死」列为方案待修项</td><td>尊重仓库现状，避免高风险的远端默认分支变更；同时不放过 skill 与现实不符这个真实缺陷</td><td>user</td><td>2026-08-09T16:30:00+08:00</td><td><code>git branch</code> 显示主分支为 <code>master</code>；<code>spec-start/SKILL.md</code> 步骤 2 与 <code>spec-end/SKILL.md:138</code> 写死 <code>main</code></td></tr>
+    <tr><td>D-004</td><td>intent</td><td>TeamLead</td><td>本次 Spec 落哪个分类目录</td><td>A 落 02-架构设计（仓库实际）/ B 新建 02-技术设计（spec-write 规定）</td><td>A 落 02-架构设计</td><td>不新增并行分类目录以免加重漂移；目录名不一致作为方案待修项处理</td><td>user</td><td>2026-08-09T16:30:00+08:00</td><td>仓库 <code>spec/</code> 下实际存在 <code>02-架构设计</code>；<code>spec-write/SKILL.md:47-52</code> 规定 <code>02-技术设计</code></td></tr>
+    <tr><td>D-005</td><td>intent</td><td>TeamLead</td><td>本次 Spec 产出范围</td><td>A 只产出 writer/plan.html / B 方案 + 立即实施 P0 / C 方案 + 全部实施 + 压力测试验证</td><td>A 只产出设计方案</td><td>改造面覆盖 11 个 Skill 与 rules，需逐个验证；先定方案再分批实施，降低一次性大改的漂移风险</td><td>user</td><td>2026-08-09T16:30:00+08:00</td><td>用户确认只评审并重写方案，不动 Skill 实现</td></tr>
+    <tr><td>D-006</td><td>intent</td><td>TeamLead</td><td>双运行模式的语义</td><td>A 快慢开关（自动驾驶=少确认）/ B 换验证器（人退出的每个门禁都要有机械纪律补位）</td><td>B 换验证器</td><td>「少确认」会让质量随模式下降；「换验证器」使每条吸收来的纪律都有精确落点，且能区分哪些在门禁模式下可放宽、哪些是自动驾驶硬底线</td><td>user</td><td>2026-08-09T16:20:00+08:00</td><td>用户原话「自动驾驶模式下问题与决策必须完整落账本且必须有可追的决策依据」</td></tr>
+    <tr><td>D-007</td><td>intent</td><td>TeamLead</td><td>自动驾驶下「决策依据」的形式要求</td><td>A 自然语言理由即可 / B 只接受三种可机械校验形式（文件路径+行号 / 命令+退出码+输出位置 / 用户原话引用）</td><td>B 三种形式</td><td>理由可以被生成，依据必须可追。可机械校验才能事后判断自动驾驶是否诚实</td><td>user</td><td>2026-08-09T16:20:00+08:00</td><td>现行决策记录九列有「理由」无「依据」（<code>spec-start/SKILL.md:222-224</code>）</td></tr>
+    <tr><td>D-008</td><td>spec-writing</td><td>spec-writer</td><td>纪律承载方式</td><td>A 把 Iron Law 正文迁进各 SKILL.md / B 三层承载（rules 常驻 + 运行契约触发条件 + references 细则）</td><td>B 三层承载</td><td>迁正文会让已超标的 SKILL.md 进一步膨胀并稀释新规则；上游自身就是这个分法</td><td>user</td><td>2026-08-09T17:40:00+08:00</td><td><code>spec-test</code> 28.8KB / <code>spec-init</code> 26.5KB / <code>spec-start</code> 23.8KB 均超 <code>writing-skills</code> 的 500 行预算；上游 <code>systematic-debugging/</code> 把 Iron Law 留 SKILL.md 而 <code>root-cause-tracing.md</code> 等三文件独立</td></tr>
+    <tr><td>D-009</td><td>spec-writing</td><td>spec-writer</td><td>Iron Law 是否也下沉 references</td><td>A 一并下沉 / B 留在常驻 rules</td><td>B 留常驻</td><td>下沉等于让被约束者自己决定是否加载约束自己的规则，正是 <code>using-superpowers</code> Red Flags 表针对的失败模式；R&amp;K 角色都是零历史 subagent</td><td>user</td><td>2026-08-09T17:40:00+08:00</td><td>所有 spec-* 均含 <code>disable-model-invocation: true</code>；<code>.agents/rules/</code> 经 AGENTS.md @import 每次会话自动加载</td></tr>
+    <tr><td>D-010</td><td>spec-writing</td><td>spec-writer</td><td><code>receiving-code-review</code> 那套放哪（原 B-003）</td><td>A 放 <code>.agents/rules/</code> / B 新建独立 skill</td><td>A 放 rules</td><td>它约束的是任何角色收到任何审查意见时的行为，不是有始有终的流程；做成 skill 则收到批评的那一刻不会被加载</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:00:00+08:00</td><td>方案 3.2.3 节；<code>.agents/rules/spec-workflow.md</code> 当前仅约 9 行，有容量</td></tr>
+    <tr><td>D-011</td><td>spec-writing</td><td>spec-writer</td><td><code>task.agentIdleTtlMs</code> 取值</td><td>A 保持默认 420000ms / B 设 0 永不 park / C 调至 30 分钟</td><td>A 保持默认</td><td>park 无损（消息即自动复活，本次实测确认）；设 0 会把 7 个角色 session 长钉内存</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:00:00+08:00</td><td>向 40 分钟前 parked 的 <code>TddAndTests</code> 发 hub send 并禁止重读文件，其准确复述初始任务与结论，hub 返回 <code>revived</code></td></tr>
+    <tr><td>D-012</td><td>spec-writing</td><td>user</td><td>账本 HTML 化是否套修订标记</td><td>A 与报告同规格含 data-rev / B 改 HTML 但豁免修订标记 / C 保持 Markdown</td><td>B 改 HTML 豁免修订标记</td><td>账本是高频追写的运行流水而非定稿后修订的报告，强制 data-rev 会使其膨胀；但需复用样式与导航树</td><td>user</td><td>2026-08-09T17:55:00+08:00</td><td>用户原话「账本改 HTML，但不用修订标记」；且 <code>html-report/SKILL.md:38</code> 要求 Markdown 的 hook 理由已失效（见 I-005）</td></tr>
+    <tr><td>D-013</td><td>spec-writing</td><td>spec-writer</td><td>导航树实现方式</td><td>A JS 运行时 fetch 探测 / B 各报告静态内嵌树 / C 生成 index.html 入口页 / D <code>rk-manifest.js</code> 声明式清单</td><td>D manifest + <code>&lt;script src&gt;</code></td><td>用户倾向 A 的免维护，但 A 在 <code>file://</code> 下渲染空树（实测）；D 同时满足免维护与离线可读</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:00:00+08:00</td><td>实测：<code>file://</code> 下 fetch 已存在的 <code>exploration-report.html</code> 返回 <code>Failed to fetch</code>；同环境 <code>&lt;script src="../rk-manifest.js"&gt;</code> 成功加载并输出 docs=3</td></tr>
+    <tr><td>D-014</td><td>spec-writing</td><td>spec-writer</td><td>分类目录名以哪套为准（原 I-003 处置）</td><td>A 以仓库实际为准改 spec-write / B 以 spec-write 为准重命名目录</td><td>A 改 spec-write 向仓库对齐</td><td>重命名目录会让已归档 Spec 的引用路径全部失效</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:00:00+08:00</td><td>仓库实际为 <code>01-项目规划/02-架构设计/03-功能实现/04-问题修复/05-测试文档</code>，与 <code>spec-write/SKILL.md:47-52</code> 不一致</td></tr>
+    <tr><td>D-015</td><td>spec-writing</td><td>spec-writer</td><td>自动驾驶默认档位是否允许 push 与建 PR（原 B-001）</td><td>A 允许 push + 建 PR / B 只允许本地提交 / C 连提交也要确认</td><td>A 允许 push 工作分支 + 建 PR，禁止合并/force/碰 master</td><td>push 到工作分支与建 PR 都可逆且可关闭，PR 本身就是给人审的入口；合并与 force 不可逆故留永远门禁</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:10:00+08:00</td><td>方案 3.3.1 永远门禁清单按可逆性划定；<code>git-work/SKILL.md</code> 现有分支隔离机制</td></tr>
+    <tr><td>D-016</td><td>spec-writing</td><td>spec-writer</td><td>模式粒度（原 B-002）</td><td>A 两个命名模式 + 不可关闭的永远门禁清单 / B 逐门禁开关矩阵</td><td>A 两个命名模式</td><td>开关矩阵会长成配置地狱，且每个组合都需单独验证；两模式 + 清单已覆盖实际需求</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:10:00+08:00</td><td>方案 3.3 门禁—验证器映射表共 7 个门禁，逐个开关将产生 2^7 组合</td></tr>
+    <tr><td>D-017</td><td>spec-writing</td><td>spec-writer</td><td><code>rk-manifest.js</code> 维护主体</td><td>A 每次生成报告的角色自行更新 / B 由 TeamLead 统一更新</td><td>B TeamLead 统一更新</td><td>避免多角色并发编辑同一 manifest 产生冲突</td><td>spec-writer（待用户确认）</td><td>2026-08-09T18:10:00+08:00</td><td>方案 6.1 节；R&amp;K 现有「TeamLead 维护控制面」边界（<code>README.md</code> 共享维护边界）</td></tr>
+    <tr><td>D-018</td><td>testing</td><td>spec-tester</td><td>「根因优先」这条 Iron Law 是否保留</td><td>A 删除（基线已自发做对，按压力测试法第 2 条应删）/ B 保留但重定位价值</td><td>B 保留并重定位为「统一验证手段」</td><td>基线确实自发拒绝了直接改码，所以它对「是否往上游追」无增量；但加规则后出现了基线没有的动作——把 tester 场景固化成失败测试先跑红。增量在验证手段的一致性，不在防止直接改码</td><td>spec-tester</td><td>2026-08-09T20:05:00+08:00</td><td>基线输出「我先不改那一行…往上追 user 这个 prop 的来源」vs 加规则后「把 tester 的场景固化成一个失败测试，跑一次看它红」，见 tester/artifacts/pressure-tests/run-2026-08-09/iron-law-pressure-test.md</td></tr>
+  </tbody>
+</table>
+<h2>角色运行句柄</h2>
+<table>
+  <thead><tr><th>角色 id</th><th>适配层</th><th>运行时角色名</th><th>agent_id</th><th>thread_id</th><th>session_id</th><th>状态</th><th>续接方式</th><th>累计参与 Spec 数</th><th>最近产物</th><th>更新时间</th></tr></thead>
+  <tbody>
+    <tr><td>—</td><td>单 Agent 串行</td><td>当前 Agent 兼任七角色</td><td>—</td><td>—</td><td>—</td><td>running</td><td>n/a</td><td>1</td><td>lead/team-context.md</td><td>2026-08-09T19:30:00+08:00</td></tr>
+  </tbody>
+</table>
+<div class="rk-cal warn">
+  <p>按决策 D-002，本次不 spawn 角色线程；<code>.agents/roles/</code> 缺失见 I-001。<br>
+本次顺带实测了角色持久化机制（支撑方案 3.4 与 D-011）：向本会话中 40 分钟前跑完、已处于 <code>parked</code> 的 librarian subagent 发 <code>hub send</code>，明确要求「只凭记忆回答、不许重读文件」，其准确复述了初始任务要求与自身结论，<code>hub</code> 返回 <code>revived</code>。结论：<code>parked</code> 状态完整保留上下文，续接可行；能力早已存在，缺的是 R&amp;K 侧协议。</p>
+</div>
+<h2>产物注册表</h2>
+<table>
+  <thead><tr><th>产物</th><th>负责角色</th><th>状态</th><th>已确认</th><th>更新时间</th></tr></thead>
+  <tbody>
+    <tr><td>lead/team-context.md</td><td>TeamLead</td><td>done</td><td>n/a</td><td>2026-08-09T16:33:00+08:00</td></tr>
+    <tr><td>explorer/exploration-report.html</td><td>spec-explorer</td><td>done</td><td>no</td><td>2026-08-09T17:10:00+08:00</td></tr>
+    <tr><td>writer/plan.html</td><td>spec-writer</td><td>done</td><td>no</td><td>2026-08-09T18:05:00+08:00</td></tr>
+    <tr><td>rk-manifest.js</td><td>TeamLead</td><td>done</td><td>n/a</td><td>2026-08-09T19:30:00+08:00</td></tr>
+    <tr><td>tester/artifacts/pressure-tests/run-2026-08-09/iron-law-pressure-test.md</td><td>spec-tester</td><td>done</td><td>n/a</td><td>2026-08-09T20:10:00+08:00</td></tr>
+  </tbody>
+</table>
+<h2>门禁决策</h2>
+<table>
+  <thead><tr><th>门禁</th><th>确认对象</th><th>决策</th><th>判定方式</th><th>决策时间</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td>gate-1</td><td>需求对齐</td><td>passed</td><td>user</td><td>2026-08-09T16:30:00+08:00</td><td>用户确认角色处理方式、base 分支、产出范围、分类目录四项（D-002~D-005）</td></tr>
+    <tr><td>gate-2</td><td>writer/plan.html</td><td>passed</td><td>user</td><td>2026-08-09T18:15:00+08:00</td><td>用户选择「通过，按推荐结论实施」；7.2 节 7 项决策（D-010、D-011、D-013~D-017）推荐结论全部生效</td></tr>
+  </tbody>
+</table>
+<h2>角色交接</h2>
+<table>
+  <thead><tr><th>来源角色</th><th>接收角色</th><th>交接原因</th><th>产物</th><th>状态</th><th>更新时间</th></tr></thead>
+  <tbody>
+    <tr><td>TeamLead</td><td>spec-explorer</td><td>需求已对齐，进入阶段二探索</td><td>lead/team-context.md</td><td>done</td><td>2026-08-09T16:33:00+08:00</td></tr>
+    <tr><td>spec-explorer</td><td>spec-writer</td><td>探索完成，进入方案撰写</td><td>explorer/exploration-report.html</td><td>done</td><td>2026-08-09T17:10:00+08:00</td></tr>
+    <tr><td>spec-writer</td><td>TeamLead</td><td>方案定稿，交回 TeamLead 发起门禁 2</td><td>writer/plan.html</td><td>done</td><td>2026-08-09T18:05:00+08:00</td></tr>
+  </tbody>
+</table>
+<h2>修复循环预算</h2>
+<div class="rk-cal warn">
+  <p>修复循环（spec-tester ↔ spec-debugger）的运行预算。值不写死在 Skill 中，<br>
+由 TeamLead 在进入阶段四修复循环前用 intent-confirmation 与用户确认后填入。<br>
+只跟踪两个上限：最大轮数、最大无进展轮数。</p>
+</div>
+<table>
+  <thead><tr><th>循环</th><th>最大轮数</th><th>最大无进展轮数</th><th>已用轮数</th><th>连续无进展</th><th>状态</th><th>用户已确认</th><th>更新时间</th></tr></thead>
+  <tbody>
+    <tr><td>test-debug</td><td>不适用</td><td>不适用</td><td>0</td><td>0</td><td>not-started</td><td>n/a</td><td>2026-08-09T16:33:00+08:00</td></tr>
+  </tbody>
+</table>
+<div class="rk-cal warn">
+  <p>按决策 D-005，本次 Spec 只产出设计方案，不进入实现与测试阶段，故不涉及修复循环。</p>
+</div>
+<h2>开放问题与阻塞</h2>
+<table>
+  <thead><tr><th>编号</th><th>负责角色</th><th>问题或阻塞</th><th>状态</th><th>解决情况</th></tr></thead>
+  <tbody>
+    <tr><td>B-001</td><td>spec-writer</td><td>自动驾驶默认档位是否允许 push + 建 PR</td><td>resolved</td><td>已登记为 D-015（方案 7.2 节）：允许 push 工作分支 + 建 PR，禁止合并/force/碰 master</td></tr>
+    <tr><td>B-002</td><td>spec-writer</td><td>模式粒度：两个命名模式 + 不可关闭清单，还是逐门禁开关矩阵</td><td>resolved</td><td>已登记为 D-016（方案 7.2 节）：两个命名模式 + 永远门禁清单</td></tr>
+    <tr><td>B-003</td><td>spec-writer</td><td>receiving-code-review 那套放 <code>.agents/rules/</code> 还是新建 skill</td><td>resolved</td><td>已登记为 D-010（方案 3.2.3 + 7.2 节）：放 rules</td></tr>
+    <tr><td>B-004</td><td>TeamLead</td><td>方案 7.2 节 7 项决策（D-010、D-011、D-013~D-017）需用户拍板才能进入实施阶段</td><td>resolved</td><td>门禁 2 通过时用户选择「按推荐结论实施」，7 项推荐结论全部生效</td></tr>
+    <tr><td>B-005</td><td>spec-writer</td><td>编号空间冲突：plan §7 曾把 push/PR 与模式粒度写作 D-008/D-009，与账本已拍板的「纪律承载方式」「Iron Law 下沉」撞号</td><td>resolved</td><td>保留账本已拍板编号不动（有真实拍板时间，改号会破坏历史），改 plan §7 向账本对齐并拆为 7.1 已拍板 / 7.2 待拍板；push/PR 与模式粒度另取 D-015/D-016</td></tr>
+  </tbody>
+</table>
+<h2>下一步动作</h2>
+<p>实施已完成 P0-1 → P3-1 全部批次，含用户附加的账本格式放开与导航树，以及三条 Iron Law 的行为验证。剩余：</p>
+<ul>
+  <li><strong>账本 HTML 化的实际迁移</strong>：格式约束已在九处放开、CSS 与渲染已就绪，但本 Spec 账本仍是 <code>.md</code>。迁移属可选——需要时按 <code>html-report</code> 契约转换并更新 <code>rk-manifest.js</code> 的 <code>path</code>。</li>
+  <li><strong>既存漂移待修</strong>：<code>.agents/roles/</code> 仍缺失（I-001）；分类目录名两套并存（I-003 / D-014 已定方向为改 <code>spec-write</code> 向仓库对齐，尚未执行）。</li>
+  <li>收尾走 <code>spec-end</code>：<code>exp-reflect</code> 沉淀经验 + 规范维护审查 + 归档 + 推送 PR。</li>
+</ul>
+
+</body>
+</html>

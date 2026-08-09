@@ -1,24 +1,32 @@
 /* R&K Flow HTML Report - 固定样式（唯一样式源）
  * 所有 Spec 报告通过 <link> 引用本文件，改这里即全部报告统一改版。
  * 修订语义：ins=新增 del=删除 data-rev=修订序号
+ * 视觉：终端风（zinc 底 + emerald 强调 + 等宽），取自 personal-web 设计系统
  */
 
 :root {
-  --fg: #1c2024;
-  --fg-dim: #5b6570;
-  --bg: #ffffff;
-  --bg-soft: #f6f8fa;
-  --line: #d8dee4;
-  --accent: #0b62d0;
-  --ins: #1a7f37;
-  --ins-bg: #dafbe1;
-  --del: #cf222e;
-  --del-bg: #ffebe9;
-  --warn: #9a6700;
-  --warn-bg: #fff8c5;
-  --key: #8250df;
-  --key-bg: #f3eefd;
-  --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+  /* zinc / emerald 取自 Tailwind 调色板，与 personal-web 一致 */
+  --fg: #d4d4d8;          /* zinc-300 正文 */
+  --fg-strong: #f4f4f5;   /* zinc-100 强调 */
+  --fg-dim: #71717a;      /* zinc-500 次要 */
+  --fg-faint: #52525b;    /* zinc-600 更弱 */
+  --bg: #09090b;          /* zinc-950 页底 */
+  --bg-soft: #18181b;     /* zinc-900 卡片/侧栏 */
+  --bg-black: #000000;    /* 代码块 */
+  --line: #27272a;        /* zinc-800 描边 */
+  --line-soft: #3f3f46;   /* zinc-700 */
+  --accent: #34d399;      /* emerald-400 */
+  --accent-dim: #10b981;  /* emerald-500 */
+  --ins: #34d399;
+  --ins-bg: rgba(16, 185, 129, .10);
+  --del: #f87171;
+  --del-bg: rgba(248, 113, 113, .10);
+  --warn: #fbbf24;
+  --warn-bg: rgba(251, 191, 36, .10);
+  --key: #c084fc;
+  --key-bg: rgba(192, 132, 252, .10);
+  --code: #fde047;        /* yellow-300 行内 code */
+  --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, "Microsoft YaHei Mono", monospace;
 }
 
 * { box-sizing: border-box; }
@@ -27,39 +35,61 @@ body {
   margin: 0 auto;
   padding: 32px 28px 96px;
   max-width: 980px;
-  font: 16px/1.75 -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  /* 终端风：全站等宽 */
+  font: 15px/1.75 var(--mono);
   color: var(--fg);
   background: var(--bg);
 }
 
+::selection { background: rgba(16, 185, 129, .30); color: #a7f3d0; }
+
 /* ---------- 报告头 ---------- */
 
 .rk-head {
-  border-bottom: 2px solid var(--fg);
+  border-bottom: 1px solid var(--line);
   padding-bottom: 16px;
   margin-bottom: 24px;
 }
 
-.rk-head h1 { margin: 0 0 12px; font-size: 28px; line-height: 1.3; }
+.rk-head h1 {
+  margin: 0 0 12px;
+  font-size: 26px;
+  line-height: 1.35;
+  font-weight: 700;
+  color: var(--fg-strong);
+  letter-spacing: -.01em;
+}
+
+/* 标题前缀 $ ，呼应终端提示符 */
+.rk-head h1::before {
+  content: "$ ";
+  color: var(--accent);
+  font-weight: 400;
+}
 
 .rk-meta {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 4px 20px;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--fg-dim);
 }
 
-.rk-meta b { color: var(--fg); font-weight: 600; }
-.rk-meta code { font-family: var(--mono); font-size: 13px; }
+.rk-meta b {
+  color: var(--fg-faint);
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.rk-meta code { font-size: 12px; color: var(--fg); }
 
 /* ---------- 结论块：最突出 ---------- */
 
 .rk-verdict {
-  border: 2px solid var(--accent);
-  border-left-width: 8px;
-  border-radius: 6px;
-  background: var(--bg-soft);
+  border: 1px solid rgba(16, 185, 129, .30);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
+  background: rgba(16, 185, 129, .06);
   padding: 16px 20px;
   margin: 24px 0;
 }
@@ -90,53 +120,129 @@ body {
 
 .rk-kpi {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 12px 14px;
-  background: var(--bg-soft);
+  background: var(--bg-black);
 }
 
-.rk-kpi .v { font-size: 24px; font-weight: 700; line-height: 1.2; }
-.rk-kpi .k { font-size: 12px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: .06em; }
+.rk-kpi .v { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--fg-strong); }
+.rk-kpi .k { font-size: 11px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: .06em; }
 .rk-kpi.is-pass .v { color: var(--ins); }
 .rk-kpi.is-fail .v { color: var(--del); }
 
-/* ---------- Callout（替代 Obsidian Callout） ---------- */
+/* ---------- Callout ---------- */
 
 .rk-cal {
-  border-left: 5px solid var(--line);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line-soft);
   border-radius: 4px;
   background: var(--bg-soft);
   padding: 12px 16px;
   margin: 16px 0;
 }
 
-.rk-cal > .t { font-weight: 700; margin-bottom: 4px; }
+.rk-cal > .t { font-weight: 700; margin-bottom: 4px; color: var(--fg-strong); }
 .rk-cal > :last-child { margin-bottom: 0; }
-.rk-cal.key  { border-color: var(--key);  background: var(--key-bg); }
+.rk-cal.key  { border-left-color: var(--key);  background: var(--key-bg); }
 .rk-cal.key  > .t { color: var(--key); }
-.rk-cal.warn { border-color: var(--warn); background: var(--warn-bg); }
+.rk-cal.warn { border-left-color: var(--warn); background: var(--warn-bg); }
 .rk-cal.warn > .t { color: var(--warn); }
-.rk-cal.risk { border-color: var(--del);  background: var(--del-bg); }
+.rk-cal.risk { border-left-color: var(--del);  background: var(--del-bg); }
 .rk-cal.risk > .t { color: var(--del); }
-.rk-cal.ok   { border-color: var(--ins);  background: var(--ins-bg); }
+.rk-cal.ok   { border-left-color: var(--ins);  background: var(--ins-bg); }
 .rk-cal.ok   > .t { color: var(--ins); }
+
+/* ---------- 用户批注（人写，Agent 读） ---------- */
+
+/* 与 Agent 自己的 callout 明确区分：橙色 + 左侧粗条 + 「批注」角标。
+   批注是短期沟通载体，Agent 重写报告时会被覆盖，不做长期保留。 */
+.rk-note {
+  position: relative;
+  border: 1px dashed #fb923c;          /* orange-400 */
+  border-left: 4px solid #fb923c;
+  border-radius: 4px;
+  background: rgba(251, 146, 60, .08);
+  padding: 12px 16px 12px 18px;
+  margin: 16px 0;
+  color: var(--fg);
+}
+
+.rk-note::before {
+  content: "批注";
+  position: absolute;
+  top: -9px;
+  left: 12px;
+  padding: 0 6px;
+  background: var(--bg);
+  color: #fb923c;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.rk-note > :last-child { margin-bottom: 0; }
+
+/* 已被 Agent 处理：降饱和 + 打勾，人一眼看出哪条已闭环 */
+.rk-note.is-done {
+  border-color: var(--line-soft);
+  border-left-color: var(--fg-faint);
+  background: var(--bg-soft);
+  color: var(--fg-dim);
+}
+
+.rk-note.is-done::before { content: "批注 已处理"; color: var(--fg-faint); }
+
+/* 行内批注：附在任意元素上，用于「这一句不对」这种细粒度意见 */
+[data-rk-note] {
+  border-bottom: 2px dotted #fb923c;
+  cursor: help;
+}
+
+[data-rk-note]::after {
+  content: "批";
+  vertical-align: super;
+  margin-left: 2px;
+  color: #fb923c;
+  font-size: 9px;
+  font-weight: 700;
+}
 
 /* ---------- 正文 ---------- */
 
 h2 {
-  font-size: 21px;
+  font-size: 19px;
   margin: 36px 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line);
+  color: var(--accent);
+  font-weight: 700;
 }
 
-h3 { font-size: 17px; margin: 24px 0 8px; }
+/* # 前缀：终端风标题标记 */
+h2::before {
+  content: "# ";
+  color: var(--fg-faint);
+  font-weight: 400;
+}
+
+h3 {
+  font-size: 16px;
+  margin: 24px 0 8px;
+  color: var(--fg-strong);
+  font-weight: 700;
+}
+
+h3::before {
+  content: "## ";
+  color: var(--fg-faint);
+  font-weight: 400;
+}
 
 table {
   border-collapse: collapse;
   width: 100%;
   margin: 16px 0;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 th, td {
@@ -146,11 +252,21 @@ th, td {
   vertical-align: top;
 }
 
-th { background: var(--bg-soft); font-weight: 600; }
+th {
+  background: rgba(16, 185, 129, .06);
+  font-weight: 700;
+  color: var(--fg-strong);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+tbody tr:hover { background: rgba(255, 255, 255, .02); }
 
 code {
   font-family: var(--mono);
-  font-size: 13.5px;
+  font-size: 12px;
+  color: var(--code);
   background: var(--bg-soft);
   border: 1px solid var(--line);
   border-radius: 3px;
@@ -158,20 +274,57 @@ code {
 }
 
 pre {
-  background: var(--bg-soft);
+  background: var(--bg-black);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: 4px;
   padding: 14px 16px;
   overflow-x: auto;
 }
 
-pre code { background: none; border: 0; padding: 0; font-size: 13px; }
+pre code {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 12.5px;
+  color: #6ee7b7;   /* emerald-300：代码块用绿，行内用黄 */
+}
 
-mark, .rk-hl { background: var(--warn-bg); padding: 0 3px; border-radius: 2px; }
+mark, .rk-hl { background: var(--warn-bg); color: var(--warn); padding: 0 3px; border-radius: 2px; }
 
-a { color: var(--accent); }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-.rk-ref { font-family: var(--mono); font-size: 13px; color: var(--fg-dim); }
+strong { color: var(--fg-strong); font-weight: 700; }
+
+blockquote {
+  border-left: 2px solid var(--accent);
+  padding-left: 16px;
+  margin: 20px 0;
+  color: var(--fg-dim);
+  font-style: italic;
+}
+
+hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+
+/* 列表用 › 标记，替代圆点 */
+ul { list-style: none; padding-left: 0; }
+
+ul > li {
+  position: relative;
+  padding-left: 18px;
+}
+
+ul > li::before {
+  content: "\203A";
+  position: absolute;
+  left: 4px;
+  color: var(--accent-dim);
+}
+
+ol { padding-left: 22px; }
+ol > li::marker { color: var(--accent-dim); }
+
+.rk-ref { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); }
 
 /* ---------- 修订：核心可追溯样式 ---------- */
 
@@ -187,7 +340,7 @@ a { color: var(--accent); }
   border-bottom: 1px solid var(--line);
   padding: 10px 0;
   margin-bottom: 20px;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .rk-revbar .lbl { color: var(--fg-dim); margin-right: 4px; }
@@ -196,18 +349,25 @@ a { color: var(--accent); }
   font: inherit;
   cursor: pointer;
   border: 1px solid var(--line);
-  background: var(--bg);
-  border-radius: 999px;
-  padding: 4px 14px;
+  background: var(--bg-soft);
+  color: var(--fg-dim);
+  border-radius: 4px;
+  padding: 4px 12px;
+  transition: color .15s, border-color .15s, background .15s;
+}
+
+.rk-revbar button:hover {
+  color: var(--accent);
+  border-color: rgba(16, 185, 129, .40);
 }
 
 .rk-revbar button[aria-pressed="true"] {
-  background: var(--fg);
-  color: var(--bg);
-  border-color: var(--fg);
+  background: rgba(16, 185, 129, .10);
+  color: var(--accent);
+  border-color: rgba(16, 185, 129, .40);
 }
 
-table.rk-revs { font-size: 14px; }
+table.rk-revs { font-size: 12px; }
 table.rk-revs td:first-child, table.rk-revs th:first-child { width: 64px; white-space: nowrap; }
 
 /* 修订标记本体 */
@@ -324,3 +484,217 @@ ul.rk-backlinks a[data-rk-backlink]::after {
 
 ul.rk-links a[data-rk-link]::after { content: "[" attr(data-rk-link) "]"; }
 ul.rk-backlinks a[data-rk-backlink]::after { content: "[" attr(data-rk-backlink) "]"; }
+
+
+/* ---------- 导航树：本 Spec 文档（渐进增强） ---------- */
+
+.rk-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 200px;
+  overflow-y: auto;
+  padding: 24px 14px 32px;
+  border-right: 1px solid var(--line);
+  background: var(--bg-black);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* manifest 缺失时脚本不渲染任何子节点，导航区整体消失 */
+.rk-nav:empty { display: none; }
+
+/* ---------- 导航品牌区：R&K Flow ---------- */
+
+.rk-nav-brand {
+  display: block;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+}
+
+.rk-nav-brand .n {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+  color: var(--fg-strong);
+  line-height: 1.2;
+}
+
+/* R&K 的 & 用强调色 */
+.rk-nav-brand .n em {
+  font-style: normal;
+  color: var(--accent-dim);
+}
+
+.rk-nav-brand .s {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+}
+
+.rk-nav-title {
+  font-size: 10px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+
+.rk-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* 导航列表不继承正文的 › 标记 */
+.rk-nav ul > li { padding-left: 0; }
+.rk-nav ul > li::before { content: none; }
+
+.rk-nav-group + .rk-nav-group { margin-top: 12px; }
+
+.rk-nav-role {
+  display: block;
+  font-size: 11px;
+  color: var(--fg-faint);
+  margin-bottom: 3px;
+}
+
+.rk-nav-group > ul {
+  padding-left: 10px;
+  border-left: 1px solid var(--line);
+}
+
+.rk-nav a {
+  display: block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--fg-dim);
+  text-decoration: none;
+  transition: color .15s, background .15s;
+}
+
+.rk-nav a:hover {
+  background: rgba(255, 255, 255, .04);
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.rk-nav a.is-current {
+  background: rgba(16, 185, 129, .10);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+/* ---------- 右侧章节导航 ---------- */
+
+.rk-toc {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 180px;
+  overflow-y: auto;
+  padding: 24px 14px 32px;
+  border-left: 1px solid var(--line);
+  background: var(--bg-black);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* 页面无 h2 时隐藏 */
+.rk-toc:empty { display: none; }
+
+.rk-toc-title {
+  font-size: 10px;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  font-weight: 400;
+  margin-bottom: 12px;
+}
+
+.rk-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* 左侧竖线，激活项用 border-left 覆盖（同 personal-web） */
+  border-left: 1px solid var(--line);
+}
+
+.rk-toc ul > li { padding-left: 0; }
+.rk-toc ul > li::before { content: none; }
+
+.rk-toc a {
+  display: block;
+  padding: 3px 8px 3px 10px;
+  color: var(--fg-faint);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  margin-left: -1px;
+  transition: color .15s;
+}
+
+.rk-toc a:hover { color: var(--fg-dim); text-decoration: none; }
+
+.rk-toc a.is-current {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  font-weight: 700;
+}
+
+/* h2 锚点（用于 scrollIntoView） */
+[id] { scroll-margin-top: 20px; }
+
+/* 正文居中后右侧余量不足 180px：先收右侧章节导航 */
+@media (max-width: 1580px) {
+  .rk-toc { display: none; }
+}
+
+/* 左侧余量不足 200px：退化为正文上方的横向清单，避免压住内容 */
+@media (max-width: 1380px) {
+  .rk-nav {
+    position: static;
+    width: auto;
+    padding: 0 0 16px;
+    margin: 0 0 24px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    background: none;
+  }
+
+  /* 横排时品牌区不再需要独立分隔线 */
+  .rk-nav-brand { border-bottom: 0; padding-bottom: 0; margin-bottom: 10px; }
+  .rk-nav-tree { display: flex; flex-wrap: wrap; gap: 4px 24px; }
+  .rk-nav-group + .rk-nav-group { margin-top: 0; }
+  .rk-nav-group > ul { border-left: 0; padding-left: 0; }
+}
+
+/* 窄屏：导航收起，正文优先 */
+@media (max-width: 900px) {
+  .rk-nav { display: none; }
+}
+
+/* 打印：暗底转白底，省墨且可读 */
+@media print {
+  :root {
+    --fg: #1c2024; --fg-strong: #000; --fg-dim: #5b6570; --fg-faint: #767e88;
+    --bg: #fff; --bg-soft: #f6f8fa; --bg-black: #fff;
+    --line: #d8dee4; --line-soft: #b9c0c8;
+    --accent: #0b62d0; --accent-dim: #0b62d0; --code: #8a6d00;
+  }
+  .rk-nav, .rk-toc, .rk-revbar { display: none; }
+  body { max-width: none; padding: 0; }
+  ins.rk-ins, .rk-added { border-bottom: 1px solid #000; }
+  /* 批注在打印件上保留：评审常打印后逐条过 */
+  .rk-note { border-color: #b45309; background: #fffbeb; }
+  .rk-note::before { background: #fff; color: #b45309; }
+}
