@@ -159,7 +159,7 @@ mkdir -p ".agents/rules"
 # 文档规范
 
 - 报告类产物使用 HTML（见 html-report skill）：exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report 一律 `.html`
-- 账本与记忆保持 Markdown：`lead/team-context.md`、`spec/context/experience/*.md`、`spec/context/knowledge/*.md`
+- 记忆保持 Markdown：`spec/context/experience/*.md`、`spec/context/knowledge/*.md`；账本 `lead/team-context.md` 或 `.html` 皆可（HTML 时豁免修订标记）
 - 报告元信息双轨保留：`<head>` 的 `<meta name="rk:*">` / `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像
 - 文档关联双向：`<ul class="rk-links">` 正向引用 + `<ul class="rk-backlinks">` 反向被引，新建关联时补齐对侧
 - 报告修订必须递增修订号，并保留 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` 标记，永不静默改写原文
@@ -398,7 +398,7 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 ```
 
 项目实际层级不同就相应调整，务必保证 `file://` 直接打开报告时样式生效。
-格式边界：报告用 `.html`，`lead/team-context.md` 与 `spec/context/experience|knowledge/*.md` 保持 Markdown。
+格式边界：报告用 `.html`，`spec/context/experience|knowledge/*.md` 保持 Markdown，账本两种格式皆可。
 
 ### 步骤 8：向用户确认初始化结果
 
@@ -568,6 +568,6 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 - 已有 spec/ 目录时重复创建（应先检查）
 - 报告样式表相对路径层级算错，`file://` 打开报告时丢样式（从角色目录回项目根是 4 层）
 - 在报告 HTML 里写 `<style>` 或行内 `style=`，绕开单一样式源导致改版失效
-- 把 `lead/team-context.md` 或 `spec/context/experience|knowledge/*.md` 一并改成 HTML（必须保持 Markdown）
+- 把 `spec/context/experience|knowledge/*.md` 改成 HTML（必须保持 Markdown；账本不受此限）
 - 初始化后直接开始开发，跳过 spec-start 的需求对齐阶段
 - AGENTS.md 中的技术栈信息与实际项目不符（应根据用户回答填充）

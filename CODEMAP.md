@@ -148,7 +148,7 @@ skills/
 | spec-explorer | `spec-explore` | `explorer/exploration-report.html` | 收集背景和风险，结果交回 TeamLead |
 | spec-writer | `spec-write` | `writer/plan.html` | 只写实现方案，不写测试计划 |
 | spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html` | 设计和执行测试，不直接修 bug |
-| spec-executor | `spec-execute` | `executor/summary.html` | 严格按 plan 实现，不提交不归档 |
+| spec-executor | `spec-execute` | `executor/summary.html`, `executor/artifacts/` | 严格按 plan 以测试先行实现，拥有单元测试，不提交不归档 |
 | spec-debugger | `spec-debug` | `debugger/debug-*.html`, `debugger/debug-*-fix.html` | 不改已确认 plan，修复后交 TeamLead 重新验证 |
 | spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-*-review.html` | 审查一致性、完成度、风险和测试缺口 |
 | spec-ender | `spec-end` | `ender/end-report.html` | 收尾、沉淀、规范审查、归档、PR |
@@ -170,7 +170,7 @@ spec-start → git-work → lead/team-context.md
   ↓
 阶段三：spec-execute
   ↓
-阶段四：spec-test ↔ spec-debug，可选 spec-review
+阶段四：spec-test ↔ spec-debug，spec-review（gated 可选 / autopilot 强制）
   ↓
 阶段五：spec-end → exp-reflect / exp-write → git-work
 ```
@@ -325,7 +325,7 @@ TeamLead → 下游角色：
 | `spec-test` | `spec-debug` handoff, 测试工具链 | TeamLead |
 | `spec-execute` | `exp-search`, `writer/plan.html` | TeamLead |
 | `spec-debug` | `spec-test` 复验 | TeamLead |
-| `spec-review` | `html-report` | TeamLead 或用户可选调用 |
+| `spec-review` | `html-report` | `gated` 下 TeamLead 或用户按需调用；`autopilot` 下 TeamLead 必须调用 |
 | `spec-end` | `exp-reflect`, `git-work` | TeamLead |
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |

@@ -16,7 +16,7 @@ description: >
 3. **本次 Spec 创建运行实例**：角色线程/实例在当前 Spec 生命周期内尽量保持可恢复，跨 Spec 状态必须文件化
 4. **角色 vs Skill 区分**：角色（spec-writer）是 Who，Skill（spec-write）是 How
 5. **TeamLead 统一协调**：所有阶段转换、跨角色通信和用户确认节点均由 TeamLead（当前 Agent）主导
-6. **分支隔离**：每个 Spec 默认从 `main` 创建独立工作分支，禁止直接在 `main` 上实现
+6. **分支隔离**：每个 Spec 默认从**远程默认分支**创建独立工作分支，禁止直接在默认分支上实现。默认分支名不写死——用 `git symbolic-ref refs/remotes/origin/HEAD` 读取（常见为 `main` 或 `master`）
 
 ## 前置检查
 
@@ -36,7 +36,7 @@ git rev-parse --is-inside-work-tree
 git status --short
 ```
 
-如果不是 Git 仓库，询问用户是否继续无分支模式；如果工作区有无关改动，先让用户处理或使用 `git worktree`，不要直接切换到 `main`。
+如果不是 Git 仓库，询问用户是否继续无分支模式；如果工作区有无关改动，先让用户处理或使用 `git worktree`，不要直接切换到默认分支。
 
 ## 角色总览
 
@@ -48,7 +48,7 @@ git status --short
 | spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
 | spec-executor | `spec-execute` | `executor/summary.html` | 阶段三 |
 | spec-debugger | `spec-debug` | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` | 阶段三/四（按需） |
-| spec-reviewer | `spec-review` | `reviewer/review.html` | 阶段四后（可选） |
+| spec-reviewer | `spec-review` | `reviewer/review.html` | 阶段四后（`gated` 可选 / `autopilot` 强制） |
 | spec-ender | `spec-end` | `ender/end-report.html` | 阶段五 |
 
 ## 工作流程
@@ -74,7 +74,7 @@ git status --short
 需求对齐后，调用 `/git-work` 的“启动 Spec 分支”模式：
 
 ```text
-base_branch: main
+base_branch: <远程默认分支，由 `git symbolic-ref refs/remotes/origin/HEAD` 读取>
 branch_name: <type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
 ```
 
@@ -90,7 +90,7 @@ branch_name: <type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
 
 ```yaml
 git_branch: <branch-name>
-base_branch: main
+base_branch: <实际读到的默认分支名>
 pr_url:
 ```
 
@@ -102,6 +102,7 @@ TeamLead 在阶段二开始前创建当前 Spec 根目录和角色目录。Spec 
 
 ```text
 spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
+├── rk-manifest.js          # 导航树清单，TeamLead 维护
 ├── lead/
 ├── explorer/
 ├── writer/
@@ -109,6 +110,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 │   └── artifacts/
 │       └── test-logs/
 ├── executor/
+│   └── artifacts/          # 实现期测试证据，必须由测试运行自动产出
 ├── debugger/
 ├── reviewer/
 ├── updater/
@@ -123,7 +125,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 | spec-explorer | `explorer/exploration-report.html` |
 | spec-writer | `writer/plan.html` |
 | spec-tester | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/<run-id>/` |
-| spec-executor | `executor/summary.html` |
+| spec-executor | `executor/summary.html`, `executor/artifacts/`（实现期 RED/GREEN 证据，须由测试运行自动产出） |
 | spec-debugger | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` |
 | spec-reviewer | `reviewer/review.html`, `reviewer/update-xxx-review.html` |
 | spec-update | `updater/update-xxx.html`, `updater/update-xxx-summary.html` |
@@ -131,12 +133,30 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 
 根目录只作为当前 Spec 容器，不直接平铺角色产物。
 
+### 导航树清单 `rk-manifest.js`
+
+创建 Spec 根目录时一并生成，内容先只含账本一条：
+
+```js
+window.RK_SPEC_TREE = {
+  specDir: "spec/<分类>/<YYYYMMDD-HHMM-任务描述>",
+  docs: [
+    { role: "lead", path: "lead/team-context.md", title: "运行账本", type: "team-context" }
+  ]
+};
+```
+
+**每次在「产物注册表」登记一份新报告，同步往 `docs` 追加一条**（`path` 相对 Spec 根，`type` 用该报告的 `rk:type`）。
+由 TeamLead 单点维护——各角色并发写各自报告，manifest 若人人可改会互相覆盖。
+
+漏更新的后果是可观察的：该报告的左侧导航渲染为空。契约与渲染细节见 `html-report` 的「导航树」节。
+
 格式边界与功能等价：报告类产物统一是 HTML，按 `html-report` Skill 的固定骨架、共享样式和修订标记规范书写。
 HTML 化不得丢功能——原 frontmatter 字段双轨保留（`<head>` 里 `<meta name="rk:*">` 机器可读 +
 `.rk-meta` 人可读镜像，含 `base_branch` 与 `pr_url`），文档关联用 `<link rel="rk-*">`；
 关联产物双向维护（`rk-links` 正向 + `rk-backlinks` 反向）。
-运行账本 `lead/team-context.md` 与 `spec/context/` 下的经验/知识记忆文件保持 Markdown。
-不要把账本或记忆文件改成 HTML，也不要用 Markdown 写报告。
+运行账本可用 `lead/team-context.md` 或 `lead/team-context.html`：用 HTML 时复用 `html-report` 的样式与组件，但**豁免修订标记**——账本是高频追写的运行流水，不是定稿后修订的报告。
+`spec/context/` 下的经验/知识记忆文件保持 Markdown（`exp-search` 按文本检索）。不要用 Markdown 写报告。
 
 修订与决策互相追溯：报告的「修订历史」表记文本变更，账本的「决策记录」记决策本身。
 源于实质取舍的修订，在修订历史「原因」列写决策编号（如「按 D-003（多实例部署需共享缓存）」）；
@@ -180,8 +200,9 @@ task_description: {任务描述}
 status: running
 phase: intent | exploration | spec-writing | implementation | testing | debugging | review | ending | archived
 runtime: omp | claude-code | codex | generic
+mode: gated | autopilot
 git_branch: <branch-name 或 none>
-base_branch: main
+base_branch: <远程默认分支，通常 main 或 master；读 `git symbolic-ref refs/remotes/origin/HEAD` 得到，不写死>
 pr_url:
 created_at: {ISO8601}
 updated_at: {ISO8601}
@@ -219,15 +240,15 @@ updated_at: {ISO8601}
 > 选了什么、为什么、谁拍的板。被否决的选项不要删，它是复盘的关键上下文。
 > 与「门禁决策」的区别：门禁决策只记阶段门禁通过/驳回；决策记录记每一个实质取舍及其理由。
 
-| 决策号 | 阶段 | 提出者 | 议题 | 候选项 | 结论 | 理由 | 拍板者 | 决策时间 |
-|--------|------|--------|------|--------|------|------|--------|----------|
-| D-001 | intent | TeamLead | 实现路径 | A 最小补丁 / B 抽公共层 | A | 改动面小、可回滚 | user | {ISO8601} |
+| 决策号 | 阶段 | 提出者 | 议题 | 候选项 | 结论 | 理由 | 拍板者 | 决策时间 | 依据 |
+|--------|------|--------|------|--------|------|------|--------|----------|------|
+| D-001 | intent | TeamLead | 实现路径 | A 最小补丁 / B 抽公共层 | A | 改动面小、可回滚 | user | {ISO8601} | 用户原话「先别动架构」 |
 
 ## 角色运行句柄
 
-| 角色 id | 适配层 | 运行时角色名 | agent_id | thread_id | session_id | 状态 | 可恢复 | 最近产物 | 更新时间 |
-|---------|--------|--------------|----------|-----------|------------|------|--------|----------|----------|
-| spec-explorer | .claude/.codex/.agents | spec-explorer/spec_explorer | 运行时填写 | 运行时填写 | 运行时填写 | pending | unknown |  | {ISO8601} |
+| 角色 id | 适配层 | 运行时角色名 | agent_id | thread_id | session_id | 状态 | 续接方式 | 累计参与 Spec 数 | 最近产物 | 更新时间 |
+|---------|--------|--------------|----------|-----------|------------|------|----------|------------------|----------|----------|
+| spec-explorer | .claude/.codex/.agents | spec-explorer/spec_explorer | 运行时填写 | 运行时填写 | 运行时填写 | running \| idle \| parked \| aborted | hub-send \| respawn+rebuild | 1 |  | {ISO8601} |
 
 ## 产物注册表
 
@@ -237,9 +258,9 @@ updated_at: {ISO8601}
 
 ## 门禁决策
 
-| 门禁 | 确认对象 | 决策 | 决策时间 | 备注 |
-|------|----------|------|----------|------|
-| gate-1 | 需求对齐 | pending | | |
+| 门禁 | 确认对象 | 决策 | 判定方式 | 决策时间 | 备注 |
+|------|----------|------|----------|----------|------|
+| gate-1 | 需求对齐 | pending | user \| self+evidence | | 判定方式为 `self+evidence` 时，备注必须给出证据指针 |
 
 ## 角色交接
 
@@ -275,28 +296,31 @@ updated_at: {ISO8601}
 - TeamLead 维护 `lead/team-context.md` 的结构、frontmatter、「当前运行路径」、Git/PR 元数据、「角色运行句柄」、「产物注册表」、「门禁决策」、「角色交接」、「开放问题与阻塞」和「下一步动作」。
 - 所有角色可共同维护「任务进度」：只追加或更新自己负责的任务行，完成产物后立即记录状态、产物、完成时间和更新者。
 - 发现或解决问题的角色可共同维护「问题闭环记录」：只追加或更新自己发现/处理的问题行，记录分类、问题、解决方案摘要、关联产物、状态和更新者。不止 bug——阻塞、环境、依赖、流程、范围偏差等过程性问题都在此记录。
-- 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在「决策记录」追加一行：「候选项」记当时的选项（含被否决项）、「结论」记选了什么、「理由」记为什么、「拍板者」记 `user` 或角色 id。这是「为什么当初这么定」的唯一权威来源。
+- 遇到需要拍板的取舍时，拍板的一方（用户决策由 TeamLead 代记）在「决策记录」追加一行：「候选项」记当时的选项（含被否决项）、「结论」记选了什么、「理由」记为什么、「拍板者」记 `user` 或角色 id、「依据」记可追溯的事实来源。这是「为什么当初这么定」的唯一权威来源。
+- 「依据」列只接受三种形式：①文件路径 + 行号 ②命令 + 退出码 + 输出位置 ③用户原话引用。「根据经验」「通常做法」「这样更专业」不是依据——理由可以被生成，依据必须可追。`autopilot` 模式下这一列是审计轨的核心，缺失即视为该决策无据。
 - TeamLead 每次 spawn、resume、send message、stop 或 close 角色线程后更新 `lead/team-context.md` 的控制面信息。
 - TeamLead 每次阶段切换、用户确认、handoff、PR URL 变化后更新 `lead/team-context.md`，并在需要时校准共享完成流水。
 - `lead/team-context.md` 全部由 TeamLead 和各角色手动维护；不依赖任何自动记账机制。角色每产出一个产物、每解决一个问题、每做一次取舍，立即更新对应区块。
 - `lead/team-context.md` 是当前 Spec 的运行账本和 Git/PR 元数据权威来源；角色产物只链接它，不复制运行状态正文。
 - 「当前运行路径」记录当前任务实际走过的流程路径；「任务进度」记录已经完成的任务；「问题闭环记录」记录谁发现问题、谁解决问题、解决产物在哪里；「决策记录」记录每一个实质取舍的选项、结论和理由。
 - 除「任务进度」、「问题闭环记录」和「决策记录」外，非 TeamLead 角色不要直接修改其他区块；如需变更控制面信息，向 TeamLead 提交说明。
-- `agent_id`、`thread_id`、`session_id` 是运行时 handle，不作为跨 Spec 的长期身份；跨 Spec 只复用项目级角色定义。
+- `agent_id`、`thread_id`、`session_id` 是**运行时 handle，不是长期身份**，但这不等于用完即弃：同一进程内它们是续接同一角色的唯一途径，必须实时记录。跨进程失效时，账本与落盘产物才是恢复路径。角色的长期身份来自项目级角色定义 + 账本「累计参与 Spec 数」，而不是 handle 本身。
 - OMP 运行时优先记录 `task` spawn 返回的 `agent_id`（`agent://<id>` 句柄）和子 Agent job id；角色间用 `irc` 协作时按角色 id（如 `spec-tester`）寻址，交接仍落盘到「角色交接」与「问题闭环记录」。
 - Claude Code 运行时优先记录 subagent `agent_id` 和对应 transcript/session 信息。
 - Codex 运行时优先记录 `/agent` 可见线程或当前 session handle；如 CLI 不暴露稳定 ID，记录 runtime agent name、当前 session 线索和最近产物路径。
 - 不记录 token、API key、私有凭据或不可提交的本机绝对敏感路径。
 - 不在 `lead/team-context.md` 复制 plan 正文、测试日志、debug 细节或长篇总结；只记录路径、状态、决策和简短摘要。
-- `resumable` 可取 `yes`、`no`、`unknown`；无法恢复时由 TeamLead 重新 spawn 同一项目级角色，并从 Spec 文档重建上下文。
+- 「状态」取 `running`（正在执行，可插话 steering）、`idle`（跑完但 session 仍挂载）、`parked`（空闲超时释放 session，但发消息即自动复活且上下文完整）、`aborted`（被取消或硬中断，终态不可复活）。「续接方式」相应取 `hub-send`（前三态）或 `respawn+rebuild`（`aborted`，重新 spawn 并从账本与产物重建上下文）。
+- **续接同一角色只能发消息，不能重新 spawn**：运行时按 name 分配 agent id，同名再 spawn 会得到 `spec-writer-2` 这样的全新零历史实例（影子角色）。spawn 时 `name` 必须显式等于角色 id，否则会拿到随机生成名而失去可寻址性。
+- 隔离工作区（`isolated`）与角色持久化互斥：隔离实例完成即拆除、不可复活。R&K 角色不启用隔离，分支隔离已够。
 
 ### 步骤 5：建立跨角色通信规则
 
-所有跨角色消息默认由 TeamLead 中转：
+续接规则：先查 `lead/team-context.md` 的「角色运行句柄」，再用运行时的 agent 列表核对实际状态。`running`/`idle`/`parked` 一律**发消息**续接同一角色（`parked` 收到消息自动复活，上下文完整），只有 `aborted` 才重新 spawn 并从落盘产物重建上下文。禁止用重新 spawn 代替续接——那会产生零历史的影子角色。
 
 ```text
 上游角色 → TeamLead：提交产物路径、结论、问题、建议下游角色
-TeamLead → 下游角色：先查 lead/team-context.md；可恢复则继续同一角色线程，不可恢复则重新 spawn 同一项目级角色
+TeamLead → 下游角色：查账本句柄 → 核对状态 → 能续接就发消息给同一角色，aborted 才 respawn
 下游角色 → TeamLead：返回产物路径和状态
 ```
 
@@ -316,7 +340,7 @@ TeamLead → 下游角色：先查 lead/team-context.md；可恢复则继续同�
       ↓ 【门禁 1 通过】
 
 GitHub Flow 准备
-  TeamLead → git-work → 从 main 创建 Spec 工作分支
+  TeamLead → git-work → 从远程默认分支创建 Spec 工作分支
   TeamLead → 记录 git_branch / base_branch / pr_url 到 lead/team-context.md
 
 【团队初始化】
@@ -358,9 +382,9 @@ GitHub Flow 准备
                         → TeamLead 升级给用户决定（继续加预算 / 改方案 / 暂停）
   spec-tester → tester/test-report.html → TeamLead
   TeamLead → 用户确认 tester/test-report.html
-  [可选审查] TeamLead → 启动/恢复 spec-reviewer
+  [审查] gated 可选 / autopilot 强制：TeamLead → 启动/恢复 spec-reviewer
              spec-reviewer → reviewer/review.html → TeamLead
-             TeamLead → 用户确认 reviewer/review.html
+             gated 由用户确认；autopilot 下该报告即替代门禁 4 的用户确认
       ↓ 【门禁 4 通过】
 
 阶段五：收尾
@@ -404,7 +428,7 @@ GitHub Flow 准备
 
 ### 常见陷阱
 - spec/ 目录不存在就启动（应先 spec-init）
-- 跳过 git-work，直接在 `main` 上开发
+- 跳过 git-work，直接在远程默认分支上开发
 - 工作区有无关改动时切换分支
 - 多个并发 Spec 共用同一个 working tree（应使用 `git worktree`）
 - 在 spec-start 中重写角色定义，导致与 spec-init 持久化角色漂移

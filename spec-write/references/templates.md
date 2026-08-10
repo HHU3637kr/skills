@@ -77,7 +77,7 @@
   <li><a href="../explorer/exploration-report.html" data-rk-link="exploration">探索报告</a></li>
   <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a>（待创建）</li>
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -134,7 +134,7 @@
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -182,7 +182,7 @@
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -235,7 +235,7 @@
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -292,7 +292,7 @@
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">

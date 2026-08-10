@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设计方案 - R&amp;K Flow 吸收 Superpowers 工程纪律</title>
+
+<meta name="rk:title"          content="R&amp;K Flow 吸收 Superpowers 工程纪律">
+<meta name="rk:type"           content="plan">
+<meta name="rk:category"       content="02-架构设计">
+<meta name="rk:spec-dir"       content="spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合">
+<meta name="rk:role"           content="spec-writer">
+<meta name="rk:mode"           content="gated">
+<meta name="rk:status"         content="未确认">
+<meta name="rk:priority"       content="高">
+<meta name="rk:execution-mode" content="single-agent">
+<meta name="rk:created"        content="2026-08-09">
+<meta name="rk:updated"        content="2026-08-09">
+<meta name="rk:revision"       content="1">
+<meta name="rk:git-branch"     content="docs/spec-20260809-rk-flow-dual-mode-superpowers">
+<meta name="rk:base-branch"    content="master">
+<meta name="rk:pr-url"         content="">
+<meta name="rk:tags"           content="spec,plan,rk-flow,superpowers,dual-mode">
+<link rel="rk-exploration" href="../explorer/exploration-report.html">
+<link rel="rk-test-plan"   href="../tester/test-plan.html">
+<link rel="rk-summary"     href="../executor/summary.html">
+<link rel="rk-ledger"      href="../lead/team-context.md">
+<link rel="rk-source"      href="https://github.com/obra/superpowers">
+
+<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>设计方案：R&amp;K Flow 吸收 Superpowers 工程纪律</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>模式</b> gated</span>
+    <span><b>Spec</b> <code>spec/02-架构设计/20260809-1633-RKFlow双模式与Superpowers融合</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>优先级</b> 高</span>
+    <span><b>执行模式</b> single-agent</span>
+    <span><b>分支</b> <code>docs/spec-20260809-rk-flow-dual-mode-superpowers</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-08-09</span>
+    <span><b>修订</b> r1（2026-08-09）</span>
+  </div>
+</header>
+<nav class="rk-toc"></nav>
+
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict">
+  <div class="rk-verdict-label">设计结论</div>
+  <p>吸收 Superpowers 的方式是<strong>三层承载</strong>，不是把正文迁进 SKILL.md：Iron Law 一句话进常驻 <code>.agents/rules/</code>，触发条件进各 Skill 运行契约的「验证/停止」两行，执行细则进 <code>references/</code> 按需加载。落点按<strong>接收方</strong>而非七角色组织，因为同一个上游 skill 常要拆到两三个 R&amp;K 文件。双运行模式（门禁 / 自动驾驶）是这些纪律的<strong>意义来源</strong>——人退出的每个门禁都必须有机械纪律补位，纪律因此从质量优化变成安全底线。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-08-09</td><td>spec-writer</td><td>初版</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 概述</h2>
+
+<h3>1.1 背景</h3>
+
+<p>R&amp;K Flow 已具备完整的 Spec 生命周期、七角色分工、HTML 报告、运行账本、GitHub Flow 与显式经验系统。其弱项集中在<strong>工程执行纪律</strong>：</p>
+
+<ul>
+  <li>门禁 3 的运行契约对验证零要求——用户在 <code>executor/summary.html</code> 处放行下游，而该 Skill 不要求任何验证证据。</li>
+  <li><code>spec-executor</code> 被明令禁止写测试（六处），实现期没有任何测试反馈。</li>
+  <li><code>spec-debug</code> 无根因优先约束，可以直接改码。</li>
+  <li>完成声明可以靠「应该没问题」通过，无「本轮验证」要求。</li>
+</ul>
+
+<p><a href="https://github.com/obra/superpowers">Superpowers</a> 恰好在这四处有成熟机制。但它的强制力来自 <code>hooks/session-start</code> 每次会话注入入口 skill，而 R&amp;K 所有 spec-* 都是 <code>disable-model-invocation: true</code>——<strong>吸收的难点不在内容，在承载层</strong>。</p>
+
+<div class="rk-cal key">
+  <div class="t">核心判断</div>
+  <p>纪律不是均匀撒在七角色上的一层。三条 Iron Law（TDD / 根因优先 / 新鲜验证）各自替代一个具体的人类门禁；只有把「哪条纪律补位哪个门禁」说清，才能区分门禁模式下可放宽的（有人验证时是质量优化）与自动驾驶下不可协商的（无人验证时是唯一防线）。</p>
+</div>
+
+<h3>1.2 目标</h3>
+
+<ol>
+  <li>按三层承载吸收 Superpowers 纪律，任何 SKILL.md 不因此超尺寸预算。</li>
+  <li>定义门禁 / 自动驾驶两种模式，及一份不可关闭的「永远门禁」清单。</li>
+  <li>把每条纪律精确绑定到它替代的门禁，而非按角色罗列。</li>
+  <li>让自动驾驶的每个自主决策留下<strong>可机械校验</strong>的依据。</li>
+  <li>把角色从一次性 subagent 改为跨 Spec 持续在场。</li>
+  <li>修正阻碍上述目标的既存缺陷与文档漂移。</li>
+</ol>
+
+<h3>1.3 范围</h3>
+
+<p><b>包含</b></p>
+<ul>
+  <li>Superpowers 14 个 skill 的逐条归宿映射与三层承载规则。</li>
+  <li>双模式定义、门禁—验证器映射、永远门禁清单。</li>
+  <li>账本结构变更（依据列、判定方式、模式、角色句柄）。</li>
+  <li>角色持久化协议（四态判定、续接动作、硬边界）。</li>
+  <li>次要项：账本改 HTML + 左侧导航树（附带需求，见第 6 节）。</li>
+  <li>改造清单与实施顺序，按强制力载体排序。</li>
+</ul>
+
+<p><b>不包含</b></p>
+<ul>
+  <li>本次不改任何 Skill、rules、README/CODEMAP（按 <code>D-005</code> 只产出设计方案）。</li>
+  <li>不引入 SDD 簇整体（per-task fresh implementer + 2–5 分钟粒度 + 每任务两段 review）。</li>
+  <li>不采用 one-question-per-message。</li>
+  <li>不给账本设置 end-of-life；账本永久保留。</li>
+  <li>不为角色启用 <code>isolated</code>（与持久化互斥）。</li>
+  <li>不新建给人阅读的报告类型。</li>
+</ul>
+
+<h2>2. 需求分析</h2>
+
+<h3>2.1 功能需求</h3>
+
+<table>
+  <thead><tr><th>编号</th><th>需求</th><th>输入</th><th>输出</th><th>业务规则</th></tr></thead>
+  <tbody>
+    <tr><td>FR-001</td><td>三层承载纪律</td><td>Superpowers 各 skill 内容</td><td>rules / 运行契约 / references 三处落点</td><td>Iron Law 进常驻层；细则进 references；路由条件必须机械可判</td></tr>
+    <tr><td>FR-002</td><td>实现期测试所有权</td><td>已确认 plan</td><td>executor 的单元测试 + <code>executor/artifacts/</code> 证据</td><td>executor 拥有单元/聚焦测试；tester 保留最终独立结论；证据必须由运行自动产出</td></tr>
+    <tr><td>FR-003</td><td>根因优先调试</td><td>失败现象</td><td>单一可证伪假设 + 最小实验 + 回归失败</td><td>未验证根因不得改码；Phase 4.5 信号独立于「连续无进展」</td></tr>
+    <tr><td>FR-004</td><td>完成声明需本轮证据</td><td>即将交付的工作树</td><td>本轮验证输出</td><td>四个完成声明点统一约束，不只 <code>spec-end</code></td></tr>
+    <tr><td>FR-005</td><td>跨角色审查响应纪律</td><td>任何角色收到的审查意见</td><td>先验证后实施的响应</td><td>禁表演式赞同；部分理解即停；YAGNI 反查</td></tr>
+    <tr><td>FR-006</td><td>双运行模式</td><td>阶段一用户选择</td><td>账本 <code>mode</code> + 报告 <code>rk:mode</code></td><td>模式选择本身永远门禁；不能自动驾驶地决定进入自动驾驶</td></tr>
+    <tr><td>FR-007</td><td>门禁—验证器映射</td><td>当前模式 + 门禁位置</td><td>该门禁的放行条件</td><td>人退出的每个门禁必须有指定机械替代物，无替代物者列入永远门禁</td></tr>
+    <tr><td>FR-008</td><td>决策依据可机械校验</td><td>角色自主决策</td><td>账本决策记录「依据」列</td><td>只接受三形式：文件路径+行号 / 命令+退出码+输出位置 / 用户原话引用</td></tr>
+    <tr><td>FR-009</td><td>角色跨 Spec 持续在场</td><td>账本句柄 + <code>hub list</code> 实况</td><td>续接同一角色或重建</td><td>续接只能用 <code>hub send</code>；禁止用重新 spawn 做续接</td></tr>
+    <tr><td>FR-010</td><td>账本 HTML 化 + 导航树</td><td>Spec 目录内已有报告</td><td><code>team-context.html</code> + 各报告左侧文件树</td><td>必须 <code>file://</code> 直开可用；账本豁免修订标记</td></tr>
+  </tbody>
+</table>
+
+<h3>2.2 非功能需求</h3>
+
+<ul>
+  <li><b>强制力</b>硬规则必须落在每次会话自动加载的 <code>.agents/rules/</code>，不能只写在按需加载的 Skill 或 README。</li>
+  <li><b>尺寸</b>吸收动作不得让任何 SKILL.md 正文超 500 行；超标者同步拆 <code>references/</code>。</li>
+  <li><b>阅读体验</b>不新增给人读的报告类型；自动驾驶新增的只有机器证据目录。</li>
+  <li><b>离线可读</b>报告与账本必须 <code>file://</code> 直接打开即可用（现有硬约束，<span class="rk-ref">html-report/SKILL.md:258</span>）。</li>
+  <li><b>可审计</b>自动驾驶结束后，仅凭账本与产物即可判断每个自主决策是否有据。</li>
+  <li><b>兼容</b>门禁模式行为与现状一致；多运行时降级路径仍成立。</li>
+  <li><b>可演进</b>不新造与现有内核重复的词汇（复用运行契约六要素、修复循环预算、<code>loop-design</code>）。</li>
+</ul>
+
+<h2>3. 设计方案</h2>
+
+<h3>3.1 三层承载：吸收 ≠ 迁移正文</h3>
+
+<p>上游自己就是分层的：<code>systematic-debugging/</code> 把 Iron Law 与四阶段留在 <code>SKILL.md</code>，把 <code>root-cause-tracing.md</code> / <code>defense-in-depth.md</code> / <code>condition-based-waiting.md</code> 拆成独立文件；<code>test-driven-development/</code> 同理拆出 <code>writing-good-tests.md</code>。R&amp;K 照同一分法。</p>
+
+<table>
+  <thead><tr><th>层</th><th>承载什么</th><th>量级</th><th>为什么在这一层</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>.agents/rules/</code><br><strong>常驻</strong></td>
+      <td>三条 Iron Law 各一句话；两种模式定义；「确认」双义；依据三形式；永远门禁清单；跨角色审查响应纪律；技能优先级与优先级链</td>
+      <td>约 30 行</td>
+      <td>唯一每次会话自动进上下文的载体。<strong>Iron Law 必须在这一层</strong>——若连「这里有条不可协商的线」都要按需加载，等于让被约束者自己决定是否加载约束自己的规则</td>
+    </tr>
+    <tr>
+      <td>各 Skill<br>运行契约</td>
+      <td>「验证」「停止」两行补入纪律要求；references 路由表</td>
+      <td>改字段，不加章节</td>
+      <td>复用已有结构，不起并行章节。路由条件必须机械可判（「代码任务 → 必读 X」），禁止写「如需要可参考」</td>
+    </tr>
+    <tr>
+      <td><code>&lt;skill&gt;/references/</code></td>
+      <td>RED/GREEN 三确认、测试有效性门函数、mock 四规则、四阶段出口条件、Phase 4.5、根因追溯、四层校验、条件等待、严重度定义、限定复审、压力测试构造法、说服原则、plan 无占位符清单</td>
+      <td>按需加载</td>
+      <td>执行期细则不占常驻预算。各 Skill 已有 <code>references/</code>，<code>spec-test</code> 还有现成的「何时读取」路由范式可复用</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="rk-cal warn">
+  <div class="t">路由条件的写法决定纪律是否生效</div>
+  <p>「如需要可参考 <code>references/tdd-discipline.md</code>」等于没写——需要与否由被约束者判断。必须写成「任务涉及代码改动 → 开工前必读 <code>references/tdd-discipline.md</code>」，条件可由外部观察者机械判定。</p>
+</div>
+
+<h3>3.2 逐条归宿映射（按接收方组织）</h3>
+
+<p>不按七角色组织，因为同一个上游 skill 常要拆到多个接收方：<code>brainstorming</code> → <code>intent-confirmation</code> + <code>spec-write</code>；<code>writing-good-tests</code> → <code>spec-execute</code> + <code>spec-review</code>。按角色组织会把它们打散并掩盖缺口。</p>
+
+<h4>3.2.1 <code>spec-execute</code> ← test-driven-development</h4>
+
+<table>
+  <thead><tr><th>吸收内容</th><th>层</th><th>为什么需要</th></tr></thead>
+  <tbody>
+    <tr><td>TDD 铁律：无失败测试不写实现代码</td><td>rules（一句话）</td><td>门禁 3 在自动驾驶下无人验证，这是唯一实现期反馈</td></tr>
+    <tr><td>RED/GREEN 三确认：RED 需确认「测试失败」「失败原因是缺功能而非笔误」「断言的期望值手工推导得出」</td><td><code>references/tdd-discipline.md</code></td><td>只说「先写测试」会得到一个恒真测试</td></tr>
+    <tr><td><strong>测试有效性门函数</strong>：提交前必须能说出「什么改动会让这个测试失败」</td><td>同上</td><td>这是唯一能机械问答的假测试筛子</td></tr>
+    <tr><td><strong>断言源文本 = 假测试</strong></td><td>同上</td><td><span class="rk-cal-inline">对本仓库尤其关键</span>——R&amp;K 改的大多是 Skill 文档与 HTML，最容易写成「grep 到这行字就算过」</td></tr>
+    <tr><td>mock 四规则</td><td>同上</td><td>防止测试只验证了 mock 自己</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal risk">
+  <div class="t">必须一起改的六处</div>
+  <p>executor「不写测试」散布在 <span class="rk-ref">spec-execute/SKILL.md:25</span>（运行契约·权限）、<span class="rk-ref">:38-40</span>（v2.0 变更）、<span class="rk-ref">:143</span>（常见陷阱）、<span class="rk-ref">README.md:1067</span>、<span class="rk-ref">spec-init/references/project-agent-roles.md:360</span>、<span class="rk-ref">CODEMAP.md:151</span>。漏改任一处，规则自相矛盾，Agent 会按先读到的那条执行。</p>
+</div>
+
+<div class="rk-cal warn">
+  <div class="t">证据规则冲突必须同时解</div>
+  <p><span class="rk-ref">spec-test/SKILL.md:31</span> 规定证据必须由测试运行自动产出、Agent 不得手写或回填。若 executor 做了 TDD 却只在 <code>summary.html</code> 用自然语言总结，正落进这条禁令。解法：开 <code>executor/artifacts/</code> 并套用同一自动生成规则。另 <span class="rk-ref">spec-test/SKILL.md:19</span> 给 tester「可调整测试脚本/配置」的权限，会与 executor 拥有的单元测试文件相撞，需按测试层级划清。</p>
+</div>
+
+<h4>3.2.2 <code>spec-debug</code> ← systematic-debugging</h4>
+
+<table>
+  <thead><tr><th>吸收内容</th><th>层</th><th>为什么需要</th></tr></thead>
+  <tbody>
+    <tr><td>Iron Law：未验证根因不得改码</td><td>rules（一句话）</td><td>替代「诊断确认」门禁</td></tr>
+    <tr><td>四阶段出口条件（每阶段必须产出什么才能进下一阶段）</td><td><code>SKILL.md</code> 正文</td><td>阶段名无约束力，出口条件才有</td></tr>
+    <tr><td>单一可证伪假设 + 写下来 + 最小实验</td><td>正文</td><td>防止一次改五处然后不知道哪处起了作用</td></tr>
+    <tr><td><strong>Phase 4.5</strong>：连续修复都有进展、但每次都翻出新的共享状态或耦合 → 停下质疑架构</td><td>正文</td><td>这个信号<strong>独立于</strong>现有「连续无进展」——有进展的死循环现行机制抓不到</td></tr>
+    <tr><td>根因追溯技法 / 四层校验 / 条件等待禁 <code>sleep</code> / find-polluter</td><td><code>references/</code> 三文件</td><td>执行期技法，按需加载</td></tr>
+  </tbody>
+</table>
+
+<h4>3.2.3 <code>.agents/rules/</code> ← receiving-code-review + using-superpowers</h4>
+
+<table>
+  <thead><tr><th>吸收内容</th><th>为什么在常驻层而不做成 skill</th></tr></thead>
+  <tbody>
+    <tr><td>禁表演式赞同（「你说得对」后立刻照做而未验证）</td><td rowspan="5">它约束的是<strong>任何角色收到任何审查意见时</strong>的行为，不是有始有终的流程。做成 skill 反而不会在需要的时刻被加载——收到批评的那一刻，角色不会想到「我该去调用一个 skill」</td></tr>
+    <tr><td>六步响应流程：先复述再验证再判断，而非先致谢再实施</td></tr>
+    <tr><td><strong>部分理解即停</strong>：只理解了意见的一部分就不能开始改</td></tr>
+    <tr><td>YAGNI 反查：被要求加的东西是否真有当下需求</td></tr>
+    <tr><td>何时该顶回去，以及顶回去要带什么证据</td></tr>
+    <tr><td>技能优先级：流程 skill 先于实现 skill</td><td>R&amp;K 有 20+ skill，冲突时需要仲裁规则</td></tr>
+    <tr><td>优先级链：用户指令 &gt; skills &gt; 默认行为</td><td>同上</td></tr>
+  </tbody>
+</table>
+
+<h4>3.2.4 <code>skill-creator</code> ← 全体元技能（最大单一接收方）</h4>
+
+<p>本仓库的产物就是 Skill，所以「怎么写 Skill」在这里不是元问题而是主业。现状是零相关内容。</p>
+
+<ul>
+  <li><strong>写 Skill 即对流程文档做 TDD</strong>：无 skill 时让 Agent 跑基线场景、观察它是否违规，那次违规就是 RED。</li>
+  <li><strong>压力测试构造法</strong>：七种压力类型、单场景 3+ 组合、场景五要素、通过/不通过判据、元测试三分法。</li>
+  <li><strong>说服原则七条</strong>及按内容类型配比（纪律型 / 参考型 / 技法型用不同写法）。</li>
+  <li>尺寸预算与第三人称描述规则。</li>
+</ul>
+
+<div class="rk-cal key">
+  <div class="t">它是本方案第 5 节「行为验证」的前置</div>
+  <p>没有压力测试法，「新规则是否真的改变了 Agent 行为」就无从检验，整个吸收变成不可验收。所以它在实施顺序里必须早于验证步骤。</p>
+</div>
+
+<h4>3.2.5 其余接收方</h4>
+
+<table>
+  <thead><tr><th>接收方</th><th>吸收内容</th><th>层</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>intent-confirmation</code></td>
+      <td>HARD-GATE（设计获批前不得进入任何实现动作）；反模式<strong>「这太简单不需要设计」</strong>——设计可以极短但必须出示，现行「小修小改可跳过」是漏洞；范围分解闸门（多子系统需求先拆再逐个走 Spec）</td>
+      <td>正文</td>
+    </tr>
+    <tr>
+      <td><code>spec-write</code></td>
+      <td>Spec 自审四问（占位符 / 一致性 / 范围 / 歧义两解则挑一个写明）；plan 无占位符清单；<strong>plan 完备度闸门</strong>（接口签名、数据结构、文件清单、每任务验证命令齐备，缺一项禁入实现）；矛盾<strong>批量</strong>呈现而非逐个打断</td>
+      <td>正文 + <code>references/plan-quality.md</code></td>
+    </tr>
+    <tr>
+      <td><code>spec-review</code></td>
+      <td>严重度三级<strong>定义</strong>（不只标签）；审查五类清单；限定复审（只审原发现 + 修复 diff，范围外记为延后次要项）；运行契约输入补 tester 产物（<span class="rk-ref">spec-review/SKILL.md:15</span> 现在只有 plan+summary+代码）</td>
+      <td>正文 + <code>references/review-rubric.md</code></td>
+    </tr>
+    <tr>
+      <td><code>spec-end</code> / <code>git-work</code></td>
+      <td>收尾顺序纪律（全量测试绿了才出菜单；合并后在合并结果上再跑一次）；<strong>高危操作精确确认词</strong>——只有键入 <code>discard</code> 才授权删除，「差不多同意」不算；force push 合理化对照</td>
+      <td>正文</td>
+    </tr>
+    <tr>
+      <td>四个完成声明点</td>
+      <td><strong>新鲜验证</strong>：executor / tester / debugger / ender 的运行契约「验证」行统一要求本轮证据。不只改 <code>spec-end</code>——四处都能声明完成</td>
+      <td>rules 一句话 + 各运行契约</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>3.3 双模式：一个门禁 = 一个验证器</h3>
+
+<p>模式的本质不是「确认多少次」，而是「谁来验证」。门禁模式下人就是验证器；自动驾驶把人拿掉，必须有等价物补位。这张表同时给出了 3.2 各条纪律的<strong>意义定位</strong>。</p>
+
+<table>
+  <thead><tr><th>门禁</th><th>门禁模式验证者</th><th>自动驾驶替代物</th><th>纪律来源</th></tr></thead>
+  <tbody>
+    <tr><td>门禁 1 需求对齐</td><td>用户确认编码思路小结</td><td><strong>无替代物 → 永远门禁</strong></td><td>—</td></tr>
+    <tr><td>门禁 2 plan / test-plan</td><td>用户确认设计</td><td>plan 完备度闸门 + Spec 自审四问</td><td><code>writing-plans</code>、<code>brainstorming</code></td></tr>
+    <tr><td>门禁 3 实现确认</td><td>用户读 <code>summary.html</code> 放行</td><td>本轮新鲜验证 + <code>executor/artifacts/</code> 自动产出的 RED/GREEN 证据</td><td><code>verification-before-completion</code>、TDD</td></tr>
+    <tr><td>诊断确认</td><td>用户认可根因</td><td>单一可证伪假设 + 最小实验；未验证不得改码</td><td><code>systematic-debugging</code></td></tr>
+    <tr><td>门禁 4 测试确认</td><td>用户读 <code>test-report.html</code></td><td>reviewer <strong>强制</strong>介入（自动驾驶下唯一独立视角）</td><td><code>requesting-code-review</code></td></tr>
+    <tr><td>修复循环预算</td><td>用户定上限</td><td>模式档案预设值 + Phase 4.5 架构信号</td><td>现有预算机制 + Phase 4.5</td></tr>
+    <tr><td>归档 / 提交 / PR</td><td>用户确认</td><td>全量测试绿 + 本轮验证；<strong>合并 / force / 碰 master 仍永远门禁</strong></td><td><code>finishing-a-development-branch</code></td></tr>
+  </tbody>
+</table>
+
+<h4>3.3.1 永远门禁清单</h4>
+
+<p>判据是<strong>可逆性与治理面</strong>，不是风险等级——后者需要新造分类学，前者用已有信息即可判定。</p>
+
+<ul>
+  <li>模式选择本身（不能自动驾驶地决定进入自动驾驶）</li>
+  <li>修改 <code>AGENTS.md</code> / <code>.agents/rules/</code>——自我修改治理规则；自动驾驶下只产出<strong>建议队列，不落笔</strong></li>
+  <li>合并、force push、碰 <code>master</code></li>
+  <li>根因涉及权限 / 计费 / 数据迁移 / 需绕过测试（复用 <span class="rk-ref">spec-debug/SKILL.md:25</span> 现有升级条款）</li>
+  <li>超出已确认 plan 的 scope 扩张</li>
+  <li>Phase 4.5 触发</li>
+</ul>
+
+<div class="rk-cal key">
+  <div class="t">「升级」= 就地降级为门禁模式并等人，不是中止</div>
+  <p>这样各 Skill 运行契约里现成的「升级」条款<strong>语义一行不改</strong>，只在自动驾驶下多一个降级动作。自动驾驶因此就是一个标准 loop——六要素齐备、停止与升级必填，正是 <span class="rk-ref">loop-design/SKILL.md:31</span> 的语言，不必新造风险分类学。</p>
+</div>
+
+<h4>3.3.2 账本：依据必须可机械校验</h4>
+
+<p>现行决策记录九列有<strong>「理由」但没有「依据」</strong>——理由是自然语言可被生成，依据必须可追。</p>
+
+<table>
+  <thead><tr><th>区块</th><th>变更</th><th>取值约束</th></tr></thead>
+  <tbody>
+    <tr><td>frontmatter</td><td>新增 <code>mode</code></td><td><code>gated</code> | <code>autopilot</code></td></tr>
+    <tr><td>frontmatter</td><td>新增自动驾驶预设预算</td><td>进入时一次性确认，运行期不再打扰</td></tr>
+    <tr><td>决策记录</td><td><strong>新增「依据」列</strong></td><td>只接受三形式：①文件路径+行号 ②命令+退出码+输出位置 ③用户原话引用。「根据经验」「通常做法」「这样更专业」一律不算</td></tr>
+    <tr><td>门禁决策</td><td>新增「判定方式」列</td><td><code>user</code> | <code>self+evidence</code>，后者必须带证据指针</td></tr>
+    <tr><td>角色运行句柄</td><td>「可恢复」改为映射真实状态 + 新增「续接方式」「累计参与 Spec 数」两列</td><td>见 3.4</td></tr>
+  </tbody>
+</table>
+
+<h3>3.4 角色持久化：从一次性资源到固定成员</h3>
+
+<p>本次已在 OMP <strong>实测确认</strong>：向 40 分钟前跑完的 <code>parked</code> subagent 发消息并明确要求「只凭记忆回答、不许重读文件」，它准确复述了最初任务要求与自己的结论，<code>hub</code> 返回 <code>revived</code>。能力一直存在，缺的是 R&amp;K 侧的协议。</p>
+
+<table>
+  <thead><tr><th>状态</th><th>含义</th><th>续接动作</th></tr></thead>
+  <tbody>
+    <tr><td><code>running</code></td><td>正在执行</td><td><code>hub send</code> 插话 steering</td></tr>
+    <tr><td><code>idle</code></td><td>跑完，session 仍挂载</td><td><code>hub send</code></td></tr>
+    <tr><td><code>parked</code></td><td>空闲超 <code>task.agentIdleTtlMs</code>（默认 420000ms）后释放 session，<code>AgentRef</code> 与 session 文件保留</td><td><code>hub send</code>，<strong>消息即自动复活</strong></td></tr>
+    <tr><td><code>aborted</code></td><td>被取消 / 超时 / 硬中断</td><td><strong>终态</strong>，只能重新 spawn 并从账本与产物重建</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal risk">
+  <div class="t">续接只能用 hub send，不能用重新 spawn</div>
+  <p><code>agent://</code> id 按 name 分配，同名再 spawn 会得到 <code>spec-writer-2</code>——一个全新的零历史 agent，正是要避免的影子角色。另：spawn 时 <code>name</code> 必须显式等于角色 id，否则会拿到随机生成名而失去可寻址性。</p>
+</div>
+
+<p><strong>四条硬边界</strong>（必须写明，否则承诺过头）：</p>
+<ol>
+  <li><code>isolated: true</code> 与持久化<strong>互斥</strong>——隔离 agent 完成即拆除。R&amp;K 角色不启用隔离工作区。</li>
+  <li><code>aborted</code> 是终态，此时账本 + 落盘产物是唯一恢复路径。</li>
+  <li><strong>进程边界</strong>：registry 是 process-global。同 session 内可续接；omp 重启后靠账本与产物重建。</li>
+  <li>新 spawn <strong>不继承对话历史</strong>。所以账本永远是兜底，不因「能续接」而放松落盘。</li>
+</ol>
+
+<p><strong>要改三处</strong>：<span class="rk-ref">spec-start/SKILL.md:285</span> 把「跨 Spec」与「跨进程」混为一谈，是 TeamLead 读到「handle 不重要」信号的根因；<span class="rk-ref">:299</span> 写了「可恢复则继续同一角色线程」但没给判定方法与具体动作；<code>spec-update</code> 需明确「先查账本 handle → <code>hub list</code> 核状态 → 能续接就消息同一角色」。</p>
+
+<h3>3.5 明确拒绝（附理由，非稻草人）</h3>
+
+<table>
+  <thead><tr><th>拒绝项</th><th>理由</th></tr></thead>
+  <tbody>
+    <tr><td>one-question-per-message</td><td>那是没有结构化提问 UI 时的产物。OMP <code>ask</code> 支持一次多问带推荐默认，R&amp;K 现行「2–5 问 + 带默认」在此运行时<strong>严格更优</strong>。写明理由以防后续 Agent 反复想改</td></tr>
+    <tr><td>SDD 簇整体（per-task fresh implementer + 2–5 分钟粒度 + 每任务两段 review + 5 轮升级模型）</td><td>四者互为前提，拆开引入任一条都失效。R&amp;K 门禁是阶段级，拆到任务级会让确认次数爆炸。<strong>但必须补偿信息供给</strong>——即门禁 2 的 plan 完备度闸门</td></tr>
+    <tr><td>账本 end-of-life</td><td>上游 <code>.superpowers/sdd/</code> 用完 <code>rm -rf</code>，因为它只服务 compaction recovery。R&amp;K 账本还要服务事后追责与中途接管，永久保留</td></tr>
+    <tr><td>强制 worktree 隔离</td><td>R&amp;K 已有分支隔离；且与角色持久化互斥（3.4）</td></tr>
+    <tr><td><code>dispatching-parallel-agents</code></td><td>TeamLead 中转模型已覆盖，且 R&amp;K 明确禁止角色间直连</td></tr>
+    <tr><td>Visual Companion</td><td>与 HTML 报告体系无关</td></tr>
+    <tr><td>hooks/session-start 机制本身</td><td>R&amp;K 靠 <code>.agents/rules/</code> 自动注入达成同一效果。且 hook 已在 <span class="rk-ref">README.md:1196</span> v2.6.0 整套移除，理由是「事实字段自动同步价值有限，却带来运行时配置负担和区块名被字符串匹配的隐式耦合」——不应重新引入</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 实施步骤</h2>
+
+<p>顺序按<strong>强制力载体</strong>排，不按改动大小排。理由：只改按需加载的 Skill 而不改常驻 rules，运行时行为不会改变。</p>
+
+<ol>
+  <li><strong>P0-1 常驻层</strong>：<code>.agents/rules/spec-workflow.md</code>（+ <code>.claude/rules/</code> 镜像，注意其只有 2 个文件而 <code>.agents/rules/</code> 有 5 个）。写入两种模式定义、「确认」双义、依据三形式、永远门禁清单、三条 Iron Law、跨角色审查响应纪律、技能优先级与优先级链。<strong>必须最先</strong>——当前规则与自动驾驶冲突，不改则模式在规则层非法。</li>
+  <li><strong>P0-2 账本结构</strong>：按 3.3.2 改 <code>spec-start</code> 的账本模板（<code>mode</code>、依据列、判定方式、角色句柄三列）。</li>
+  <li><strong>P0-3 模式相关的自门禁</strong>：六个 Skill 中「必须使用当前运行环境的确认方式」改为模式相关（<span class="rk-ref">spec-write:32-39</span>+步骤12、<span class="rk-ref">spec-execute:33</span>+步骤8、<span class="rk-ref">spec-test:21</span>、<span class="rk-ref">spec-debug:31</span>+步骤6、<span class="rk-ref">spec-review:23-32</span>+步骤7、<span class="rk-ref">spec-end:29</span>+步骤6），并修 <span class="rk-ref">spec-debug:146</span> 死锁（自动驾驶取模式档案预设值，不再停等人确认）。</li>
+  <li><strong>P0-4 完成声明四点统一</strong>：executor / tester / debugger / ender 的运行契约「验证」行统一加「本轮验证」要求，不只改 <code>spec-end</code>。</li>
+  <li><strong>P0-5 <code>spec-execute</code></strong>：删六处测试禁令，加 TDD 铁律与 <code>executor/artifacts/</code>，拆 <code>references/tdd-discipline.md</code>。</li>
+  <li><strong>P1-1 <code>spec-debug</code></strong>：四阶段 + Phase 4.5，拆三个 references。</li>
+  <li><strong>P1-2 <code>spec-review</code></strong>：严重度定义、五类清单、限定复审、输入补 tester 产物、可选→模式相关（同步八处）。</li>
+  <li><strong>P1-3 <code>spec-write</code></strong>：自审四问、无占位符清单、完备度闸门、矛盾批量扫描。</li>
+  <li><strong>P1-4 <code>skill-creator</code></strong>：压力测试法与说服原则。<strong>必须早于第 13 步</strong>——它是第 13 步行为验证的宿主。</li>
+  <li><strong>P1-5 <code>intent-confirmation</code></strong>：HARD-GATE、简单任务反模式、范围分解；写明不采纳 one-question 及理由。</li>
+  <li><strong>P1-6 角色持久化</strong>：<code>spec-start</code> / <code>spec-update</code> 的续接协议；补齐 <code>.agents/roles/</code> 7 个文件（当前完全缺失）。</li>
+  <li><strong>P2-1 账本 HTML 化</strong>：<code>team-context.md</code> → <code>team-context.html</code>，复用 <code>rk-cal</code>、<code>rk-verdict</code>、<code>rk-risk</code> 组件；frontmatter 转 <code>rk:*</code> 双轨。高频追写的三个共享区保留 HTML 表格以保持追加成本。</li>
+  <li><strong>P2-2 导航树</strong>：<code>rk-manifest.js</code>（在 Spec 根目录生成，声明已知报告）+ 各报告 <code>rk-nav.js</code> 渲染逻辑 + <code>rk-nav.css</code>。见 6.1。</li>
+  <li><strong>P2-3 收尾</strong>：<code>html-report</code> 加 <code>rk:mode</code>；<code>loop-design</code> 把自动驾驶表达为标准 loop；README / CODEMAP 同步；目录名漂移与 <code>main</code> 写死统一修正。</li>
+  <li><strong>P3-1 行为验证</strong>：按 <code>skill-creator</code> 新增压力测试法，对 TDD / 根因优先 / 新鲜验证三条各构造 3+ 压力的场景题，记录基线（无规则时）与有规则时的选择差异。</li>
+</ol>
+
+<h2>5. 验收关注点</h2>
+
+<p>全部要求<strong>可机械判定</strong>，不接受「Agent 是否遵守」这类不可证伪表述。</p>
+
+<ul>
+  <li><strong>依据可校验</strong>：跑一次真实小改动的自动驾驶全程，扫账本决策记录，每一行「依据」列必须匹配三种合法形式之一；一行不匹配即失败。</li>
+  <li><strong>证据非手写</strong><code>executor/artifacts/</code> 存在测试运行自动产出的 RED 输出（含失败断言原文）与 GREEN 输出（含退出码），且 <code>summary.html</code> 引用的命令与文件内容一致；出现无退出码、无时间戳等人工补写痕迹即失败。</li>
+  <li><strong>完备度闸门生效</strong>：故意给一个缺接口签名的 plan 进自动驾驶，必须被闸门挡住，而不是被 executor 自由发挥。</li>
+  <li><strong>永远门禁不可绕过</strong>：自动驾驶下尝试触发改 <code>.agents/rules/</code>、合并、force push，必须全部停下等人。</li>
+  <li><strong>死锁已解</strong>：自动驾驶进入修复循环时不再卡在「预算待确认」。</li>
+  <li><strong>角色续接</strong>：同一 session 内跨阶段 handoff 后，<code>hub list</code> 显示角色仍是同一 id（无 <code>-2</code> 影子），且续接后能引用此前上下文。</li>
+  <li><strong>规则自洽</strong>：全仓搜索「不写测试」「可选」等旧口径，无残留矛盾表述。</li>
+  <li><strong>尺寸达标</strong>：改造后无 SKILL.md 正文超 500 行。</li>
+  <li><strong>门禁模式无回归</strong>：门禁模式下走一遍完整 Spec，确认交互与现状一致。</li>
+</ul>
+
+<h2>6. 风险和依赖</h2>
+
+<table>
+  <thead><tr><th>风险</th><th>影响</th><th>概率</th><th>缓解措施</th></tr></thead>
+  <tbody>
+    <tr><td>只改 Skill 不改 rules，行为不变</td><td>高</td><td>高</td><td>P0-1 强制最先；验收含「规则自洽」全仓搜索</td></tr>
+    <tr><td>executor 与 tester 测试职责重叠</td><td>高</td><td>中</td><td>按测试层级划分而非「能否写测试」；tester 保留最终结论；明确 executor 拥有的单元测试文件 tester 不改（现行 <span class="rk-ref">spec-test:19</span> 权限含「可调整测试脚本」会撞）</td></tr>
+    <tr><td>测试质量出现两个 owner</td><td>中</td><td>中</td><td>Test Quality 归 tester；reviewer 只判「tester 结论是否被证据支持」</td></tr>
+    <tr><td>自动驾驶被误用于高不可逆场景</td><td>高</td><td>中</td><td>永远门禁清单按可逆性划定；升级=降级等人而非中止</td></tr>
+    <tr><td>TDD 被机械套用到非代码任务</td><td>中</td><td>中</td><td>上游对此<strong>无通用等价路径</strong>（已核实），仅有个案指引：脚本跑产物断言效果、面向 Agent 的文档由消费方行为验证、纯人类散文不配测试。R&amp;K 按此三分，不伪造失败测试</td></tr>
+    <tr><td>吸收导致 SKILL.md 膨胀，新规则被稀释</td><td>中</td><td>高</td><td>三层承载 + 同步拆 references；验收含尺寸检查</td></tr>
+    <tr><td>角色持久化承诺过头</td><td>中</td><td>中</td><td>四条硬边界写明；账本永远兜底</td></tr>
+    <tr><td>旧文档与新定义漂移</td><td>高</td><td>高</td><td>按 P0→P2 顺序，最后统一搜索旧术语</td></tr>
+  </tbody>
+</table>
+
+<div class="rk-cal risk">
+  <div class="t">最高风险</div>
+  <p>把 <code>.agents/rules/</code> 排在后面。它是 OMP 下唯一每次会话自动进上下文的载体，而所有 spec-* 都是 <code>disable-model-invocation: true</code>、仅在角色显式调用时加载。若先改一堆按需加载的 Skill、最后才改常驻文件，那么在整个实施过程中新规则都不生效。</p>
+</div>
+
+<div class="rk-cal warn">
+  <div class="t">依赖与前置</div>
+  <p>①<code>.agents/roles/</code> 缺失，spec-start 前置检查当前无法通过（本次按 <code>D-002</code> 串行绕过，实施阶段需补齐）。②行为验证依赖 <code>skill-creator</code> 先具备压力测试能力，故 P1-4 必须早于第 13 步。③导航树依赖 <code>rk-manifest.js</code> 生成时机，见 6.1。④角色续接依赖 OMP 的 <code>hub</code> 与 registry，其他运行时未实测，需标注适配前提。</p>
+</div>
+
+<h3>6.1 导航树技术方案（附带需求）</h3>
+
+<p>用户提出「报告左侧有个文件树导航，可在本 Spec 已有 HTML 文档间切换」，且必须 <code>file://</code> 直开可用。</p>
+
+<p><strong>约束</strong>：<code>file://</code> 下 <code>fetch</code> 被浏览器安全策略直接拒绝，无法用 <code>fetch(t).ok</code> 探测同级文件是否存在（已在本地实测验证，已存在的 <code>exploration-report.html</code> 仍返回 <code>Failed to fetch</code>）。</p>
+
+<p><strong>方案</strong>：生成一份 <code>rk-manifest.js</code> 在 Spec 根目录，声明已知报告清单。各报告通过 <code>&lt;script src="../rk-manifest.js"&gt;&lt;/script&gt;</code> 加载——<code>&lt;script src&gt;</code> 不受 <code>file://</code> CORS 限制（已实测：<code>fetch</code> 被拒但 <code>script src</code> 正常加载）。导航树由 <code>rk-nav.js</code> 渲染为固定左侧栏（窄屏折叠、打印隐藏）。</p>
+
+<p><strong>manifest 维护</strong>：有两种实践——<code>A)</code> 每次生成报告时由当前角色更新 manifest；<code>B)</code> 由 TeamLead 在新增报告后统一更新。推荐 B，避免多角色并发编辑 manifest。</p>
+
+<p><strong>附录</strong>：账本 HTML 化——按 <code>D-012</code> 豁免修订标记。理由：账本是高频追写的运行记录，不是「定稿后修订」的报告，强制 <code>data-rev</code> 会让它膨胀。但需复用样式与导航树。</p>
+
+<h2>7. 决策台账</h2>
+
+<p>编号与 <a href="../lead/team-context.md">账本决策记录</a>同一空间，可双向追溯。</p>
+
+<h3>7.1 已由用户拍板（本方案据此撰写）</h3>
+
+<table>
+  <thead><tr><th>编号</th><th>议题</th><th>结论</th><th>对应章节</th></tr></thead>
+  <tbody>
+    <tr><td>D-001</td><td>融合层级</td><td>行为层融合，不移植架构</td><td>1.1、3.5</td></tr>
+    <tr><td>D-005</td><td>本次 Spec 产出范围</td><td>只产出设计方案</td><td>1.3</td></tr>
+    <tr><td>D-006</td><td>双模式语义</td><td>换验证器，非快慢开关</td><td>3.3</td></tr>
+    <tr><td>D-007</td><td>决策依据形式</td><td>只接受三种可机械校验形式</td><td>3.3.2</td></tr>
+    <tr><td>D-008</td><td>纪律承载方式</td><td>三层承载，不迁正文</td><td>3.1</td></tr>
+    <tr><td>D-009</td><td>Iron Law 是否下沉 references</td><td>留常驻 rules</td><td>3.1</td></tr>
+    <tr><td>D-012</td><td>账本 HTML 化是否套修订标记</td><td>改 HTML 但豁免修订标记</td><td>6.1</td></tr>
+  </tbody>
+</table>
+
+<h3>7.2 待用户拍板（本方案给出推荐结论）</h3>
+
+<table>
+  <thead><tr><th>编号</th><th>议题</th><th>推荐结论</th><th>影响</th></tr></thead>
+  <tbody>
+    <tr><td>D-010</td><td><code>receiving-code-review</code> 那套放哪</td><td>放 <code>.agents/rules/</code>——它约束的是任何角色收到任何审查意见时的行为，不是有始有终的流程；做成 skill 反而不会在需要的时刻加载</td><td>决定该纪律是否真的生效</td></tr>
+    <tr><td>D-011</td><td><code>task.agentIdleTtlMs</code> 取值</td><td>保持默认 420000ms。park 无损（消息即复活），设 <code>0</code> 会把 7 个角色 session 全钉在内存；若更看重「角色始终在线」手感可调至 30 分钟档</td><td>影响角色续接的体感与内存占用</td></tr>
+    <tr><td>D-013</td><td>导航树实现方式</td><td><code>rk-manifest.js</code> 声明式清单 + <code>&lt;script src&gt;</code>，不用 <code>fetch</code> 探测</td><td>决定导航树能否在 <code>file://</code> 下工作</td></tr>
+    <tr><td>D-014</td><td>分类目录名以哪套为准</td><td>以仓库实际（<code>01-项目规划/02-架构设计/03-功能实现/04-问题修复/05-测试文档</code>）为准，改 <code>spec-write</code> 向其对齐——已归档 Spec 的路径不因改名失效</td><td>决定漂移修正方向</td></tr>
+    <tr><td>D-015</td><td>自动驾驶默认档位是否允许 push 与建 PR</td><td>允许 push 工作分支 + 创建 PR（可关闭、可逆，且 PR 本身就是给人审的入口）；禁止合并、force、碰 <code>master</code></td><td>决定自动驾驶的实用价值边界</td></tr>
+    <tr><td>D-016</td><td>模式粒度</td><td>两个命名模式 + 一份不可关闭的永远门禁清单，不做逐门禁开关矩阵</td><td>够用且不会长成配置地狱</td></tr>
+    <tr><td>D-017</td><td><code>rk-manifest.js</code> 维护主体</td><td>由 TeamLead 在新增报告后统一更新，避免多角色并发编辑</td><td>决定导航树的维护方式</td></tr>
+  </tbody>
+</table>
+
+<h2>8. 关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration">探索报告</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本（Markdown）</a></li>
+  <li><a href="../lead/team-context.html" data-rk-link="ledger-html">运行账本（HTML，待创建）</a></li>
+  <li><a href="https://github.com/obra/superpowers" data-rk-link="source">Superpowers 官方仓库</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a>（待创建，由 spec-tester 创建）</li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建，由 spec-executor 创建）</li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../tester/test-plan.html" data-rk-backlink="test-plan">测试计划</a>（待创建）</li>
+  <li><a href="../tester/test-report.html" data-rk-backlink="test-report">测试报告</a>（待创建）</li>
+  <li><a href="../executor/summary.html" data-rk-backlink="summary">实现总结</a>（待创建）</li>
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a>（待创建）</li>
+  <li><a href="../updater/update-summary.html" data-rk-backlink="update-summary">更新总结</a>（待创建）</li>
+</ul>
+</body>
+</html>

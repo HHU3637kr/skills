@@ -6,14 +6,18 @@
 
 <meta name="rk:type" content="template">
 <meta name="rk:role" content="spec-reviewer">
+<meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:tags" content="spec,review,template">
 <link rel="rk-contract" href="../../html-report/SKILL.md">
 
 <!-- 本文件位于 spec-review/references/，回到项目根是 2 层 -->
 <link rel="stylesheet" href="../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
 <script defer src="../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
+
+<nav class="rk-nav"></nav>
 
 <header class="rk-head">
   <h1>审查报告模板</h1>
@@ -52,6 +56,7 @@
 &lt;meta name="rk:type"        content="review"&gt;
 &lt;meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
 &lt;meta name="rk:role"        content="spec-reviewer"&gt;
+&lt;meta name="rk:mode"        content="{gated|autopilot}"&gt;
 &lt;meta name="rk:title"       content="{功能名称}-审查报告"&gt;
 &lt;meta name="rk:category"    content="{与 writer/plan.html 相同}"&gt;
 &lt;meta name="rk:status"      content="未确认"&gt;
@@ -67,12 +72,15 @@
 &lt;!-- 文档关联，等价原 frontmatter 的 plan: / summary: 字段 --&gt;
 &lt;link rel="rk-plan"    href="../writer/plan.html"&gt;
 &lt;link rel="rk-summary" href="../executor/summary.html"&gt;
-&lt;link rel="rk-ledger"  href="../../lead/team-context.md"&gt;
+&lt;link rel="rk-ledger"  href="../lead/team-context.md"&gt;
 
 &lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../rk-manifest.js"&gt;&lt;/script&gt;
 &lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
+
+&lt;nav class="rk-nav"&gt;&lt;/nav&gt;
 
 &lt;header class="rk-head"&gt;
   &lt;h1&gt;审查报告：{功能名称}&lt;/h1&gt;
@@ -216,7 +224,7 @@
   &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href="../executor/summary.html" data-rk-link="summary"&gt;实现总结&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href="../tester/test-report.html" data-rk-link="test-report"&gt;测试报告&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3&gt;引用本报告&lt;/h3&gt;
 &lt;ul class="rk-backlinks"&gt;
@@ -243,6 +251,7 @@
 &lt;meta name="rk:type"          content="review"&gt;
 &lt;meta name="rk:spec-dir"      content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
 &lt;meta name="rk:role"          content="spec-reviewer"&gt;
+&lt;meta name="rk:mode"        content="{gated|autopilot}"&gt;
 &lt;meta name="rk:title"         content="{功能名称}-更新XXX-审查报告"&gt;
 &lt;meta name="rk:update-number" content="XXX"&gt;
 &lt;meta name="rk:category"      content="{与 writer/plan.html 相同}"&gt;
@@ -260,12 +269,15 @@
 &lt;link rel="rk-plan"           href="../writer/plan.html"&gt;
 &lt;link rel="rk-update"         href="../updater/update-XXX.html"&gt;
 &lt;link rel="rk-update-summary" href="../updater/update-XXX-summary.html"&gt;
-&lt;link rel="rk-ledger"         href="../../lead/team-context.md"&gt;
+&lt;link rel="rk-ledger"         href="../lead/team-context.md"&gt;
 
 &lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;script defer src="../rk-manifest.js"&gt;&lt;/script&gt;
 &lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
+
+&lt;nav class="rk-nav"&gt;&lt;/nav&gt;
 
 &lt;header class="rk-head"&gt;
   &lt;h1&gt;更新审查报告：{功能名称}-更新XXX&lt;/h1&gt;
@@ -350,7 +362,7 @@
   &lt;li&gt;&lt;a href="../writer/plan.html" data-rk-link="plan"&gt;设计方案&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href="../updater/update-XXX.html" data-rk-link="update"&gt;更新方案 update-XXX&lt;/a&gt;&lt;/li&gt;
   &lt;li&gt;&lt;a href="../updater/update-XXX-summary.html" data-rk-link="update-summary"&gt;更新总结 update-XXX-summary&lt;/a&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;a href="../../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href="../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;h3&gt;引用本报告&lt;/h3&gt;
 &lt;ul class="rk-backlinks"&gt;
@@ -387,7 +399,7 @@
     <tr><td>关联 summary</td><td>必填</td><td>—</td><td><code>&lt;link rel="rk-summary"&gt;</code></td><td>本报告引用</td><td><code>../executor/summary.html</code></td></tr>
     <tr><td>关联 update</td><td>—</td><td>必填</td><td><code>&lt;link rel="rk-update"&gt;</code></td><td>本报告引用</td><td><code>../updater/update-XXX.html</code></td></tr>
     <tr><td>关联更新总结</td><td>—</td><td>必填</td><td><code>&lt;link rel="rk-update-summary"&gt;</code></td><td>本报告引用</td><td><code>../updater/update-XXX-summary.html</code></td></tr>
-    <tr><td>运行账本</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../../lead/team-context.md</code>（保持 Markdown）</td></tr>
+    <tr><td>运行账本</td><td>必填</td><td>必填</td><td><code>&lt;link rel="rk-ledger"&gt;</code></td><td>本报告引用</td><td><code>../lead/team-context.md</code> 或 <code>../lead/team-context.html</code></td></tr>
   </tbody>
 </table>
 

@@ -103,7 +103,7 @@ cd .agents/skills && git pull
 │      ↓ 【门禁 4：测试报告确认】                                             │
 │  ┌─────────────────────────────────────────────────────────┐              │
 │  │ 阶段五：收尾                                              │              │
-│  │ spec-reviewer 可选审查 → spec-ender + exp-reflect         │              │
+│  │ spec-reviewer 审查（gated 可选 / autopilot 强制）→ spec-ender │              │
 │  │ → 规范维护审查 → 归档 → 推送 PR                            │              │
 │  └─────────────────────────────────────────────────────────┘              │
 │                                                                           │
@@ -235,7 +235,7 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 | spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html`, `tester/artifacts/test-logs/` | 阶段二 + 阶段四 |
 | spec-executor | `spec-execute` | `executor/summary.html` | 阶段三 |
 | spec-debugger | `spec-debug` | `debugger/debug-xxx.html`, `debugger/debug-xxx-fix.html` | 阶段三/四（按需） |
-| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-xxx-review.html` | 阶段四后（可选） |
+| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-xxx-review.html` | 阶段四后（`gated` 可选 / `autopilot` 强制） |
 | spec-ender | `spec-end` | `ender/end-report.html` + 经验沉淀 + 规范维护 + 归档 + 推送 PR | 阶段五 |
 
 ### 初始化
@@ -268,7 +268,7 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 | `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.html` + 执行测试产出 `tester/test-report.html` | 测试计划和测试执行 |
 | `spec-execute` | spec-executor | 严格按 `writer/plan.html` 实现代码，产出 `executor/summary.html` | 新功能开发 |
 | `spec-debug` | spec-debugger | 诊断并修复 bug，产出 debug 文档 | 测试发现问题时 |
-| `spec-review` | spec-reviewer | 审查实现情况，产出 `reviewer/review.html` | 可选：验证是否严格遵循 Spec |
+| `spec-review` | spec-reviewer | 审查实现情况，产出 `reviewer/review.html` | `gated` 可选；`autopilot` **强制**——自动驾驶下它是唯一独立视角 |
 | `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 规范维护 + 归档 + 推送 PR，产出 `ender/end-report.html` | 开发周期收尾 |
 | `spec-update` | — | 在当前 Spec 分支内执行小更新，产出 `updater/update-xxx.html` 与 `updater/update-xxx-summary.html` | 修改同一活跃 Spec 的既有功能（不归档） |
 
@@ -303,8 +303,8 @@ GitHub Flow 准备
   TeamLead → spec-tester 执行测试
   [如有 bug] spec-tester → spec-debugger → 修复 → 重新验证
   spec-tester → tester/test-report.html → 通知 TeamLead
-  可选：TeamLead → spec-reviewer → reviewer/review.html
-  TeamLead → 用户确认 tester/test-report.html（和可选 reviewer/review.html）
+  spec-reviewer → reviewer/review.html（gated 可选 / autopilot 强制）
+  TeamLead → 门禁 4：gated 由用户确认 tester/test-report.html；autopilot 由 reviewer/review.html 替代该确认
       ↓ 【门禁 4】
 
 阶段五：收尾
@@ -313,7 +313,7 @@ GitHub Flow 准备
   spec-ender → git-work 提交 + 推送 + 创建 PR
   spec-ender → 通知 TeamLead，Teams 进入待机
 
-可选：用户可在任意时刻调用 spec-review 进行详细审查
+此外用户可在任意时刻主动调用 spec-review 进行详细审查
 ```
 
 #### 问题修复流程
@@ -370,7 +370,7 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
     ↓
 完成（不归档，保留在原目录）
 
-可选：用户可在任意时刻调用 spec-review 进行详细审查
+此外用户可在任意时刻主动调用 spec-review 进行详细审查
 ```
 
 ### 2. 经验管理 Skills
@@ -460,8 +460,8 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 │   ├── debug-001.html         # 问题诊断（spec-debug 创建）
 │   └── debug-001-fix.html     # 修复总结（spec-debug 创建）
 ├── reviewer/
-│   ├── review.html            # 审查报告（可选，spec-review 创建）
-│   └── update-001-review.html # 更新审查（可选，spec-review 创建）
+│   ├── review.html            # 审查报告（gated 可选 / autopilot 必有，spec-review 创建）
+│   └── update-001-review.html # 更新审查（同上）
 ├── updater/
 │   ├── update-001.html        # 更新方案（spec-update 创建）
 │   └── update-001-summary.html # 更新总结（spec-update 创建）
@@ -490,12 +490,12 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-rep
 | `updater/update-001.html`、`updater/update-001-summary.html` | spec-update |
 | `ender/end-report.html` | spec-ender |
 
-两类文件**必须保持 Markdown**，不是遗漏，是刻意的：
+账本可用 Markdown 或 HTML；记忆库**必须保持 Markdown**：
 
-| 文件 | 为什么保持 Markdown |
-|------|--------------------|
-| `lead/team-context.md` | 运行账本，按区块结构手动维护并被各角色重读，改格式会破坏区块解析 |
-| `spec/context/experience/*.md`、`knowledge/*.md` | 记忆库，被 `exp-search` 按文本检索 |
+| 文件 | 格式 | 说明 |
+|------|------|------|
+| `lead/team-context.md` 或 `lead/team-context.html` | 二者皆可 | 运行账本。用 HTML 时复用报告样式与导航树，但**豁免修订标记**——它是高频追写的运行流水，不是定稿后修订的报告，强制 `data-rev` 会让它膨胀 |
+| `spec/context/experience/*.md`、`knowledge/*.md` | Markdown | 记忆库，被 `exp-search` 按文本检索 |
 
 `tester/artifacts/test-logs/**` 保持测试运行的原始格式，属于证据不是报告。
 
@@ -556,7 +556,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-rep
 <h3>本报告引用</h3>
 <ul class="rk-links">
   <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
-  <li><a href="../../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
 </ul>
 <h3>引用本报告</h3>
 <ul class="rk-backlinks">
@@ -608,7 +608,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-rep
 | **门禁 1：需求对齐** | 阶段一完成 | TeamLead | 需求理解正确 |
 | **门禁 2：Spec 审阅** | 阶段二完成 | TeamLead | `writer/plan.html` + `tester/test-plan.html` |
 | **门禁 3：实现确认** | 阶段三完成 | TeamLead | `executor/summary.html` |
-| **门禁 4：测试确认** | 阶段四完成 | TeamLead | `tester/test-report.html` + 可选 `reviewer/review.html` |
+| **门禁 4：测试确认** | 阶段四完成 | TeamLead | `tester/test-report.html`；`gated` 下 `reviewer/review.html` 可选，`autopilot` 下必有并替代用户确认 |
 | **诊断确认** | bug 诊断完成 | TeamLead | `debugger/debug-xxx.html`（如有） |
 | **归档确认** | 阶段五 | spec-ender | 是否归档 + 提交 + 推送 + 创建 PR |
 
@@ -697,10 +697,10 @@ spec-tester：
   触发预算上限或连续无进展 → 停止循环 → TeamLead 升级给用户（继续加预算 / 改方案 / 暂停）
   产出 tester/test-report.html
 
-可选：
+审查（gated 可选 / autopilot 强制）：
   TeamLead → spec-reviewer 审查 → reviewer/review.html
 
-TeamLead → 用户确认 tester/test-report.html（和可选 reviewer/review.html）
+门禁 4：gated 由用户确认 tester/test-report.html（和 reviewer/review.html 如有）；autopilot 由 reviewer/review.html 替代
 ```
 
 #### 步骤 5：收尾（阶段五）
@@ -1064,7 +1064,7 @@ created: YYYY-MM-DD
 
 ### 5. Agent Teams 协作规范
 
-- **角色职责清晰**：不越权操作（如 spec-executor 不写测试）
+- **角色职责清晰**：不越权操作（如 spec-executor 只写自己实现代码的单元测试，不出最终测试结论）
 - **TeamLead 中转**：跨角色通信默认通过 TeamLead 转交，角色只声明建议接收方
 - **Team Context 及时更新**：TeamLead 维护控制面；各角色维护自己在「任务进度」和「问题闭环记录」中的行
 - **闭环通知**：完成工作后必须把产物路径、状态和需要的 handoff 返回 TeamLead
@@ -1158,13 +1158,27 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.6.0
-**最后更新**: 2026-07-30
+**版本**: 2.8.0
+**最后更新**: 2026-08-09
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.8.0 (2026-08-09) - 双运行模式 + 吸收 Superpowers 工程纪律 + 角色跨 Spec 持续在场
+
+**核心改进**：
+
+1. **双运行模式**：每个 Spec 在阶段一确定 `mode`（`gated` 门禁 / `autopilot` 自动驾驶），写入账本 frontmatter 与各报告 `rk:mode`。模式的语义是**换验证器，不是放宽标准**——门禁模式下人是验证器，自动驾驶把人拿掉就必须由指定的机械纪律补位；找不到补位物的门禁一律列入「永远门禁」。`.agents/rules/spec-workflow.md` 把「已确认」定义为两义：用户确认，或自门禁通过（仅 `autopilot`，且必须附机械证据）。
+2. **三条不可协商的纪律进常驻规则层**：测试先行、根因优先、新鲜验证。放 `.agents/rules/` 而非各 Skill，因为所有 `spec-*` 都是 `disable-model-invocation: true`、只在角色显式调用时加载；Iron Law 若也按需加载，等于让被约束者自己决定是否加载约束自己的规则。执行细则下沉各 Skill 的 `references/`，由运行契约按**机械可判**的条件路由（「任务涉及代码改动 → 开工前必读 X」，不写「如需要可参考」）。
+3. **决策依据可机械校验**：账本「决策记录」新增「依据」列，只接受三种形式——①文件路径+行号 ②命令+退出码+输出位置 ③用户原话引用。「根据经验」「通常做法」不是依据：理由可以被生成，依据必须可追。「门禁决策」新增「判定方式」列（`user` / `self+evidence`）。
+4. **spec-executor 取得单元测试所有权**：分工改为按**测试层级**而非「能否写测试」划分——executor 拥有单元/聚焦测试并按 TDD 实现，tester 拥有集成/端到端/回归、测试质量评估与最终结论。新增 `spec-execute/references/tdd-discipline.md`（RED 三确认、测试有效性门函数「什么改动会让这个测试失败」、mock 四规则、假测试形态、非代码改动的三类处理）。原「executor 不写测试」散布六处，已同步清理。
+5. **实现期证据不可手写**：新增 `executor/artifacts/`，套用与 `tester/artifacts/` 相同的规则——内容必须由测试运行本身产出，Agent 不得手写、补写或回填；必须能看出跑了什么命令、退出码多少、失败断言原文是什么。
+6. **角色跨 Spec 持续在场**：修正「运行时 handle 不重要」的误导表述——同一进程内 handle 是续接同一角色的唯一途径。账本「角色运行句柄」的状态改为映射真实四态（`running` / `idle` / `parked` / `aborted`），新增「续接方式」（`hub-send` / `respawn+rebuild`）与「累计参与 Spec 数」两列。**续接只能发消息，不能重新 spawn**：同名再 spawn 会得到零历史的影子角色。隔离工作区与角色持久化互斥，故不启用。
+7. **默认分支不再写死 `main`**：改为读 `git symbolic-ref refs/remotes/origin/HEAD`，兼容 `master` 等实际主分支名。
+
+**验证**：`.agents/rules/` 与 `.claude/rules/` 5 个文件逐一比对一致（此前镜像漂移：`.claude/` 版还在说 `plan.md` 与 Obsidian）；`file://` 下实测确认 `fetch` 被安全策略拒绝而 `<script src>` 正常加载，据此选定导航树实现方式。
 
 ### v2.7.0 (2026-08-08) - 报告改 HTML 承载 + 可追溯修订 + 移除 Obsidian
 
@@ -1179,7 +1193,7 @@ created: YYYY-MM-DD
    - **双链双向**：Obsidian 双链的价值不只是跳转，更是**反向可发现**。关联产物拆成「本报告引用」（`rk-links` + `data-rk-link`）与「引用本报告」（`rk-backlinks` + `data-rk-backlink`）两组，关系可被脚本提取；谁新建关联谁补对侧反链，对侧未产出时标注（待创建）。
    - **Callout 语义**：`> [!important]` → `rk-cal key`、`> [!warning]` → `rk-cal warn`、`> [!failure]` → `rk-cal risk`、`> [!success]` → `rk-cal ok`。
 6. **重点突出组件**：`rk-verdict`（结论块，`is-pass` 绿 / `is-fail` 红，置顶显示最重要结论）、`rk-kpis`（指标卡，测试报告用于通过/失败/覆盖率）、`rk-cal`（四色 Callout）、`rk-ref`（`src/x.ts:88` 代码位置引用）。
-7. **格式边界明确划分**：`lead/team-context.md` 与 `spec/context/experience|knowledge/*.md` **保持 Markdown**——账本需要被读写与结构化维护、记忆库需要被 `exp-search` 文本检索，改 HTML 会破坏这两条链路；`tester/artifacts/test-logs/**` 保持测试运行产出的原始格式。`exp-reflect` 读报告时按「终稿」语义取内容，不得把 `<del>` 里已删除的内容当作有效结论。
+7. **格式边界明确划分**：`lead/team-context.md` 与 `spec/context/experience|knowledge/*.md` **保持 Markdown**（账本这一条已于 v2.8.0 放开，见该版本条目）；`tester/artifacts/test-logs/**` 保持测试运行产出的原始格式。`exp-reflect` 读报告时按「终稿」语义取内容，不得把 `<del>` 里已删除的内容当作有效结论。
 8. **移除 Obsidian 依赖**：删除 `obsidian-markdown`、`obsidian-bases`、`obsidian-plugin-dev`、`json-canvas` 四个 Skill 与 `.obsidian/` vault 配置及 `.gitignore` 条目；`spec-init` 不再注册 Obsidian Vault，改为交付 HTML 报告资产；清除全链路 `[[wikilink]]`、`> [!note]` Callout、`#tag` 语法。
 9. **模板与文档同步**：6 个模板重构为可直接打开的 HTML 骨架（`plan-template` / `spec-execute` 与 `spec-update` 两个 `summary-template` / `update-template` / `debug-template` 含诊断+修复双骨架 / `review-template` 含新功能+更新双骨架）；`README.md`、`CODEMAP.md`、`AGENTS.md`、`CLAUDE.md`、`.agents/rules/` 同步 HTML 口径。
 

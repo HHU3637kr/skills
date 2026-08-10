@@ -2,8 +2,18 @@
 
 ## 分支策略
 
-- `main`：唯一长期分支，始终可部署
-- Spec 分支：从 `main` 创建，完成后通过 PR 合并
+远程默认分支（下文记作 `<base>`）不写死为 `main`。始终先读远程默认分支：
+
+```bash
+git symbolic-ref refs/remotes/origin/HEAD
+```
+
+输出形如 `refs/remotes/origin/master`，取最后一段即 `<base>`（常见值为 `main` 或 `master`，也可能是别的名字）。若命令报错（没有 `origin`，或远程未设置 HEAD），退回当前分支作为 `<base>`，并明确告知用户。
+
+下文所有命令中的 `<base>` 都用这里读到的名字替换。
+
+- `<base>`：唯一长期分支，始终可部署
+- Spec 分支：从 `<base>` 创建，完成后通过 PR 合并
 - Spec 分支内 update：同一活跃 Spec 的小迭代复用原 Spec 分支，文档写回原 Spec 目录
 
 分支格式：
@@ -19,8 +29,8 @@
 ```bash
 git rev-parse --is-inside-work-tree
 git status --short
-git switch main
-git pull --ff-only origin main
+git switch <base>
+git pull --ff-only origin <base>
 git switch -c <branch-name>
 git push -u origin <branch-name>
 ```
@@ -40,18 +50,12 @@ git switch <plan 的 rk:git-branch>
 
 如果分支已合并或不存在，不要默认继续 `spec-update`；新需求应新建 Spec，或让用户明确选择独立 update 分支。
 
-如果没有 `main`，先查看远程默认分支：
-
-```bash
-git symbolic-ref refs/remotes/origin/HEAD
-```
-
 ## 并发 worktree
 
 ```bash
-git switch main
-git pull --ff-only origin main
-git worktree add ../<repo>-<spec-slug> -b <branch-name> main
+git switch <base>
+git pull --ff-only origin <base>
+git worktree add ../<repo>-<spec-slug> -b <branch-name> <base>
 git worktree list
 ```
 
@@ -93,13 +97,13 @@ chore: update dependencies
 
 ```bash
 git push -u origin <branch-name>
-gh pr create --base main --head <branch-name> --title "<title>" --body-file <pr-body.md>
+gh pr create --base <base> --head <branch-name> --title "<title>" --body-file <pr-body.md>
 ```
 
 没有 GitHub CLI 时，打开 compare URL：
 
 ```text
-https://github.com/<owner>/<repo>/compare/main...<branch-name>
+https://github.com/<owner>/<repo>/compare/<base>...<branch-name>
 ```
 
 查看当前 PR：
@@ -125,18 +129,18 @@ git commit -m "docs: record PR link for spec"
 git push
 ```
 
-## 同步 main 到工作分支
+## 同步 `<base>` 到工作分支
 
 ```bash
 git fetch origin
-git merge origin/main
+git merge origin/<base>
 ```
 
 或使用 rebase：
 
 ```bash
 git fetch origin
-git rebase origin/main
+git rebase origin/<base>
 ```
 
 团队协作时优先遵循项目约定；没有约定时，merge 更少改写历史。
@@ -144,8 +148,8 @@ git rebase origin/main
 ## 合并后清理
 
 ```bash
-git switch main
-git pull --ff-only origin main
+git switch <base>
+git pull --ff-only origin <base>
 git branch -d <branch-name>
 git push origin --delete <branch-name>
 ```
@@ -156,8 +160,8 @@ git push origin --delete <branch-name>
 |------|-----------|
 | 当前分支不明 | `git branch --show-current` |
 | 工作区有改动 | `git status --short`，先提交、stash 或确认纳入当前 Spec |
-| 错在 main 上开发 | 立即 `git switch -c <branch-name>` 承接改动 |
-| 分支落后 main | `git fetch origin` 后 merge/rebase `origin/main` |
+| 错在 `<base>` 上开发 | 立即 `git switch -c <branch-name>` 承接改动 |
+| 分支落后 `<base>` | `git fetch origin` 后 merge/rebase `origin/<base>` |
 | PR 创建失败 | 先 `git push -u origin <branch-name>`，再用 compare URL |
 | 需要撤销最近提交但保留改动 | `git reset --soft HEAD~1` |
 
@@ -165,5 +169,5 @@ git push origin --delete <branch-name>
 
 - 不提交 API key、密码、私钥、数据库凭证
 - `.env`、日志、构建产物应进入 `.gitignore`
-- 不在 `main` 上直接提交 Spec 成果
+- 不在 `<base>` 上直接提交 Spec 成果
 - 不自动合并 PR，除非用户明确要求

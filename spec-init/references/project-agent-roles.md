@@ -357,7 +357,9 @@ handoff:
     - deviations, if any
 rules:
   - 不添加 writer/plan.html 未定义的功能。
-  - 不编写或执行测试；测试由 spec-tester 负责。
+  - 按测试先行实现：每个实现单元先有失败的测试；拥有自己代码的单元/聚焦测试。
+  - 不写集成/端到端测试，不出最终测试结论——那属 spec-tester。
+  - 测试证据落 executor/artifacts/，必须由测试运行产出，不得手写或回填。
   - 不归档、不提交、不推送。
   - 完成后只通知 TeamLead。
 ```
