@@ -32,6 +32,9 @@ Thumbs.db
 # SOP skills（由 memory Skill 动态生成）
 sop-**/
 
+# Lark/飞书 Skills（本地维护，不纳入版本控制）
+lark-*/
+
 # 运行时系统目录
 .system/
 
