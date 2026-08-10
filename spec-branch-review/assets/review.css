@@ -1,0 +1,169 @@
+/* 分支审查报告共享样式表 —— 模板源
+ * 归 skill://spec-branch-review 所有。首次在某仓库生成报告时拷到
+ * 该项目的 docs/reports/assets/review.css，报告外链项目侧那份副本。
+ * 通用改动（新增语义类、调配色）请回写到本文件，下个仓库直接受益。
+ *
+ * 含「兼容别名」段：收编早期报告的旧 class 名，使既有正文无需返工。
+ */
+
+:root{
+  --bg:#0f1419; --panel:#161b22; --panel2:#1c2128; --border:#30363d;
+  --fg:#e6edf3; --fg2:#9198a1; --fg3:#6e7681;
+  --ok:#3fb950; --warn:#d29922; --bad:#f85149; --info:#58a6ff; --accent:#a371f7;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);
+  font:15px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:48px 28px 96px}
+
+/* ── 页头 ───────────────────────────────────────────── */
+header{border-bottom:1px solid var(--border);padding-bottom:28px;margin-bottom:32px}
+h1{font-size:30px;margin:0 0 12px;letter-spacing:-.4px}
+.sub{color:var(--fg2);font-size:14px}
+.sub code{background:var(--panel2);padding:2px 7px;border-radius:5px;font-size:13px;color:var(--info)}
+.basis{margin-top:14px;padding:11px 16px;background:rgba(88,166,255,.07);
+  border-left:3px solid var(--info);border-radius:0 6px 6px 0;font-size:13.5px;color:var(--fg2)}
+.basis b{color:var(--fg)}
+.verdict{margin-top:16px;padding:14px 18px;border-radius:8px;font-size:15px;
+  background:rgba(63,185,80,.09);border:1px solid rgba(63,185,80,.28)}
+.verdict b{color:var(--ok)}
+.verdict.blocked{background:rgba(248,81,73,.09);border-color:rgba(248,81,73,.28)}
+.verdict.blocked b{color:var(--bad)}
+
+/* ── 轮次切换 ─────────────────────────────────────────── */
+.rounds{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 8px;
+  border-bottom:1px solid var(--border);padding-bottom:0}
+.round-tab{appearance:none;cursor:pointer;font:inherit;font-size:13.5px;
+  background:transparent;color:var(--fg2);border:1px solid transparent;border-bottom:none;
+  padding:9px 17px;border-radius:7px 7px 0 0;transition:background .12s,color .12s;
+  position:relative;top:1px}
+.round-tab:hover{background:var(--panel2);color:var(--fg)}
+.round-tab[aria-selected="true"]{background:var(--panel);color:var(--fg);font-weight:600;
+  border-color:var(--border);border-bottom:1px solid var(--panel)}
+.round-tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;
+  margin-right:7px;vertical-align:1px}
+.round-tab .dot.ok{background:var(--ok)}
+.round-tab .dot.bad{background:var(--bad)}
+.round-tab .dot.warn{background:var(--warn)}
+.round-meta{font-size:12.5px;color:var(--fg3);margin:14px 0 0}
+.round[hidden]{display:none}
+
+/* ── 标题与正文 ───────────────────────────────────────── */
+h2{font-size:21px;margin:52px 0 20px;padding-left:13px;
+  border-left:4px solid var(--accent);letter-spacing:-.2px}
+h3{font-size:16px;margin:32px 0 12px}
+p{margin:12px 0}
+ul{margin:10px 0;padding-left:22px} li{margin:6px 0}
+.muted{color:var(--fg2)}
+code{font-family:"JetBrains Mono","Cascadia Code",Consolas,monospace;
+  background:var(--panel2);padding:2px 6px;border-radius:4px;font-size:13px}
+
+/* ── 实测输出 ─────────────────────────────────────────── */
+pre{background:#0d1117;border:1px solid var(--border);border-radius:8px;
+  padding:15px 18px;overflow-x:auto;margin:14px 0;
+  font-family:"JetBrains Mono",Consolas,monospace;font-size:12.5px;line-height:1.7}
+pre .c{color:var(--fg3)}   /* 注释 */
+pre .r{color:var(--bad)}   /* 失败/缺陷 */
+pre .g{color:var(--ok)}    /* 通过 */
+pre .y{color:var(--warn)}  /* 警告 */
+pre .b{color:var(--info)}  /* 提示 */
+
+/* ── 评分卡 ───────────────────────────────────────────── */
+.scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px;margin:28px 0}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px}
+.card .label{font-size:13px;color:var(--fg2);margin-bottom:10px}
+.card .grade{font-size:34px;font-weight:700;line-height:1;letter-spacing:-1px}
+.card .delta,.card .prev{font-size:11.5px;color:var(--fg3);margin-top:6px}
+.card .note{font-size:12.5px;color:var(--fg3);margin-top:10px;line-height:1.6}
+.bar{height:5px;background:var(--panel2);border-radius:3px;margin-top:13px;overflow:hidden}
+.bar span{display:block;height:100%;border-radius:3px}
+.up{color:var(--ok);font-weight:600}
+.down{color:var(--bad);font-weight:600}
+.g-a{color:var(--ok)} .g-b{color:var(--warn)} .g-c{color:var(--bad)} .g-d{color:var(--bad)}
+
+/* ── 表格 ─────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;margin:18px 0;font-size:13.5px}
+th,td{border:1px solid var(--border);padding:10px 13px;text-align:left;vertical-align:top}
+th{background:var(--panel2);font-weight:600;font-size:12.5px;color:var(--fg2)}
+td code{font-size:12px}
+tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:13.5px;margin:14px 0}
+dl.kv dt{color:var(--fg2)} dl.kv dd{margin:0}
+
+/* ── 标签 ─────────────────────────────────────────────── */
+.tag{display:inline-block;padding:2px 9px;border-radius:11px;font-size:12px;
+  font-weight:600;white-space:nowrap}
+.t-ok{background:rgba(63,185,80,.15);color:var(--ok);border:1px solid rgba(63,185,80,.3)}
+.t-bad{background:rgba(248,81,73,.15);color:var(--bad);border:1px solid rgba(248,81,73,.3)}
+.t-warn{background:rgba(210,153,34,.15);color:var(--warn);border:1px solid rgba(210,153,34,.3)}
+.t-off{background:rgba(110,118,129,.15);color:var(--fg3);border:1px solid rgba(110,118,129,.3)}
+.t-info{background:rgba(88,166,255,.15);color:var(--info);border:1px solid rgba(88,166,255,.3)}
+
+/* ── 缺陷块 ───────────────────────────────────────────── */
+.issue{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--border);
+  border-radius:8px;padding:18px 22px;margin:20px 0}
+.issue.p0{border-left-color:var(--bad)}
+.issue.p1{border-left-color:var(--warn)}
+.issue.new{border-left-color:var(--accent)}
+.issue.fixed{border-left-color:var(--ok)}
+.issue .head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:8px}
+.issue .head strong{font-size:15.5px}
+.issue .loc{font-size:12.5px;color:var(--fg3);font-family:Consolas,monospace}
+.issue .why{margin-top:13px;padding:11px 15px;background:rgba(88,166,255,.06);
+  border-left:2px solid var(--info);border-radius:0 5px 5px 0;font-size:13.5px;color:var(--fg2)}
+.issue .why b{color:var(--fg)}
+
+/* ── 提示块 ───────────────────────────────────────────── */
+.callout{background:var(--panel);border:1px solid var(--border);border-radius:8px;
+  padding:18px 22px;margin:24px 0}
+.callout.good{border-left:3px solid var(--ok)}
+.callout.note{border-left:3px solid var(--info)}
+.callout.warn{border-left:3px solid var(--warn)}
+
+/* ── 演进矩阵（跨轮对比，常驻） ──────────────────────────── */
+.evo{margin:28px 0}
+.evo table{font-size:13px}
+.evo td.cell{text-align:center;font-weight:700;font-size:15px}
+.evo .arrow{color:var(--fg3);font-weight:400;padding:0 4px}
+
+/* ── 兼容别名 ─────────────────────────────────────────
+ * 早期报告使用的另一套 class 名。保留映射，使既有正文无需返工。
+ * 新报告请用主名（.scores / .card .label / .issue / .tag）。
+ */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:16px;margin:28px 0}
+.card .dim{font-size:13px;color:var(--fg2);margin-bottom:10px}
+.tbl-scroll{overflow-x:auto;margin:18px 0}
+.tbl-scroll table{margin:0}
+
+.defect{background:var(--panel);border:1px solid var(--border);border-left:3px solid var(--border);
+  border-radius:8px;padding:18px 22px;margin:20px 0}
+.defect.p0{border-left-color:var(--bad)}
+.defect.p1{border-left-color:var(--warn)}
+.defect.p2{border-left-color:var(--info)}
+.defect.fixed{border-left-color:var(--ok)}
+.defect .head{display:flex;align-items:center;gap:11px;flex-wrap:wrap;margin-bottom:8px}
+.defect .title{font-size:15.5px;font-weight:600}
+.why{margin-top:13px;padding:11px 15px;background:rgba(88,166,255,.06);
+  border-left:2px solid var(--info);border-radius:0 5px 5px 0;font-size:13.5px;color:var(--fg2)}
+.why b{color:var(--fg)}
+.fix{margin-top:11px;padding:10px 15px;background:rgba(63,185,80,.06);
+  border-left:2px solid var(--ok);border-radius:0 5px 5px 0;font-size:13.5px;color:var(--fg2)}
+.legacy{background:var(--panel2);border:1px dashed var(--border);border-radius:8px;
+  padding:14px 20px;margin:20px 0;font-size:13.5px;color:var(--fg2)}
+
+td.s-ok{color:var(--ok);font-weight:600}
+td.s-bad{color:var(--bad);font-weight:600}
+td.s-warn{color:var(--warn);font-weight:600}
+.l-ok{color:var(--ok);font-weight:600}
+.l-bad{color:var(--bad);font-weight:600}
+.l-warn{color:var(--warn);font-weight:600}
+.l-dim{color:var(--fg3)}
+
+footer{margin-top:64px;padding-top:24px;border-top:1px solid var(--border);
+  font-size:12.5px;color:var(--fg3);line-height:1.9}
+
+@media print{
+  .rounds{display:none}
+  .round[hidden]{display:block !important}
+  body{background:#fff;color:#111}
+}
