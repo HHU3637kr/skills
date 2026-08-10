@@ -261,41 +261,122 @@ git ls-tree -r --name-only -z master "spec/03-功能实现/<某个已完成的sp
 ### 8. 问是否要 HTML 报告
 
 对话结论给完后，**主动问一句**是否需要 HTML 报告，不要默认生成、也不要默认不提。
-一句话即可，例如：「需要我把这份审查整理成 HTML 报告吗？」
+
+首轮：「需要我把这份审查整理成 HTML 报告吗？」
+复审：先 `read docs/reports/` 看该分支是否已有报告 —— 有就问「需要我把这轮复审追加到既有报告里吗？」
+（追加 section，不是新建文件）。
 
 值得提的场景：结论要转给他人、缺陷条目多需要分档呈现、要留档对比后续复查。
-用户没要就到此结束——审查报告是一次性产出，不是仓库资产，默认写文件只会往 `docs/` 堆无人维护的文件。
+用户没要就到此结束——审查报告是一次性产出，不是仓库资产，默认写文件只会堆无人维护的文件。
 
 ## HTML 报告（仅在用户同意后执行）
 
-本节是 §8 得到肯定答复后才走的分支。单文件 HTML，写到项目 `docs/` 下。
+本节是 §8 得到肯定答复后才走的分支。
 
-结构：标题（分支/基线/commit 数/文件数/增删行）→ 评分卡（含一句话理由）→ 一句话总评 + 根因归纳 → 判据逐项表 → 代码质量（好的地方 / 必修 / 应修 / 卫生）→ AI 使用 → Spec 工作流或交付完备性 → 优先级表 → footer（验证方式、测试结果、探针脚本路径）。
+### 一个分支一个文件，每轮追加 section
 
-**判据是重建的，必须在标题下方单列一行声明来源**，例如「本次无需求文档，判据重建自 commit body + docstring + 新增测试断言」。读者要能一眼看出这份报告是拿什么尺子量的。
+**同一分支的复审绝不新建文件。** 每轮审查往既有报告里追加一个
+`<section class="round">`，用顶部标签页切换。理由：分支是同一个，读者要的是「这轮比上轮好在哪」，
+拆成多文件就得自己开两个窗口对照。
 
-要点：
+**落位与命名**：写到项目 `docs/reports/` 下（该目录通常已进 `.gitignore` —— 先
+`grep docs/reports .gitignore` 确认；报告是一次性产出，不进版本控制）。目录不存在时先建。
+文件名用**分支维度**而非日期维度：`<分支简述>-审查报告.html`，例如
+`教案对齐分支-审查报告.html`。日期属于轮次，写在 section 里，不进文件名。
 
-- 深色主题，CSS 变量定义 ok/warn/bad/info 四色；无外部依赖、无 JS
-- **实测输出必须原样进 `<pre>`**，用 span 着色标出关键行 —— 这是报告可信度的来源
-- 每个缺陷块配一段「为什么这是问题」，讲清影响面和根因，不止讲现象
-- 评分卡的 `note` 写扣分理由，不是形容词
+先 `read docs/reports/` —— 已有同分支报告就追加 section，没有才新建。
 
-渲染必须验证（`xd://browser`）：
+### 样式走共享 CSS
 
-```javascript
-// open 后 run
-await tab.evaluate(() => ({
-  cards: [...document.querySelectorAll('.card .grade')].map(e=>e.textContent),
-  overflow: document.documentElement.scrollWidth > window.innerWidth
-}));
+**模板在本 skill 目录内**：`assets/review.css`（相对本 skill 目录解析）。
+首次在一个仓库生成报告时，把它拷到项目 `docs/reports/assets/review.css`：
+
+```bash
+mkdir -p docs/reports/assets
+cp <skill目录>/assets/review.css docs/reports/assets/review.css
 ```
 
-`overflow: true` 说明有元素撑破视口（通常是长 `<pre>` 或宽表格），要修。再滚到中段和尾部各截一张，确认长表格和 footer 正常。
+必须拷一份而不是直接引用 skill 路径 —— 报告在 `file://` 下打开，无法跨目录引用
+用户主目录里的文件，且报告要能独立随项目留存。
+
+报告用 `<link rel="stylesheet" href="assets/review.css">` 外链。
+**新报告不重复内联样式**；缺样式类就往项目侧的 CSS 里加，不在 HTML 内写 `<style>`。
+改动若通用（新增语义类、修配色），同步回 skill 的 `assets/review.css`，下个仓库直接受益。
+
+CSS 已包含：四色变量（ok/warn/bad/info）· `.wrap` `.scores` `.card`（`.label`/`.grade`/`.delta`/`.note`）
+· `.tag`（`t-ok`/`t-bad`/`t-warn`/`t-off`/`t-info`）· `.issue`（`p0`/`p1`/`new`/`fixed`）
+· `.callout`（`good`/`note`/`warn`）· `.rounds` `.round-tab` `.evo` · `pre` 着色类（`.c`/`.r`/`.g`/`.y`/`.b`）
+· `.g-a`~`.g-d` 评级色 · `@media print` 展开全部 section ·
+**兼容别名段**（`.cards` `.dim` `.defect` `.why` `.fix` `.s-ok` `.l-ok` `.tbl-scroll` `.legacy`）。
+
+遇到用旧 class 名的既有报告：**优先靠兼容别名收编，不要重排正文标记** ——
+正文是审查证据，改标记有改错内容的风险，加几行 CSS 零风险。
+
+**转发例外**：报告要发给他人（邮件/IM）时外链会丢失 —— 此时把 `<link>` 换成 `<style>`
+并内联 CSS 全文，另存一份带 `-单文件` 后缀。默认仍用外链。
+
+### 文档结构
+
+```
+header      标题 / 分支·基线·轮次数·最新 tip / 判据来源 + 刻度说明 / 当前结论
+评级演进     常驻矩阵：维度 × 各轮 → 变化原因（不随标签切换）
+.rounds     标签页：第 N 轮…… + 可选「需求总结（供汇报）」
+section×N   每轮一个：轮次元信息 → 评分卡 → 本轮改了什么 → 判据核对
+            → 变异测试 → 缺陷块 → 合并判断
+footer      每轮一行：日期·tip·判据·测试数·变异结果·探针脚本路径
+```
+
+**评级演进矩阵是多轮报告的核心价值**，务必常驻在标签页外：一眼看出哪个维度升了、
+为什么升。只有一轮时也放，第二轮才有对照。末行放「合并判断」的演进（不可合 → 可合）。
+
+**最新一轮默认展开**（`aria-selected="true"`，其余 `hidden`）。切换脚本同步
+`location.hash`，这样能用 `#round-1` 直达某一轮，便于在聊天里给出链接。
+
+**判据是重建的，必须在 header 单列一行声明来源**，例如「本次无需求文档，判据重建自
+commit body + docstring + 新增测试断言」。读者要能一眼看出这份报告是拿什么尺子量的。
+
+### 内容要点
+
+- **实测输出原样进 `<pre>`**，用 span 着色标出关键行 —— 这是报告可信度的来源
+- 每个缺陷块配一段「为什么这是问题」，讲清影响面和根因，不止讲现象
+- 评分卡 `note` 写扣分理由，不是形容词；复审轮的卡片加 `.delta` 标出与上轮的变化
+- 上一轮的缺陷在新一轮要有交代：修了标 `.issue.fixed`，没修进「清理情况」表标遗留
+- JS 只用于标签切换，十几行原生足够，不引框架
+
+### 渲染必须验证（`xd://browser`）
+
+```javascript
+// 外链 CSS 是否真的生效（file:// 下读 cssRules 会 SecurityError，改查计算样式）
+const css = await tab.evaluate(() => ({
+  bodyBg: getComputedStyle(document.body).backgroundColor,   // 应是深色，非 rgba(0,0,0,0)
+  cardRadius: getComputedStyle(document.querySelector('.card')).borderRadius
+}));
+// 标签切换与 hash 同步
+await tab.click('#tab-1');
+await tab.evaluate(() => ({
+  visible: [...document.querySelectorAll('.round')].filter(s=>!s.hidden).map(s=>s.id),
+  hash: location.hash
+}));
+// 溢出
+await tab.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+```
+
+`bodyBg` 是透明说明 CSS 没加载（路径错或文件缺失）。
+`overflow: true` 说明有元素撑破视口（通常是长 `<pre>` 或宽表格），要修。
+每个标签页都要点一遍确认内容出得来，再滚到尾部确认 footer 正常。
 
 ## 反模式
 
-- 没问就直接生成 HTML 报告 → 多做一轮可能没人要的工序，且往 `docs/` 堆无人维护的文件
+- 没问就直接生成 HTML 报告 → 多做一轮可能没人要的工序，且堆无人维护的文件
+- 报告写到 `docs/` 根或仓库其他位置 → 该进 `docs/reports/`（已 gitignore）；写在根下会被 git 跟踪
+- 复审时新建一个文件 → 同一分支追加 `<section class="round">`，读者不该开两个窗口对照
+- 文件名带日期或轮次（`20260810-复审-第二轮.html`）→ 文件名用分支维度，日期属于轮次写在 section 里
+- 报告里内联整套 `<style>` → 走共享 `assets/review.css`；缺样式类往 CSS 加
+- 忘了把 skill 的 `assets/review.css` 拷进项目就外链 → 样式全丢（`bodyBg` 透明即此症状）
+- 直接 `<link>` 指向 skill 目录里的 CSS → `file://` 跨目录引用不到，报告也无法随项目留存
+- 为迁就新 class 名重排既有报告的正文标记 → 正文是审查证据；靠 CSS 兼容别名收编
+- 多轮报告没有评级演进矩阵 → 那是多轮报告的核心价值，藏进标签页等于没有
+- 新一轮不交代上一轮的缺陷 → 修了要标 `.issue.fixed`，没修要在「清理情况」表标遗留
 - 给完结论就收工、不提报告选项 → 用户不知道有这个选择
 - 先做报告再给结论 → 判据若被纠正，报告整份重做
 - 给了字母评分却没配可核查的事实依据 → 凭印象打分；说不清为什么是 A 就降一档
