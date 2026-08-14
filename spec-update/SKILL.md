@@ -94,7 +94,7 @@ description: 当同一个活跃 Spec 在当前工作分支内需要小迭代、�
 13. **等待用户确认审查报告**：使用当前运行环境的确认方式（节点 2）
 14. **经验与规范收尾**：调用 `/exp-reflect`，并审查是否需要维护 AGENTS.md / .agents/rules/
 15. **等待分支收尾确认**：使用当前运行环境的确认方式（节点 3）
-16. **提交并推送当前 Spec 分支**：调用 `/git-work` 的“完成 Spec 分支”模式，提交并推送；如果用户确认该 Spec 已准备整体交付，则创建/更新 PR；如获得 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 的 `.rk-meta` 并补充提交（按修订规范递增修订号、追加修订历史行）
+16. **提交并推送当前 Spec 分支**：调用 `/git-work` 的“完成 Spec 分支”模式，提交并推送；如果用户确认该 Spec 已准备整体交付，则创建/更新 PR；如获得 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 的 `.rk-meta`（按修订规范递增修订号、追加修订历史行），并**并入同一次提交**（`git commit --amend --no-edit` + `git push --force-with-lease`），不产生第二次提交
 17. **更新 team-context 共享区**：在 `lead/team-context.md` 的「任务进度」中追加或更新 spec-update 自己的更新任务行，「产物」指向 `updater/update-xxx.html` / `updater/update-xxx-summary.html`，「状态」标记为 `done`，填写 「完成时间」 和 `updated_by: spec-update`；若更新解决了问题，同步更新「问题闭环记录」（按性质填「分类」）；本次更新做的方案取舍（含是否仍在原 Spec 范围内的判断）在「决策记录」记一行
 18. **完成更新**：不归档，保留在原目录
 
@@ -115,6 +115,6 @@ description: 当同一个活跃 Spec 在当前工作分支内需要小迭代、�
 2. 审查是否需要维护 `AGENTS.md` / `.agents/rules/`；只写长期规则，不写一次性实现细节
 3. 如有经验沉淀，更新 `updater/update-xxx-summary.html` 添加经验引用（经验/知识文件本身保持 `.md`）
 4. 调用 `/git-work` 提交并推送当前 Spec 分支；只有当 Spec 准备整体交付时才创建/更新 PR
-5. 如有 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 并补充提交
+5. 如有 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 并通过 amend + force-with-lease 并入同一次提交
 6. 更新 `lead/team-context.md` 的「任务进度」，必要时更新「问题闭环记录」和「决策记录」
 7. **不归档**，保留在原目录

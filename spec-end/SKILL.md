@@ -16,9 +16,9 @@ description: >
 | 项 | 本 Skill 的约定 |
 |----|----------------|
 | 输入 | 当前 Spec 全部角色产物、`lead/team-context.md`（含 Git 元数据）、TeamLead 转回的各角色经验素材 |
-| 权限 | 写 `ender/end-report.html`、调用 exp-reflect 分流、归档目录、git commit/push/创建 PR（`autopilot` 下可自主执行这些可逆动作）；维护 AGENTS.md/rules 属永远门禁，任何模式下都必须先经用户确认；合并、force push、改动远程默认分支不在本 Skill 权限内 |
+| 权限 | 写 `ender/end-report.html`、调用 exp-reflect 分流、归档目录、git commit/push/创建 PR（`autopilot` 下可自主执行这些可逆动作）；维护 AGENTS.md/rules 属永远门禁，任何模式下都必须先经用户确认；合并、改动远程默认分支不在本 Skill 权限内；force push **仅豁免**收尾时对自己刚推送的 Spec 分支做 amend（`git commit --amend` + `git push --force-with-lease`，让 PR URL 等收尾写回并入同一次提交），其余 force push 不在权限内 |
 | 验证 | 各阶段已完成、经验已分流沉淀、规范审查有结论；归档前必须在当前工作树上跑一次全量测试并观察输出（新鲜验证，引用历史测试结论、「刚才是绿的」都不算）；合并完成后必须在**合并结果**上再跑一次全量测试——合并可能引入语义冲突，两个分支各自绿不代表合并后绿；归档前当前分支等于 `git_branch`，且不等于远程默认分支（用 `git symbolic-ref refs/remotes/origin/HEAD` 读出，不假定分支名） |
-| 停止 | 收尾确认方式随模式（见核心原则 4）；三项永远门禁——合并分支、force push、直接改动远程默认分支——任何模式下都必须停下等用户，`autopilot` 遇到时就地降级为门禁模式；丢弃改动、删除分支、force push 必须拿到用户键入的精确确认词才执行；用户选"暂不归档"则只产出报告即停止 |
+| 停止 | 收尾确认方式随模式（见核心原则 4）；两项永远门禁——合并分支、直接改动远程默认分支——任何模式下都必须停下等用户，`autopilot` 遇到时就地降级为门禁模式；丢弃改动、删除分支必须拿到用户键入的精确确认词才执行；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支 `--amend` + `--force-with-lease`），其余 force push 仍是门禁并需精确确认词；用户选"暂不归档"则只产出报告即停止 |
 | 升级 | 阶段未真正完成、全量测试未绿、规范变更影响面大、或 Git 状态异常（分支不符、在远程默认分支上提交）时，停止并交回用户决策 |
 
 ## 核心原则
@@ -26,7 +26,7 @@ description: >
 1. **多角色视角**：通过 TeamLead 收集各角色视角的经验素材，不只是 spec-ender 的独角戏
 2. **分流沉淀**：调用 exp-reflect 按权重分流（重大经验 → exp-write，轻量 → Auto Memory）
 3. **规范维护审查**：判断本次 Spec 是否产生需要长期遵守的项目规范，必要时更新 AGENTS.md 或 .agents/rules/
-4. **确认方式随模式**：`gated` 模式下归档、提交、推送、创建 PR 前都必须用当前运行环境的确认方式询问用户；`autopilot` 模式下可自主 push 工作分支并创建 PR（两者可逆，且 PR 本身就是给人审的入口），但合并分支、force push、直接改动远程默认分支这三项是永远门禁，任何模式下都必须停下等人
+4. **确认方式随模式**：`gated` 模式下归档、提交、推送、创建 PR 前都必须用当前运行环境的确认方式询问用户；`autopilot` 模式下可自主 push 工作分支并创建 PR（两者可逆，且 PR 本身就是给人审的入口），但合并分支、直接改动远程默认分支这两项是永远门禁，任何模式下都必须停下等人；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支做 `git commit --amend` + `git push --force-with-lease`，这是让收尾只提交一次的既定动作），其余 force push 仍是门禁
 5. **GitHub Flow 收尾**：先跑全量测试，绿了之后才出收尾菜单——测试还红着的时候不要问用户「要不要归档」；放行后调用 git-work 提交、推送当前 Spec 分支并创建 PR
 6. **报告用 HTML，记忆用 Markdown**：`ender/end-report.html` 遵循 html-report 契约（`rk:*` meta + `.rk-meta` 双轨元信息、`rk-links` / `rk-backlinks` 双向关联、`data-rev` 修订标记）；`spec/context/experience/*.md`、`knowledge/*.md` 保持 Markdown 不变；账本 `.md` / `.html` 皆可
 
@@ -115,7 +115,7 @@ exp-reflect 会根据经验的重要性分流：
 - `<head>` 写全 `rk:*` meta（`rk:type=end-report`、`rk:spec-dir`、`rk:role=spec-ender`、`rk:created`、`rk:updated`、`rk:revision`、`rk:mode`、`rk:git-branch`、`rk:base-branch`、`rk:pr-url`、`rk:tags`），并用 `<link rel="rk-plan|rk-summary|rk-test-report|rk-review|rk-ledger" href="...">` 声明关联；`.rk-meta` 人可读镜像同样字段（含运行模式、基准分支与 PR）
 - `rk-verdict`（`is-pass` / `is-fail`）一句话给出本次 Spec 的完成结论
 - 「修订历史」表固定 5 列（修订/日期/修改人/改了什么/原因），不新增列；后续补 PR URL 等修改时修订号 +1、追加修订历史行、正文用 `data-rev` 标记，不静默改写；「原因」列源于实质取舍时引用账本「决策记录」的决策编号（如 `按 D-003（…）`），纯笔误/措辞/补充直接写清，不编造编号
-- 正文章节：完成状态、本轮全量测试的命令与退出码（新鲜验证证据）、已扫描的角色产物路径、经验沉淀结果或无需沉淀的说明、规范维护结果或无需维护的说明、归档/提交/推送/PR 的确认状态（写明按哪种模式放行）、待用户处理的永远门禁项（合并/force push/默认分支改动）
+- 正文章节：完成状态、本轮全量测试的命令与退出码（新鲜验证证据）、已扫描的角色产物路径、经验沉淀结果或无需沉淀的说明、规范维护结果或无需维护的说明、归档/提交/推送/PR 的确认状态（写明按哪种模式放行）、待用户处理的永远门禁项（合并/默认分支改动；force push 仅收尾 amend 场景豁免）
 - 关键决策用 `rk-cal key` 小结（取自账本「决策记录」，只写结论与一句话理由并标注 `D-xxx`，决策过程正文不复制进报告），遗留风险用 `rk-cal risk`，需后续观察项用 `rk-cal warn`
 - 末尾「关联产物」拆两个 `h3`：「本报告引用」用 `<ul class="rk-links">` + `data-rk-link` 列出全部角色产物（`.html`）与 `<a href="../lead/team-context.md">运行账本</a>`、沉淀的经验/知识 `.md`；「引用本报告」用 `<ul class="rk-backlinks">` + `data-rk-backlink` 列出引用方；本报告新建的每条关联都要到对侧报告的 `rk-backlinks` 补反链，对侧未产出时先标注（待创建）
 
@@ -130,7 +130,7 @@ exp-reflect 会根据经验的重要性分流：
 - 暂不归档
 ```
 
-`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到归档、commit、push 工作分支、创建 PR，触及合并、force push、改动远程默认分支时立即降级为门禁模式等待用户。
+`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到归档、commit、push 工作分支、创建 PR、以及收尾 amend（`--amend` + `--force-with-lease` 并入 PR URL），触及合并、改动远程默认分支、或非 amend 的 force push 时立即降级为门禁模式等待用户。
 
 ### 步骤 7：归档（`gated` 用户确认后，`autopilot` 自门禁通过后）
 
@@ -144,9 +144,17 @@ exp-reflect 会根据经验的重要性分流：
    - commit
    - push
    - 创建 PR 或输出 compare URL
-3. 如果获得 PR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），并补充提交推送
+3. 如果获得 PR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
+
+   ```bash
+   git add <spec-docs>
+   git commit --amend --no-edit
+   git push --force-with-lease origin <branch-name>
+   ```
+
+   `--force-with-lease` 只覆盖自己刚推送的 Spec 分支，若远程分支被他人改动会拒绝，不会误覆盖。
 4. 合并由用户执行或明确放行；一旦发生合并，必须在合并结果上重跑全量测试并观察输出，绿了才算收尾完成
-5. 全过程中若出现需要丢弃改动（`git checkout --` / `reset --hard` / `stash drop`）、删除分支或 force push 的情形，必须停下并要求用户键入精确确认词（如 `discard` / `delete-branch` / `force-push`）；「差不多同意」「你看着办」「随你」不构成授权，`autopilot` 模式同样不豁免
+5. 全过程中若出现需要丢弃改动（`git checkout --` / `reset --hard` / `stash drop`）、删除分支的情形，必须停下并要求用户键入精确确认词（如 `discard` / `delete-branch`）；第 3 步的 amend + force-with-lease 是用户确认过的收尾既定动作，无需逐次确认；其它任何 force push（不是 amend 自己刚推的 Spec 分支）仍是门禁，必须停下并要求精确确认词 `force-push`；「差不多同意」「你看着办」「随你」不构成授权，`autopilot` 模式同样不豁免
 
 用户选择"暂不归档"：
 - 跳过归档步骤，直接执行步骤 8
@@ -188,8 +196,8 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
 4. 已在当前工作树上跑过全量测试并观察输出，绿了之后才出的收尾菜单
 5. 已按模式完成归档确认（`gated` 用户确认 / `autopilot` 新鲜验证 + `rk-verdict`）
-6. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR；合并、force push、改动远程默认分支均留给用户
-7. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.html`（含 `rk:pr-url` meta 与 `.rk-meta` 镜像，且留下修订痕迹）
+6. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR；合并、改动远程默认分支均留给用户；force push 仅以收尾 amend 形式用于并入 PR URL
+7. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.html`（含 `rk:pr-url` meta 与 `.rk-meta` 镜像，且留下修订痕迹），并通过 amend + force-with-lease 并入同一次提交（收尾历史只有一次提交）
 8. 如已发生合并：已在合并结果上重跑全量测试并观察输出
 9. 已更新 `lead/team-context.md` 的「任务进度」中自己的收尾任务行
 10. 已通知 TeamLead
@@ -202,7 +210,7 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 - 在远程默认分支上直接提交 Spec 成果，或把默认分支名写死成固定值（应读 `git symbolic-ref refs/remotes/origin/HEAD`）
 - 全量测试还红着就出收尾菜单问用户要不要归档
 - 合并后不在合并结果上重跑全量测试，拿合并前两边各自的绿当结论
-- 把「你看着办」当成丢弃改动、删分支或 force push 的授权（必须拿到精确确认词）
+- 把「你看着办」当成丢弃改动、删分支或 force push（非收尾 amend 场景）的授权（必须拿到精确确认词）
 - `autopilot` 模式下自行合并分支或改动远程默认分支（永远门禁，必须降级等人）
 - 创建 PR 前没有确认当前分支与 `lead/team-context.md` 的 `git_branch` 一致
 - `gated` 模式下未询问用户就直接归档；或 `autopilot` 模式下拿不出本轮全量测试输出就自门禁放行

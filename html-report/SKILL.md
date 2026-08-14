@@ -267,12 +267,31 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 <p class="rk-added" data-rev="2">新增的整段新方案。</p>
 ```
 
+**布局容器不要直接套语义类**：`.rk-kpis` 这类带 `display: grid` 的容器，不要把 `rk-added`/`rk-removed` 加在同一个元素上（`<div class="rk-kpis rk-added">`），语义类会覆盖容器的布局。要标记「新增了一组卡片」，用嵌套：
+
+```html
+<div class="rk-added" data-rev="2">
+  <div class="rk-kpis">…</div>
+</div>
+```
+
+共享样式对 `.rk-kpis.rk-added` 有兜底覆盖（恢复 grid、去块级装饰），但那是防误用，不是推荐写法。
+
 ### 表格行修订
 
 ```html
 <tr><td><del class="rk-del" data-rev="3">旧值</del>
         <ins class="rk-ins" data-rev="3">新值</ins></td></tr>
 ```
+
+**整行新增 / 删除**：改的是「新增一整行」或「删掉一整行」时，把 `rk-added` / `rk-removed` 加在 `<tr>` 上（`data-rev` 同本轮修订号）。共享样式已对 `<tr>` 单独覆盖：保持 `table-row` 布局、高亮落到单元格背景、不显示 `rN` 角标（第一列「修订」列已承载修订号）：
+
+```html
+<tr class="rk-added" data-rev="2"><td>r2</td><td>…</td><td>…</td></tr>
+<tr class="rk-removed" data-rev="2"><td>旧行</td><td>…</td><td>…</td></tr>
+```
+
+**单元格内改值**：只改某行里的一个值，用上面 `<td>` 内的 `<del>` / `<ins>`。不要给 `<tr>` 套 `rk-added`/`rk-removed` 后又在单元格里塞 `<del>`/`<ins>`——二选一。
 
 ### 三视图
 

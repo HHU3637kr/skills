@@ -37,12 +37,12 @@ git push
 gh pr create --base main --head feat/spec-20260428-1430-user-auth --title "feat: user auth" --body-file pr-body.md
 ```
 
-拿到 PR URL 后写回 `plan.html` / `summary.html` 的 `rk:pr-url`（`<meta>` 与 `.rk-meta` 镜像都要更新），再补充提交：
+拿到 PR URL 后写回 `plan.html` / `summary.html` 的 `rk:pr-url`（`<meta>` 与 `.rk-meta` 镜像都要更新），再**并入同一次提交**（收尾只提交一次）：
 
 ```bash
 git add spec/
-git commit -m "docs: record PR link for user auth spec"
-git push
+git commit --amend --no-edit
+git push --force-with-lease origin feat/spec-20260428-1430-user-auth
 ```
 
 ## 示例 2：活跃 Spec 的小更新

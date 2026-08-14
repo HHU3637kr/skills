@@ -1166,6 +1166,14 @@ created: YYYY-MM-DD
 
 ## 更新日志
 
+### v2.8.1 (2026-08-14) - 收尾单次提交 + 表格修订样式修复
+
+**小修复**：
+
+1. **收尾只提交一次**：spec-end / spec-update 拿到 PR URL 后，写回文档改为 `git commit --amend --no-edit` + `git push --force-with-lease` 并入同一次提交，不再产生第二次「补充提交」。force push 从「永远门禁」收敛为「仅收尾 amend 场景豁免」——只对自己刚推送的 Spec 分支、`--force-with-lease` 保证不覆盖他人提交；其余 force push 仍是门禁。
+2. **HTML 报告表格修订样式修复**：`rk-added` / `rk-removed` 的块级样式（`display:block` + padding + 角标）误伤 `<tr>`（表格行）、`.rk-kpis`（指标卡组）、`.rk-cal`（Callout）、关联产物 `li`——补四类兜底覆盖，恢复 `table-row` / `grid` 布局、高亮落到单元格、关闭与既有角标叠加的重复 `rN` 角标。
+3. **html-report 规范补充**：明确「整行新增 / 删除」写法（`<tr class="rk-added">`，与单元格级 `<ins>`/`<del>` 二选一）；约束「布局容器不要直接套语义类」，容器级新增用嵌套。
+
 ### v2.8.0 (2026-08-09) - 双运行模式 + 吸收 Superpowers 工程纪律 + 角色跨 Spec 持续在场
 
 **核心改进**：

@@ -121,12 +121,12 @@ PR 创建后写回对应文档：
 pr_url: https://github.com/<owner>/<repo>/pull/<number>
 ```
 
-再补充提交：
+再**并入同一次提交**（收尾只提交一次，不产生第二次提交）：
 
 ```bash
 git add spec/
-git commit -m "docs: record PR link for spec"
-git push
+git commit --amend --no-edit
+git push --force-with-lease origin <branch-name>
 ```
 
 ## 同步 `<base>` 到工作分支

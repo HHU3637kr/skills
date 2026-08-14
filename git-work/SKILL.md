@@ -263,13 +263,18 @@ PR 内容至少包含：
 pr_url: https://github.com/<owner>/<repo>/pull/<number>
 ```
 
-写回后再补一个轻量提交并推送：
+写回后**并入同一次提交**（spec-end / spec-update 收尾的硬要求：全部处理完只提交一次，不产生第二次提交）：
 
 ```bash
 git add <spec-docs>
-git commit -m "docs: record PR link for spec"
-git push
+git commit --amend --no-edit
+git push --force-with-lease origin <branch-name>
 ```
+
+说明：
+- `--amend --no-edit` 把 `pr_url` 写回并进刚才那次提交，git 历史保持一次提交
+- `--force-with-lease` 只允许覆盖自己刚推送的引用；若远程分支已被他人改动会拒绝并报错，不会误覆盖别人的提交
+- 仅限「本流程刚创建并推送的 Spec 分支」这一场景；其它任何 force push 仍是门禁（见 spec-end 停止条件）
 
 ## 模式五：PR 合并后清理
 

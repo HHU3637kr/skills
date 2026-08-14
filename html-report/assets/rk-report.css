@@ -404,6 +404,62 @@ ins.rk-ins::after, del.rk-del::after,
   opacity: .75;
 }
 
+/* 表格整行新增/删除：块级样式（display:block + padding/margin）本为 <p>/<div> 设计，
+   会破坏 <tr> 的 table-row 布局。恢复表格行，高亮落到单元格背景，
+   且第一列「修订」列已承载 rN，不再重复角标。 */
+tr.rk-added,
+tr.rk-removed {
+  display: table-row;
+  border-left: 0;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+}
+tr.rk-added td { background: var(--ins-bg); }
+tr.rk-removed td { background: var(--del-bg); }
+tr.rk-added::after,
+tr.rk-removed::after { content: none; }
+
+/* 布局容器（.rk-kpis 等）被标记「新增/删除」：语义标记不应破坏容器自身布局。
+   正确做法是嵌套 <div class="rk-added"><div class="rk-kpis">…，此处仅兜底防误用：
+   恢复 grid、去块级 padding/margin/边框/角标，保留背景与下边框作为「新增」提示。 */
+.rk-kpis.rk-added,
+.rk-kpis.rk-removed {
+  display: grid;
+  padding: 0;
+  margin: 20px 0;
+  border-left: 0;
+  border-radius: 0;
+  color: inherit;
+}
+.rk-kpis.rk-added::after,
+.rk-kpis.rk-removed::after { content: none; }
+
+/* Callout 被标记「新增/删除」：类型色/背景由 .rk-cal.key|warn|risk|ok 的类型规则决定
+   （specificity 更高，天然保留），这里只恢复 callout 自身的 padding/margin/边框宽度 */
+.rk-cal.rk-added,
+.rk-cal.rk-removed {
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-left-width: 2px;
+}
+
+/* 关联产物列表项被标记「新增/删除」：保持列表布局（→/← 箭头 + [type] 角标），
+   仅叠加淡色背景；去掉块级 margin/边框，并关闭 rN 角标（与 [type] 角标叠加是噪音） */
+ul.rk-links li.rk-added,
+ul.rk-links li.rk-removed,
+ul.rk-backlinks li.rk-added,
+ul.rk-backlinks li.rk-removed {
+  margin: 0;
+  border-left: 0;
+  border-radius: 0;
+}
+ul.rk-links li.rk-added::after,
+ul.rk-links li.rk-removed::after,
+ul.rk-backlinks li.rk-added::after,
+ul.rk-backlinks li.rk-removed::after { content: none; }
+
 /* 视图：仅最新修订（旧修订降为普通正文，最新仍高亮） */
 body.rk-view-latest ins.rk-ins:not(.is-latest),
 body.rk-view-latest .rk-added:not(.is-latest) {
