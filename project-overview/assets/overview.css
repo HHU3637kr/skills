@@ -1,0 +1,225 @@
+/*
+ * 项目全链路总览报告样式（project-overview skill，通用）
+ * ─────────────────────────────────────────────────────
+ * 来源：实例 docs/全链路流程总览.html（20260813 整理，已入库留痕）
+ * 用途：生成任何项目的总览报告时引用本文件，样式与实例逐字一致。
+ * 用法：报告保持「单文件、离线可开」——生成 HTML 时把本文件内容
+ *       内联进 <style>（或直接 <link rel="stylesheet" href="...">，
+ *       两者等价，内联可离线）。不要重写样式，只改内容。
+ *
+ * 结构契约（HTML 必须按此骨架组织，样式才生效）：
+ *   header.site        → 页眉（渐变蓝底，含标题 + 副标题版本行）
+ *   nav.tabs button    → tab 栏，.active 为当前页；JS 同步 location.hash
+ *   section.tab-page   → 每模块一页，.active 显示
+ *   .flow/.fnode/.farrow → 纯 CSS 流程框图（不用图片）
+ *   .badge code|llm|mix  → 产出方式徽标（CODE/LLM/CODE+LLM）
+ *   .todo              → 「待填充细节」占位块，填充后必须删除
+ *   tr.gx-row + tr.gx-detail(hidden) → 表格行内折叠明细（点行展开）
+ *     4 列明细表：名称（字段）| 需求/产品对应名 | 产出 | 依赖与口径
+ *     3 列明细表（中间产物）：字段 | 产出 | 说明
+ *     列宽按列数自动分配（:nth-last-child），列头文本可自定
+ */
+
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --ink: #1f2430;
+  --ink-2: #5b6472;
+  --line: #e3e7ee;
+  --brand: #2563eb;
+  --brand-weak: #eff4ff;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --code-bg: #f1f3f7;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+}
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 5px;
+  font-family: Consolas, "JetBrains Mono", monospace;
+  font-size: 0.88em;
+}
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── 顶部 ─────────────────────────────────────────── */
+header.site {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #fff;
+  padding: 26px 32px 18px;
+}
+header.site h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+header.site p { margin: 0; opacity: .85; font-size: 13.5px; }
+
+/* ── Tab 栏 ───────────────────────────────────────── */
+nav.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(30, 40, 70, .06);
+}
+nav.tabs button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 13px 16px 11px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--ink-2);
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+nav.tabs button:hover { color: var(--brand); background: var(--brand-weak); }
+nav.tabs button.active {
+  color: var(--brand);
+  font-weight: 650;
+  border-bottom-color: var(--brand);
+}
+
+/* ── 内容区 ───────────────────────────────────────── */
+main { max-width: 1080px; margin: 0 auto; padding: 26px 28px 80px; }
+section.tab-page { display: none; }
+section.tab-page.active { display: block; }
+
+h2 { font-size: 19px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h2:first-child { margin-top: 6px; }
+h3 { font-size: 16px; margin: 22px 0 8px; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 14px 0;
+}
+
+table { border-collapse: collapse; width: 100%; margin: 12px 0; background: var(--panel); font-size: 14px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: #f0f3f8; font-weight: 650; white-space: nowrap; }
+tr:nth-child(even) td { background: #fafbfd; }
+
+/* 流程框图（纯 CSS） */
+.flow { display: flex; flex-direction: column; gap: 0; margin: 18px 0; }
+.flow-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+.fnode {
+  background: var(--panel);
+  border: 1.5px solid #b9c6e0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 150px;
+  flex: 1;
+  font-size: 13.5px;
+  box-shadow: 0 1px 3px rgba(30,40,70,.05);
+}
+.fnode b { display: block; font-size: 14px; margin-bottom: 2px; color: #1e3a8a; }
+.fnode.dim { border-style: dashed; opacity: .85; }
+.fnode.hl { border-color: var(--brand); background: var(--brand-weak); }
+.farrow {
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1.2;
+  padding: 2px 0;
+}
+.farrow small { font-size: 12px; display: block; color: var(--ink-2); }
+
+/* 徽标与占位 */
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 20px;
+  padding: 1px 10px;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.badge.code { background: #e7f6ec; color: var(--ok); border: 1px solid #bfe6cd; }
+.badge.llm { background: #fdf1e3; color: var(--warn); border: 1px solid #f3ddc0; }
+.badge.mix { background: #eef2ff; color: #4f46e5; border: 1px solid #d6ddfa; }
+
+.todo {
+  border: 1.5px dashed #cbd3e0;
+  border-radius: var(--radius);
+  background: #fbfcfe;
+  color: var(--ink-2);
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.todo::before { content: "待填充细节"; display: block; font-weight: 650; color: var(--warn); margin-bottom: 6px; font-size: 13px; }
+.todo ul { margin: 4px 0 2px 18px; padding: 0; }
+
+.hint { color: var(--ink-2); font-size: 13.5px; }
+ul.tight { margin: 8px 0; padding-left: 22px; }
+ul.tight li { margin: 4px 0; }
+
+/* 正文长串兜底：CJK 能自然断行，但白名单/路径这类连续 ASCII 串（如
+   `a/b/c/d…` 200+ 字符）不断行，会撑穿容器导致整页横向滚动。
+   overflow-wrap 只在「一行放不下」时才断，不影响正常文本。 */
+.card, .card p, .card li, .fnode, td, .hint { overflow-wrap: anywhere; }
+
+/* 表格行内折叠明细 */
+tr.gx-row { cursor: pointer; }
+tr.gx-row > td:first-child::before {
+  content: "▸";
+  color: var(--brand);
+  font-size: 12px;
+  display: inline-block;
+  margin-right: 7px;
+  transition: transform .15s;
+}
+tr.gx-row.open > td:first-child::before { transform: rotate(90deg); }
+tr.gx-row:hover td { background: var(--brand-weak) !important; }
+tr.gx-detail > td {
+  background: #fbfcfe !important;
+  padding: 4px 14px 14px 26px;
+  border-top: none;
+}
+tr.gx-detail table {
+  font-size: 13px;
+  margin: 10px 0 2px;
+  table-layout: fixed;   /* 固定布局：列宽由表头定，长内容换行不撑爆 */
+  width: 100%;
+}
+tr.gx-detail table td { background: var(--panel) !important; }
+/* 4 列明细表（指标|产品指标|产出|口径）的列宽 */
+tr.gx-detail th:first-child:nth-last-child(4) { width: 24%; }
+tr.gx-detail th:nth-child(2):nth-last-child(3) { width: 21%; }
+tr.gx-detail th:nth-child(3):nth-last-child(2) { width: 9%; }
+/* 3 列明细表（Wave 0 中间产物：字段|产出|说明）的列宽 */
+tr.gx-detail th:first-child:nth-last-child(3) { width: 22%; }
+tr.gx-detail th:nth-child(2):nth-last-child(2) { width: 10%; }
+tr.gx-detail table td:first-child {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  white-space: normal;
+  word-break: break-all;   /* 长字段名允许任意断行 */
+}
+tr.gx-detail .badge { white-space: nowrap; }
+tr.gx-detail .hint { margin: 8px 0 0; }
+.prd { display: block; font-size: 12px; color: var(--ink-2); font-family: "Segoe UI", "Microsoft YaHei", sans-serif; white-space: normal; }
+td .prd-name { font-weight: 650; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 13px; white-space: normal; }
+
+@media (max-width: 760px) {
+  .flow-row { flex-direction: column; }
+  main { padding: 18px 14px 60px; }
+  nav.tabs { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; }
+}

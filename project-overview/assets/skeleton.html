@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<!--
+  项目全链路总览报告骨架（project-overview skill，通用）
+  ─────────────────────────────────────────────────────
+  用法：
+    1. cp assets/skeleton.html <目标>/全链路流程总览.html
+    2. 把 assets/overview.css 内容粘进 <style>、assets/overview.js 内容粘进 <script>
+       （保持单文件离线可开；也可换成 <link>/<src> 外链）
+    3. 按实际模块替换 nav.tabs 按钮与 section.tab-page（id 必须是 tab-<data-tab>）
+    4. 页眉副标题填 git 版本行，见 SKILL.md「git 版本记录」
+
+  硬约束：
+    - nav 按钮 data-tab="x" ↔ section id="tab-x" 一一对应，前缀 tab- 不能省
+    - 折叠明细：tr.gx-row 后必须紧跟 tr.gx-detail hidden（顺序不能颠倒）
+    - 每页未填充处放 .todo 块，填完删除；交付时全文不得残留
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{项目名} 全链路流程总览</title>
+<style>
+/* ← 粘贴 overview.css 全文 */
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>{项目名} 全链路流程总览</h1>
+  <p>{一句话定位} · 按功能模块划分 · 更新于 {YYYY-MM-DD HH:MM}
+     （代码 {short-sha} · {commit 摘要}）</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="active">总览</button>
+  <button data-tab="mod-a">{模块A}</button>
+  <button data-tab="mod-b">{模块B}</button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════ 总览 ══════════════════════ -->
+<section class="tab-page active" id="tab-overview">
+  <h2>项目定位</h2>
+  <div class="card">
+    <p><b>{项目名}</b>：{做什么、输入什么、产出什么}。</p>
+    <ul class="tight">
+      <li>{关键事实 1}</li>
+      <li>{关键事实 2}</li>
+    </ul>
+  </div>
+
+  <h2>全景数据流</h2>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="fnode"><b>{入口}</b>{职责}</div>
+      <div class="fnode hl"><b>{核心}</b>{职责}</div>
+      <div class="fnode dim"><b>{旁路}</b>{职责}</div>
+    </div>
+    <div class="farrow">↓<small>{流转说明}</small></div>
+    <div class="flow-row">
+      <div class="fnode"><b>{产出}</b>{产物文件}</div>
+    </div>
+  </div>
+
+  <h2>模块导航</h2>
+  <table>
+    <thead><tr><th>模块</th><th>覆盖目录</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr><td>{模块A}</td><td><code>{dir/}</code></td><td>{职责}</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════ 模块A ══════════════════════ -->
+<section class="tab-page" id="tab-mod-a">
+  <h2>{模块A}（<code>{dir/}</code>）</h2>
+
+  <div class="card">
+    <p>{模块概述：输入 → 处理 → 输出}</p>
+  </div>
+
+  <h3>职责与明细</h3>
+  <table>
+    <thead><tr><th>单元</th><th>产出方式</th><th>说明</th></tr></thead>
+    <tbody>
+      <!-- 主行：点击展开。首列自动带 ▸ 指示符 -->
+      <tr class="gx-row">
+        <td>{单元名}</td>
+        <td><span class="badge code">CODE</span></td>
+        <td>{一句话职责（依赖 · 文件名）}</td>
+      </tr>
+      <!-- 明细行：必须紧跟主行，hidden 初始收起，colspan = 主行列数 -->
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>需求对应名</th><th>产出</th><th>依赖与口径</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>{field_name}</td>
+              <td><span class="prd-name">{需求文档原文名}</span><span class="prd">{展示位/出处}</span></td>
+              <td><span class="badge llm">LLM</span></td>
+              <td>{怎么算：公式/阈值/降级路径/回填来源}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="hint">{补充说明或已知差异标注}</p>
+      </td></tr>
+    </tbody>
+  </table>
+
+  <div class="todo">
+    <ul>
+      <li>{待深挖条目 1}</li>
+      <li>{待深挖条目 2}</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══════════════════════ 模块B ══════════════════════ -->
+<section class="tab-page" id="tab-mod-b">
+  <h2>{模块B}</h2>
+  <div class="todo">
+    <ul><li>{整页待填充}</li></ul>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* ← 粘贴 overview.js 全文 */
+</script>
+
+</body>
+</html>
