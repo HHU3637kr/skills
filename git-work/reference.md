@@ -154,6 +154,92 @@ git branch -d <branch-name>
 git push origin --delete <branch-name>
 ```
 
+## 发版：release 分支与 tag
+
+**版本号只存在于 tag，分支名永不含版本号。**
+
+分支：`release/<line>`（`<line>` 是发布线标识，如 `official`、客户名）。
+版本：`vX.Y.Z` / `vX.Y.Z.N`；定制线加前缀 `<line>-vX.Y.Z`。
+
+### 发一个版本
+
+```bash
+git switch release/<line>
+git cherry-pick <commit>
+<项目测试命令>
+git tag -a <version> -m "<说明：改了什么、实测数据、cherry-pick 来源>"
+git push origin release/<line> <version>
+```
+
+### 核对 tag 与分支是否错位
+
+```bash
+# tag 指向的 commit
+git rev-parse --short <version>^{commit}
+# 分支 HEAD
+git rev-parse --short release/<line>
+# 两者不同时看差异性质：只含文档即正常，含源码说明漏打 tag
+git diff --name-only <version> release/<line>
+```
+
+### 列出所有 tag 及其 commit
+
+```bash
+git tag --list
+git rev-parse --short <version>^{commit}
+git cat-file -t <version>        # 应为 tag（annotated），不是 commit
+```
+
+### 定制线测试基线
+
+```bash
+# cherry-pick 前先记下 failed 数
+git switch --detach <cherry-pick 前的 commit>
+<测试命令>
+# 发版判据是 failed 数不增加，不是全绿
+```
+
+### 镜像标签对齐
+
+```bash
+git switch --detach <version>
+docker build -t <image>:<version> .
+# 从服务器反查代码
+ssh <server> "grep '^IMAGE_TAG=' <path>/.env"
+git switch --detach <该值>
+```
+
+### 删带版本号的旧分支前验证
+
+```bash
+# 是否已被保留分支包含（无输出且退出码 0 = 是）
+git merge-base --is-ancestor <old-branch> release/<line>
+# 独有提交数，必须为 0
+git log --oneline <old-branch> --not <base> release/<line> | wc -l
+# 两项都通过才删
+git branch -D <old-branch>
+git push origin --delete <old-branch>
+```
+
+### 删除错位的 tag
+
+```bash
+git tag -d <version>
+git push origin :refs/tags/<version>
+```
+
+含非 ASCII 的分支名用 refspec 全路径删除：
+
+```bash
+git push origin ":refs/heads/<branch-name>"
+```
+
+### 清理失效的远端跟踪引用
+
+```bash
+git remote prune origin
+```
+
 ## 故障处理
 
 | 场景 | 命令/处理 |

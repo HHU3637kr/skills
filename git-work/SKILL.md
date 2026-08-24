@@ -1,12 +1,17 @@
 ---
 disable-model-invocation: true
 name: git-work
-description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
+description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。也用于发版管理：建立或维护 release 分支、打版本 tag、发补丁版本、把修复 cherry-pick 到多条发布线、核对 tag 与分支是否错位、对齐镜像标签与 git tag、清理带版本号的旧分支。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
 ---
 
-# Git 工作流 SOP（GitHub Flow）
+# Git 工作流 SOP（GitHub Flow + 发版管理）
 
 详细示例见 [examples.md](examples.md)，命令速查见 [reference.md](reference.md)。
+
+两块正交内容：
+
+- **模式一~五**：Spec 工作分支生命周期（短分支 → PR → 合并即删）
+- **模式六**：发版分支与 tag 管理（长期 release 分支 + 版本 tag）
 
 ## 核心约定
 
@@ -289,6 +294,154 @@ git push origin --delete <branch-name>
 
 如果本地分支无法删除，先确认 PR 是否已合并，避免误删未合并成果。
 
+## 模式六：发版分支与 tag 管理
+
+前五个模式管的是 **Spec 工作分支**（短生命周期、合并即删）。本模式管的是
+**发版**，两者正交：Spec 分支进 `<base>`，发版从 `<base>` 取内容打 tag。
+
+### 核心原则
+
+**版本号只存在于 tag，分支名永不含版本号。**
+
+### 分支模型
+
+| 分支 | 生命周期 | 用途 |
+|------|----------|------|
+| `<base>` | 长期 | 主干。所有修复先进这里 |
+| `release/<line>` | 长期 | 每条发布线一条，永不新建替代分支 |
+| `<type>/spec-*` | 短期 | Spec 工作分支（模式一~五） |
+
+`<line>` 是发布线标识，不是版本号。多客户/多环境场景例如：
+
+```text
+release/official     正式线
+release/<customer>    某客户定制线
+```
+
+### 为什么禁止版本号进分支名
+
+`release/v1.0.4` 这类命名会产生三种对不上：
+
+1. **分支名与其上的 tag 错位**——分支名停在诞生那天，内容一直往前走。
+   实际踩过：`release/tut-v1.0.4` 的 HEAD 是 tag `tut-v1.0.5`，
+   而 `tut-v1.0.4` 这个 tag 落在该分支的一个中间提交上，不是任何分支的 HEAD
+2. **同一提交有多个名字**——一个提交同时是 `release/tut-v1.0.2`、
+   `feat/spec-xxx`、tag `tut-v1.0.2`，看到任一个都不知道另外两个存在
+3. **分支数量随版本线性增长**——发到 v1.0.9 就有 9 条僵尸分支
+
+历史版本靠 tag 定位，这本来就是 tag 的职责。用分支留快照是把两种工具混用。
+
+### 版本号规则
+
+| 形态 | 含义 | 例 |
+|------|------|-----|
+| `vX.Y.Z` | 正式线主版本 | `v1.0.3` |
+| `vX.Y.Z.N` | 正式线补丁 | `v1.0.3.1` |
+| `<line>-vX.Y.Z` | 定制线主版本 | `tut-v1.0.4` |
+| `<line>-vX.Y.Z.N` | 定制线补丁 | `tut-v1.0.4.1` |
+
+同一改动发到多条线时，各线独立编号，tag 说明里写清 cherry-pick 来源。
+
+### 发版流程
+
+```bash
+# 1. 修复先进主干
+git switch <base> && git commit ... && git push
+
+# 2. cherry-pick 到目标发布线
+git switch release/<line>
+git cherry-pick <commit>
+
+# 3. 跑测试（定制线注意区分既有失败，见下）
+<项目测试命令>
+
+# 4. 打 annotated tag 并推送
+git tag -a <version> -m "<说明>"
+git push origin release/<line> <version>
+```
+
+tag 说明必须写清：改了什么、实测数据、cherry-pick 来源、是否已部署。
+**只用 annotated tag**（`-a`），轻量 tag 不带作者、日期和说明。
+
+### tag 指向「发版的代码」，不追 HEAD
+
+release 分支允许存在不产生新版本号的提交：规范、文档、Spec 报告等不改变
+运行行为的内容。这类提交后 tag 落后于 HEAD，**属正常状态**。
+
+判断标准：**这笔提交会改变构建出的产物行为吗？**
+
+| 提交内容 | 是否发新 tag |
+|----------|--------------|
+| 源码、依赖、Dockerfile、数据库迁移 | 是 |
+| 规范文件、`AGENTS.md`、Spec 报告 | 否 |
+| `.env.example`（仅注释或默认值说明） | 否 |
+
+核对方法：
+
+```bash
+git diff --name-only <tag> release/<line>
+```
+
+差异只含「否」类文件即正常；混入源码说明**漏打 tag**。
+
+### 镜像标签必须等于 git tag
+
+构建产物（Docker 镜像等）的标签必须与 git tag 同名，不得自行取名：
+
+```bash
+git switch --detach <version>
+docker build -t <image>:<version> .
+# 部署侧 .env: IMAGE_TAG=<version>
+```
+
+这样从服务器可直接反查代码：
+
+```bash
+ssh <server> "grep '^IMAGE_TAG=' <path>/.env"   # 得到 <version>
+git switch --detach <version>                    # 就是线上那份代码
+```
+
+实际踩过：生产跑 `IMAGE_TAG=tut-v1.0.5` 但 git 中无此 tag，镜像实际由某个
+裸 commit 构建，线上版本与代码彻底失去对应关系，只能靠人工记录。
+
+更强的做法是把 commit 烘进产物：构建时 `--build-arg GIT_COMMIT=$(git rev-parse HEAD)`
+写入环境变量，运行时可直接查询，连命名约定都不必依赖。
+
+### 定制线的既有测试失败
+
+定制线常因改了共享文件而让主线的守卫测试恒失败。发版前必须先建立基线：
+
+```bash
+# 在 cherry-pick 前的提交上跑一次，记下 failed 数
+git switch --detach <cherry-pick 前的 commit>
+<测试命令>
+```
+
+判据是 **failed 数不增加**，不是「全绿」。把已知恒失败项及其原因记进项目
+速查表，否则每次发版都要重新判断哪些失败是无害的。
+
+### 清理带版本号的旧分支
+
+迁移到本模型时，旧的 `release/vX` 分支可以删——但**删前必须逐条验证**每个
+分支的 HEAD 提交有 tag 或保留分支覆盖：
+
+```bash
+# 该分支是否已被某条保留分支包含
+git merge-base --is-ancestor <old-branch> release/<line>
+
+# 独有提交数，必须为 0
+git log --oneline <old-branch> --not <base> release/<line> | wc -l
+```
+
+两项都通过才能删。删分支不丢提交的前提是**版本点已被 tag 钉住**，
+没有 tag 覆盖的分支删掉就是丢代码。
+
+### 每次发版后更新速查表
+
+在项目的 `AGENTS.md` 维护一张表，记录每条线的当前 tag、部署位置、版本历史。
+发版即更新一行。没有这张表，过几周就会出现「哪个版本部署在哪、对应哪份代码」
+说不清的情况——这正是本模式要解决的问题。
+
 ## 常见阻塞
 
 | 场景 | 处理 |
@@ -299,6 +452,10 @@ git push origin --delete <branch-name>
 | 分支落后 `<base>` | 在工作分支中合并或 rebase 最新 `<base>`，解决冲突后继续 |
 | 多个 Spec 并发 | 使用 `git worktree`，每个 Spec 独占分支和目录 |
 | 无法创建 PR | 推送分支并给出 compare URL |
+| tag 与 release 分支 HEAD 不一致 | 先 `git diff --name-only <tag> release/<line>`；只含文档即正常，含源码说明漏打 tag |
+| 服务器拉不到远程（网络隔离/remote 损坏） | 走文件同步 + md5 逐文件对账，同步后在服务器目录内 git 提交留痕并打同名 tag |
+| 定制线测试有失败 | 先在 cherry-pick 前的提交上跑一次建立基线，判据是 failed 数不增加 |
+| 想删带版本号的旧分支 | 先验证每条分支 HEAD 有 tag 或保留分支覆盖、独有提交数为 0 |
 
 ## 禁止事项
 
@@ -307,3 +464,13 @@ git push origin --delete <branch-name>
 - 不要把多个无关 Spec 混在同一分支
 - 不要在测试失败时创建 PR，除非 PR 明确标记为 Draft
 - 不要自动合并 PR，除非用户明确要求
+
+发版相关（模式六）：
+
+- 不要新建带版本号的分支（`release/v1.0.4`、`release/<line>-v1.0.5`）
+- 不要用轻量 tag 发版，必须 `git tag -a`
+- 不要为纯文档提交打新版本号 tag
+- 不要让产物标签与 git tag 不同名
+- 不要在没有 tag 覆盖的情况下删分支
+- 不要用「全绿」作为定制线的发版判据，用「failed 数不增加」
+- 不要移动或复用已推送的 tag（会改变已发布版本的含义）
