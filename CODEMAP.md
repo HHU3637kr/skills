@@ -162,6 +162,8 @@ skills/
 ```
 spec-init
   ↓
+spec-swarm（可选：设 execution=swarm 后委派）
+  ↓
 spec-start → git-work → lead/team-context.md
   ↓
 阶段一：TeamLead + intent-confirmation
@@ -176,6 +178,8 @@ spec-start → git-work → lead/team-context.md
 ```
 
 `spec-update` 是同一活跃 Spec 分支内的小迭代流程，不创建新 Spec，不归档；它读取 `lead/team-context.md` 的分支信息，把更新产物写入 `updater/`，并可由 `spec-review` 产出 `reviewer/update-xxx-review.html`。
+
+`spec-swarm` 是**执行形态启动器**，不是并行流程。它只做前置校验（角色可发现 / 可 spawn / 无 `tools` 白名单）、把 `execution: swarm` 写入账本、声明编排硬约束，随后委派 `spec-start` 跑同一套五阶段。`execution`（谁执行）与 `mode`（谁验证）正交，四种组合全部合法。
 
 ### 2. 经验管理
 

@@ -188,6 +188,8 @@ Codex CLI 的 `/agent` 是活跃子 Agent 线程视图，不是项目 Agent 库�
 
 如果运行环境支持恢复子 Agent 线程，TeamLead 记录每个角色的运行时 handle；后续多轮交互优先恢复同一角色线程。若运行环境没有团队/子代理能力，或角色线程不可恢复，由当前 Agent 按同一角色协议串行执行，并从已落盘文档重建上下文。
 
+这两条路径对应账本的 `execution` 字段：`swarm`（角色产物一律由 spawn 的子 Agent 产出，主控只做编排）或 `serial`（当前 Agent 按七角色协议依次承担）。由 `spec-swarm` 启动时该字段已写好，本 Skill 照用；直接调用本 Skill 时默认 `serial`，能 spawn 也可自行采用 `swarm`。`execution` 与 `mode` 正交——`swarm` 不改变任何门禁的放行条件。
+
 在当前 Spec 目录的 `lead/team-context.md` 记录本次运行实例状态。它只描述当前 Spec 的团队运行上下文，不替代项目级角色定义：
 
 ```markdown
@@ -201,6 +203,7 @@ status: running
 phase: intent | exploration | spec-writing | implementation | testing | debugging | review | ending | archived
 runtime: omp | claude-code | codex | generic
 mode: gated | autopilot
+execution: serial | swarm
 git_branch: <branch-name 或 none>
 base_branch: <远程默认分支，通常 main 或 master；读 `git symbolic-ref refs/remotes/origin/HEAD` 得到，不写死>
 pr_url:
