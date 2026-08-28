@@ -263,6 +263,7 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 |-------|---------|------|----------|
 | `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + spec/ + HTML 报告资产） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 创建 Spec 工作分支、角色目录和 `lead/team-context.md`，加载 7 个项目级角色 | 每次开始新开发任务 |
+| `spec-swarm` | TeamLead | 执行形态启动器：前置校验 + 写入 `execution: swarm` + 声明编排硬约束，随后委派 `spec-start` | 要求全程 spawn 子 Agent 执行、主控只做编排时 |
 | `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
 | `spec-write` | spec-writer | 撰写 `writer/plan.html`（纯代码实现计划，不含测试） | 创建新功能 Spec |
 | `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.html` + 执行测试产出 `tester/test-report.html` | 测试计划和测试执行 |
