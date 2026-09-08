@@ -1174,7 +1174,7 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.9.0
+**版本**: 2.9.1
 **最后更新**: 2026-09-08
 **维护者**: 项目团队
 
@@ -1186,10 +1186,23 @@ created: YYYY-MM-DD
 
 **核心改进与补丁**：
 
-1. **版本级 HTML 报告模板闭环**：`html-report/templates/` 补齐发版交付报告（`release-report-template.html`，5 层深度）与版本归档复盘报告（`version-end-report-template.html`，3 层深度），与规划大盘（`version-plan-template.html`，3 层）共同构成版本生命周期的完整三报告模板集。
-2. **规范与初始化对齐**：`spec-init` 初始化产物树与验收清单同步补充 `version-workflow.md`，使目标项目初始化规则完整包含 6 个核心 rules。
-3. **旧项目升级策略明确**：在 `.agents/rules/version-workflow.md` 中确立唯一标准升级策略——历史 `spec/01-xx` ~ `spec/06-已归档/` 保持原样作为只读历史资产，其 4 层 assets 路径与物理位置匹配且严禁改写；新需求直接运行 `/version-start` 建立新版本进入三级架构。
-4. **框架发版豁免**：明确 `git-work` 发版约束中「纯文档不打新 tag」适用于业务代码仓库，R&K Flow 作为工作流框架产品在此类协议与模板升级时正常发版。
+1. **版本级 HTML 报告模板与契约闭环**：
+   - `html-report/templates/` 补齐发版交付报告（`release-report-template.html`，5 层深度）与版本归档复盘报告（`version-end-report-template.html`，3 层深度），与规划大盘（`version-plan-template.html`，3 层）构成完整的版本级三报告模板集；
+   - `html-report/SKILL.md` 的 `rk:type` 元数据枚举新增 `version-end-report`，工具化与检索精准区分版本归档复盘与单个原子 Spec 的 `end-report`；
+   - `version-start`、`version-release` 与 `version-end` 步骤显式链接各自模板并强制声明 3 层/5 层/3 层相对 assets 路径。
+2. **报告清单与元数据规范重构**：
+   - `README.md`「哪些是报告」清单表重构为包含 3 个版本级报告与 8 个 Spec 角色报告的完整大表，并显式标注 3 层/5 层/6 层相对 assets 路径；
+   - 明确所有 HTML 报告的 `.rk-meta` 人可读镜像必须完整呈现版本（`rk:version`）与属性（`rk:category`），消除原仅在 `<head>` 声明而人可读镜像漏渲染的缺陷。
+3. **初始化规范与目录消除遗留**：
+   - `spec-init` 初始化产物树与验收清单补齐第 6 个核心规则文件 `version-workflow.md`；
+   - `spec-init` 验收清单第 7 项彻底纠正历史残留，从已废弃的「6 个分类目录」修正为三级架构的「`spec/versions/ + spec/context/`」，阻断新项目开倒车。
+4. **仓库地图（CODEMAP）全景同步**：
+   - 补齐 `version-start/`、`version-update/`、`version-release/`、`version-end/` 与 `html-report/templates/` 目录节点与依赖关系表；
+   - 修复批量编辑导致的 `skill-creator/` 与 `.agents/skills/` 节点误删，恢复规范的 Markdown 表格空行。
+5. **旧项目升级策略明确**：
+   - 在 `.agents/rules/version-workflow.md` 确立单一清晰口径：历史 `spec/01-xx` ~ `spec/06-已归档/` 保持原样作为只读历史资产，其 4 层 assets 路径与物理位置匹配且严禁改写；新需求直接运行 `/version-start` 建立新版本进入三级架构。
+6. **框架发版豁免条款**：
+- 明确 `git-work` 发版约束中「纯文档不打新 tag」适用于业务代码仓库，R&K Flow 本身作为技能规范产品在协议与模板升级时正常发版。
 
 ### v2.9.0 (2026-09-08) - 项目→版本→需求三级架构 + 需求性质平权 + Version 生命周期闭环
 
