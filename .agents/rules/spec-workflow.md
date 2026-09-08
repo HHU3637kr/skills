@@ -2,11 +2,13 @@
 
 ## 基本约定
 
-- 本项目采用 R&K Flow / Spec 驱动式开发
-- 新功能使用 `/spec-start`，已有功能小迭代使用 `/spec-update`；要求全程 spawn 子 Agent 执行时用 `/spec-swarm` 启动（它只设执行形态，流程仍委派 `spec-start`）
+- 本项目采用 R&K Flow / Spec 驱动式开发，遵循「项目 → Version → Spec」三级架构
+- 每个 Spec 必须归属明确的 Version，物理路径位于 `spec/versions/<version>/specs/<spec-dir>/`
+- 新功能使用 `/spec-start`，需指定所属版本与需求性质（`feat` / `tech` / `debt` / `fix`，四类平权）
+- 已有功能小迭代使用 `/spec-update`；要求全程 spawn 子 Agent 执行时用 `/spec-swarm` 启动（它只设执行形态，流程仍委派 `spec-start`）
 - 实现前必须有**已确认**的 `writer/plan.html`（「已确认」的两种含义见下）
 - 严格遵循 Spec，不添加计划外功能
-- 收尾时使用 `exp-reflect` 沉淀经验，并由 `spec-end` 审查规范维护
+- 收尾时使用 `exp-reflect` 沉淀经验到项目级 `spec/context/`，由 `spec-end` 执行**原位归档**（修改状态并保留在所在版本目录，禁止移出）并审查规范维护
 - 角色（Who）与 Skill（How）严格分离
 
 ## 运行模式与执行形态

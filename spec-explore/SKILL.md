@@ -90,7 +90,9 @@ description: >
 <title>探索报告 - {任务描述}</title>
 
 <meta name="rk:type"        content="exploration-report">
-<meta name="rk:spec-dir"    content="spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:version"     content="{vX.Y，所属版本号}">
+<meta name="rk:category"    content="{feat|tech|debt|fix}">
+<meta name="rk:spec-dir"    content="spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}">
 <meta name="rk:role"        content="spec-explorer">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:created"     content="{YYYY-MM-DD}">
@@ -103,9 +105,9 @@ description: >
 <link rel="rk-ledger" href="../lead/team-context.md">
 <link rel="rk-plan"   href="../writer/plan.html">
 
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -115,7 +117,9 @@ description: >
   <h1>探索报告：{任务描述}</h1>
   <div class="rk-meta">
     <span><b>类型</b> exploration-report</span>
-    <span><b>Spec</b> <code>spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}</code></span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>属性</b> <code>{category}</code></span>
+    <span><b>Spec</b> <code>spec/versions/{version}/specs/{spec_dir}</code></span>
     <span><b>角色</b> spec-explorer</span>
     <span><b>分支</b> <code>{git_branch}</code> ← <code>{base_branch}</code></span>
     <span><b>PR</b> {pr_url 或 —}</span>

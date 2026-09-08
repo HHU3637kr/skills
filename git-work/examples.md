@@ -1,6 +1,11 @@
-# GitHub Flow 示例（R&K Flow）
+# Git 工作流示例（dev + release 发版管理）
 
-下文示例里的默认分支均写作 `main`，仅为举例。实际使用时必须先跑 `git symbolic-ref refs/remotes/origin/HEAD` 取得真实默认分支名（本仓库实测为 `master`），不要直接把 `main` 拷贴进命令。示例 1 演示了正确的读取写法。
+下文示例里的默认主干分支均写作 `"$MAIN_BRANCH"`，实际使用时先通过脚本动态剥离前缀取得真实主干分支名（如 `master` 或 `main`）：
+```bash
+MAIN_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+MAIN_BRANCH=${MAIN_BRANCH:-master}
+```
+不要直接硬编码把 `main` 拷贴进命令。
 
 ## 示例 1：新功能 Spec
 
@@ -9,10 +14,8 @@
 ```bash
 # spec-start 阶段
 git status --short
-base=$(git symbolic-ref --short refs/remotes/origin/HEAD)
-base=${base#origin/}
-git switch "$base"
-git pull --ff-only origin "$base"
+git switch dev
+git pull --ff-only origin dev
 git switch -c feat/spec-20260428-1430-user-auth
 git push -u origin feat/spec-20260428-1430-user-auth
 ```
@@ -21,7 +24,7 @@ git push -u origin feat/spec-20260428-1430-user-auth
 
 ```html
 <meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
-<meta name="rk:base-branch" content="master">  <!-- 写实际读到的默认分支名，不要写死 main -->
+<meta name="rk:base-branch" content="dev">  <!-- 常规 Spec 基线为 dev 分支 -->
 <meta name="rk:pr-url"      content="">
 ```
 
@@ -34,7 +37,7 @@ git diff --stat
 git add .
 git commit -m "feat: implement user auth spec"
 git push
-gh pr create --base main --head feat/spec-20260428-1430-user-auth --title "feat: user auth" --body-file pr-body.md
+gh pr create --base dev --head feat/spec-20260428-1430-user-auth --title "feat: user auth" --body-file pr-body.md
 ```
 
 拿到 PR URL 后写回 `plan.html` / `summary.html` 的 `rk:pr-url`（`<meta>` 与 `.rk-meta` 镜像都要更新），再**并入同一次提交**（收尾只提交一次）：
@@ -61,7 +64,7 @@ git status --short
 <meta name="rk:type"        content="update">
 <meta name="rk:update-number" content="1">
 <meta name="rk:git-branch"  content="feat/spec-20260428-1430-user-auth">
-<meta name="rk:base-branch" content="master">  <!-- 继承 plan.html 实际记录的默认分支名 -->
+<meta name="rk:base-branch" content="dev">  <!-- 继承 plan.html 的 dev 基线 -->
 <meta name="rk:pr-url"      content="">
 ```
 
@@ -80,10 +83,10 @@ git push
 同一仓库并发做两个 Spec 时，不要在同一个目录来回切分支。
 
 ```bash
-git switch main
-git pull --ff-only origin main
-git worktree add ../project-user-auth -b feat/spec-20260428-1430-user-auth main
-git worktree add ../project-audit-log -b feat/spec-20260428-1500-audit-log main
+git switch dev
+git pull --ff-only origin dev
+git worktree add ../project-user-auth -b feat/spec-20260428-1430-user-auth dev
+git worktree add ../project-audit-log -b feat/spec-20260428-1500-audit-log dev
 ```
 
 每个 worktree 中独立运行对应的 Spec 流程。
@@ -91,8 +94,8 @@ git worktree add ../project-audit-log -b feat/spec-20260428-1500-audit-log main
 ## 示例 4：PR 合并后清理
 
 ```bash
-git switch main
-git pull --ff-only origin main
+git switch dev
+git pull --ff-only origin dev
 git branch -d feat/spec-20260428-1430-user-auth
 git push origin --delete feat/spec-20260428-1430-user-auth
 ```
@@ -104,12 +107,16 @@ git push origin --delete feat/spec-20260428-1430-user-auth
 场景：主干修了一个 bug，要发到正式线。
 
 ```bash
-# 1. 修复已在主干（master）
-git log --oneline -1 master
+# 0. 读取真实主干分支名
+MAIN_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+MAIN_BRANCH=${MAIN_BRANCH:-master}
+
+# 1. 修复已在主干（$MAIN_BRANCH）
+git log --oneline -1 "$MAIN_BRANCH"
 # 3a350f7 fix(评估任务): 建任务与 DAG 读取体系时透传 university_code
 
 # 2. cherry-pick 到发布线
-git switch release/official
+git switch support/official
 git cherry-pick 3a350f7
 
 # 3. 跑测试
@@ -122,17 +129,17 @@ git tag -a v1.0.3.1 -m "v1.0.3.1 正式版补丁
 修复：建任务与 DAG 读取体系时透传 university_code。
 三个调用点漏传导致白名单分支永不命中，program 层用户建任务恒 404。
 新增守卫测试（已反向验证）。本地 480 passed / 4 skipped。"
-git push origin release/official v1.0.3.1
+git push origin support/official v1.0.3.1
 ```
 
 同一改动要发到定制线时，各线独立编号：
 
 ```bash
-git switch release/tut
+git switch support/tut
 git cherry-pick 3a350f7
 # tag 说明里写清 cherry-pick 来源
 git tag -a tut-v1.0.4.1 -m "tut-v1.0.4.1（cherry-pick 自正式版 v1.0.3.1）..."
-git push origin release/tut tut-v1.0.4.1
+git push origin support/tut tut-v1.0.4.1
 ```
 
 ## 示例 6：诊断 tag 与分支错位
@@ -189,13 +196,13 @@ done
 
 ```bash
 # 1. 建两条长期分支，指向各线当前 HEAD
-git branch release/official c3dc2a6
-git branch release/tut cd2aa48
-git push -u origin release/official
-git push -u origin release/tut
+git branch support/official c3dc2a6
+git branch support/tut cd2aa48
+git push -u origin support/official
+git push -u origin support/tut
 
 # 2. 对账新分支与 tag
-for pair in "release/official:v1.0.3.2" "release/tut:tut-v1.0.4.1"; do
+for pair in "support/official:v1.0.3.2" "support/tut:tut-v1.0.4.1"; do
   b=${pair%%:*}; t=${pair#*:}
   [ "$(git rev-parse --short "$b")" = "$(git rev-parse --short "$t^{commit}")" ] \
     && echo "$b OK" || echo "$b MISMATCH"
@@ -209,9 +216,12 @@ done
 删旧分支前逐条验证：
 
 ```bash
+# 0. 读取真实主干分支名
+MAIN_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+MAIN_BRANCH=${MAIN_BRANCH:-master}
 for b in release/v1.0.3 release/tut-v1.0.2 release/tut-v1.0.3 release/tut-v1.0.4; do
   # 独有提交数必须为 0
-  n=$(git log --oneline "$b" --not master release/official release/tut | wc -l)
+  n=$(git log --oneline "$b" --not "$MAIN_BRANCH" support/official support/tut | wc -l)
   echo "$b 独有提交: $n"
 done
 ```

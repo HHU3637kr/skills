@@ -94,7 +94,8 @@ spec-tester 发现 bug
 <meta charset="utf-8">
 <title>问题诊断 - {问题简述}</title>
 <meta name="rk:type"         content="debug">
-<meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:version"      content="{version}">
+<meta name="rk:spec-dir"     content="spec/versions/<version>/specs/<spec-dir>">
 <meta name="rk:role"         content="spec-debugger">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:title"        content="问题诊断-{简述}">
@@ -113,9 +114,9 @@ spec-tester 发现 bug
 <link rel="rk-summary" href="../executor/summary.html">
 <link rel="rk-fix"     href="debug-001-fix.html">
 <link rel="rk-ledger"  href="../lead/team-context.md">
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 ```
 
@@ -172,7 +173,8 @@ spec-tester 发现 bug
 <meta charset="utf-8">
 <title>修复总结 - {问题简述}</title>
 <meta name="rk:type"         content="debug-fix">
-<meta name="rk:spec-dir"     content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:version"      content="{version}">
+<meta name="rk:spec-dir"     content="spec/versions/<version>/specs/<spec-dir>">
 <meta name="rk:role"         content="spec-debugger">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:title"        content="修复总结-{简述}">
@@ -190,9 +192,9 @@ spec-tester 发现 bug
 <link rel="rk-plan"   href="../writer/plan.html">
 <link rel="rk-debug"  href="debug-001.html">
 <link rel="rk-ledger" href="../lead/team-context.md">
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 ```
 

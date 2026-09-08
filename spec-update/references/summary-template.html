@@ -7,7 +7,9 @@
 <!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略。
      检索与工具化处理靠这些 meta 读取，等同于原 YAML frontmatter。 -->
 <meta name="rk:type"          content="update-summary">
-<meta name="rk:spec-dir"      content="spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:version"       content="{version}">
+<meta name="rk:category"      content="{feat|tech|debt|fix}">
+<meta name="rk:spec-dir"      content="spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}">
 <meta name="rk:role"          content="spec-update">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:update-number" content="XXX">
@@ -26,17 +28,17 @@
 <link rel="rk-review"  href="../reviewer/update-XXX-review.html">
 <link rel="rk-ledger"  href="../lead/team-context.md">
 
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
 <nav class="rk-nav"></nav>
 
 <!--
-  用法：复制到 spec/<分类>/<spec目录>/updater/update-XXX-summary.html 后逐段替换 {占位符}。
-  样式路径 ../../../../html-report/assets/ 按 updater/ 目录回到项目根的 4 层计算；
+  用法：复制到 spec/versions/<v>/specs/<spec-dir>/updater/update-XXX-summary.html 后逐段替换 {占位符}。
+  样式路径 ../../../../../../html-report/assets/ 按 updater/ 目录回到项目根的 6 层计算；
   项目实际层级不同需相应调整，务必保证 file:// 直接打开样式生效。
   禁止写 <style> 或行内 style=，禁止外部 CDN。
 -->
@@ -46,8 +48,10 @@
   <!-- 人可读镜像，字段与上方 meta 保持一致 -->
   <div class="rk-meta">
     <span><b>类型</b> update-summary</span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>属性</b> <code>{category}</code></span>
     <span><b>更新编号</b> update-XXX</span>
-    <span><b>Spec</b> <code>spec/{XX-分类}/{YYYYMMDD-HHMM-任务描述}</code></span>
+    <span><b>Spec</b> <code>spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}</code></span>
     <span><b>角色</b> spec-update</span>
     <span><b>状态</b> 已完成</span>
     <span><b>分支</b> <code>{git_branch}</code> ← <code>{base_branch}</code></span>
@@ -191,8 +195,10 @@ tests/
   <tbody>
     <tr><td>标题</td><td>是</td><td><code>&lt;title&gt;</code></td><td><code>h1</code></td><td><code>{功能名称}-更新XXX-实现总结</code></td></tr>
     <tr><td>类型</td><td>是</td><td><code>rk:type</code></td><td>类型</td><td><code>update-summary</code></td></tr>
-    <tr><td>Spec 目录</td><td>是</td><td><code>rk:spec-dir</code></td><td>Spec</td><td>含分类，继承自原 <code>writer/plan.html</code></td></tr>
+    <tr><td>版本</td><td>是</td><td><code>rk:version</code></td><td>版本</td><td>所属版本号（如 <code>v1.6</code>）</td></tr>
+    <tr><td>Spec 目录</td><td>是</td><td><code>rk:spec-dir</code></td><td>Spec</td><td><code>spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}</code></td></tr>
     <tr><td>角色</td><td>是</td><td><code>rk:role</code></td><td>角色</td><td><code>spec-update</code></td></tr>
+    <tr><td>分类</td><td>是</td><td><code>rk:category</code></td><td>属性</td><td><code>feat</code> / <code>tech</code> / <code>debt</code> / <code>fix</code>（继承自原 <code>writer/plan.html</code>）</td></tr>
     <tr><td>更新编号</td><td>是</td><td><code>rk:update-number</code></td><td>更新编号</td><td>与 <code>update-XXX.html</code> 一致</td></tr>
     <tr><td>状态</td><td>是</td><td><code>rk:status</code></td><td>状态</td><td><code>未确认</code> / <code>已确认</code> / <code>已归档</code></td></tr>
     <tr><td>创建日期</td><td>是</td><td><code>rk:created</code></td><td>创建</td><td><code>YYYY-MM-DD</code></td></tr>

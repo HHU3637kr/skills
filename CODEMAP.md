@@ -6,15 +6,18 @@
 
 **仓库地址**：`github.com/HHU3637kr/skills`
 **当前分支**：`master`
-**文档口径**：v2.8.1
+**文档口径**：v2.9.0
 **分发方式**：git clone + 软链接（不走 npm）
 
 核心架构与 README 保持一致：
-- 5 阶段 Spec 工作流：需求对齐 → 探索/设计/测试计划 → 实现 → 测试/调试/审查 → 收尾
+- 三级架构：项目（Project）→ 版本（Version）→ 需求规格（Spec）
+- 需求性质四分平权：`feat`（业务功能）、`tech`（技术基建/AI底座）、`debt`（技术债治理）、`fix`（缺陷修复）
+- 4 个版本生命周期 Skills：`version-start`（规划）、`version-update`（范围治理）、`version-release`（整体验收与发版）、`version-end`（复盘与归档）
+- 5 阶段原子 Spec 工作流：需求对齐 → 探索/设计/测试计划 → 实现 → 测试/调试/审查 → 原位收尾归档
 - 7 个项目级角色：explorer、writer、tester、executor、debugger、reviewer、ender
-- TeamLead 是当前主 Agent，不额外创建 TeamLead 子 Agent
-- 每个 Spec 使用角色目录保存产物，并由 `lead/team-context.md` 记录运行账本
-- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色定义；Claude Code、Codex 等为备选。OMP 16.4+：`task` 用 batch schema、角色 **默认省略 `tools`（继承完整工具集）**、产品边界靠 role rules、`model` 按需
+- TeamLead 是当前主 Agent，统筹版本与 Spec 两级账本（`version-context.md` 与 `lead/team-context.md`）
+- Git 采用 `dev + release` 集成与发版工作流，PR/MR 平台中立抽象，线上热修强制回流
+- 运行时适配层保持中立，OMP（Oh My Pi）为**推荐运行时**（首选）：`.omp/agents/` 角色定义；Claude Code、Codex 等为备选
 
 ---
 
@@ -84,7 +87,7 @@ skills/
 ├── exp-search/                        # 显式记忆检索
 ├── exp-reflect/                       # Spec 收尾经验反思与分流
 ├── exp-write/                         # 写入 experience/knowledge
-├── git-work/                          # GitHub Flow 分支、提交、推送、PR
+├── git-work/                          # dev + release 集成与发布、PR/MR 审查、热修回流
 ├── intent-confirmation/               # 前置意图确认
 ├── loop-design/                       # 把重复任务设计成有边界的 Loop
 │   ├── SKILL.md                       # 交互式产出 loop 定义（只产出不执行）
@@ -212,7 +215,7 @@ spec-start → git-work → lead/team-context.md
 目标项目中的每个 Spec 目录按角色组织：
 
 ```
-spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
+spec/versions/<version>/specs/YYYYMMDD-HHMM-属性-任务描述/
 ├── lead/
 │   └── team-context.md
 ├── explorer/
@@ -334,7 +337,7 @@ TeamLead → 下游角色：
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
 | `loop-design` | `intent-confirmation`, `spec-start`（修复循环预算）, `skill-creator` | 用户在需要设计循环时调用 |
-| `git-work` | Git CLI / GitHub Flow | `spec-start`, `spec-end`, `spec-update` |
+| `git-work` | Git CLI / dev + release 工作流 | `spec-start`, `spec-end`, `spec-update`, `version-release`, `version-end` |
 
 ---
 
@@ -345,7 +348,7 @@ TeamLead → 下游角色：
 | Skill 定义 | Markdown `SKILL.md` | YAML frontmatter + 工作流协议 |
 | 报告格式 | HTML | 固定样式 + `ins`/`del` 修订标记 + 三视图 + 双向关联 |
 | 数据格式 | Markdown, YAML | 账本/记忆文档与元数据结构 |
-| 版本控制 | Git / GitHub Flow | Spec 分支、提交、推送、PR |
+| 版本控制 | Git / dev + release | Spec 分支、提测分支、Tag、PR/MR 审查 |
 | AI 运行时 | OMP / Claude Code / Codex / compatible coding agents | 项目级 Agent、resume 能力按环境适配 |
 | 安装分发 | git clone + 软链接 | 克隆到 `.agents/skills/`，运行时目录软链接共享；`git pull` 更新 |
 

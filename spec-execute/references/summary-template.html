@@ -6,7 +6,8 @@
 
 <!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 -->
 <meta name="rk:type"        content="summary">
-<meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}">
+<meta name="rk:version"     content="{version}">
+<meta name="rk:spec-dir"    content="spec/versions/{version}/specs/{spec_dir}">
 <meta name="rk:role"        content="spec-executor">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:title"       content="{功能名称}-实现总结">
@@ -23,10 +24,10 @@
 <link rel="rk-plan"   href="../writer/plan.html">
 <link rel="rk-ledger" href="../lead/team-context.md">
 
-<!-- 路径按 spec/<分类>/<spec目录>/executor/ 回到项目根（4 层）计算；层级不同需相应调整 -->
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<!-- 路径按 spec/versions/<v>/specs/<spec-dir>/executor/ 回到项目根（6 层）计算；层级不同需相应调整 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -37,7 +38,8 @@
   <!-- 人可读镜像，字段与上方 meta 保持一致 -->
   <div class="rk-meta">
     <span><b>类型</b> summary</span>
-    <span><b>Spec</b> <code>spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}</code></span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>Spec</b> <code>spec/versions/{version}/specs/{spec_dir}</code></span>
     <span><b>角色</b> spec-executor</span>
     <span><b>分类</b> {与 writer/plan.html 相同}</span>
     <span><b>状态</b> 未确认</span>

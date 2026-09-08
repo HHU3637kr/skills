@@ -4,7 +4,7 @@ name: git-work
 description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。也用于发版管理：建立或维护 release 分支、打版本 tag、发补丁版本、把修复 cherry-pick 到多条发布线、核对 tag 与分支是否错位、对齐镜像标签与 git tag、清理带版本号的旧分支。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
 ---
 
-# Git 工作流 SOP（GitHub Flow + 发版管理）
+# Git 工作流 SOP（dev + release 发版管理）
 
 详细示例见 [examples.md](examples.md)，命令速查见 [reference.md](reference.md)。
 
@@ -15,29 +15,21 @@ description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，
 
 ## 核心约定
 
-R&K Flow 默认采用 **GitHub Flow**：
+R&K Flow 采用 **`dev + release` 集成与发版工作流**，并对合并审查进行平台中立的 **PR/MR** 抽象：
 
-1. 远程默认分支（下文记作 `<base>`）是唯一长期分支，始终保持可部署
-2. 每个 Spec 使用一条短生命周期分支
-3. 同一活跃 Spec 的 update 默认复用该 Spec 分支
-4. 所有开发、测试、文档、归档都在该分支完成
-5. 收尾时提交、推送并创建 Pull Request
-6. PR 合并后删除本地和远程分支
-
-`<base>` 不写死为 `main`。始终先读远程默认分支：
-
-```bash
-git symbolic-ref refs/remotes/origin/HEAD
-```
-
-输出形如 `refs/remotes/origin/master`，取最后一段即 `<base>`（常见值为 `main` 或 `master`，也可能是别的名字）。若命令失败（没有远程，或远程未设置 HEAD），退回当前分支作为 `<base>`，并向用户说明这一推断。
-
+1. **主干分支（`<main>`）**：始终保持生产就绪与已发布状态，默认读取 `git symbolic-ref refs/remotes/origin/HEAD`（常见为 `master` 或 `main`），严禁直接在主干上实现。
+2. **日常集成开发分支（`dev`）**：在研 Spec 的日常集成线。所有常规 Spec 分支均从 `dev` 切出，并通过 PR/MR 合入 `dev`。
+3. **版本提测集成分支（`release/<version>`）**：版本提测冻结时从 `dev` 切出，只接收该版本的缺陷修复（`fix/*`），完成全量集成验证。
+4. **版本发版**：`release/<version>` 通过 PR/MR 合入 `<main>`，打正式发布 Tag（`vX.Y.Z`），并**强制反向合流回 `dev`**。
+5. **线上热修（`hotfix/*`）**：严格从对应生产环境的发布 Tag 切出，验证通过后合入 `<main>` 打 Patch Tag，并**强制双向回流 `dev` 与当前在研的 `release/*` 分支**。
+6. **长期支持线命名**：长期定制或客户维护线统一命名为 `support/<line>`，不使用 `release/*`，避免与临时提测分支冲突。
+7. **PR / MR 平台中立**：GitHub 称为 PR，GitLab 称为 MR。元数据统一记录请求类型、URL、源分支、目标分支与审查结果。
 ## 在 Spec 生命周期中的位置
 
 ```text
 spec-start
-  → git-work：从 `<base>` 创建 Spec 工作分支
-  → plan.html 记录 git_branch、base_branch、pr_url
+  → git-work：从 `dev` 创建 Spec 工作分支（base_branch: dev）
+  → plan.html 记录 git_branch、base_branch: dev、pr_url
 
 spec-update
   → git-work：确认当前分支与 plan.html 的 git_branch 一致
@@ -49,11 +41,11 @@ spec-update
 
 spec-end / spec-update 收尾
   → git-work：提交、推送当前 Spec 分支
-  → spec-end 创建 PR；spec-update 仅在 Spec 准备整体交付时创建/更新 PR
-  → 如有 PR，记录 PR URL
+  → 面向 `dev` 创建 PR/MR；spec-update 仅在 Spec 准备整体交付时创建/更新 PR/MR
+  → 记录 PR/MR URL，并通过 amend 并入同一次提交
 
-PR 合并后
-  → git-work：同步 `<base>`，删除本地和远程工作分支
+PR/MR 合并后
+  → git-work：同步 `dev`，删除本地和远程工作分支
 ```
 
 ## 分支命名
@@ -91,6 +83,24 @@ test/spec-20260428-1800-audit-log
 - 同一个活跃 Spec 的所有提交和 update 留在同一分支
 - 如果原 Spec 分支已合并/删除，后续需求默认新建 Spec；只有用户明确要求独立 PR 时才创建新分支承接 update
 
+### 分支命名反例（禁止把版本号塞入分支名）
+
+| 错误写法 | 为什么错 | 正确做法 |
+|----------|----------|----------|
+| `feat/v1.6-user-auth` | 分支是一次性的短生命周期开发流，版本号由 `release/<version>` 分支与不可变 Git Tag 管理 | `feat/spec-20260428-1430-user-auth` |
+| `fix/v2.0-login-bug` | 版本号写进分支名会导致多分支并行版本混乱，难以追溯时间戳 | `fix/spec-20260428-1530-login-timeout` |
+| `spec-20260428-auth` | 缺少类型前缀（feat/fix/docs/refactor/test/chore） | `feat/spec-20260428-1430-user-auth` |
+| `feat/用户认证` | 包含非 ASCII 字符，部分 CI/CD 工具与 Git 钩子无法处理 | `feat/spec-20260428-1430-user-auth` |
+
+### 版本号与分支关系规则表
+
+| 维度 | Spec 工作分支 | 版本提测分支 | 长期维护分支 | 正式发版点 |
+|------|---------------|--------------|--------------|------------|
+| 命名格式 | `<type>/spec-<YYYYMMDD-HHMM>-<slug>` | `release/<version>` | `support/<line>` | `vX.Y.Z`（Git Tag） |
+| 生命周期 | 瞬态（合并后删除） | 提测期（发版合入 master 后保留或归档） | 长期维护线（长期存续） | 永久不可变 |
+| 基线/目标 | 起于 `dev`，合入 `dev` | 起于 `dev`，合入 `master` 并回流 `dev` | 历史发版点拉出，合入主干并打 patch tag | 钉在 `master` 或 `support/<line>` 提交上 |
+| 承载内容 | 单个原子 Spec 实现与报告 | 版本大盘、发版报告、提测期 bugfix | 历史主版本严重缺陷补丁 | 生产部署产物基准 |
+
 ## 模式一：启动 Spec 分支
 
 由 `spec-start` 在正式写文档前调用。`spec-update` 默认不调用本模式，除非用户明确要求为该 update 创建独立 PR。
@@ -108,25 +118,21 @@ git status --short
 如果工作区不干净：
 - 若改动属于当前即将启动的 Spec，先让用户确认是否纳入本分支
 - 若改动无关，先提交、stash 或切换到干净工作区
-- 不要在脏工作区直接切换到 `<base>`
+- 不要在脏工作区直接切换到 `dev`
 
-### 2. 同步 base 分支
+### 2. 同步日常开发集成线 `dev`
 
-先读远程默认分支，取得 `<base>`：
+日常在研 Spec 默认以 `dev` 分支为开发起点与合并目标：
 
 ```bash
-git symbolic-ref refs/remotes/origin/HEAD
+git switch dev
+git pull --ff-only origin dev
 ```
 
-输出形如 `refs/remotes/origin/master`，取最后一段作为 `<base>`。不要假设它是 `main`。
-
-如果命令报错（没有 `origin`，或远程未设置 HEAD），退回当前分支作为 `<base>`，并明确告知用户：本次 Spec 将以当前分支为 base。
-
-拿到 `<base>` 后再同步。下文所有命令中的 `<base>` 都用这里读到的名字替换：
-
+如果仓库尚未创建 `dev`，先从主干分支（由 `git symbolic-ref refs/remotes/origin/HEAD` 读取，记作 `<main>`）创建 `dev`：
 ```bash
-git switch <base>
-git pull --ff-only origin <base>
+git switch -c dev
+git push -u origin dev
 ```
 
 ### 3. 创建工作分支
@@ -147,20 +153,20 @@ git push -u origin <branch-name>
 
 ```yaml
 git_branch: <branch-name>
-base_branch: <base>
+base_branch: dev
 pr_url:
 ```
 
-`base_branch` 写第 2 步实际读到的默认分支名，不要写死 `main`。
+`base_branch` 统一记录为 `dev`。
 
 ## 模式二：并发开发使用 worktree
 
 当同一仓库需要同时开发多个 Spec，不要在同一个 working tree 里来回切分支。使用 worktree：
 
 ```bash
-git switch <base>
-git pull --ff-only origin <base>
-git worktree add ../<repo>-<spec-slug> -b <branch-name> <base>
+git switch dev
+git pull --ff-only origin dev
+git worktree add ../<repo>-<spec-slug> -b <branch-name> dev
 ```
 
 进入新 worktree 后再运行对应的 Spec 流程。每个并行 Spec 独占一个目录和一条分支。
@@ -188,7 +194,7 @@ git status --short
 
 规则：
 - 当前分支必须等于 plan.html 的 `rk:git-branch`
-- 如果当前分支是 `<base>`，停止并切回 Spec 分支
+- 如果当前分支是 `dev` 或主干分支，停止并切回 Spec 分支
 - 如果原分支已合并或不存在，默认不继续 spec-update；应新建 Spec 或让用户明确选择独立 update 分支
 - update-xxx.html 继承 plan.html 的 `rk:git-branch` / `rk:base-branch` / `rk:pr-url`
 
@@ -203,7 +209,7 @@ git branch --show-current
 git status --short
 ```
 
-禁止直接在 `<base>` 上提交 Spec 成果。若当前分支不是 plan/update 文档记录的 `git_branch`，先确认原因。
+禁止直接在 `dev` 或主干分支上提交 Spec 成果。若当前分支不是 plan/update 文档记录的 `git_branch`，先确认原因。
 
 ### 2. 审查变更
 
@@ -244,13 +250,13 @@ git push -u origin <branch-name>
 如果可用，优先使用 GitHub CLI：
 
 ```bash
-gh pr create --base <base> --head <branch-name> --title "<PR title>" --body-file <pr-body.md>
+gh pr create --base dev --head <branch-name> --title "<PR title>" --body-file <pr-body.md>
 ```
 
 如果没有 `gh`，输出 GitHub compare URL，让用户手动创建 PR：
 
 ```text
-https://github.com/<owner>/<repo>/compare/<base>...<branch-name>
+https://github.com/<owner>/<repo>/compare/dev...<branch-name>
 ```
 
 PR 内容至少包含：
@@ -281,75 +287,82 @@ git push --force-with-lease origin <branch-name>
 - `--force-with-lease` 只允许覆盖自己刚推送的引用；若远程分支已被他人改动会拒绝并报错，不会误覆盖别人的提交
 - 仅限「本流程刚创建并推送的 Spec 分支」这一场景；其它任何 force push 仍是门禁（见 spec-end 停止条件）
 
-## 模式五：PR 合并后清理
+## 模式五：PR/MR 合并后清理
 
-只有在 PR 已合并后执行：
+只有在面向 `dev` 的 PR/MR 已合并后执行：
 
 ```bash
-git switch <base>
-git pull --ff-only origin <base>
+git switch dev
+git pull --ff-only origin dev
 git branch -d <branch-name>
 git push origin --delete <branch-name>
 ```
 
-如果本地分支无法删除，先确认 PR 是否已合并，避免误删未合并成果。
+如果本地分支无法删除，先确认 PR/MR 是否已合并，避免误删未合并成果。
 
-## 模式六：发版分支与 tag 管理
+## 模式六：发版管理与版本集成分支（dev + release + support）
 
-前五个模式管的是 **Spec 工作分支**（短生命周期、合并即删）。本模式管的是
-**发版**，两者正交：Spec 分支进 `<base>`，发版从 `<base>` 取内容打 tag。
+### 分支模型矩阵
 
-### 核心原则
+| 分支 | 生命周期 | 角色与用途 | 合流方向 |
+|------|----------|------------|----------|
+| `<main>` | 长期 | 生产主干（`master` 或 `main`），始终处于已发布状态 | 仅接收 `release/<v>` 与 `hotfix/*` |
+| `dev` | 长期 | 日常开发集成线，所有 Spec 的合并终点 | 作为提测集成分支的基础 |
+| `release/<v>` | 临时 | 某个在研 Version 的提测集成分支（冻结期建立） | 验收后合入 `<main>` 并强制回流 `dev`；归档后删除 |
+| `support/<line>` | 长期 | 客户定制维护线（如 `support/official`，原 `support/<line>` 重命名），不与提测分支混淆 | 接收特定版本的 cherry-pick |
+| `<category>/spec-*` | 短期 | 原子 Spec 工作分支（模式一~五） | 完工后 PR/MR 合入 `dev` |
+| `hotfix/*` | 短期 | 线上紧急缺陷热修分支 | 合入 `<main>` 打 Patch Tag，并强制双向回流 `dev` 与在研 `release/*` |
 
-**版本号只存在于 tag，分支名永不含版本号。**
+### 临时提测分支 `release/<version>` 生命周期
 
-### 分支模型
+1. **冻结拉出**：当属于该版本的全部规划 Spec 合入 `dev` 后，由 `version-release` 从 `dev` 拉出 `release/<version>`。
+2. **提测修复**：若测试发现集成 Bug，切 `fix/*` 分支直接 PR/MR 合入 `release/<version>`。
+3. **发布合流**：整体验收通过后，PR/MR 合入 `<main>` 并打正式不可变 Tag（`vX.Y.Z`），同时强制反向合并回 `dev`。
+4. **收尾清理**：版本收尾（`version-end`）交付归档后，删除本地与远程的 `release/<version>` 分支。
 
-| 分支 | 生命周期 | 用途 |
-|------|----------|------|
-| `<base>` | 长期 | 主干。所有修复先进这里 |
-| `release/<line>` | 长期 | 每条发布线一条，永不新建替代分支 |
-| `<type>/spec-*` | 短期 | Spec 工作分支（模式一~五） |
+## 模式七：线上紧急热修（Hotfix）与强制回流
 
-`<line>` 是发布线标识，不是版本号。多客户/多环境场景例如：
+线上突发严重缺陷时走此紧急通道：
 
-```text
-release/official     正式线
-release/<customer>    某客户定制线
+```bash
+# 1. 确认线上实际运行的 tag（严禁随意从 HEAD 切热修）
+git checkout <production-tag>
+
+# 2. 创建热修分支
+git switch -c hotfix/<slug>
+
+# 3. 修复、验证通过后提交
+git commit -m "fix(hotfix): 修复线上特定严重缺陷"
+
+# 4. 通过 PR/MR 合入主干 <main>，并打出 Patch Tag（如 v1.6.1）
+git checkout master
+git pull origin master
+git merge hotfix/<slug> --no-ff -m "merge: hotfix/<slug> 紧急修复合入"
+git tag -a v1.6.1 -m "hotfix: v1.6.1"
+git push origin master v1.6.1
+
+# 5. 强制回流开发线 dev（防止下一个版本带回同一 Bug）
+git checkout dev
+git pull origin dev
+git merge master --no-edit
+git push origin dev
+
+# 6. 若存在活跃的在研提测分支 release/<v>，同样合流
+git checkout release/<v>
+git merge master --no-edit
+git push origin release/<v>
+
+# 7. 删除热修临时分支
+git branch -d hotfix/<slug>
 ```
-
-### 为什么禁止版本号进分支名
-
-`release/v1.0.4` 这类命名会产生三种对不上：
-
-1. **分支名与其上的 tag 错位**——分支名停在诞生那天，内容一直往前走。
-   实际踩过：`release/tut-v1.0.4` 的 HEAD 是 tag `tut-v1.0.5`，
-   而 `tut-v1.0.4` 这个 tag 落在该分支的一个中间提交上，不是任何分支的 HEAD
-2. **同一提交有多个名字**——一个提交同时是 `release/tut-v1.0.2`、
-   `feat/spec-xxx`、tag `tut-v1.0.2`，看到任一个都不知道另外两个存在
-3. **分支数量随版本线性增长**——发到 v1.0.9 就有 9 条僵尸分支
-
-历史版本靠 tag 定位，这本来就是 tag 的职责。用分支留快照是把两种工具混用。
-
-### 版本号规则
-
-| 形态 | 含义 | 例 |
-|------|------|-----|
-| `vX.Y.Z` | 正式线主版本 | `v1.0.3` |
-| `vX.Y.Z.N` | 正式线补丁 | `v1.0.3.1` |
-| `<line>-vX.Y.Z` | 定制线主版本 | `tut-v1.0.4` |
-| `<line>-vX.Y.Z.N` | 定制线补丁 | `tut-v1.0.4.1` |
-
-同一改动发到多条线时，各线独立编号，tag 说明里写清 cherry-pick 来源。
-
 ### 发版流程
 
 ```bash
-# 1. 修复先进主干
-git switch <base> && git commit ... && git push
+# 1. 修复先进主干（master）
+git switch master && git commit ... && git push
 
 # 2. cherry-pick 到目标发布线
-git switch release/<line>
+git switch support/<line>
 git cherry-pick <commit>
 
 # 3. 跑测试（定制线注意区分既有失败，见下）
@@ -357,7 +370,7 @@ git cherry-pick <commit>
 
 # 4. 打 annotated tag 并推送
 git tag -a <version> -m "<说明>"
-git push origin release/<line> <version>
+git push origin support/<line> <version>
 ```
 
 tag 说明必须写清：改了什么、实测数据、cherry-pick 来源、是否已部署。
@@ -379,7 +392,7 @@ release 分支允许存在不产生新版本号的提交：规范、文档、Spe
 核对方法：
 
 ```bash
-git diff --name-only <tag> release/<line>
+git diff --name-only <tag> support/<line>
 ```
 
 差异只含「否」类文件即正常；混入源码说明**漏打 tag**。
@@ -427,10 +440,10 @@ git switch --detach <cherry-pick 前的 commit>
 
 ```bash
 # 该分支是否已被某条保留分支包含
-git merge-base --is-ancestor <old-branch> release/<line>
+git merge-base --is-ancestor <old-branch> support/<line>
 
 # 独有提交数，必须为 0
-git log --oneline <old-branch> --not <base> release/<line> | wc -l
+git log --oneline <old-branch> --not master support/<line> | wc -l
 ```
 
 两项都通过才能删。删分支不丢提交的前提是**版本点已被 tag 钉住**，
@@ -448,18 +461,18 @@ git log --oneline <old-branch> --not <base> release/<line> | wc -l
 |------|------|
 | 不在 Git 仓库 | 询问是否继续无分支模式，并在 Spec 文档中记录 `git_branch: none` |
 | 工作区已有无关改动 | 先提交、stash 或使用 worktree |
-| 当前在 `<base>` 且已有开发改动 | 立即创建分支承接当前改动，不要继续在 `<base>` 上开发 |
-| 分支落后 `<base>` | 在工作分支中合并或 rebase 最新 `<base>`，解决冲突后继续 |
+| 当前在 `dev` 或主干且已有开发改动 | 立即创建分支承接当前改动，不要继续在基线或主干上开发 |
+| 分支落后 `dev` | 在工作分支中合并或 rebase 最新 `dev`，解决冲突后继续 |
 | 多个 Spec 并发 | 使用 `git worktree`，每个 Spec 独占分支和目录 |
 | 无法创建 PR | 推送分支并给出 compare URL |
-| tag 与 release 分支 HEAD 不一致 | 先 `git diff --name-only <tag> release/<line>`；只含文档即正常，含源码说明漏打 tag |
+| tag 与 release 分支 HEAD 不一致 | 先 `git diff --name-only <tag> support/<line>`；只含文档即正常，含源码说明漏打 tag |
 | 服务器拉不到远程（网络隔离/remote 损坏） | 走文件同步 + md5 逐文件对账，同步后在服务器目录内 git 提交留痕并打同名 tag |
 | 定制线测试有失败 | 先在 cherry-pick 前的提交上跑一次建立基线，判据是 failed 数不增加 |
 | 想删带版本号的旧分支 | 先验证每条分支 HEAD 有 tag 或保留分支覆盖、独有提交数为 0 |
 
 ## 禁止事项
 
-- 不要在 `<base>` 上实现 Spec
+- 不要在 `dev` 或主干分支上直接实现 Spec
 - 不要在脏工作区切换分支
 - 不要把多个无关 Spec 混在同一分支
 - 不要在测试失败时创建 PR，除非 PR 明确标记为 Draft
@@ -467,10 +480,11 @@ git log --oneline <old-branch> --not <base> release/<line> | wc -l
 
 发版相关（模式六）：
 
-- 不要新建带版本号的分支（`release/v1.0.4`、`release/<line>-v1.0.5`）
+- 不要新建带版本号的分支（`release/v1.0.4`、`support/<line>-v1.0.5`）
 - 不要用轻量 tag 发版，必须 `git tag -a`
 - 不要为纯文档提交打新版本号 tag
 - 不要让产物标签与 git tag 不同名
 - 不要在没有 tag 覆盖的情况下删分支
 - 不要用「全绿」作为定制线的发版判据，用「failed 数不增加」
 - 不要移动或复用已推送的 tag（会改变已发布版本的含义）
+- push tag 时**必须显式指定 tag 名**（如 `git push origin <tag>`），**严禁使用 `git push --tags`**，避免误推本地临时或脏 Tag

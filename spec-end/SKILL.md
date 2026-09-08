@@ -124,27 +124,28 @@ exp-reflect 会根据经验的重要性分流：
 `gated` 模式下向用户确认：
 
 ```text
-确认目标：所有阶段已完成，全量测试本轮已在当前工作树上跑过且全绿，经验沉淀与规范审查也已完成。是否可以将本 Spec 归档到 06-已归档，并提交、推送当前分支、创建 PR？
-确认选项：
-- 确认归档并创建 PR
+确认目标：所有阶段已完成，全量测试本轮已在当前工作树上跑过且全绿，经验沉淀与规范审查也已完成。是否确认本 Spec 原位归档，并提交、推送当前分支、创建向目标分支（dev）的 PR/MR？
+
+选项：
+- 确认原位归档并创建 PR/MR
 - 暂不归档
 ```
 
-`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到归档、commit、push 工作分支、创建 PR、以及收尾 amend（`--amend` + `--force-with-lease` 并入 PR URL），触及合并、改动远程默认分支、或非 amend 的 force push 时立即降级为门禁模式等待用户。
+`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到原位归档状态更新、commit、push 工作分支、创建 PR/MR、以及收尾 amend（`--amend` + `--force-with-lease` 并入 PR/MR URL），触及合并、改动远程默认分支、或非 amend 的 force push 时立即降级为门禁模式等待用户。
 
-### 步骤 7：归档（`gated` 用户确认后，`autopilot` 自门禁通过后）
+### 步骤 7：原位归档（`gated` 用户确认后，`autopilot` 自门禁通过后）
 
-用户选择"确认归档并创建 PR"（`autopilot` 下为自门禁通过）：
+用户选择"确认原位归档并创建 PR/MR"（`autopilot` 下为自门禁通过）：
 
-1. 将 Spec 目录移动到 `spec/06-已归档/`（报告仍为 `.html`，`lead/team-context.md` 与记忆文件仍为 `.md`；目录层级不变，报告内 `../../../../html-report/assets/` 相对路径继续生效——若归档改变了层级深度，同步修正样式表与脚本路径）
+1. **原位归档更新**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不等于远程默认分支（`git symbolic-ref refs/remotes/origin/HEAD` 读出，不要假定分支名）
    - 确认当前分支等于 `lead/team-context.md` 的 `git_branch`
    - 审查 diff
    - commit
    - push
-   - 创建 PR 或输出 compare URL
-3. 如果获得 PR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
+   - 创建面向 `dev` 的 PR/MR（平台中立）或输出 compare URL
+3. 如果获得 PR/MR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
 
    ```bash
    git add <spec-docs>

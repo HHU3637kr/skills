@@ -16,8 +16,9 @@ description: >
 3. **本次 Spec 创建运行实例**：角色线程/实例在当前 Spec 生命周期内尽量保持可恢复，跨 Spec 状态必须文件化
 4. **角色 vs Skill 区分**：角色（spec-writer）是 Who，Skill（spec-write）是 How
 5. **TeamLead 统一协调**：所有阶段转换、跨角色通信和用户确认节点均由 TeamLead（当前 Agent）主导
-6. **分支隔离**：每个 Spec 默认从**远程默认分支**创建独立工作分支，禁止直接在默认分支上实现。默认分支名不写死——用 `git symbolic-ref refs/remotes/origin/HEAD` 读取（常见为 `main` 或 `master`）
-
+6. **版本感知与归属**：每个 Spec 必须隶属于具体 Version（如 `v1.6`），物理路径创建在 `spec/versions/<version>/specs/<spec-dir>/`
+7. **需求性质四分平权**：在启动时明确需求性质（`feat` 业务功能 / `tech` 技术底座 / `debt` 技术债治理 / `fix` 缺陷修复），破除技术基建被边缘化的问题
+8. **分支隔离与集成基线**：每个 Spec 默认以日常集成线 `dev` 为基线创建独立工作分支（`<category>/spec-<slug>`），完工后通过 PR/MR 合入 `dev`。主干（`master` 或动态读取 `origin/HEAD`）仅由版本发版（`version-release`）与热修写入
 ## 前置检查
 
 启动前检查项目是否已初始化：
@@ -58,39 +59,34 @@ git status --short
 强制使用 `intent-confirmation` 的**三步工作法**，不能只做「是/否」确认：
 
 1. **理解转述**：用可执行条目复述目标、默认假设、做/不做边界  
-2. **反问梳理编码思路**：用 OMP `ask`（或等价方式）就阻塞点反问，至少覆盖：  
+2. **反问梳理编码思路**：用 OMP `ask`（或等价方式）就阻塞点反问，必须包含：  
+   - **归属版本**：属于当前在研的哪个 Version（如 `v1.6`，读取 `spec/versions/` 下活跃版本，或先建新版本）  
+   - **需求性质**：`feat`（业务功能）/ `tech`（技术基建/AI底座）/ `debt`（技术债/重构）/ `fix`（缺陷修复）  
    - 目标与验收标准  
    - 范围（模块 / 前后端 / 文档）  
    - 实现倾向（最小补丁 / 重构 / 先调研）  
-   - Git 工作方式（新分支 / 当前分支 / 先不建分支）  
-   - 是否完整 5 阶段，或已有 Spec 可跳转  
+   - Git 工作方式（从 `dev` 切新分支 / 当前分支）  
    每问尽量带推荐默认，帮用户拍板而不是从零设计  
-3. **收敛确认**：输出「编码思路小结」（触点、步骤顺序、关键取舍、验收），用户确认后再往下  
+3. **收敛确认**：输出「编码思路小结」（所属版本、属性、触点、步骤顺序、关键取舍、验收），用户确认后再往下  
 
-通过门禁后，把思路小结写入后续上下文（`lead/team-context.md` 备注或「下一步动作」），供 explorer/writer 使用，避免下游重猜需求。
+通过门禁后，把思路小结写入后续上下文（`lead/team-context.md` 备注或「下一步动作」），并在目标版本的 `spec/versions/<version>/version-context.md` 的 Spec 清单中将该 Spec 登记为 `执行中`。
 
 ### 步骤 2：创建 Spec 工作分支
 
 需求对齐后，调用 `/git-work` 的“启动 Spec 分支”模式：
 
 ```text
-base_branch: <远程默认分支，由 `git symbolic-ref refs/remotes/origin/HEAD` 读取>
-branch_name: <type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
+base_branch: dev（日常集成开发分支）
+branch_name: <category>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
 ```
 
-分支类型按任务主意图选择：
-- 新能力、新集成 → `feat`
-- Bug / 回归 / 安全修复 → `fix`
-- 不改行为的重构 → `refactor`
-- 独立测试、审计证据建设 → `test`
-- 文档、规则、Skill 文案 → `docs`
-- 依赖、配置、仓库维护 → `chore`
+分支前缀直接使用需求性质（`feat` / `tech` / `debt` / `fix`）。
 
 输出以下 Git 元数据，并在步骤 4 写入 `lead/team-context.md`：
 
 ```yaml
 git_branch: <branch-name>
-base_branch: <实际读到的默认分支名>
+base_branch: dev
 pr_url:
 ```
 
@@ -98,10 +94,10 @@ pr_url:
 
 ### 步骤 3：创建 Spec 角色目录并加载项目级角色定义
 
-TeamLead 在阶段二开始前创建当前 Spec 根目录和角色目录。Spec 根目录仍按工作类型分类，目录名仍使用 `YYYYMMDD-HHMM-任务描述`：
+TeamLead 在阶段二开始前在所属 Version 目录下创建当前 Spec 根目录和角色目录，目录名规范为 `YYYYMMDD-HHMM-属性-任务描述`：
 
 ```text
-spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
+spec/versions/<version>/specs/<YYYYMMDD-HHMM-属性-任务描述>/
 ├── rk-manifest.js          # 导航树清单，TeamLead 维护
 ├── lead/
 ├── explorer/
@@ -139,7 +135,7 @@ spec/<01-05分类>/<YYYYMMDD-HHMM-中文任务描述>/
 
 ```js
 window.RK_SPEC_TREE = {
-  specDir: "spec/<分类>/<YYYYMMDD-HHMM-任务描述>",
+  specDir: "spec/versions/<version>/specs/<spec-dir>",
   docs: [
     { role: "lead", path: "lead/team-context.md", title: "运行账本", type: "team-context" }
   ]

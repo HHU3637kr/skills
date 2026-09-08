@@ -27,16 +27,19 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 
 | 产物 | 格式 | 原因 |
 |------|------|------|
-| `explorer/exploration-report.html` | HTML | 报告，人读 |
-| `writer/plan.html` | HTML | 报告，人读 + 反复修订 |
-| `tester/test-plan.html`、`tester/test-report.html` | HTML | 报告，重点突出 |
-| `executor/summary.html` | HTML | 报告 |
-| `debugger/debug-*.html`、`debugger/debug-*-fix.html` | HTML | 报告 |
-| `reviewer/review.html`、`reviewer/update-*-review.html` | HTML | 报告 |
-| `updater/update-*.html`、`updater/update-*-summary.html` | HTML | 报告 |
-| `ender/end-report.html` | HTML | 报告 |
+| `spec/versions/<version>/plan.html` | HTML | 版本规划报告（大盘、目标、Spec清单与验收条件） |
+| `spec/versions/<version>/releases/<tag>/release-report.html` | HTML | 版本发版报告（实际纳入Spec、全量测试证据与部署记录） |
+| `spec/versions/<version>/end-report.html` | HTML | 版本复盘与归档报告（目标达成率、遗留风险与经验去向） |
+| `explorer/exploration-report.html` | HTML | Spec 探索报告，人读 |
+| `writer/plan.html` | HTML | Spec 方案报告，人读 + 反复修订 |
+| `tester/test-plan.html`、`tester/test-report.html` | HTML | Spec 测试报告，重点突出 |
+| `executor/summary.html` | HTML | Spec 实现总结报告 |
+| `debugger/debug-*.html`、`debugger/debug-*-fix.html` | HTML | Spec 调试报告 |
+| `reviewer/review.html`、`reviewer/update-*-review.html` | HTML | Spec 审查报告 |
+| `updater/update-*.html`、`updater/update-*-summary.html` | HTML | Spec 更新报告 |
+| `ender/end-report.html` | HTML | Spec 收尾报告 |
 | `lead/team-context.md` / `lead/team-context.html` | 两者皆可 | 运行账本。用 HTML 时复用同一套样式与导航树，但**豁免修订标记**（不需 `data-rev` / `ins` / `del`）——账本是高频追写的运行流水，不是「定稿后修订」的报告，强制修订标记只会让它膨胀 |
-| `spec/context/experience/*.md`、`knowledge/*.md` | **Markdown** | 记忆库，被 `exp-search` 检索 |
+| `spec/context/experience/*.md`、`knowledge/*.md` | **Markdown** | 记忆库，被 `exp-search` 检索，跨版本共享 |
 | `tester/artifacts/test-logs/**` | 原始格式 | 测试运行自动产出的证据 |
 
 ## 固定骨架
@@ -51,25 +54,30 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 <title>{报告标题} - {任务描述}</title>
 
 <!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略。
-     导航树、检索与工具化处理（批量提取、跨报告统计）靠这些 meta 读取，等同于原 YAML frontmatter。 -->
-<meta name="rk:type"        content="{plan|test-plan|test-report|summary|debug|debug-fix|review|update|update-summary|exploration-report|end-report}">
-<meta name="rk:spec-dir"    content="{spec/<分类>/<YYYYMMDD-HHMM-任务描述>}">
-<meta name="rk:role"        content="{spec-writer|spec-tester|...}">
-<meta name="rk:mode"        content="{gated|autopilot}">
+     元数据分两轨：
+     1) Spec 级报告必填：rk:type, rk:version, rk:category, rk:spec-dir, rk:role, rk:mode, rk:git-branch, rk:base-branch, rk:pr-url
+     2) Version 级报告必填：rk:type, rk:version, rk:role, rk:created, rk:updated, rk:revision, rk:base-branch（豁免 spec-dir 与 category）
+     导航树、检索与工具化处理靠这些 meta 读取，等同于原 YAML frontmatter。 -->
+<meta name="rk:type"        content="{version-plan|release-report|plan|test-plan|test-report|summary|debug|debug-fix|review|update|update-summary|exploration-report|end-report}">
+<meta name="rk:version"     content="{vX.Y，所属版本号}">
+<meta name="rk:category"    content="{feat|tech|debt|fix；Spec 级必填，Version 级豁免}">
+<meta name="rk:spec-dir"    content="{spec/versions/<v>/specs/<spec-dir>；Spec 级必填，Version 级豁免}">
+<meta name="rk:role"        content="{spec-writer|spec-tester|TeamLead...}">
+<meta name="rk:mode"        content="{gated|autopilot；Spec 级必填}">
 <meta name="rk:created"     content="{YYYY-MM-DD}">
 <meta name="rk:updated"     content="{YYYY-MM-DD}">
 <meta name="rk:revision"    content="{N}">
-<meta name="rk:git-branch"  content="{git_branch}">
-<meta name="rk:base-branch" content="{base_branch}">
+<meta name="rk:git-branch"  content="{git_branch；Spec 级必填}">
+<meta name="rk:base-branch" content="{base_branch；常规 Spec 为 dev，发版为 release/<v> 或 master}">
 <meta name="rk:pr-url"      content="{pr_url，未创建留空}">
 <meta name="rk:tags"        content="{spec,plan；逗号分隔，等价原 tags}">
 <!-- 文档关联，等价原 frontmatter 的 plan: / update: / debug: 字段 -->
 <link rel="rk-plan"   href="../writer/plan.html">
 <link rel="rk-ledger" href="../lead/team-context.md">
-
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<!-- 样式表与脚本相对路径：按报告实际所处的物理深度准确计算，禁止硬编码固定层数 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -123,8 +131,17 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 </html>
 ```
 
-`../../../../html-report/assets/` 是从 `spec/<分类>/<spec目录>/<角色>/` 回到项目根的相对路径（4 层）。
-项目实际层级不同就相应调整，务必保证 `file://` 直接打开样式生效。
+### 报告相对路径深度表（禁止硬编码单一常量）
+
+由于三级架构引入了 `versions/<version>/` 与 `specs/` 目录，不同位置报告回到项目根目录的相对层级不同，必须严格对应：
+
+| 报告类型与位置 | 相对项目根深度 | 引用 assets 相对路径 | 基准分支（base-branch）典型取值 |
+|---|---|---|---|
+| 版本级规划/归档报告（`spec/versions/<v>/plan.html`、`end-report.html`） | **3 层** | `../../../html-report/assets/` | 规划为 `dev`，归档为 `master` |
+| 版本级发版交付报告（`spec/versions/<v>/releases/<tag>/release-report.html`） | **5 层** | `../../../../../html-report/assets/` | 发版提测分支 `release/<v>`（目标为 `master`） |
+| 原子 Spec 各角色报告（`spec/versions/<v>/specs/<spec-dir>/<role>/*.html`） | **6 层** | `../../../../../../html-report/assets/` | 常规 Spec 统一为 `dev` |
+
+务必保证在目标层级下 `file://` 本地直接打开报告时样式与脚本正常加载。
 
 ## 导航树（左侧文件树）
 
@@ -136,14 +153,13 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 `file://` 下 `fetch` 被浏览器安全策略直接拒绝——**同级已存在的文件也会返回 `Failed to fetch`**，
 所以「逐个探测哪些报告存在」这条路在本地直开场景下走不通（已实测）。`<script src>` 不受这条限制，
 因此改用声明式清单：Spec 目录根放一份 `rk-manifest.js`，各报告用 `<script src>` 载入。
-
 ### `rk-manifest.js` 结构
 
-位置：`spec/<分类>/<spec目录>/rk-manifest.js`（Spec 目录根，与各角色目录同级）。
+位置：`spec/versions/<version>/specs/<spec-dir>/rk-manifest.js`（Spec 目录根，与各角色目录同级）。
 
 ```js
 window.RK_SPEC_TREE = {
-  specDir: "spec/<分类>/<spec目录>",
+  specDir: "spec/versions/<version>/specs/<spec-dir>",
   docs: [
     { role: "lead", path: "lead/team-context.html", title: "运行账本", type: "team-context" }
   ]

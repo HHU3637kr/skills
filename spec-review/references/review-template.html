@@ -8,12 +8,13 @@
 <meta name="rk:role" content="spec-reviewer">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:tags" content="spec,review,template">
-<link rel="rk-contract" href="../../html-report/SKILL.md">
+<!-- 模板复制到目标位置（<spec>/reviewer/）后，回到项目根为 6 层深度 -->
+<link rel="rk-contract" href="../../../../../../html-report/SKILL.md">
 
-<!-- 本文件位于 spec-review/references/，回到项目根是 2 层 -->
-<link rel="stylesheet" href="../../html-report/assets/rk-report.css">
+<!-- 模板 head 按复制目标位置（<spec>/reviewer/）的 6 层书写；在 references/ 下直接打开会无样式，属预期 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -34,7 +35,7 @@
   <div class="rk-verdict-label">用法</div>
   <p>下面两个代码块各是一份<strong>完整可直接另存的 HTML 文档</strong>：整块复制（含 <code>&lt;!DOCTYPE&gt;</code> 到 <code>&lt;/html&gt;</code>）
   另存为 <code>reviewer/review.html</code> 或 <code>reviewer/update-XXX-review.html</code>，再逐个替换 <code>{占位符}</code>。
-  样式路径 <code>../../../../html-report/assets/</code> 按 <code>reviewer/</code> 回到项目根的 4 层计算，项目实际层级不同需相应调整。</p>
+  样式路径 <code>../../../../../../html-report/assets/</code> 按 <code>reviewer/</code> 回到项目根的 6 层计算，项目实际层级不同需相应调整。</p>
 </section>
 
 <div class="rk-cal key">
@@ -54,7 +55,8 @@
 
 &lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
 &lt;meta name="rk:type"        content="review"&gt;
-&lt;meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:version"     content="{version}"&gt;
+&lt;meta name="rk:spec-dir"    content="spec/versions/{version}/specs/{spec_dir}"&gt;
 &lt;meta name="rk:role"        content="spec-reviewer"&gt;
 &lt;meta name="rk:mode"        content="{gated|autopilot}"&gt;
 &lt;meta name="rk:title"       content="{功能名称}-审查报告"&gt;
@@ -74,9 +76,9 @@
 &lt;link rel="rk-summary" href="../executor/summary.html"&gt;
 &lt;link rel="rk-ledger"  href="../lead/team-context.md"&gt;
 
-&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css"&gt;
 &lt;script defer src="../rk-manifest.js"&gt;&lt;/script&gt;
-&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;script defer src="../../../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
 
@@ -87,7 +89,8 @@
   &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
   &lt;div class="rk-meta"&gt;
     &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; review&lt;/span&gt;
-    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;版本&lt;/b&gt; &lt;code&gt;{version}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/versions/{version}/specs/{spec_dir}&lt;/code&gt;&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-reviewer&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
@@ -249,7 +252,8 @@
 
 &lt;!-- 原 frontmatter 的机器可读等价物：字段一一对应，不可省略 --&gt;
 &lt;meta name="rk:type"          content="review"&gt;
-&lt;meta name="rk:spec-dir"      content="spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}"&gt;
+&lt;meta name="rk:version"       content="{version}"&gt;
+&lt;meta name="rk:spec-dir"      content="spec/versions/{version}/specs/{spec_dir}"&gt;
 &lt;meta name="rk:role"          content="spec-reviewer"&gt;
 &lt;meta name="rk:mode"        content="{gated|autopilot}"&gt;
 &lt;meta name="rk:title"         content="{功能名称}-更新XXX-审查报告"&gt;
@@ -271,9 +275,9 @@
 &lt;link rel="rk-update-summary" href="../updater/update-XXX-summary.html"&gt;
 &lt;link rel="rk-ledger"         href="../lead/team-context.md"&gt;
 
-&lt;link rel="stylesheet" href="../../../../html-report/assets/rk-report.css"&gt;
+&lt;link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css"&gt;
 &lt;script defer src="../rk-manifest.js"&gt;&lt;/script&gt;
-&lt;script defer src="../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
+&lt;script defer src="../../../../../../html-report/assets/rk-report.js"&gt;&lt;/script&gt;
 &lt;/head&gt;
 &lt;body&gt;
 
@@ -284,8 +288,9 @@
   &lt;!-- 人可读镜像，字段与上方 meta 保持一致 --&gt;
   &lt;div class="rk-meta"&gt;
     &lt;span&gt;&lt;b&gt;类型&lt;/b&gt; review&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;版本&lt;/b&gt; &lt;code&gt;{version}&lt;/code&gt;&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;更新编号&lt;/b&gt; update-XXX&lt;/span&gt;
-    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/{分类目录}/{YYYYMMDD-HHMM-任务描述}&lt;/code&gt;&lt;/span&gt;
+    &lt;span&gt;&lt;b&gt;Spec&lt;/b&gt; &lt;code&gt;spec/versions/{version}/specs/{spec_dir}&lt;/code&gt;&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;角色&lt;/b&gt; spec-reviewer&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;分类&lt;/b&gt; {与 writer/plan.html 相同}&lt;/span&gt;
     &lt;span&gt;&lt;b&gt;状态&lt;/b&gt; 未确认&lt;/span&gt;
@@ -381,7 +386,8 @@
   <tbody>
     <tr><td>标题</td><td>必填</td><td>必填</td><td><code>rk:title</code> / <code>&lt;title&gt;</code></td><td><code>h1</code></td><td><code>功能名称-审查报告</code> / <code>功能名称-更新XXX-审查报告</code></td></tr>
     <tr><td>类型</td><td>必填</td><td>必填</td><td><code>rk:type</code></td><td>类型</td><td>固定 <code>review</code></td></tr>
-    <tr><td>Spec 目录</td><td>必填</td><td>必填</td><td><code>rk:spec-dir</code></td><td>Spec</td><td>含分类目录</td></tr>
+    <tr><td>版本</td><td>必填</td><td>必填</td><td><code>rk:version</code></td><td>版本</td><td>所属版本号（如 <code>v1.6</code>）</td></tr>
+    <tr><td>Spec 目录</td><td>必填</td><td>必填</td><td><code>rk:spec-dir</code></td><td>Spec</td><td><code>spec/versions/{version}/specs/{spec_dir}</code></td></tr>
     <tr><td>角色</td><td>必填</td><td>必填</td><td><code>rk:role</code></td><td>角色</td><td>固定 <code>spec-reviewer</code></td></tr>
     <tr><td>更新编号</td><td>—</td><td>必填</td><td><code>rk:update-number</code></td><td>更新编号</td><td>与 update 文档一致</td></tr>
     <tr><td>分类</td><td>必填</td><td>必填</td><td><code>rk:category</code></td><td>分类</td><td>继承 <code>writer/plan.html</code></td></tr>

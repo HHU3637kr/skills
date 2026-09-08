@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>版本规划 - {version}</title>
+
+<meta name="rk:title"          content="版本规划：{version}">
+<meta name="rk:type"           content="version-plan">
+<meta name="rk:version"        content="{version}">
+<meta name="rk:role"           content="TeamLead">
+<meta name="rk:created"        content="YYYY-MM-DD">
+<meta name="rk:updated"        content="YYYY-MM-DD">
+<meta name="rk:revision"       content="1">
+<meta name="rk:base-branch"    content="dev">
+<meta name="rk:tags"           content="version,plan">
+
+<link rel="rk-ledger" href="version-context.md">
+<!-- 版本规划落点为 spec/versions/<v>/plan.html，回到项目根为 3 层深度 -->
+<link rel="stylesheet" href="../../../html-report/assets/rk-report.css">
+<script defer src="../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>版本规划：{version}</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> version-plan</span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>基线分支</b> <code>dev</code></span>
+    <span><b>创建</b> {YYYY-MM-DD}</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">版本里程碑目标</div>
+  <p>{一句话阐述该版本的核心价值与交付目标}</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>{YYYY-MM-DD}</td><td>TeamLead</td><td>版本初始规划大盘建立</td><td>—</td></tr>
+  </tbody>
+</table>
+<h2>1. 规划 Spec 大盘（四类属性平权）</h2>
+
+<h3>1.1 业务功能（feat）</h3>
+<table>
+  <thead><tr><th>Spec 标识</th><th>目标</th><th>负责人</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>{spec-dir}</code></td><td>{业务目标}</td><td>-</td><td>规划中</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 技术底座与 AI 基建（tech）</h3>
+<table>
+  <thead><tr><th>Spec 标识</th><th>目标</th><th>负责人</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>{spec-dir}</code></td><td>{AI/基建能力}</td><td>-</td><td>规划中</td></tr>
+  </tbody>
+</table>
+
+<h3>1.3 技术债与重构治理（debt）</h3>
+<table>
+  <thead><tr><th>Spec 标识</th><th>目标</th><th>负责人</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>{spec-dir}</code></td><td>{性能/债务治理}</td><td>-</td><td>规划中</td></tr>
+  </tbody>
+</table>
+
+<h3>1.4 缺陷修复（fix）</h3>
+<table>
+  <thead><tr><th>Spec 标识</th><th>目标</th><th>负责人</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>{spec-dir}</code></td><td>{修复目标}</td><td>-</td><td>规划中</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 依赖与关键路径</h2>
+<div class="rk-cal warn">
+  <div class="t">关键依赖声明</div>
+  <p>{列出跨 Spec 依赖或外部系统接口依赖}</p>
+</div>
+
+<h2>3. 版本发布与交付标准</h2>
+<ul>
+  <li>全量单元测试与集成测试通过，零破坏性回归</li>
+  <li>四个属性分类的入版 Spec 全部完工并经独立验证</li>
+  <li>版本集成分支通过整体验收并成功合入主干，打正式 Tag</li>
+</ul>
+
+</body>
+</html>

@@ -122,7 +122,9 @@ description: >
 <!-- 原 frontmatter 的机器可读等价物，字段一一对应，不可省略 -->
 <meta name="rk:title"       content="测试计划">
 <meta name="rk:type"        content="test-plan">
-<meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}">
+<meta name="rk:version"     content="{version}">
+<meta name="rk:category"    content="{feat|tech|debt|fix}">
+<meta name="rk:spec-dir"    content="spec/versions/<version>/specs/<YYYYMMDD-HHMM-属性-任务描述>">
 <meta name="rk:role"        content="spec-tester">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:status"      content="未确认">
@@ -130,16 +132,16 @@ description: >
 <meta name="rk:updated"     content="YYYY-MM-DD">
 <meta name="rk:revision"    content="1">
 <meta name="rk:git-branch"  content="{git_branch}">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="dev">
 <meta name="rk:pr-url"      content="">
 <meta name="rk:tags"        content="spec,test-plan">
 <!-- 关联声明，等价原 frontmatter 的 plan: 字段 -->
 <link rel="rk-plan"   href="../writer/plan.html">
 <link rel="rk-ledger" href="../lead/team-context.md">
 
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -150,10 +152,12 @@ description: >
   <!-- 人可读镜像，字段与上方 meta 一致 -->
   <div class="rk-meta">
     <span><b>类型</b> test-plan</span>
-    <span><b>Spec</b> <code>spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}</code></span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>属性</b> <code>{category}</code></span>
+    <span><b>Spec</b> <code>spec/versions/<version>/specs/<YYYYMMDD-HHMM-属性-任务描述></code></span>
     <span><b>角色</b> spec-tester</span>
     <span><b>状态</b> 未确认</span>
-    <span><b>分支</b> <code>{git_branch}</code> ← <code>main</code></span>
+    <span><b>分支</b> <code>{git_branch}</code> ← <code>dev</code></span>
     <span><b>PR</b> —</span>
     <span><b>创建</b> YYYY-MM-DD</span>
     <span><b>修订</b> r1（YYYY-MM-DD）</span>
@@ -356,7 +360,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <!-- 原 frontmatter 的机器可读等价物，字段一一对应，不可省略 -->
 <meta name="rk:title"       content="测试报告">
 <meta name="rk:type"        content="test-report">
-<meta name="rk:spec-dir"    content="spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}">
+<meta name="rk:version"     content="{version}">
+<meta name="rk:category"    content="{feat|tech|debt|fix}">
+<meta name="rk:spec-dir"    content="spec/versions/<version>/specs/<YYYYMMDD-HHMM-属性-任务描述>">
 <meta name="rk:role"        content="spec-tester">
 <meta name="rk:mode"        content="{gated|autopilot}">
 <meta name="rk:status"      content="未确认">
@@ -364,7 +370,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <meta name="rk:updated"     content="YYYY-MM-DD">
 <meta name="rk:revision"    content="1">
 <meta name="rk:git-branch"  content="{git_branch}">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="dev">
 <meta name="rk:pr-url"      content="">
 <meta name="rk:tags"        content="spec,test-report">
 <!-- 关联声明，等价原 frontmatter 的 plan: / test-plan: / debug: 字段 -->
@@ -373,9 +379,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <link rel="rk-debug"     href="../debugger/debug-001.html">
 <link rel="rk-ledger"    href="../lead/team-context.md">
 
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -386,10 +392,12 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
   <!-- 人可读镜像，字段与上方 meta 一致 -->
   <div class="rk-meta">
     <span><b>类型</b> test-report</span>
-    <span><b>Spec</b> <code>spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}</code></span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>属性</b> <code>{category}</code></span>
+    <span><b>Spec</b> <code>spec/versions/<version>/specs/<YYYYMMDD-HHMM-属性-任务描述></code></span>
     <span><b>角色</b> spec-tester</span>
     <span><b>状态</b> 未确认</span>
-    <span><b>分支</b> <code>{git_branch}</code> ← <code>main</code></span>
+    <span><b>分支</b> <code>{git_branch}</code> ← <code>dev</code></span>
     <span><b>PR</b> —</span>
     <span><b>创建</b> YYYY-MM-DD</span>
     <span><b>修订</b> r1（YYYY-MM-DD）</span>

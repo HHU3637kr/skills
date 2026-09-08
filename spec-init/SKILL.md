@@ -143,41 +143,54 @@ mkdir -p ".agents/rules"
 - 详细设计理由写入 `spec/context/knowledge/`
 ```
 
+创建 `.agents/rules/version-workflow.md`（Version 版本工作流规范）：
+```markdown
+# Version 版本工作流规范
+
+- 架构遵循「项目 → Version → Spec」三级流转：Spec 为研发原子闭环，Version 为交付管理实体
+- 物理目录：`spec/versions/<version>/`（含 `version-context.md`、`plan.html`、`end-report.html`、`releases/` 与 `specs/`）
+- 项目记忆 `spec/context/{knowledge,experience}/` 跨版本共享，不随版本割裂
+- 需求性质四分平权：`feat`（业务功能）、`tech`（技术基建/AI底座）、`debt`（技术债治理）、`fix`（缺陷修复）
+- Version 5 态流转：`规划中` → `执行中` → `验收中` → `已发布` → `已归档`（原位归档，不移动目录）
+- 职责 Skill 矩阵：`version-start`（规划）/ `version-update`（范围治理）/ `version-release`（整体验收与发版）/ `version-end`（交付复盘与分支收尾）
+```
+
 创建 `.agents/rules/spec-workflow.md`（Spec 工作流规范）：
 ```markdown
 # Spec 工作流规范
 
-- 实现前必须有已确认的 writer/plan.html
+- 遵循「项目 → Version → Spec」架构，每个 Spec 必须归属于具体 Version（`spec/versions/<version>/specs/<spec-dir>/`）
+- Spec 启动需明确所属版本与需求性质（`feat` / `tech` / `debt` / `fix`，四类平权）
+- 实现前必须有已确认的 `writer/plan.html`
 - 不添加 Spec 未定义的功能
-- 每个关键节点等待用户确认
-- 收尾时使用 exp-reflect 沉淀经验，并由 spec-end 审查是否维护 AGENTS.md / rules
-- rules 只记录长期项目约束，避免写入一次性任务细节
+- 每个关键节点等待用户确认（autopilot 下需附机械证据）
+- 收尾时由 spec-end 执行原位归档（保留所在版本目录，禁止移出），沉淀经验到项目级 `spec/context/`
 ```
 
 创建 `.agents/rules/documentation.md`（文档规范）：
 ```markdown
 # 文档规范
 
-- 报告类产物使用 HTML（见 html-report skill）：exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report 一律 `.html`
-- 记忆保持 Markdown：`spec/context/experience/*.md`、`spec/context/knowledge/*.md`；账本 `lead/team-context.md` 或 `.html` 皆可（HTML 时豁免修订标记）
-- 报告元信息双轨保留：`<head>` 的 `<meta name="rk:*">` / `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像
+- 报告类产物使用 HTML（见 html-report skill）：版本报告与 Spec 报告一律 `.html`
+- 记忆保持 Markdown：`spec/context/experience/*.md`、`spec/context/knowledge/*.md`；账本可 `.md` 或 `.html`
+- 报告元信息双轨保留：`<head>` 的 `<meta name="rk:*">` / `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像（含 `rk:version` 与 `rk:category`）
 - 文档关联双向：`<ul class="rk-links">` 正向引用 + `<ul class="rk-backlinks">` 反向被引，新建关联时补齐对侧
 - 报告修订必须递增修订号，并保留 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` 标记，永不静默改写原文
-- Spec 目录命名：`YYYYMMDD-HHMM-任务描述`，任务描述使用中文
+- 命名规范：Version 采用 `vX.Y`（如 `v1.6`），Spec 采用 `YYYYMMDD-HHMM-属性-任务描述`（如 `20260908-1400-feat-用户导出`）
 - 报告样式只在 `html-report/assets/rk-report.css`，禁止在报告内写 `<style>` 或行内 `style=`
-- 长篇背景写入 `spec/context/knowledge/`，不要塞进 AGENTS.md
 ```
 
-创建 `.agents/rules/git-workflow.md`（GitHub Flow 规范）：
+创建 `.agents/rules/git-workflow.md`（Git 工作流规范）：
 ```markdown
-# GitHub Flow 规范
+# Git 工作流规范
 
-- 每个新 Spec 从 main 创建短生命周期分支
-- 同一活跃 Spec 的 update 复用原 Spec 分支
-- 禁止直接在 main 上实现、测试或归档 Spec
-- writer/plan.html / updater/update-xxx.html 的 `rk:git-branch` / `rk:base-branch` / `rk:pr-url` 必须记录分支与 PR
-- 收尾时提交、推送当前分支并创建 PR
-- PR 合并后同步 main 并删除本地/远程工作分支
+- 采用 `dev + release` 集成与发布分支流；合并审查统一为平台中立的 PR/MR
+- 默认主干为 `master`（或读取 `origin/HEAD`），日常开发集成为 `dev` 分支
+- 新 Spec 从 `dev` 创建工作分支（`<type>/spec-<slug>`），完工后通过 PR/MR 合入 `dev`
+- 版本提测时从 `dev` 拉出集成分支 `release/<version>` 冻结与组合验收，修复切 `fix/*` 合回该分支
+- 版本发版（`version-release`）将 `release/<version>` 合入主干并打 Tag（`vX.Y.Z`），同时强制回流 `dev`
+- 线上热修从对应发布 Tag 切出 `hotfix/*` 分支，修复验证后合入主干打 Patch Tag，并强制回流 `dev` 与在研版本
+- 版本收尾归档（`version-end`）将复盘报告提交合入主干，清理 `release/<version>` 分支与对应 worktree
 ```
 
 **rules/ 每文件 ≤ 20 行**：`.agents/rules/` 中的文件每次会话都会加载，保持精简，避免占用 context window。新增长期规则时优先更新已有文件，必要时再创建新的规则文件。
@@ -318,14 +331,10 @@ max_depth = 1
 ### 步骤 5：创建 Spec 目录结构
 
 ```bash
-# 创建分类目录
-mkdir -p "spec/01-产品规划"
-mkdir -p "spec/02-技术设计"
-mkdir -p "spec/03-能力交付"
-mkdir -p "spec/04-系统改进"
-mkdir -p "spec/05-验证工程"
-mkdir -p "spec/06-已归档"
+# 创建版本管理目录根
+mkdir -p "spec/versions"
 
+# 需求性质（feat/tech/debt/fix）由 Spec 属性指定，无需创建数字流程目录
 # 创建记忆系统目录
 mkdir -p "spec/context/experience"
 mkdir -p "spec/context/knowledge"
@@ -390,11 +399,11 @@ cp .agents/skills/html-report/assets/rk-report.css html-report/assets/
 cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 ```
 
-报告从 `spec/<分类>/<spec目录>/<角色>/` 引用样式表的相对路径是 4 层：
+报告从 `spec/versions/<version>/specs/<spec-dir>/<role>/` 引用样式表的相对路径按层级计算（Spec 角色报告为 6 层）：
 
 ```html
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 ```
 
 项目实际层级不同就相应调整，务必保证 `file://` 直接打开报告时样式生效。
@@ -495,42 +504,45 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 │       ├── spec-reviewer.md
 │       └── spec-ender.md
 ├── spec/
-│   ├── 01-产品规划/
-│   ├── 02-技术设计/
-│   ├── 03-能力交付/
-│   │   └── YYYYMMDD-HHMM-任务描述/    # 由 spec-start 创建
-│   │       ├── lead/                  # TeamLead 运行上下文
-│   │       │   └── team-context.md
-│   │       ├── explorer/              # spec-explorer 产物
-│   │       │   └── exploration-report.html
-│   │       ├── writer/                # spec-writer 产物
-│   │       │   └── plan.html
-│   │       ├── tester/                # spec-tester 产物
-│   │       │   ├── test-plan.html
-│   │       │   ├── test-report.html
-│   │       │   └── artifacts/
-│   │       │       └── test-logs/
-│   │       ├── executor/              # spec-executor 产物
-│   │       │   └── summary.html
-│   │       ├── debugger/              # spec-debugger 产物（按需）
-│   │       │   ├── debug-001.html
-│   │       │   └── debug-001-fix.html
-│   │       ├── reviewer/              # spec-reviewer 产物（按需）
-│   │       │   ├── review.html
-│   │       │   └── update-001-review.html
-│   │       ├── updater/               # spec-update 产物（按需）
-│   │       │   ├── update-001.html
-│   │       │   └── update-001-summary.html
-│   │       └── ender/                 # spec-ender 产物
-│   │           └── end-report.html
-│   ├── 04-系统改进/
-│   ├── 05-验证工程/
-│   ├── 06-已归档/
-│   └── context/
+│   ├── versions/                      # 版本管理目录（按 Version 聚合）
+│   │   └── v1.6/                      # 具体版本（由 version-start 创建）
+│   │       ├── version-context.md     # 版本运行账本
+│   │       ├── plan.html              # 版本目标、范围与验收标准
+│   │       ├── end-report.html        # 版本复盘与收尾归档报告
+│   │       ├── releases/              # 该版本实际发布的快照
+│   │       │   └── v1.6.0/
+│   │       │       └── release-report.html
+│   │       └── specs/                 # 该版本下包含的原子 Spec（原位归档）
+│   │           └── 20260908-1400-feat-任务描述/
+│   │               ├── lead/          # TeamLead 运行上下文
+│   │               │   └── team-context.md
+│   │               ├── explorer/      # spec-explorer 产物
+│   │               │   └── exploration-report.html
+│   │               ├── writer/        # spec-writer 产物
+│   │               │   └── plan.html
+│   │               ├── tester/        # spec-tester 产物
+│   │               │   ├── test-plan.html
+│   │               │   ├── test-report.html
+│   │               │   └── artifacts/
+│   │               │       └── test-logs/
+│   │               ├── executor/      # spec-executor 产物
+│   │               │   └── summary.html
+│   │               ├── debugger/      # spec-debugger 产物（按需）
+│   │               │   ├── debug-001.html
+│   │               │   └── debug-001-fix.html
+│   │               ├── reviewer/      # spec-reviewer 产物（按需）
+│   │               │   ├── review.html
+│   │               │   └── update-001-review.html
+│   │               ├── updater/       # spec-update 产物（按需）
+│   │               │   ├── update-001.html
+│   │               │   └── update-001-summary.html
+│   │               └── ender/         # spec-ender 产物（原位归档）
+│   │                   └── end-report.html
+│   └── context/                       # 项目级记忆（跨全部版本共享）
 │       ├── experience/
-│       │   └── index.md             # 经验索引
+│       │   └── index.md               # 经验索引
 │       └── knowledge/
-│           └── index.md             # 知识索引
+│           └── index.md               # 知识索引
 └── html-report/                      # 报告资产（可选：独立于 .agents/skills/ 分发时）
     └── assets/
         ├── rk-report.css             # 唯一样式源

@@ -8,18 +8,19 @@
      检索与工具化处理靠这些 meta 读取，等同于原 YAML frontmatter。 -->
 <meta name="rk:title"          content="{Spec 标题}">
 <meta name="rk:type"           content="plan">
-<meta name="rk:category"       content="{01-产品规划|02-技术设计|03-能力交付|04-系统改进|05-验证工程}">
-<meta name="rk:spec-dir"       content="spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}">
+<meta name="rk:version"        content="{vX.Y，所属版本号}">
+<meta name="rk:category"       content="{feat|tech|debt|fix}">
+<meta name="rk:spec-dir"       content="spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}">
 <meta name="rk:role"           content="spec-writer">
-<meta name="rk:mode"        content="{gated|autopilot}">
+<meta name="rk:mode"           content="{gated|autopilot}">
 <meta name="rk:status"         content="未确认">
 <meta name="rk:priority"       content="高">
 <meta name="rk:execution-mode" content="single-agent">
 <meta name="rk:created"        content="YYYY-MM-DD">
 <meta name="rk:updated"        content="YYYY-MM-DD">
 <meta name="rk:revision"       content="1">
-<meta name="rk:git-branch"     content="feat/spec-YYYYMMDD-HHMM-ascii-slug">
-<meta name="rk:base-branch"    content="main">
+<meta name="rk:git-branch"     content="{category}/spec-YYYYMMDD-HHMM-ascii-slug">
+<meta name="rk:base-branch"    content="dev">
 <meta name="rk:pr-url"         content="">
 <meta name="rk:tags"           content="spec,plan">
 <!-- 文档关联，等价原 frontmatter 的 related: / plan: 等字段；未创建的对侧也要声明 -->
@@ -27,12 +28,12 @@
 <link rel="rk-test-plan"   href="../tester/test-plan.html">
 <link rel="rk-summary"     href="../executor/summary.html">
 <link rel="rk-ledger"      href="../lead/team-context.md">
-<link rel="rk-related"     href="../../{分类目录}/{YYYYMMDD-HHMM-其他Spec}/writer/plan.html">
+<link rel="rk-related"     href="../{其他Spec}/writer/plan.html">
 
-<!-- 路径按 spec/<分类>/<spec目录>/writer/ 计算（回项目根 4 层）；实际层级不同需相应调整 -->
-<link rel="stylesheet" href="../../../../html-report/assets/rk-report.css">
+<!-- 路径按 spec/versions/<v>/specs/<spec目录>/writer/ 计算（回项目根 6 层）；实际层级不同需相应调整 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
 <script defer src="../rk-manifest.js"></script>
-<script defer src="../../../../html-report/assets/rk-report.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
 </head>
 <body>
 
@@ -43,12 +44,14 @@
   <!-- 人可读镜像，字段与上方 meta 保持一致 -->
   <div class="rk-meta">
     <span><b>类型</b> plan</span>
-    <span><b>Spec</b> <code>spec/{分类目录}/{YYYYMMDD-HHMM-中文任务描述}</code></span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>属性</b> <code>{category}</code></span>
+    <span><b>Spec</b> <code>spec/versions/{version}/specs/{spec_dir}</code></span>
     <span><b>角色</b> spec-writer</span>
     <span><b>状态</b> 未确认</span>
     <span><b>优先级</b> 高</span>
     <span><b>执行模式</b> single-agent</span>
-    <span><b>分支</b> <code>feat/spec-YYYYMMDD-HHMM-ascii-slug</code> ← <code>main</code></span>
+    <span><b>分支</b> <code>{category}/spec-YYYYMMDD-HHMM-ascii-slug</code> ← <code>dev</code></span>
     <span><b>PR</b> —</span>
     <span><b>创建</b> YYYY-MM-DD</span>
     <span><b>修订</b> r1（YYYY-MM-DD）</span>
@@ -175,9 +178,10 @@
   <thead><tr><th>原 frontmatter 字段</th><th>必填</th><th>机器可读</th><th>人可读</th><th>可选值 / 说明</th></tr></thead>
   <tbody>
     <tr><td><code>title</code></td><td>是</td><td><code>&lt;meta name="rk:title"&gt;</code></td><td><code>&lt;h1&gt;</code></td><td>Spec 标题</td></tr>
-    <tr><td><code>type</code></td><td>是</td><td><code>&lt;meta name="rk:type"&gt;</code></td><td><code>.rk-meta</code> 类型</td><td><code>plan</code></td></tr>
-    <tr><td><code>category</code></td><td>是</td><td><code>&lt;meta name="rk:category"&gt;</code></td><td><code>.rk-meta</code> Spec 路径</td><td><code>01-产品规划</code>/<code>02-技术设计</code>/<code>03-能力交付</code>/<code>04-系统改进</code>/<code>05-验证工程</code>；必须按 spec-write 的分类决策顺序选择，不能默认写 03</td></tr>
-    <tr><td>（Spec 目录）</td><td>是</td><td><code>&lt;meta name="rk:spec-dir"&gt;</code></td><td><code>.rk-meta</code> Spec</td><td><code>spec/&lt;分类&gt;/&lt;YYYYMMDD-HHMM-中文任务描述&gt;</code></td></tr>
+    <tr><td><code>type</code></td><td>是</td><td><code>&lt;meta name="rk:type"&gt;</code></td><td><code>.rk-meta</code> 类型</td><td>固定 <code>plan</code></td></tr>
+    <tr><td><code>version</code></td><td>是</td><td><code>&lt;meta name="rk:version"&gt;</code></td><td><code>.rk-meta</code> 版本</td><td>所属版本号（如 <code>v1.6</code>）</td></tr>
+    <tr><td><code>category</code></td><td>是</td><td><code>&lt;meta name="rk:category"&gt;</code></td><td><code>.rk-meta</code> 属性</td><td><code>feat</code> / <code>tech</code> / <code>debt</code> / <code>fix</code>（四类平权）</td></tr>
+    <tr><td>（Spec 目录）</td><td>是</td><td><code>&lt;meta name="rk:spec-dir"&gt;</code></td><td><code>.rk-meta</code> Spec</td><td><code>spec/versions/{version}/specs/{YYYYMMDD-HHMM-属性-任务描述}</code></td></tr>
     <tr><td>（产出角色）</td><td>是</td><td><code>&lt;meta name="rk:role"&gt;</code></td><td><code>.rk-meta</code> 角色</td><td><code>spec-writer</code></td></tr>
     <tr><td><code>status</code></td><td>是</td><td><code>&lt;meta name="rk:status"&gt;</code></td><td><code>.rk-meta</code> 状态</td><td><code>未确认</code>/<code>已确认</code>/<code>已归档</code></td></tr>
     <tr><td><code>priority</code></td><td>是</td><td><code>&lt;meta name="rk:priority"&gt;</code></td><td><code>.rk-meta</code> 优先级</td><td><code>高</code>/<code>中</code>/<code>低</code></td></tr>
@@ -186,14 +190,14 @@
     <tr><td>（本轮修订日期）</td><td>是</td><td><code>&lt;meta name="rk:updated"&gt;</code></td><td><code>.rk-meta</code> 修订</td><td><code>YYYY-MM-DD</code></td></tr>
     <tr><td>（修订号）</td><td>是</td><td><code>&lt;meta name="rk:revision"&gt;</code></td><td><code>.rk-meta</code> 修订 <code>r{N}</code></td><td>每次修改 +1</td></tr>
     <tr><td><code>git_branch</code></td><td>是</td><td><code>&lt;meta name="rk:git-branch"&gt;</code></td><td><code>.rk-meta</code> 分支</td><td>ASCII 分支名，如 <code>feat/spec-20260428-1430-user-auth</code>，由 spec-start 创建</td></tr>
-    <tr><td><code>base_branch</code></td><td>是</td><td><code>&lt;meta name="rk:base-branch"&gt;</code></td><td><code>.rk-meta</code> 分支（← 基准）</td><td>通常 <code>main</code></td></tr>
-    <tr><td><code>pr_url</code></td><td>否</td><td><code>&lt;meta name="rk:pr-url"&gt;</code>（未创建留空）</td><td><code>.rk-meta</code> PR（未创建写 <code>—</code>）</td><td>GitHub PR URL，spec-end 写回</td></tr>
+    <tr><td><code>base_branch</code></td><td>是</td><td><code>&lt;meta name="rk:base-branch"&gt;</code></td><td><code>.rk-meta</code> 分支（← 基准）</td><td>日常集成线为 <code>dev</code></td></tr>
+    <tr><td><code>pr_url</code></td><td>否</td><td><code>&lt;meta name="rk:pr-url"&gt;</code>（未创建留空）</td><td><code>.rk-meta</code> PR/MR（未创建写 <code>—</code>）</td><td>PR/MR URL，spec-end 写回</td></tr>
     <tr><td><code>tags</code></td><td>是</td><td><code>&lt;meta name="rk:tags"&gt;</code>，逗号分隔</td><td>不必显示</td><td>至少含 <code>spec</code> 和 <code>plan</code>；不在正文堆 <code>#tag</code></td></tr>
     <tr><td><code>related</code></td><td>否</td><td><code>&lt;link rel="rk-related"&gt;</code></td><td><code>rk-links</code> 列表项</td><td>关联的其他 Spec</td></tr>
   </tbody>
 </table>
 
-<div class="rk-cal key"><div class="t">GitHub Flow 元数据</div><p><code>rk:git-branch</code> / <code>rk:base-branch</code> 由 spec-start 通过 git-work 创建并传入。不要手写一个不存在的分支；如果项目不是 Git 仓库，写 <code>none</code> 并在「风险和依赖」说明原因。</p></div>
+<div class="rk-cal key"><div class="t">Git 集成与 PR/MR 元数据</div><p><code>rk:git-branch</code> / <code>rk:base-branch</code> 由 spec-start 通过 git-work 创建并传入（常规基线为 <code>dev</code>）。不要手写一个不存在的分支；如果项目不是 Git 仓库，写 <code>none</code> 并在「风险和依赖」说明原因。</p></div>
 
 <h3>双向关联（正向 + 反向都要）</h3>
 <p>Obsidian 双链的价值不只是跳转，而是反向可发现。只写单向 <code>&lt;a&gt;</code> 属于功能退化。做法：</p>

@@ -1,71 +1,62 @@
-# GitHub Flow 命令参考（R&K Flow）
+# Git 工作流命令参考（dev + release 发版管理）
 
-## 分支策略
+## 分支模型
 
-远程默认分支（下文记作 `<base>`）不写死为 `main`。始终先读远程默认分支：
+- `<main>`：远程主干分支（由 `git symbolic-ref --short refs/remotes/origin/HEAD | sed 's|^origin/||'` 动态读取，默认为 `master` 或 `main`），始终保持生产可部署与已发布状态，严禁直接在其上实现
+- `dev`：日常开发集成线。所有常规 Spec 分支从 `dev` 创建，完工后通过 PR/MR 合入 `dev`
+- `release/<version>`：临时版本提测分支（冻结时从 `dev` 切出），全量验收通过后合入 `<main>` 打正式 Tag 并强制反向回流 `dev`，版本归档（`version-end`）后删除
+- `support/<line>`：长期维护或客户定制线（如 `support/official`、`support/customer-a`，原 `release/<line>` 重命名），不与提测分支混淆
+- `hotfix/*`：线上紧急热修分支（从生产 Tag 切出），验证通过后合入 `<main>` 打 Patch Tag，并强制双向回流 `dev` 与在研 `release/*`
 
-```bash
-git symbolic-ref refs/remotes/origin/HEAD
-```
+### Spec 工作分支命名
+格式：`<category>/spec-<YYYYMMDD-HHMM>-<ascii-slug>`
+属性（四类平权）：`feat`（业务功能）/ `tech`（技术基建/AI底座）/ `debt`（技术债/重构）/ `fix`（缺陷修复）。
 
-输出形如 `refs/remotes/origin/master`，取最后一段即 `<base>`（常见值为 `main` 或 `master`，也可能是别的名字）。若命令报错（没有 `origin`，或远程未设置 HEAD），退回当前分支作为 `<base>`，并明确告知用户。
+---
 
-下文所有命令中的 `<base>` 都用这里读到的名字替换。
-
-- `<base>`：唯一长期分支，始终可部署
-- Spec 分支：从 `<base>` 创建，完成后通过 PR 合并
-- Spec 分支内 update：同一活跃 Spec 的小迭代复用原 Spec 分支，文档写回原 Spec 目录
-
-分支格式：
-
-```text
-<type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
-```
-
-类型：`feat` / `fix` / `docs` / `refactor` / `test` / `chore`。
-
-## 启动分支
+## 1. 启动 Spec 分支
 
 ```bash
 git rev-parse --is-inside-work-tree
 git status --short
-git switch <base>
-git pull --ff-only origin <base>
-git switch -c <branch-name>
-git push -u origin <branch-name>
+git switch dev
+git pull --ff-only origin dev
+git switch -c <category>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
+git push -u origin <category>/spec-<YYYYMMDD-HHMM>-<ascii-slug>
 ```
 
-## 复用 Spec 分支（spec-update）
+输出给 `spec-write` 的元数据：
+```yaml
+git_branch: <branch-name>
+base_branch: dev
+pr_url:
+```
+
+## 2. 复用 Spec 分支（spec-update）
 
 ```bash
 git branch --show-current
 git status --short
 ```
-
-当前分支必须等于 `plan.html` 的 `rk:git-branch`（`<head>` 里的 `<meta name="rk:git-branch">`）。如果不一致：
-
+确认当前分支等于 `plan.html` 的 `rk:git-branch`。如果不一致：
 ```bash
 git switch <plan 的 rk:git-branch>
 ```
 
-如果分支已合并或不存在，不要默认继续 `spec-update`；新需求应新建 Spec，或让用户明确选择独立 update 分支。
-
-## 并发 worktree
+## 3. 并发开发使用 worktree
 
 ```bash
-git switch <base>
-git pull --ff-only origin <base>
-git worktree add ../<repo>-<spec-slug> -b <branch-name> <base>
+git switch dev
+git pull --ff-only origin dev
+git worktree add ../<repo>-<spec-slug> -b <branch-name> dev
 git worktree list
 ```
-
 清理 worktree：
-
 ```bash
 git worktree remove ../<repo>-<spec-slug>
 ```
 
-## 审查变更
+## 4. 审查与提交
 
 ```bash
 git branch --show-current
@@ -73,187 +64,201 @@ git status --short
 git diff --stat
 git diff
 git diff --staged
-```
 
-## 提交
-
-```bash
 git add .
-git commit -m "<type>: <summary>"
+git commit -m "<category>: <summary>"
 ```
 
-提交信息建议：
-
-```text
-feat: implement user auth spec
-fix: resolve login timeout update
-docs: clarify spec workflow
-refactor: simplify storage layer
-test: add audit log regression coverage
-chore: update dependencies
-```
-
-## 推送与 PR
+## 5. 推送与创建 PR/MR（面向 dev）
 
 ```bash
 git push -u origin <branch-name>
-gh pr create --base <base> --head <branch-name> --title "<title>" --body-file <pr-body.md>
+# GitHub PR
+gh pr create --base dev --head <branch-name> --title "<title>" --body-file <pr-body.md>
+# 或 GitLab MR
+glab mr create --target-branch dev --source-branch <branch-name> --title "<title>" --description "<pr-body>"
 ```
+无 CLI 时使用 Web compare URL：
+`https://github.com/<owner>/<repo>/compare/dev...<branch-name>`
 
-没有 GitHub CLI 时，打开 compare URL：
-
-```text
-https://github.com/<owner>/<repo>/compare/<base>...<branch-name>
-```
-
-查看当前 PR：
-
-```bash
-gh pr view --web
-gh pr status
-```
-
-## 记录 PR URL
-
-PR 创建后写回对应文档：
-
-```yaml
-pr_url: https://github.com/<owner>/<repo>/pull/<number>
-```
-
-再**并入同一次提交**（收尾只提交一次，不产生第二次提交）：
-
+### 记录 PR/MR URL 并单次提交（amend）
+写回文档后，并入同一次提交：
 ```bash
 git add spec/
 git commit --amend --no-edit
 git push --force-with-lease origin <branch-name>
 ```
 
-## 同步 `<base>` 到工作分支
+## 6. 同步 `dev` 到工作分支
 
 ```bash
 git fetch origin
-git merge origin/<base>
+git merge origin/dev
 ```
 
-或使用 rebase：
+## 7. PR/MR 合并后清理
 
+只有在面向 `dev` 的 PR/MR 已合并后执行：
 ```bash
-git fetch origin
-git rebase origin/<base>
-```
-
-团队协作时优先遵循项目约定；没有约定时，merge 更少改写历史。
-
-## 合并后清理
-
-```bash
-git switch <base>
-git pull --ff-only origin <base>
+git switch dev
+git pull --ff-only origin dev
 git branch -d <branch-name>
 git push origin --delete <branch-name>
 ```
 
-## 发版：release 分支与 tag
+---
 
-**版本号只存在于 tag，分支名永不含版本号。**
+## 8. 版本提测与发版（release/<version>）
 
-分支：`release/<line>`（`<line>` 是发布线标识，如 `official`、客户名）。
-版本：`vX.Y.Z` / `vX.Y.Z.N`；定制线加前缀 `<line>-vX.Y.Z`。
-
-### 发一个版本
-
+### 提测冻结（version-release 阶段一）
 ```bash
-git switch release/<line>
-git cherry-pick <commit>
-<项目测试命令>
-git tag -a <version> -m "<说明：改了什么、实测数据、cherry-pick 来源>"
-git push origin release/<line> <version>
+git checkout dev
+git pull origin dev
+git checkout -b release/<version>
+git push -u origin release/<version>
 ```
 
-### 核对 tag 与分支是否错位
-
+### 提测期间 Bug 修复
 ```bash
-# tag 指向的 commit
-git rev-parse --short <version>^{commit}
-# 分支 HEAD
-git rev-parse --short release/<line>
-# 两者不同时看差异性质：只含文档即正常，含源码说明漏打 tag
-git diff --name-only <version> release/<line>
+git switch -c fix/<slug> release/<version>
+# 修复并通过测试后
+git commit -m "fix: 修复提测缺陷"
+git push -u origin fix/<slug>
+# PR/MR 目标为 release/<version>
+gh pr create --base release/<version> --head fix/<slug>
 ```
 
-### 列出所有 tag 及其 commit
-
+### 发版合入主干与回流 dev（version-release 阶段二）
 ```bash
-git tag --list
-git rev-parse --short <version>^{commit}
-git cat-file -t <version>        # 应为 tag（annotated），不是 commit
+# 1. release/<version> 面向主干发起 PR/MR 并合并
+gh pr create --base master --head release/<version> --title "release: <version>"
+
+# 2. 合并后打不可变 Tag
+git checkout master
+git pull origin master
+git tag -a <version-tag> -m "release: <version-tag>"
+git push origin <version-tag>
+
+# 3. 强制双向回流 dev
+git checkout dev
+git pull origin dev
+git merge release/<version> --no-edit
+git push origin dev
 ```
 
-### 定制线测试基线
+### 版本收尾与分支清理（version-end）
+```bash
+git checkout master
+git pull origin master
+# 归档文档直接提交入主干并回流 dev
+git add spec/versions/<version> spec/context
+git commit -m "docs(version): 完成 <version> 交付复盘与收尾归档"
+git push origin master
+git checkout dev && git merge master --no-edit && git push origin dev
+
+# 清理临时提测集成分支
+git branch -d release/<version>
+git push origin --delete release/<version>
+```
+
+---
+
+## 9. 线上紧急热修（Hotfix）与强制回流
 
 ```bash
-# cherry-pick 前先记下 failed 数
-git switch --detach <cherry-pick 前的 commit>
+# 1. 确认线上实际运行的 tag 并切出热修分支
+git checkout <production-tag>
+git switch -c hotfix/<slug>
+
+# 2. 修复、测试验证后提交
+git commit -m "fix(hotfix): 修复线上严重缺陷"
+
+# 3. 合入主干 <main> 并打 Patch Tag（如 v1.6.1）
+git checkout master
+git pull origin master
+git merge hotfix/<slug> --no-ff -m "merge: hotfix/<slug> 紧急修复合入"
+git tag -a v1.6.1 -m "hotfix: v1.6.1"
+git push origin master v1.6.1
+
+# 4. 强制回流开发线 dev（防止下一版本带回同一 Bug）
+git checkout dev
+git pull origin dev
+git merge master --no-edit
+git push origin dev
+
+# 5. 若存在活跃的提测分支 release/<v>，同样合流
+git checkout release/<v>
+git merge master --no-edit
+git push origin release/<v>
+
+# 6. 删除热修临时分支
+git branch -d hotfix/<slug>
+```
+
+---
+
+## 10. 长期维护与定制分支管理（support/<line>）
+
+### 1. 动态获取主干分支名
+```bash
+MAIN_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+MAIN_BRANCH=${MAIN_BRANCH:-master}
+```
+
+### 2. 缺陷修复与发版流程
+```bash
+# 1. 修复必须先通过 PR/MR 合入主干（禁止直接向主干推送提交）
+git switch "$MAIN_BRANCH"
+git pull origin "$MAIN_BRANCH"
+# 在主干拉取最新已合并的修复提交 <fix-commit>
+
+# 2. cherry-pick 到目标维护线
+git switch support/<line>
+git pull origin support/<line>
+git cherry-pick <fix-commit>
+
+# 3. 跑定制线回归测试（判据为 failed 数不增加）
 <测试命令>
-# 发版判据是 failed 数不增加，不是全绿
+
+# 4. 打 annotated tag 并推送（显式推 tag，禁止 --tags）
+git tag -a <version> -m "release: <version>"
+git push origin support/<line> <version>
 ```
 
-### 镜像标签对齐
-
+### 3. 诊断：核对 tag 是否仅落后文档/规范提交
 ```bash
-git switch --detach <version>
-docker build -t <image>:<version> .
-# 从服务器反查代码
-ssh <server> "grep '^IMAGE_TAG=' <path>/.env"
-git switch --detach <该值>
+git diff --name-only <tag> support/<line>
+# 差异仅含文档、AGENTS.md、Spec 报告即属正常；混入源码说明漏打 tag
 ```
 
-### 删带版本号的旧分支前验证
-
+### 4. 安全清理带版本号的旧分支
 ```bash
-# 是否已被保留分支包含（无输出且退出码 0 = 是）
-git merge-base --is-ancestor <old-branch> release/<line>
-# 独有提交数，必须为 0
-git log --oneline <old-branch> --not <base> release/<line> | wc -l
-# 两项都通过才删
-git branch -D <old-branch>
-git push origin --delete <old-branch>
+# 1. 检查分支是否已被保留分支包含
+git merge-base --is-ancestor <old-branch> support/<line>
+
+# 2. 检查独有提交数（必须为 0）
+git log --oneline <old-branch> --not "$MAIN_BRANCH" support/<line> | wc -l
+
+# 3. 两项均通过后删除
+git branch -d <old-branch>
 ```
 
-### 删除错位的 tag
+---
 
-```bash
-git tag -d <version>
-git push origin :refs/tags/<version>
-```
-
-含非 ASCII 的分支名用 refspec 全路径删除：
-
-```bash
-git push origin ":refs/heads/<branch-name>"
-```
-
-### 清理失效的远端跟踪引用
-
-```bash
-git remote prune origin
-```
-
-## 故障处理
+## 11. 故障处理
 
 | 场景 | 命令/处理 |
 |------|-----------|
 | 当前分支不明 | `git branch --show-current` |
 | 工作区有改动 | `git status --short`，先提交、stash 或确认纳入当前 Spec |
-| 错在 `<base>` 上开发 | 立即 `git switch -c <branch-name>` 承接改动 |
-| 分支落后 `<base>` | `git fetch origin` 后 merge/rebase `origin/<base>` |
-| PR 创建失败 | 先 `git push -u origin <branch-name>`，再用 compare URL |
+| 错在 `dev` 或主干上开发 | 立即 `git switch -c <category>/spec-<slug>` 承接改动 |
+| 分支落后 `dev` | `git fetch origin` 后 merge `origin/dev` |
+| PR/MR 创建失败 | 先 `git push -u origin <branch-name>`，再用 compare URL |
 | 需要撤销最近提交但保留改动 | `git reset --soft HEAD~1` |
 
 ## 安全规则
 
 - 不提交 API key、密码、私钥、数据库凭证
 - `.env`、日志、构建产物应进入 `.gitignore`
-- 不在 `<base>` 上直接提交 Spec 成果
-- 不自动合并 PR，除非用户明确要求
+- 不直接在主干或未通过 PR/MR 的分支上合流
+- 不自动合并 PR/MR，除非用户明确要求

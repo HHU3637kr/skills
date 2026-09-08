@@ -46,12 +46,17 @@ cd .agents/skills && git pull
 
 ## 核心理念
 
+> **Project → Version → Spec** - 三级架构，版本闭环
+> - Spec 是研发原子闭环单元，Version 是交付管理和发布实体
+> - 需求性质四分平权：`feat`（业务）、`tech`（技术基建/AI底座）、`debt`（技术债治理）、`fix`（缺陷修复）
+> - 原位归档：修改状态保留目录，版本不掏空
+> - 4 个 Version 核心技能：`version-start` / `version-update` / `version-release` / `version-end`
+
 > **Spec First** - 一切从 Spec 开始
 > - 先设计，后实现
 > - 严格遵循 Spec，不添加额外功能
 > - 每个实现都可追溯到 Spec 文档
 > - 完整的开发过程记录为 HTML 报告，修改可追溯
-
 > **Agent Teams** - 多角色协作，各司其职
 > - TeamLead（当前 Agent）统一协调全局
 > - 7 个项目级专职角色：探索、设计、测试、实现、调试、审查、收尾
@@ -419,33 +424,39 @@ loop-design（设计有边界的 Loop）
         └─ loop-design 只产出定义，不直接驱动循环执行
 ```
 
-## Spec 目录结构
+## Spec 目录结构（项目 → Version → Spec）
 
-```
+```text
 spec/
-├── 01-产品规划/          # PRD、路线图、需求拆解、用户流程、里程碑
-├── 02-技术设计/          # 架构、数据模型、模块边界、技术选型、迁移方案
-├── 03-能力交付/          # 新功能、新接口、新页面、新集成、新工作流
-├── 04-系统改进/          # Bug、回归、性能/安全问题、配置依赖、无新能力的重构
-├── 05-验证工程/          # 独立测试策略、回归验证、覆盖率提升、审计日志方案
-├── 06-已归档/           # 已完成的 Spec（由 spec-end 移动）
-└── context/             # 记忆系统（与 Spec 工作流一致）
-    ├── experience/      # 经验记忆存储（显式层）
-    │   ├── index.md     # 经验索引
-    │   └── exp-xxx-标题.md  # 经验详情
-    └── knowledge/       # 知识记忆存储（显式层）
-        ├── index.md     # 知识索引
-        └── know-xxx-标题.md  # 知识详情
+├── versions/                  # 版本管理实体目录
+│   ├── v1.6/                  # 具体版本里程碑
+│   │   ├── version-context.md # 版本运行账本（状态/Spec清单/依赖/变更）
+│   │   ├── plan.html          # 版本规划大盘报告（version-plan）
+│   │   ├── end-report.html    # 版本复盘与收尾归档报告（version-end）
+│   │   ├── releases/          # 实际发版交付记录
+│   │   │   └── v1.6.0/
+│   │   │       └── release-report.html # 发版报告（version-release）
+│   │   └── specs/             # 该版本下包含的原子 Spec（原位归档）
+│   │       ├── 20260908-1400-feat-报告导出/
+│   │       └── 20260909-1000-tech-ASR优化/
+│   └── v1.7/
+└── context/                   # 项目级长期记忆（跨全部版本共享）
+    ├── experience/            # 经验记忆存储（显式层）
+    │   ├── index.md           # 经验索引
+    │   └── exp-xxx-标题.md    # 经验详情
+    └── knowledge/             # 知识记忆存储（显式层）
+        ├── index.md           # 知识索引
+        └── know-xxx-标题.md   # 知识详情
 
 运行时原生记忆                 # Auto Memory（自动层，由当前 CLI 管理）
-    └── 具体位置由 Claude Code / Codex 等运行环境决定
+    └── 具体位置由 Claude Code / Codex / OMP 等运行环境决定
 ```
 
-每个 Spec 目录遵循以下命名规范：
-```
-spec/分类目录/YYYYMMDD-HHMM-任务描述/
+每个原子 Spec 目录遵循以下命名规范与角色产物结构：
+```text
+spec/versions/<version>/specs/YYYYMMDD-HHMM-属性-任务描述/
 ├── lead/
-│   └── team-context.md        # TeamLead 维护的运行账本与 Git/PR 元数据
+│   └── team-context.md        # TeamLead 维护的运行账本与 Git/PR/MR 元数据
 ├── explorer/
 │   └── exploration-report.html # 探索报告（spec-explore 创建）
 ├── writer/
@@ -467,10 +478,10 @@ spec/分类目录/YYYYMMDD-HHMM-任务描述/
 │   ├── update-001.html        # 更新方案（spec-update 创建）
 │   └── update-001-summary.html # 更新总结（spec-update 创建）
 └── ender/
-    └── end-report.html        # 收尾报告（spec-end 创建）
+    └── end-report.html        # 收尾报告（spec-end 创建，原位归档保留）
 ```
 
-外层目录分类的是“这个 Spec 作为一件工作的主意图”；目录内部按角色目录保存生命周期产物，根目录不再平铺角色产物。`03-能力交付` 只用于新增用户可感知能力；修复、优化、重构、技术债默认优先考虑 `04-系统改进`；架构和数据模型优先考虑 `02-技术设计`；独立测试工作优先考虑 `05-验证工程`。同一活跃 Spec 分支内的小变化使用 `spec-update` 留在原目录；已合并/已关闭后的新需求默认新建 Spec。
+外层按 Version 进行交付边界与排期聚合；具体 Spec 通过属性前缀（`feat` / `tech` / `debt` / `fix`）明确工程性质并享受平等管理地位。同一活跃 Spec 分支内的小变化使用 `spec-update` 留在原目录；已合并后的后续新需求新建 Spec。
 
 ## HTML 报告在 Spec 流程中的作用
 
@@ -535,17 +546,18 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-rep
 
 ```html
 <meta name="rk:type"        content="plan">
-<meta name="rk:spec-dir"    content="spec/03-能力交付/20260109-1430-登录限流">
+<meta name="rk:version"     content="v1.6">
+<meta name="rk:category"    content="feat">
+<meta name="rk:spec-dir"    content="spec/versions/v1.6/specs/20260109-1430-feat-登录限流">
 <meta name="rk:role"        content="spec-writer">
 <meta name="rk:created"     content="2026-01-09">
 <meta name="rk:updated"     content="2026-01-11">
 <meta name="rk:revision"    content="2">
 <meta name="rk:git-branch"  content="feat/spec-20260109-1430-login-throttle">
-<meta name="rk:base-branch" content="main">
+<meta name="rk:base-branch" content="dev">
 <meta name="rk:pr-url"      content="">
 <meta name="rk:tags"        content="spec,plan">
 ```
-
 原模板有几个 frontmatter 字段，HTML 就要有几个对应的 `<meta>` / `<link>`。**不因为"HTML 里看不见"就删字段。** Git/PR 元数据仍以 `lead/team-context.md` 为准，报告只镜像不作为权威源。
 
 ### 4. 关联产物双向：正向跳转 + 反向发现
@@ -718,7 +730,7 @@ spec-ender：
 
 用户：确认归档
 
-spec-ender → 移动到 06-已归档 → 调用 git-work 提交、推送、创建 PR
+spec-ender → 原位归档（保留在所属版本目录，更新状态为 archived） → 调用 git-work 提交、推送、创建面向 dev 的 PR/MR
 spec-ender → 通知 TeamLead，Teams 进入待机
 ```
 
@@ -1048,8 +1060,8 @@ created: YYYY-MM-DD
 
 ### 3. 文档管理
 
-- **命名规范**：`YYYYMMDD-HHMM-任务描述`（任务描述必须中文）
-- **分类存放**：必须按任务主意图放入对应工作类型目录，不要默认放入 `03-能力交付`
+- **命名规范**：`YYYYMMDD-HHMM-属性-任务描述`（任务描述必须中文）
+- **属性管理**：明确 `feat` / `tech` / `debt` / `fix` 四类属性并平权管理，归属于所属版本目录
 - **关联可追溯**：报告末尾「关联产物」用相对路径 `<a href>` 链接上下游产物
 - **元数据完整**：报告头 `.rk-meta` 写全类型/Spec/角色/分支/创建日期/修订号；Markdown 文档保留完整 frontmatter
 
@@ -1159,13 +1171,31 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.8.0
-**最后更新**: 2026-08-09
+**版本**: 2.9.0
+**最后更新**: 2026-09-08
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.9.0 (2026-09-08) - 项目→版本→需求三级架构 + 需求性质平权 + Version 生命周期闭环
+
+**核心改进**：
+
+1. **引入「项目 → Version → Spec」三级架构**：Spec 是研发原子闭环单元，Version 是交付管理和发布实体。解决「单需求平铺驱动、缺少版本边界」的核心瓶颈。
+2. **物理目录结构升级**：
+   - 项目级长期记忆（跨全部版本共享）：`spec/context/{knowledge,experience}/`
+   - 版本管理物理目录：`spec/versions/<version>/`（含 `version-context.md` 账本、`plan.html` 规划、`end-report.html` 归档、`releases/<tag>/release-report.html` 发布快照，以及 `specs/<spec-dir>/` 原子 Spec）
+   - **原位归档**：彻底取消原 `01-产品规划`~`05-验证工程` 数字流程目录与 `06-已归档` 移动操作，Spec 完工在原位更新状态为 `archived`，保持版本包含完整性。
+3. **需求性质四分平权**：Spec 启动明确标注 `feat`（业务功能）、`tech`（技术基建/AI底座）、`debt`（技术债治理/重构）、`fix`（缺陷修复），在版本大盘平权陈列，破除技术底座被边缘化隐患。
+4. **新增 4 个 Version 生命周期 Skills**：
+   - `version-start`：版本立项与规划大盘（`plan.html` + `version-context.md`）
+   - `version-update`：版本范围变更、依赖治理、Spec 增删与跨版本延期
+   - `version-release`：提测集成分支拉出冻结、全量组合验收、产出 `release-report.html`、合入主干、打不可变 Tag、强制反向回流 `dev`
+   - `version-end`：交付确认、复盘（`end-report.html`）、经验回流项目级 context/、提交主干、清理临时提测分支与 worktree
+5. **Git 工作流演进为 `dev + release` 流**：日常集成走 `dev` 分支，提测冻结走 `release/<version>`，发版走主干（`master`）并打 Tag，支持生产环境 Tag 切出的 Hotfix 强制回流机制；平台中立抽象为 PR/MR。
+6. **html-report 规范扩展**：meta 支持 `rk:version` 与 `rk:category`，并新增 `version-plan` 模板。
 
 ### v2.8.1 (2026-08-14) - 收尾单次提交 + 表格修订样式修复
 
