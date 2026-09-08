@@ -482,7 +482,7 @@ git log --oneline <old-branch> --not master support/<line> | wc -l
 
 - 不要新建带版本号的分支（`release/v1.0.4`、`support/<line>-v1.0.5`）
 - 不要用轻量 tag 发版，必须 `git tag -a`
-- 不要为纯文档提交打新版本号 tag
+- 不要为纯文档提交打新版本号 tag（适用于业务代码仓库；R&K Flow 本仓库作为工作流与技能规范产品，框架发版时豁免）
 - 不要让产物标签与 git tag 不同名
 - 不要在没有 tag 覆盖的情况下删分支
 - 不要用「全绿」作为定制线的发版判据，用「failed 数不增加」

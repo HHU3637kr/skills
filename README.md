@@ -489,18 +489,21 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，格式契约见 `html-rep
 
 ### 1. 哪些是报告（用 HTML），哪些不是（保持 Markdown）
 
-9 类报告类产物一律 `.html`：
+报告类产物统一使用 `.html`，涵盖原子 Spec 与版本生命周期两轨：
 
-| 报告 | 产出角色 |
-|------|---------|
-| `explorer/exploration-report.html` | spec-explorer |
-| `writer/plan.html` | spec-writer |
-| `tester/test-plan.html`、`tester/test-report.html` | spec-tester |
-| `executor/summary.html` | spec-executor |
-| `debugger/debug-001.html`、`debugger/debug-001-fix.html` | spec-debugger |
-| `reviewer/review.html`、`reviewer/update-001-review.html` | spec-reviewer |
-| `updater/update-001.html`、`updater/update-001-summary.html` | spec-update |
-| `ender/end-report.html` | spec-ender |
+| 报告类型与路径 | 产出角色 | 相对项目根深度 | 引用 assets 相对路径 |
+|---|---|---|---|
+| `spec/versions/<v>/plan.html` | TeamLead (version-start) | 3 层 | `../../../html-report/assets/` |
+| `spec/versions/<v>/releases/<tag>/release-report.html` | TeamLead (version-release) | 5 层 | `../../../../../html-report/assets/` |
+| `spec/versions/<v>/end-report.html` | TeamLead (version-end) | 3 层 | `../../../html-report/assets/` |
+| `explorer/exploration-report.html` | spec-explorer | 6 层 | `../../../../../../html-report/assets/` |
+| `writer/plan.html` | spec-writer | 6 层 | `../../../../../../html-report/assets/` |
+| `tester/test-plan.html`、`tester/test-report.html` | spec-tester | 6 层 | `../../../../../../html-report/assets/` |
+| `executor/summary.html` | spec-executor | 6 层 | `../../../../../../html-report/assets/` |
+| `debugger/debug-001.html`、`debugger/debug-001-fix.html` | spec-debugger | 6 层 | `../../../../../../html-report/assets/` |
+| `reviewer/review.html`、`reviewer/update-001-review.html` | spec-reviewer | 6 层 | `../../../../../../html-report/assets/` |
+| `updater/update-001.html`、`updater/update-001-summary.html` | spec-update | 6 层 | `../../../../../../html-report/assets/` |
+| `ender/end-report.html` | spec-ender | 6 层 | `../../../../../../html-report/assets/` |
 
 账本可用 Markdown 或 HTML；记忆库**必须保持 Markdown**：
 
@@ -1063,7 +1066,7 @@ created: YYYY-MM-DD
 - **命名规范**：`YYYYMMDD-HHMM-属性-任务描述`（任务描述必须中文）
 - **属性管理**：明确 `feat` / `tech` / `debt` / `fix` 四类属性并平权管理，归属于所属版本目录
 - **关联可追溯**：报告末尾「关联产物」用相对路径 `<a href>` 链接上下游产物
-- **元数据完整**：报告头 `.rk-meta` 写全类型/Spec/角色/分支/创建日期/修订号；Markdown 文档保留完整 frontmatter
+- **元数据完整**：报告头 `.rk-meta` 写全类型/版本/属性/Spec/角色/分支/创建日期/修订号；Markdown 记忆保留完整 frontmatter
 
 ### 4. 质量把关
 
@@ -1178,6 +1181,15 @@ created: YYYY-MM-DD
 ---
 
 ## 更新日志
+
+### v2.9.1 (2026-09-08) - 版本级三套模板闭环 + 旧项目升级策略与初始化规范对齐
+
+**核心改进与补丁**：
+
+1. **版本级 HTML 报告模板闭环**：`html-report/templates/` 补齐发版交付报告（`release-report-template.html`，5 层深度）与版本归档复盘报告（`version-end-report-template.html`，3 层深度），与规划大盘（`version-plan-template.html`，3 层）共同构成版本生命周期的完整三报告模板集。
+2. **规范与初始化对齐**：`spec-init` 初始化产物树与验收清单同步补充 `version-workflow.md`，使目标项目初始化规则完整包含 6 个核心 rules。
+3. **旧项目升级策略明确**：在 `.agents/rules/version-workflow.md` 中确立唯一标准升级策略——历史 `spec/01-xx` ~ `spec/06-已归档/` 保持原样作为只读历史资产，其 4 层 assets 路径与物理位置匹配且严禁改写；新需求直接运行 `/version-start` 建立新版本进入三级架构。
+4. **框架发版豁免**：明确 `git-work` 发版约束中「纯文档不打新 tag」适用于业务代码仓库，R&K Flow 作为工作流框架产品在此类协议与模板升级时正常发版。
 
 ### v2.9.0 (2026-09-08) - 项目→版本→需求三级架构 + 需求性质平权 + Version 生命周期闭环
 

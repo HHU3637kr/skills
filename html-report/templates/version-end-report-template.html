@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>版本归档复盘报告 - {version}</title>
+
+<meta name="rk:title"          content="版本归档复盘报告：{version}">
+<meta name="rk:type"           content="version-end-report">
+<meta name="rk:version"        content="{version}">
+<meta name="rk:role"           content="TeamLead">
+<meta name="rk:created"        content="YYYY-MM-DD">
+<meta name="rk:updated"        content="YYYY-MM-DD">
+<meta name="rk:revision"       content="1">
+<meta name="rk:base-branch"    content="master">
+<meta name="rk:tags"           content="version,end-report">
+
+<link rel="rk-ledger" href="version-context.md">
+<!-- 版本归档复盘报告落点为 spec/versions/<v>/end-report.html，回到项目根为 3 层深度 -->
+<link rel="stylesheet" href="../../../html-report/assets/rk-report.css">
+<script defer src="../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>版本归档复盘报告：{version}</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> version-end-report</span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>合并基准</b> <code>master</code></span>
+    <span><b>创建</b> {YYYY-MM-DD}</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">版本交付复盘结论</div>
+  <p>{一句话阐述该版本实际交付成果、关键亮点与交付周期}</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>{YYYY-MM-DD}</td><td>TeamLead</td><td>版本归档复盘报告建立</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 规划 vs 实际交付对比（四类属性）</h2>
+<table>
+  <thead><tr><th>分类</th><th>规划数</th><th>交付数</th><th>交付率</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>业务功能 (feat)</td><td>{N}</td><td>{M}</td><td>100%</td><td>按期交付</td></tr>
+    <tr><td>技术基建 (tech)</td><td>{N}</td><td>{M}</td><td>100%</td><td>AI底座能力稳固</td></tr>
+    <tr><td>技术债治理 (debt)</td><td>{N}</td><td>{M}</td><td>100%</td><td>重构与性能达标</td></tr>
+    <tr><td>缺陷修复 (fix)</td><td>{N}</td><td>{M}</td><td>100%</td><td>零遗留P0/P1缺陷</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 遗留缺陷与顺延需求</h2>
+<ul>
+  <li>顺延至下一版本特性：<code>{顺延清单或无}</code></li>
+  <li>观察中非关键缺陷：<code>{低优先级缺陷或无}</code></li>
+</ul>
+
+<h2>3. 经验沉淀与知识库增益</h2>
+<ul class="rk-links">
+  <li>经验反思记录：<a href="../../context/experience/xxx.md"><code>spec/context/experience/xxx.md</code></a></li>
+  <li>业务领域知识：<a href="../../context/knowledge/xxx.md"><code>spec/context/knowledge/xxx.md</code></a></li>
+</ul>
+
+<h2>4. 团队工程规范审查</h2>
+<div class="rk-cal ok">
+  <div class="t">规范审查结论</div>
+  <p>经各专职角色审查，<code>.agents/rules/</code> 与 <code>AGENTS.md</code> 均已保持最新，提测分支已按约定清理。</p>
+</div>
+
+</body>
+</html>

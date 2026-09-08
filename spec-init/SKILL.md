@@ -446,7 +446,8 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 │   │   ├── project-preferences.md   # 项目偏好/产品体验/前端风格
 │   │   ├── spec-workflow.md         # Spec 工作流规范
 │   │   ├── documentation.md         # 文档规范
-│   │   └── git-workflow.md          # GitHub Flow 规范
+│   │   ├── git-workflow.md          # Git 分支与发版规范
+│   │   └── version-workflow.md      # Version 版本生命周期规范
 │   ├── roles/                       # CLI 中立项目级角色定义
 │   │   ├── spec-explorer.md
 │   │   ├── spec-writer.md
@@ -554,14 +555,14 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 初始化完成后确认：
 1. Git 仓库状态已检查；如用户确认，已完成 `git init` + `main` 分支初始化
 2. AGENTS.md 已创建（项目身份 + 入口清单 + 路由）
-3. .agents/rules/ 已创建（编码规范 + 项目偏好 + Spec 工作流 + 文档规范 + GitHub Flow）
+3. .agents/rules/ 已创建（编码规范 + 项目偏好 + Spec 工作流 + 文档规范 + Git 工作流 + Version 工作流）
 4. .agents/skills/ 已安装或引导安装
 5. .agents/roles/ 已创建（7 个项目级角色定义）
 6. 运行时适配已按 `<runtime>` 只创建一套：
    - omp    → `.omp/agents/`（OMP 只发现 .omp/agents，跳过 .claude/.codex）
    - claude → `.claude/agents/`
    - codex  → `.codex/agents/`（+ `.codex/config.toml` 的 `[agents]`）
-7. spec/ 目录结构已创建（6 个分类目录 + context/；单个 Spec 内由 spec-start 创建角色子目录）
+7. spec/ 目录结构已创建（versions/ + context/；单个 Spec 内由 spec-start 在所属版本内创建角色子目录）
 8. 经验/知识索引文件已创建
 9. HTML 报告资产已就位（`.agents/skills/html-report/assets/`，或项目根 `html-report/assets/`）
 10. 已询问用户是否启动开发任务（spec-start）

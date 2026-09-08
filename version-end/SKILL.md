@@ -45,7 +45,7 @@ description: >
 
 ### 步骤 3：产出版本复盘报告 `end-report.html`
 
-在 `spec/versions/<version>/end-report.html` 产出最终版本收尾报告：
+在 `spec/versions/<version>/end-report.html` 产出最终版本收尾报告。必须遵循 `html-report` 规范，声明 `rk:type="version-end-report"`、`rk:version="<version>"`、`rk:role="TeamLead"`、`rk:base-branch="master"`，引用 assets 必须为 3 层相对路径（`../../../html-report/assets/`），并使用 [html-report/templates/version-end-report-template.html](../../html-report/templates/version-end-report-template.html) 骨架：
 - **版本达成结论**：最初目标 vs 最终交付对比。
 - **Spec 交付总览**：按 `feat` / `tech` / `debt` / `fix` 分类列出全部实际交付项、工期与责任人。
 - **未纳入/延期项去向**：明确列出哪些 Spec 移到了哪个后续版本（如延期到 `v1.7`）。

@@ -43,8 +43,20 @@ skills/
 │   └── references/
 │       └── project-agent-roles.md     # 7 个项目级角色中立定义 + OMP/Claude/Codex 适配（默认 omit tools）
 │
+├── version-start/                     # 每次启动新版本
+│   └── SKILL.md                       # 创建版本目录、规划大盘 plan.html、版本账本
+│
+├── version-update/                    # 版本在研周期内的范围调整
+│   └── SKILL.md                       # 增删调配入版 Spec、调整大盘状态
+│
+├── version-release/                   # 版本冻结提测与正式发版
+│   └── SKILL.md                       # 切 release/<v> 分支、全量回归、合入主干打 Tag、回流 dev
+│
+├── version-end/                       # 版本收尾与生命周期归档
+│   └── SKILL.md                       # 复盘对比、沉淀跨版本经验、清理临时分支、归档
+│
 ├── spec-start/                        # 每次启动新 Spec
-│   └── SKILL.md                       # 创建分支、角色目录、Team Context，启动阶段二
+│   └── SKILL.md                       # 在当前版本 specs/ 下创建分支、角色目录、Team Context
 │
 ├── spec-explore/                      # spec-explorer
 │   └── SKILL.md                       # 经验检索 + 代码探索 → explorer/exploration-report.html
@@ -96,6 +108,7 @@ skills/
 ├── html-report/                       # 报告 HTML 契约与共享资产
 │   ├── SKILL.md                       # 固定骨架、修订规范、组件、双向关联
 │   ├── assets/                        # rk-report.css（唯一样式源）+ rk-report.js（三视图）
+│   ├── templates/                     # 版本级报告模板（version-plan, release-report, version-end-report）
 │   └── example/                       # 已验证的完整报告范例
 ├── skill-creator/                     # Skill 创建/验证工具
 └── find-skills/                       # Skill 生态发现
@@ -119,6 +132,7 @@ skills/
 │   │   ├── coding-style.md
 │   │   ├── project-preferences.md
 │   │   ├── spec-workflow.md
+│   │   ├── version-workflow.md
 │   │   ├── documentation.md
 │   │   └── git-workflow.md
 │   ├── skills/
@@ -337,6 +351,10 @@ TeamLead → 下游角色：
 | `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
 | `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
 | `loop-design` | `intent-confirmation`, `spec-start`（修复循环预算）, `skill-creator` | 用户在需要设计循环时调用 |
+| `version-start` | `html-report`, `git-work` | TeamLead / 用户启动新版本 |
+| `version-update` | `html-report` | TeamLead / 用户调整版本范围 |
+| `version-release` | `git-work`, `html-report`, `version-update` | TeamLead / 用户提测与正式发版 |
+| `version-end` | `exp-reflect`, `git-work` | TeamLead / 用户版本归档复盘 |
 | `git-work` | Git CLI / dev + release 工作流 | `spec-start`, `spec-end`, `spec-update`, `version-release`, `version-end` |
 
 ---

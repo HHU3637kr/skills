@@ -90,7 +90,7 @@ base_branch: dev
 
 ### 步骤 4：生成版本规划报告 `plan.html`
 
-在 `spec/versions/<version>/plan.html` 生成版本规划大盘报告，遵循 `html-report` 规范，声明 `rk:version`、`rk:type="version-plan"`，展示版本大盘。
+在 `spec/versions/<version>/plan.html` 生成版本规划大盘报告。必须使用 [html-report/templates/version-plan-template.html](../../html-report/templates/version-plan-template.html) 骨架，遵循 `html-report` 规范，声明 `rk:version="<version>"`、`rk:type="version-plan"`、`rk:role="TeamLead"`、`rk:base-branch="dev"`，引用 assets 必须为 3 层相对路径（`../../../html-report/assets/`），展示版本大盘。
 
 ### 步骤 5：Git 提交初始版本规划
 

@@ -50,7 +50,7 @@ description: >
 
 1. **执行全量回归测试**：在 `release/<version>` 分支上执行全量测试套件与端到端业务流验证，获取新鲜测试输出。
 2. **生成发版交付报告 `release-report.html`**：
-   创建 `spec/versions/<version>/releases/<tag>/release-report.html`，遵循 `html-report` 规范（声明 `rk:version`、`rk:type="release-report"`、引用 `assets` 为 5 层相对路径 `../../../../../html-report/assets/`），必须包含：
+   创建 `spec/versions/<version>/releases/<tag>/release-report.html`，使用 [html-report/templates/release-report-template.html](../../html-report/templates/release-report-template.html) 骨架，遵循 `html-report` 规范（声明 `rk:version`、`rk:type="release-report"`、引用 `assets` 为 5 层相对路径 `../../../../../html-report/assets/`），必须包含：
    - 实际纳入的 Spec 列表（含各 Spec 路径与 PR/MR 链接）
    - 全量回归测试命令、退出码与证据日志位置
    - 候选提交 SHA 与构建镜像/产物摘要

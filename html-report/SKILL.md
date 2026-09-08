@@ -58,7 +58,7 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
      1) Spec 级报告必填：rk:type, rk:version, rk:category, rk:spec-dir, rk:role, rk:mode, rk:git-branch, rk:base-branch, rk:pr-url
      2) Version 级报告必填：rk:type, rk:version, rk:role, rk:created, rk:updated, rk:revision, rk:base-branch（豁免 spec-dir 与 category）
      导航树、检索与工具化处理靠这些 meta 读取，等同于原 YAML frontmatter。 -->
-<meta name="rk:type"        content="{version-plan|release-report|plan|test-plan|test-report|summary|debug|debug-fix|review|update|update-summary|exploration-report|end-report}">
+<meta name="rk:type"        content="{version-plan|release-report|version-end-report|plan|test-plan|test-report|summary|debug|debug-fix|review|update|update-summary|exploration-report|end-report}">
 <meta name="rk:version"     content="{vX.Y，所属版本号}">
 <meta name="rk:category"    content="{feat|tech|debt|fix；Spec 级必填，Version 级豁免}">
 <meta name="rk:spec-dir"    content="{spec/versions/<v>/specs/<spec-dir>；Spec 级必填，Version 级豁免}">

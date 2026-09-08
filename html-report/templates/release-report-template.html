@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>发版交付报告 - {tag}</title>
+
+<meta name="rk:title"          content="发版交付报告：{tag}">
+<meta name="rk:type"           content="release-report">
+<meta name="rk:version"        content="{version}">
+<meta name="rk:role"           content="TeamLead">
+<meta name="rk:created"        content="YYYY-MM-DD">
+<meta name="rk:updated"        content="YYYY-MM-DD">
+<meta name="rk:revision"       content="1">
+<meta name="rk:base-branch"    content="release/{version}">
+<meta name="rk:tags"           content="version,release">
+
+<link rel="rk-ledger" href="../../version-context.md">
+<!-- 发版交付报告落点为 spec/versions/<v>/releases/<tag>/release-report.html，回到项目根为 5 层深度 -->
+<link rel="stylesheet" href="../../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>发版交付报告：{tag}</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> release-report</span>
+    <span><b>版本</b> <code>{version}</code></span>
+    <span><b>发版标签</b> <code>{tag}</code></span>
+    <span><b>提测基线</b> <code>release/{version}</code></span>
+    <span><b>创建</b> {YYYY-MM-DD}</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">发版结论</div>
+  <p>{一句话阐明版本验收结论、构建镜像标签与生产发布状态}</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>{YYYY-MM-DD}</td><td>TeamLead</td><td>正式发版交付报告创建</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 纳入的 Spec 清单与交付度</h2>
+<table>
+  <thead><tr><th>分类</th><th>Spec 目录</th><th>责任人</th><th>PR/MR 状态</th><th>验收结果</th></tr></thead>
+  <tbody>
+    <tr><td>feat</td><td><code>spec/versions/{version}/specs/{spec-dir}</code></td><td>-</td><td>已合并</td><td>通过</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 全量回归测试与质量证据</h2>
+<div class="rk-cal key">
+  <div class="t">全量测试命令与退出码</div>
+  <p>执行命令：<code>{测试命令}</code><br>测试结果：全部通过（退出码 0），测试日志见 <code>{日志路径或 artifacts 目录}</code></p>
+</div>
+
+<h2>3. 构建产物与部署镜像</h2>
+<table>
+  <thead><tr><th>服务/组件</th><th>构建提交 SHA</th><th>镜像标签 (IMAGE_TAG)</th><th>制品校验</th></tr></thead>
+  <tbody>
+    <tr><td>主服务</td><td><code>{commit-sha}</code></td><td><code>{tag}</code></td><td>一致</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 变更说明与数据迁移</h2>
+<ul>
+  <li>新增环境变量配置项：<code>{新增项或无}</code></li>
+  <li>数据库变更迁移（Alembic / Flyway 等）：<code>{迁移脚本或无}</code></li>
+  <li>生产回滚预案：<code>{回滚步骤说明}</code></li>
+</ul>
+
+</body>
+</html>
