@@ -182,16 +182,62 @@ body {
 
 .rk-note > :last-child { margin-bottom: 0; }
 
-/* 已被 Agent 处理：降饱和 + 打勾，人一眼看出哪条已闭环 */
+/* 图 1 同款：已闭环决策 Callout 块（紫色科技边框 + 双标签 + 完整批注原文与解决说明） */
 .rk-note.is-done {
-  border-color: var(--line-soft);
-  border-left-color: var(--fg-faint);
-  background: var(--bg-soft);
-  color: var(--fg-dim);
+  position: relative;
+  border: 1px solid #7c3aed;
+  border-left: 4px solid #a855f7;
+  border-radius: 6px;
+  background: rgba(124, 58, 237, 0.07);
+  padding: 14px 18px;
+  margin: 20px 0;
+  color: var(--fg);
 }
-
-.rk-note.is-done::before { content: "批注 已处理"; color: var(--fg-faint); }
-
+.rk-note.is-done::before {
+  display: none; /* 采用内部自包含标签栏，废弃简陋伪元素 */
+}
+.rk-note-badge-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.rk-note-badge-main {
+  background: #a855f7;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+.rk-note-badge-status {
+  background: rgba(255, 255, 255, 0.08);
+  color: #c084fc;
+  font-size: 11px;
+  font-family: var(--mono);
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
+.rk-note-quote-box {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #d1d5db;
+  font-style: italic;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  border-left: 2px solid #a855f7;
+}
+.rk-note-body {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--fg);
+}
+.rk-note-body b {
+  color: #e9d5ff;
+}
 /* 行内批注：附在任意元素上，用于「这一句不对」这种细粒度意见 */
 [data-rk-note] {
   border-bottom: 2px dotted #fb923c;
@@ -207,6 +253,452 @@ body {
   font-weight: 700;
 }
 
+/* ---------- 飞书式现代外挂评审批注系统 ---------- */
+
+/* 划词微型悬浮药丸按钮 */
+.rk-anno-tip-btn {
+  position: absolute;
+  z-index: 9999;
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+  transition: transform .12s, background .12s;
+}
+.rk-anno-tip-btn:hover { background: #c2410c; transform: scale(1.06); }
+/* 正文划词轻量标注高亮（严格遵循 R&K 自身变量规范） */
+::highlight(rk-anno) {
+  background-color: rgba(251, 146, 60, 0.22);
+  text-decoration: underline wavy #ea580c 1.5px;
+}
+::highlight(rk-anno-locate) {
+  background-color: rgba(234, 88, 12, 0.35);
+  text-decoration: underline wavy #ea580c 2px;
+}
+
+/* 右侧批注外挂容器（严格遵循 R&K 暖灰/深色主题 CSS 变量） */
+.rk-anno-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  background: var(--bg-soft);
+  border-left: 1px solid var(--line);
+  box-shadow: -8px 0 24px rgba(0,0,0,.25);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rk-anno-drawer.is-open { transform: translateX(0); }
+@media (min-width: 1440px) {
+  /* 宽屏：评论是正文右侧 gutter，不是覆盖页面的全高抽屉 */
+  body.has-anno-gutter { padding-right: 390px; }
+  body.has-anno-gutter .rk-anno-drawer {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: auto;
+    width: 360px;
+    min-height: 100%;
+    background: transparent;
+    border-left: 0;
+    box-shadow: none;
+    transform: none;
+  }
+  body.has-anno-gutter .rk-anno-drawer-head,
+  body.has-anno-gutter .rk-anno-drawer-foot,
+  body.has-anno-gutter .rk-anno-toggle-pill { display: none !important; }
+  body.has-anno-gutter .rk-anno-composer {
+    display: none;
+    margin: 12px 0;
+  }
+  body.has-anno-gutter .rk-anno-drawer-body {
+    position: relative;
+    overflow: visible;
+    padding: 0 14px;
+    display: block;
+  }
+  body.has-anno-gutter .rk-anno-cards-container {
+    position: relative;
+    min-height: 100vh;
+  }
+  body.has-anno-gutter .rk-anno-card {
+    margin: 0;
+  }
+}
+
+.rk-anno-drawer-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+}
+.rk-anno-drawer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.rk-anno-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--fg-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+}
+.rk-anno-drawer-close:hover { color: var(--fg); }
+
+/* 抽屉内卡片滚动区 */
+.rk-anno-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 新增输入区（顶部常驻或选词触发） */
+.rk-anno-composer {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+}
+.rk-anno-composer-quote {
+  font-size: 12px;
+  color: var(--fg-dim);
+  border-left: 2px solid #fb923c;
+  padding-left: 8px;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  max-height: 48px;
+  overflow: hidden;
+}
+.rk-anno-composer-input {
+  width: 100%;
+  height: 64px;
+  background: transparent;
+  border: none;
+  color: var(--fg);
+  font-size: 13px;
+  font-family: inherit;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+.rk-anno-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+.rk-anno-composer-submit {
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.rk-anno-card {
+  transition: opacity .16s, box-shadow .16s, transform .16s;
+}
+.rk-anno-card:not(.is-active) .rk-anno-card-content {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rk-anno-card.is-active {
+  z-index: 2;
+  box-shadow: 0 4px 16px rgba(0,0,0,.22);
+}
+.rk-anno-card:not(.is-active) .rk-anno-reply-form {
+  display: none !important;
+}
+.rk-anno-btn-sm {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.rk-anno-reply-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--fg-faint);
+  font-size: 11px;
+}
+.rk-anno-reply-input {
+  min-height: 88px;
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 9px 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  line-height: 1.5;
+}
+.rk-anno-btn-sm:hover {
+  color: var(--fg);
+  border-color: var(--fg-dim);
+}
+/* 单条批注卡片（对齐截图 1/2/3 交互结构，严格保持 R&K 暖灰工程质感） */
+.rk-anno-card {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  transition: border-color .15s, box-shadow .15s;
+}
+.rk-anno-card:hover {
+  border-color: var(--line-strong, #ea580c);
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+.rk-anno-card.is-resolved {
+  opacity: .55;
+  background: var(--bg-faint);
+  border-color: var(--line);
+}
+
+/* 1. 卡片顶部条：被引用文本截取 + 右侧快捷功能（定位/复制链接/更多菜单） */
+.rk-anno-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.rk-anno-card-quote-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 2px 10px;
+  font-size: 11.5px;
+  color: var(--fg-muted);
+  max-width: 220px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.rk-anno-card-quote-pill:hover {
+  color: #ea580c;
+  border-color: #ea580c;
+}
+.rk-anno-card-quote-pill-bar {
+  display: inline-block;
+  width: 2px;
+  height: 10px;
+  background: #ea580c;
+  border-radius: 1px;
+}
+
+.rk-anno-card-top-tools {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.rk-anno-icon-btn {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+}
+.rk-anno-icon-btn:hover {
+  background: var(--bg-soft);
+  color: var(--fg);
+}
+
+/* 2. 用户信息与发表时间行 */
+.rk-anno-user-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.rk-anno-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #ea580c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rk-anno-username {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--fg);
+}
+.rk-anno-time {
+  font-size: 11px;
+  color: var(--fg-faint);
+}
+
+/* 3. 评论意见主体 */
+.rk-anno-card-content {
+  color: var(--fg);
+  line-height: 1.55;
+  font-size: 13px;
+  margin: 6px 0 10px;
+  word-break: break-word;
+}
+
+/* 4. 底部回复框（对齐截图 1/2 的回复框交互） */
+.rk-anno-reply-box {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--fg-faint);
+  cursor: pointer;
+}
+.rk-anno-reply-box:hover {
+  border-color: var(--line-strong, #ea580c);
+  color: var(--fg-muted);
+}
+
+/* 5. 飞书实拍图 2 同款下拉菜单（编辑/删除/复制） */
+.rk-anno-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  z-index: 10001;
+  min-width: 100px;
+  padding: 4px 0;
+  display: none;
+}
+.rk-anno-dropdown-menu.is-show { display: block; }
+.rk-anno-dropdown-item {
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--fg);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rk-anno-dropdown-item:hover {
+  background: var(--bg-soft);
+  color: #ea580c;
+}
+.rk-anno-dropdown-item.is-danger:hover {
+  color: #ef4444;
+}
+/* 右侧批注列表的坐标容器；宽屏绝对定位时保持稳定高度 */
+.rk-anno-cards-container {
+  position: relative;
+  min-height: 0;
+}
+@media (min-width: 1440px) {
+  .rk-anno-cards-container { display: block; }
+}
+
+/* 批注抽屉底栏 */
+.rk-anno-drawer-foot {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+/* 宽屏锚点卡片的坐标容器；窄屏恢复正常流式抽屉 */
+.rk-anno-cards-container {
+  position: relative;
+  min-height: 0;
+}
+/* 绝对定位只在宽屏启用，避免破坏窄屏 flex 抽屉 */
+@media (min-width: 1440px) {
+  .rk-anno-cards-container {
+    display: block;
+  }
+}
+.rk-anno-batch-btn {
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+.rk-anno-batch-btn:hover { background: #c2410c; }
+
+/* 屏幕右侧浮动触发胶囊（收起时可见） */
+.rk-anno-toggle-pill {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 9998;
+  background: #ea580c;
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rk-anno-toggle-pill:hover { background: #c2410c; transform: scale(1.03); }
+
+.rk-anno-fixed-badge {
+  font-size: 11px;
+  color: var(--fg-faint);
+  padding: 2px 6px;
+  font-family: var(--mono);
+}
 /* ---------- 正文 ---------- */
 
 h2 {

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>交互式批注体验 Demo - R&K Flow</title>
+<meta name="rk:spec-dir" content="spec/versions/v2.9.1/specs/20260909-1500-feat-用户认证改造">
+<meta name="rk:role" content="spec-writer">
+<link rel="stylesheet" href="assets/rk-report.css">
+<script defer src="assets/rk-report.js"></script>
+</head>
+<body class="rk-demo">
+
+<div class="demo-tip-banner">
+  <b>💡 飞书级评审批注体验指南：</b>
+  <ol>
+    <li><b>划词添加</b>：鼠标选区正文文本，点击浮现的 <b>[💬 批注]</b>，右侧侧边栏自动聚焦，输入后敲 <code>Ctrl + Enter</code> 保存；</li>
+    <li><b>飞书式正文定位</b>：点击批注卡片上的 <b>[🔍 定位]</b>，正文自动平滑滚动至对应段落并产生呼吸泛光高亮；</li>
+    <li><b>二次修改与删除</b>：点击草稿卡片上的 <b>[✏️ 修改]</b> 可原位编辑，点击 <b>[删除]</b> 可移除草稿；已闭环固化项受权威保护；</li>
+    <li><b>精准复制给 Agent</b>：点击底栏 <b>[📋 仅复制未处理批注]</b>，一键拷走带定位符的 Markdown 交给 Agent 执行闭环。</li>
+  </ol>
+</div>
+
+<header class="rk-head">
+  <h1>用户认证与网关改造 · 实现计划</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.9.1</code></span>
+    <span><b>属性</b> <code>feat</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.9.1/specs/20260909-1500-feat-用户认证改造</code></span>
+    <span><b>角色</b> spec-writer</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">架构目标</div>
+  <p>完成从单体内存会话向分布式 JWT + Redis 方案的平滑演进，支持 5000+ 并发登录与无感刷新。</p>
+</section>
+
+<h2 id="s1-background">1. 现状背景与痛点</h2>
+<p id="p-arch-curr">当前系统的会话状态<del class="rk-del" data-rev="2">存放在单体服务的内存中</del><ins class="rk-ins" data-rev="2">已全面接入分布式 Redis 哨兵集群</ins>。当多节点水平扩容或容器滚动重启时，用户的登录态保持平滑粘性，彻底消除突发 401 重定向。</p>
+
+<!-- 规范的 Agent 回填闭环标记（DOM 权威源，包含结构化元数据） -->
+<!-- 图 1 完美还原：已闭环决策 Callout（紫色科技卡片，内含完整批注原文与采纳决策） -->
+<div class="rk-note is-done" data-note-id="NOTE-01" data-rk-heading="1. 现状背景与痛点" data-rk-quote="当前系统的会话状态存放在单体服务的内存中。">
+  <div class="rk-note-badge-bar">
+    <span class="rk-note-badge-main">用户批注</span>
+    <span class="rk-note-badge-status">NOTE-01 · 已决策</span>
+  </div>
+  <div class="rk-note-quote-box">
+    「当前系统的会话状态存放在单体服务的内存中。当多节点水平扩容或容器滚动重启时，用户的登录态会直接失效，严重影响生产用户体验，必须引入分布式会话架构。」
+  </div>
+  <div class="rk-note-body">
+    <b>采纳：全面接入分布式 Redis 哨兵集群。</b><br>
+    重构会话持久化字典，由单机内存模型平滑演进为具备高可用故障转移能力的 Redis 哨兵集群，彻底消除重启导致的 401 报错，详见 §2 架构拓扑。
+  </div>
+</div>
+<div class="rk-note is-done" data-note-id="NOTE-02" data-rk-heading="2. 核心架构设计方案" data-rk-quote="新方案计划采用双 Token 机制：前端持有 AccessToken（有效期 15 分钟）与 RefreshToken（有效期 7 天）。">
+  <div class="rk-note-badge-bar">
+    <span class="rk-note-badge-main">用户批注</span>
+    <span class="rk-note-badge-status">NOTE-02 · 已决策</span>
+  </div>
+  <div class="rk-note-quote-box">
+    「双 Token 机制缺少被动作废手段，若 RefreshToken 发生泄露无法及时拦截，需要补充轮换机制与服务端吊销黑名单。」
+  </div>
+  <div class="rk-note-body">
+    <b>采纳：补充 RefreshToken 轮换与吊销策略。</b><br>
+    每次刷新 Token 时签发全新 RefreshToken 并废除旧 Token，并在网关引入短黑名单缓存，详见下方潜在风险提示。
+  </div>
+</div>
+<h2 id="s2-design">2. 核心架构设计方案</h2>
+<p id="p-token-flow">新方案计划采用双 Token 机制：前端持有 AccessToken（有效期 15 分钟）与 RefreshToken（有效期 7 天）。API 网关层仅做无状态公钥验签，不访问任何外部缓存，保证极高吞吐。</p>
+
+<div class="rk-cal warn" id="cal-redis-risk">
+  <div class="t">潜在风险提示</div>
+  <p>当用户在安全设置中点击「强制登出所有设备」时，由于 AccessToken 无法被主动作废，必须依赖黑名单机制或等待其自然过期。</p>
+</div>
+
+<h2 id="s3-steps">3. 阶段实施计划</h2>
+<table id="tbl-steps">
+  <thead>
+    <tr><th>阶段</th><th>任务描述</th><th>工期</th><th>验收标准</th></tr>
+  </thead>
+  <tbody>
+    <tr id="row-phase-1">
+      <td>阶段 1</td>
+      <td>搭建 Redis 哨兵集群并定义 Token 黑名单缓存结构</td>
+      <td>2天</td>
+      <td>压测 10000 QPS 延迟小于 2ms</td>
+    </tr>
+    <tr id="row-phase-2">
+      <td>阶段 2</td>
+      <td>网关层集成 RSA256 公钥本地验签逻辑</td>
+      <td>3天</td>
+      <td>单元测试覆盖率 90% 以上</td>
+    </tr>
+    <tr id="row-phase-3">
+      <td>阶段 3</td>
+      <td>超时重试机制固定为 3 次，每次重试固定等待 500ms</td>
+      <td>1天</td>
+      <td>网络断连时平滑重试</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

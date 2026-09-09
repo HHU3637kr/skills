@@ -360,18 +360,28 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 ## 用户批注（人写，Agent 读）
 
 用户可以直接在报告 HTML 里写批注，表达评审意见。这是**人写给 Agent** 的通道，与 Agent 自己的 `rk-cal` 区分开（橙色虚线框 + 「批注」角标）。
-
 ```html
-<!-- 块级批注：整段意见 -->
+<!-- 块级未处理批注：人写，整段意见 -->
 <div class="rk-note">这个方案没考虑离线场景，补一下。</div>
 
-<!-- 处理完标记 is-done：降饱和，人一眼看出哪条已闭环 -->
-<div class="rk-note is-done">这个方案没考虑离线场景，补一下。</div>
+<!-- 处理完成闭环 Callout：Agent 重写时插入，必须完整保留用户原文与决策 -->
+<div class="rk-note is-done" data-note-id="NOTE-01" data-rk-heading="2. 核心方案" data-rk-quote="方案未考虑离线场景">
+  <div class="rk-note-badge-bar">
+    <span class="rk-note-badge-main">用户批注</span>
+    <span class="rk-note-badge-status">NOTE-01 · 已决策</span>
+  </div>
+  <div class="rk-note-quote-box">
+    「这个方案没考虑离线场景，补一下。」
+  </div>
+  <div class="rk-note-body">
+    <b>采纳：补充离线持久化与断网重试队列。</b><br>
+    引入 IndexedDB 本地暂存机制，并在网络恢复时触发批量补发，详见 §2.3 异常流。
+  </div>
+</div>
 
 <!-- 行内批注：附在任意元素上，用于细粒度意见 -->
 <td data-rk-note="这里的退出码应该是 1">exit 0</td>
 ```
-
 **Agent 侧义务**（详见 `.agents/rules/spec-workflow.md`「报告批注」）：接手报告前必须全文搜 `rk-note`，把每条登记进账本「问题闭环记录」（分类 `review`，状态 `pending`）。漏读批注等同于漏读用户指令。
 
 批注是短期沟通载体，Agent 重写报告时会被覆盖，不需要长期保留——但账本里的登记必须留下。所以批注**不受修订规范约束**，写批注不必加 `data-rev`。
