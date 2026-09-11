@@ -297,11 +297,11 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 禁止 Agent 在测试结束后手工编辑 `audit.log`、`console.log`、`browser-console.ndjson`、`network-summary.json`、`backend.log`、`traces/` 或 `recordings/` 来“补齐证据”。
 - 如果某类证据无法自动采集，在 `tester/test-report.html` 记录缺失原因和风险；不要用手写内容替代真实证据。
 
-### 步骤 3：发现 Bug 时的处理
+### 步骤 3：发现 Bug 时的处理（同步创建 AWR Open-Loop）
 
 **重要**：不直接修复，向 TeamLead 提交 bug handoff。
 
-先更新当前 Spec 的 `lead/team-context.md` 共享区：
+先更新当前 Spec 的 `lead/team-context.md` 共享区与 AWR 任务队列：
 - 在「问题闭环记录」中追加或更新该问题行
 - 「分类」一般为 `bug`；若是测试环境/依赖问题而非产品缺陷，用 `env` / `dependency`
 - 「发现者」 写 `spec-tester`
@@ -309,8 +309,11 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - `problem` 简述现象，「关联产物」 引用测试证据路径或即将创建的 debug 文档
 - 「状态」标记为 `open`
 - 「更新者」 写 `spec-tester`
+- 向 AWR 提交检查点并登记 open-loop 阻塞项：
+  ```bash
+  awr checkpoint "spec-tester: 发现用例失败 [TC-XXX]，已登记 open-loop 并交接 spec-debugger"
+  ```
 - 只修改「问题闭环记录」，不要修改 TeamLead 控制面区块
-
 ```text
 通知 TeamLead：
 - 现象：[错误描述]
@@ -534,6 +537,10 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
+- 向 AWR 提交测试完成检查点：
+  ```bash
+  awr checkpoint "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html"
+  ```
 - 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 

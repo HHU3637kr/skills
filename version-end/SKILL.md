@@ -87,10 +87,17 @@ git push origin --delete release/<version>
 ```
 
 若使用了针对该版本的专用 worktree，执行清理：
+
 ```bash
 git worktree remove .worktrees/<version> --force
 ```
 
-### 步骤 7：收尾通报
+### 步骤 7：向 AWR 提交版本归档检查点
+
+```bash
+awr checkpoint "version-end: 版本 <version> 已完成交付复盘与收尾归档，状态更新为已归档"
+```
+
+### 步骤 8：收尾通报
 
 通知 TeamLead 与团队：`<version>` 版本已完整交付并完成原位归档，项目基线已更新，临时分支已清理。

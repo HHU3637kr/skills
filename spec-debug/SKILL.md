@@ -220,7 +220,10 @@ spec-tester 发现 bug
 - 「状态」标记为 `fixed_pending_verification`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-debugger`
 - 只修改「任务进度」/「问题闭环记录」/「决策记录」/「修复循环预算」，不要修改 TeamLead 其他控制面区块
-
+- 向 AWR 提交修复轮次检查点：
+  ```bash
+  awr checkpoint "spec-debugger: 完成第 {rounds_used} 轮修复，产出 debug-xxx-fix.html，等待 tester 复验"
+  ```
 如果预算未触上限：
 
 ```text

@@ -40,14 +40,16 @@ description: >
 
 ## 工作流程
 
-### 步骤 1：接收任务
+### 步骤 1：接收任务并获取 AWR 聚焦上下文
 
-从 TeamLead 的启动指令中获取：
-- 当前任务描述
-- 需要探索的范围（项目代码、外部库、文档等）
-- 当前 Spec 目录
-- `explorer/exploration-report.html` 的保存路径
+从 TeamLead 的启动指令中获取任务描述、范围与 Spec 目录。开工前先通过 AWR 编译聚焦上下文：
 
+```bash
+awr ready
+awr context compile --work <SPEC-ID>
+```
+
+从 AWR 编译输出中提取当前目标、已知约束、未完成事项与相关源文件指针；若 AWR 未就绪或报错，则按 `lead/team-context.md` 与项目落盘文档作为权威来源继续，不阻塞探索流程。
 ### 步骤 2：检索历史经验
 
 ```bash
@@ -184,12 +186,22 @@ description: >
 </html>
 ```
 
-### 步骤 6：向 TeamLead 提交探索完成通知
+### 步骤 6：更新运行账本与向 TeamLead 提交通知
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：
 - 在「任务进度」中追加或更新 spec-explorer 自己的任务行
 - 「状态」标记为 `done`
 - 「产物」指向 `explorer/exploration-report.html`
+
+### 步骤 7：沉淀 AWR 执行检查点（Checkpoint）
+
+更新账本后，向 AWR 提交本阶段检查点：
+
+```bash
+awr checkpoint "spec-explorer: 完成背景探索与可行性分析，产出 exploration-report.html"
+```
+
+记录探索阶段的关键发现、识别的风险项、下游 spec-writer 与 spec-tester 的输入指针。
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-explorer`
 - 探索中遇到的过程性问题（代码库缺关键信息、依赖不明、需求与现状冲突）在「问题闭环记录」记一行，「分类」选 `process` / `dependency` / `scope`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块

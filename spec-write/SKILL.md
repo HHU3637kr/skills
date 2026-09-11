@@ -85,7 +85,7 @@ description: >
 | 步骤 | 操作 | 要点 |
 |------|------|------|
 | 1 | 读取 `html-report` skill | **撰写报告前必读**：HTML 骨架、frontmatter 双轨等价字段、双向关联、修订标记规范 |
-| 2 | 读取 `explorer/exploration-report.html`（如有） | 了解背景、现状、历史经验 |
+| 2 | 获取 AWR 上下文与读取 `explorer/exploration-report.html` | 执行 `awr ready` 与 `awr context compile --work <SPEC-ID>` 取得聚焦上下文，结合探索报告了解背景、现状与依赖 |
 | 3 | 通过 TeamLead 与 spec-tester 讨论接口边界 | 确认异常处理、验收边界 |
 | 4 | 复核当前 Spec 属性归属 | 检查 category（feat/tech/debt/fix）是否准确，发现偏差通过 TeamLead 修正账本与目录前缀 |
 | 5 | 复核文件夹命名 | `YYYYMMDD-HHMM-属性-任务描述` |
@@ -149,6 +149,10 @@ description: >
 2. 把 plan 中的关键设计取舍写入「决策记录」：每个方案分叉记一行「议题」/「候选项」（含被否决项）/「结论」/「理由」，「拍板者」写 `spec-writer`（若该取舍由用户拍板则写 `user`）
 3. 若写方案时遇到过程性问题（依赖缺失、探索报告信息不足、接口边界未定等），在「问题闭环记录」追加一行，「分类」选 `dependency` / `process` / `scope`
 4. 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
+5. 向 AWR 提交设计完成检查点：
+   ```bash
+   awr checkpoint "spec-writer: plan.html 完成，已记录接口定义、数据结构、实现步骤与决策记录"
+   ```
 3. 等待 `writer/plan.html` 通过确认：`gated` 等用户确认，`autopilot` 以完备度闸门四项 + 自审四问的逐条结论落账本替代
 4. 通知 TeamLead，TeamLead 触发实现阶段（spec-execute）
 5. 如果是功能更新，使用 `spec-update` 执行

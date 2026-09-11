@@ -83,5 +83,10 @@ description: >
      git pull origin dev
      git add "spec/versions/<version>/version-context.md"
      git commit -m "docs(version): 更新 <version> 版本账本状态为已发布（<tag>）"
-     git push origin dev
-     ```
+    git push origin dev
+    ```
+
+6. **向 AWR 提交版本发布检查点**：
+   ```bash
+   awr checkpoint "version-release: 版本 <version> 已完成发布并打 Tag <tag>，状态更新为已发布"
+   ```

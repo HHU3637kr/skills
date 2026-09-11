@@ -408,9 +408,45 @@ cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
 
 项目实际层级不同就相应调整，务必保证 `file://` 直接打开报告时样式生效。
 格式边界：报告用 `.html`，`spec/context/experience|knowledge/*.md` 保持 Markdown，账本两种格式皆可。
+### 步骤 8：配置 AWR 运行时环境
 
-### 步骤 8：向用户确认初始化结果
+R&K Flow 采用 AWR 作为底层运行状态与上下文编译引擎。在此步骤建立 AWR 配置并验证：
 
+1. **检查 AWR CLI 可用性**：
+   ```bash
+   awr --version
+   ```
+   若未安装，提示用户通过 `npm install -g @originoneai/agent-work-runtime` 或 `python -m pip install agent-work-runtime` 安装，但不破坏已有 R&K 骨架。
+
+2. **创建 `.awrignore` 排除非业务源码与临时产物**：
+   ```text
+   # AWR 扫描排除规则
+   .system/
+   sop-*/
+   lark-*/
+   *.sqlite
+   *.sqlite-shm
+   *.sqlite-wal
+   *.log
+   **/audit-log.jsonl
+   **/artifacts/test-logs/
+   spec/06-已归档/
+   ```
+
+3. **初始化与映射校验**：
+   执行预览命令：
+   ```bash
+   awr --project . init --write-draft .awr-init-draft.json --json
+   ```
+   若提示敏感内容扫描拦截（`RuleViolation: sensitive content is not accepted`），先检查并把包含样例凭证/历史归档的目录写入 `.awrignore`，再重新生成草稿。
+   草稿确认无误后执行正式初始化（由用户明确同意后应用）：
+   ```bash
+   awr --project . init --from-draft .awr-init-draft.json --accept
+   awr --project . intake inspect
+   ```
+   确认来源权威文件（`AGENTS.md`、`.agents/rules/`、`spec/context/`）已被 AWR 建立索引。
+
+### 步骤 9：向用户确认初始化结果
 展示初始化摘要，并询问下一步：
 
 ```text

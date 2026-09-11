@@ -104,3 +104,6 @@ git commit -m "docs(version): 初始化 <version> 版本规划与运行账本"
 ### 步骤 6：确认与交接
 
 通知用户版本已建立，状态进入 `规划中`（或首个 Spec 启动时进入 `执行中`），后续可通过 `/spec-start` 在该版本下创建具体需求 Spec。
+## AWR 运行时接入
+
+Version 建立完成后，TeamLead 必须同步建立 AWR 运行视图：将 Version 目标映射为 AWR work group，将计划中的 Spec 映射为稳定的 `SPEC-<slug>` works，并登记 Spec 依赖。初始化前执行 `awr init`/`intake inspect`，确认映射后再接受；不得把 AWR SQLite 当作权威源。后续使用 `awr ready` 判断依赖是否满足，使用 `awr context compile --work <SPEC-ID>` 编译当前任务上下文。`ready` 不等于 R&K 门禁通过，Version 状态仍以 `version-context.md` 为准。详见 `.agents/rules/awr-integration.md`。

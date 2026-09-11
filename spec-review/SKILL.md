@@ -50,7 +50,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 | 完成度 | Spec 定义的功能是否全部实现（功能点、数据模型、API、测试） | ✅ 已完成 / ❌ 未完成 |
 | 一致性 | 实现是否与 Spec 设计一致（接口签名、数据结构、业务逻辑、命名） | ⚠️ 不符 |
 | 额外实现 | 是否有 Spec 未定义的额外功能、字段、参数 | ➕ 额外 |
-
+| AWR 状态一致性 | AWR Work 状态、checkpoint 记录是否与落盘报告和实际测试证据一致，有无遗留未关闭的 open-loop | 🔍 AWR 对齐 / ❌ 状态脱节 |
 ### 审查严格程度
 
 **严格模式（默认）**：所有功能必须实现、签名完全一致、不允许额外实现
@@ -95,8 +95,11 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - 「状态」根据审查结果标记为 `done` / `needs-fix`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-reviewer`
 - 若发现阻塞问题，在「问题闭环记录」中追加问题行，「分类」按性质选（`bug` / `scope` / `process` 等），「发现者」 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
+- 向 AWR 提交审查结论检查点：
+  ```bash
+  awr checkpoint "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html"
+  ```
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
-
 `gated` 模式的用户响应处理：
 
 | 响应 | 含义 | 后续操作 |

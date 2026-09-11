@@ -137,7 +137,10 @@ exp-reflect 会根据经验的重要性分流：
 
 用户选择"确认原位归档并创建 PR/MR"（`autopilot` 下为自门禁通过）：
 
-1. **原位归档更新**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
+1. **原位归档更新**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。同步向 AWR 提交最终检查点：
+   ```bash
+   awr checkpoint "spec-ender: Spec 原位归档完成，测试全绿，已创建 PR/MR，产出 end-report.html"
+   ```
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不等于远程默认分支（`git symbolic-ref refs/remotes/origin/HEAD` 读出，不要假定分支名）
    - 确认当前分支等于 `lead/team-context.md` 的 `git_branch`

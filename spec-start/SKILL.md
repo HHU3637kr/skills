@@ -324,6 +324,9 @@ TeamLead → 下游角色：查账本句柄 → 核对状态 → 能续接就发
 ```
 
 角色可以在产物中声明建议接收方，但不假设运行环境支持直接 Agent-to-Agent 通信。例如，`spec-tester` 发现 bug 时向 TeamLead 提交 bug handoff，由 TeamLead 启动或恢复 `spec-debugger`；`spec-debugger` 修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动或恢复 `spec-tester`。
+### AWR 上下文接管与任务接续
+
+Spec 启动或恢复时，TeamLead 必须先通过 AWR 获取运行视图：执行 `awr ready`，再执行 `awr context compile --work <SPEC-ID>`。Agent 读取编译上下文后，仍必须按来源指针读取 R&K 原始产物并校验门禁；AWR 不替代 `lead/team-context.md`、报告或用户确认。每次角色交接后写入 AWR checkpoint，内容包括完成动作、验证证据、未完成项、阻塞和下一步。HTML `rk-note` 必须登记为 AWR review/open-loop task，处理后关闭并保留 `data-note-id` 闭环。详见 `.agents/rules/awr-integration.md`。
 
 ### 步骤 6：启动阶段二（探索）
 

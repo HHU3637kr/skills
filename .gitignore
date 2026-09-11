@@ -43,4 +43,10 @@ lark-*/
 **/delivery-state.json
 **/runtime.json
 **/team-mailboxes/
+# AWR 本地索引与运行状态（Markdown/YAML/HTML 仍是权威源）
+.awr/runtime/
+.awr/*.sqlite
+.awr/*.sqlite-shm
+.awr/*.sqlite-wal
+.awr/*.log
 **/logs/runtime-events.jsonl

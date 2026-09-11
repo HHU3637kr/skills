@@ -28,7 +28,7 @@ description: >
 
 1. **主控不干活**：当前 Agent 是编排者。角色产物（`explorer/` `writer/` `tester/` `executor/` `debugger/` `reviewer/` `ender/` 下的一切）一律由对应子 Agent 产出。主控自己写就是本模式的失败。
 2. **`execution` 与 `mode` 正交**：`execution` 决定谁执行，`mode` 决定谁验证。四种组合全部合法，见下。
-3. **账本仍归 TeamLead**：`lead/team-context.md`（或 `.html`）与 `rk-manifest.js` 的维护职责一行不变，仍由主控独占。这不是例外，是 TeamLead 的固有职责。
+3. **账本与 AWR 控制面仍归 TeamLead**：`lead/team-context.md`（或 `.html`）、`rk-manifest.js` 与 AWR 的任务认领/检查点提交职责仍由主控独占维护。子 Agent 并发执行时禁止直接修改 AWR Work 状态，避免并发覆盖与状态漂移。
 4. **门禁必须代问**：子 Agent 没有 `ask` 工具（实测），无法触达用户。任何需要用户表态的节点都由主控代问。
 5. **流程不复制**：五阶段、四门禁、账本模板、修复循环预算的唯一真相源是 `spec-start`。本 Skill 不重述，只补充编排约束。
 
