@@ -1,0 +1,27 @@
+goals:
+  - id: rk-flow-core
+    title: R&K Flow 工作流与 Skills 体系建设
+    status: active
+    summary: 为团队和个人提供规范的 Spec 驱动式开发框架与 Agent 协作体系。
+    success_criteria:
+      - 核心 Skill 完整覆盖从 Version 到 Spec 全流程
+      - 集成 AWR 运行时以提供任务索引与上下文编译
+
+work_items:
+  - id: SKILL-AWR-001
+    title: 验证当前 skills 仓库 AWR 运行时与上下文编译
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - 执行 awr ready 能够成功识别本项就绪任务
+      - 执行 awr context compile 可以正确编译任务聚焦上下文
+    next_action: 已通过新鲜验证，准备提交代码与推进后续开发
+
+  - id: SKILL-AWR-002
+    title: 提交并推送 skills 仓库 AWR 集成与各 Skill 改造代码
+    status: ready
+    goal: rk-flow-core
+    acceptance:
+      - 将 AWR 接入规范、工作台账、配置与改造后的核心 Skill 提交到 master 分支
+      - 成功推送到远端 GitHub 仓库且不发版打 Tag
+    next_action: 执行 git commit 与 git push 并记录 AWR checkpoint

@@ -50,3 +50,12 @@ lark-*/
 .awr/*.sqlite-wal
 .awr/*.log
 **/logs/runtime-events.jsonl
+
+# AWR local runtime state
+.awr/state.db
+.awr/state.db-*
+.awr/artifacts/
+.awr/mutations/
+.awr/cache/
+.awr/clients/
+.awr/executions/

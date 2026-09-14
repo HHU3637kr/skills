@@ -1,0 +1,21 @@
+[project]
+name = "skills"
+authority_mode = "source_first"
+authorized_roots = []
+context_profile = "minimal"
+
+[[sources]]
+domain = "ledger"
+role = "primary"
+path = "spec/work-ledger.yaml"
+adapter = "yaml-ledger-v1"
+
+[sources.options]
+
+[[sources]]
+domain = "plan"
+role = "supporting"
+path = "AGENTS.md"
+adapter = "markdown-heading-v1"
+
+[sources.options]
