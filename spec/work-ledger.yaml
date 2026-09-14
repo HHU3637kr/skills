@@ -19,9 +19,9 @@ work_items:
 
   - id: SKILL-AWR-002
     title: 提交并推送 skills 仓库 AWR 集成与各 Skill 改造代码
-    status: ready
+    status: completed
     goal: rk-flow-core
     acceptance:
       - 将 AWR 接入规范、工作台账、配置与改造后的核心 Skill 提交到 master 分支
       - 成功推送到远端 GitHub 仓库且不发版打 Tag
-    next_action: 执行 git commit 与 git push 并记录 AWR checkpoint
+    next_action: 代码已成功合入 master 并推送远端，本阶段任务全部闭环
