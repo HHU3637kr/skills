@@ -78,13 +78,13 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 
 ## 工作流程
 
-1. **确认原 Spec 目录与 AWR 上下文**：找到目录，确认 `writer/plan.html` 和 `executor/summary.html` 都存在。执行 `awr ready` 与 `awr context compile --work <SPEC-ID>` 取得该 Spec 既有工作上下文与历史 checkpoint。若缺少 `executor/summary.html`，先用 spec-execute 完成原功能
+1. **确认原 Spec 目录与 AWR 上下文**：找到目录，确认 `writer/plan.html` 和 `executor/summary.html` 都存在。执行 `awr work prepare <SPEC-ID> --response-view summary` 取得该 Spec 既有工作上下文与历史 checkpoint。若缺少 `executor/summary.html`，先用 spec-execute 完成原功能
 2. **确定更新编号**：检查 `updater/` 下已有的 `update-*.html`，确定下一个编号；若 `updater/` 不存在则创建
 3. **确认当前 Spec 分支**：读取 `writer/plan.html` 头部 `.rk-meta` 的分支 / 基准分支 / PR 信息，调用 `/git-work` 的“复用 Spec 分支”模式，确认当前分支与 `git_branch` 一致
 4. **创建 updater/update-xxx.html**：参照 [references/update-template.html](references/update-template.html)，在 `updater/` 下创建；完整填写 `rk:*` meta 与 `rk-*` link，`.rk-meta` 镜像同样字段，并继承 `writer/plan.html` 的分支 / 基准分支 / PR 元信息
-5. **等待用户确认**：使用当前运行环境的确认方式（节点 1），确认后向 AWR 提交 `update` 检查点：
+5. **等待用户确认**：使用当前运行环境的确认方式（节点 1），确认后向 AWR 提交 `update` 会话检查点：
    ```bash
-   awr checkpoint "spec-update: update-xxx 方案确认，准备进入实现"
+   awr session checkpoint --session <SESSION-ID> --digest "spec-update: update-xxx 方案确认，准备进入实现" --next-action "spec-update: 按方案执行代码更新与单测" --expected-revision <REV>
    ```
 6. **检索历史经验**：调用 `/exp-search <关键词>`
 7. **创建任务清单**：根据 `updater/update-xxx.html` 的"实现步骤"章节创建
@@ -118,7 +118,7 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 5. 如有 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 并通过 amend + force-with-lease 并入同一次提交
 6. 更新 `lead/team-context.md` 的「任务进度」，必要时更新「问题闭环记录」和「决策记录」
 7. **不归档**，保留在原目录
-8. 向 AWR 提交更新完成检查点：
+8. 向 AWR 提交更新完成会话检查点：
    ```bash
-   awr checkpoint "spec-update: 完成 update-xxx 更新与验证，产出 updater/update-xxx-summary.html"
+   awr session checkpoint --session <SESSION-ID> --digest "spec-update: 完成 update-xxx 更新与验证，产出 updater/update-xxx-summary.html" --next-action "待用户确认或合流" --expected-revision <REV>
    ```

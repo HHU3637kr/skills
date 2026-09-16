@@ -95,9 +95,9 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - 「状态」根据审查结果标记为 `done` / `needs-fix`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-reviewer`
 - 若发现阻塞问题，在「问题闭环记录」中追加问题行，「分类」按性质选（`bug` / `scope` / `process` 等），「发现者」 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
-- 向 AWR 提交审查结论检查点：
+- 向 AWR 提交审查结论会话检查点：
   ```bash
-  awr checkpoint "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html"
+  awr session checkpoint --session <SESSION-ID> --digest "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html" --next-action "spec-ender: 进行收尾复盘与原位归档" --expected-revision <REV>
   ```
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 `gated` 模式的用户响应处理：

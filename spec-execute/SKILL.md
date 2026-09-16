@@ -21,9 +21,8 @@ description: >
 > 进入核心原则前先对齐这张表。它把本 Skill 当成一个有边界的循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还给人。
 
 | 项 | 本 Skill 的约定 |
-|----|----------------|
-| 输入 | 已确认的 `writer/plan.html`、AWR 编译上下文（`awr ready` + `awr context compile`）、`exp-search` 检索结果、TeamLead 提供的 Git 元数据 |
-| 权限 | 按 plan 实现代码 + 写该代码的单元/聚焦测试 + 写 `executor/summary.html` 与 `executor/artifacts/` + 提交 AWR checkpoint；不写集成/端到端测试、不出最终测试结论、不修已交付功能的 bug、不归档、不提交或推送 |
+| 输入 | 已确认的 `writer/plan.html`、AWR 准备上下文（`awr work prepare <SPEC-ID> --response-view summary`）、`exp-search` 检索结果、TeamLead 提供的 Git 元数据 |
+| 权限 | 按 plan 实现代码 + 写该代码的单元/聚焦测试 + 写 `executor/summary.html` 与 `executor/artifacts/` + 提交 AWR 会话检查点；不写集成/端到端测试、不出最终测试结论、不修已交付功能的 bug、不归档、不提交或推送 |
 | 验证 | 只实现 plan 中明确定义的功能，使用 plan 的类名/方法名/数据结构，代码注释引用 plan 章节。**每个实现单元必须先有失败的测试**；声明完成前必须在当前工作树上跑一次测试并观察输出，证据落 `executor/artifacts/` |
 | 停止 | plan 定义的实现步骤全部完成、测试全绿、且 summary 通过确认即停止，不"优化"、不加 plan 未定义的功能 |
 | 升级 | plan 不完整（缺接口签名/数据结构/文件清单/验证命令任一项）、前置阶段未完成、或实现中发现 plan 设计有误时，停止实现并交回 TeamLead 由用户决策 |
@@ -59,9 +58,9 @@ bug 修复仍由 spec-debugger 负责。
 
 1. 执行 AWR 检查以确认前置依赖与任务可用性：
    ```bash
-   awr ready
-   awr context compile --work <SPEC-ID>
+   awr work prepare <SPEC-ID> --response-view summary
    ```
+   从准备输出中核查验收标准、依赖与变更；若超预算可追加 `--budget <N>`。
 2. 使用 `Read` 工具读取 `writer/plan.html`
 3. 理解目标、范围、设计方案、数据模型、接口定义
 4. 记录 Spec 所在目录（用于创建 `executor/summary.html` 和后续交接）
@@ -116,9 +115,9 @@ bug 修复仍由 spec-debugger 负责。
 - 实现期遇到的过程性问题（环境不一致、依赖缺失、脚本报错、plan 与现状冲突）在「问题闭环记录」记一行，「分类」选 `env` / `dependency` / `process` / `scope`
 - 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
-- 向 AWR 提交实现阶段检查点，绑定本轮新鲜验证证据：
+- 向 AWR 提交实现阶段会话检查点，绑定本轮新鲜验证证据：
   ```bash
-  awr checkpoint "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/"
+  awr session checkpoint --session <SESSION-ID> --digest "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/" --next-action "spec-tester: 执行集成测试并产出 test-report.html" --expected-revision <REV>
   ```
 ```text
 通知 TeamLead：executor/summary.html 已完成，请发起用户确认，并在确认后启动 spec-tester 执行测试。

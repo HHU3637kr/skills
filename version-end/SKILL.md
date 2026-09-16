@@ -92,11 +92,17 @@ git push origin --delete release/<version>
 git worktree remove .worktrees/<version> --force
 ```
 
-### 步骤 7：向 AWR 提交版本归档检查点
+### 步骤 7：向 AWR 提交版本归档检查点与创建运行时备份
 
-```bash
-awr checkpoint "version-end: 版本 <version> 已完成交付复盘与收尾归档，状态更新为已归档"
-```
+1. 提交版本归档检查点：
+   ```bash
+   awr session checkpoint --session <SESSION-ID> --digest "version-end: 版本 <version> 已完成交付复盘与收尾归档，状态更新为已归档" --next-action "版本交付完毕，项目基线归档" --expected-revision <REV>
+   ```
+
+2. 执行 AWR 本地运行时密封备份（AWR 0.4.0+），生成一致性冷备：
+   ```bash
+   awr runtime backup
+   ```
 
 ### 步骤 8：收尾通报
 

@@ -309,9 +309,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - `problem` 简述现象，「关联产物」 引用测试证据路径或即将创建的 debug 文档
 - 「状态」标记为 `open`
 - 「更新者」 写 `spec-tester`
-- 向 AWR 提交检查点并登记 open-loop 阻塞项：
+- 向 AWR 提交会话检查点并登记 open-loop 阻塞项：
   ```bash
-  awr checkpoint "spec-tester: 发现用例失败 [TC-XXX]，已登记 open-loop 并交接 spec-debugger"
+  awr session checkpoint --session <SESSION-ID> --digest "spec-tester: 发现用例失败 [TC-XXX]，已登记 open-loop 并交接" --open-loop "TC-XXX 失败待修复并复验" --next-action "spec-debugger: 定位根因并修复 TC-XXX" --expected-revision <REV>
   ```
 - 只修改「问题闭环记录」，不要修改 TeamLead 控制面区块
 ```text
@@ -537,9 +537,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
-- 向 AWR 提交测试完成检查点：
+- 向 AWR 提交测试完成会话检查点：
   ```bash
-  awr checkpoint "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html"
+  awr session checkpoint --session <SESSION-ID> --digest "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html" --next-action "spec-reviewer: 进行代码与状态一致性审查" --expected-revision <REV>
   ```
 - 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
