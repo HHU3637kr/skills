@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>方案设计 - 企业 AI Coding 工作流一键初始化脚本</title>
+
+<meta name="rk:type"        content="plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="tech">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260916-2200-tech-企业工作流一键初始化脚本">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-16">
+<meta name="rk:updated"     content="2026-09-16">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="feat/spec-20260916-init-ai-workflow-scripts">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,plan,init-scripts">
+
+<link rel="rk-plan"   href="plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<!-- spec/versions/<v>/specs/<spec-dir>/writer/plan.html 到根目录深度为 6 层 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>方案设计：企业 AI Coding 工作流一键初始化脚本</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>tech</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>分支</b> <code>feat/spec-20260916-init-ai-workflow-scripts</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-16</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">设计目标与核心架构</div>
+  <p>面向 Linux、macOS 与 Windows 原生终端提供一套通用的项目一键初始化脚本（<code>scripts/init-ai-workflow.sh</code> 与 <code>scripts/init-ai-workflow.ps1</code>）。攻克 Windows 下符号链接默认提权限制（引入 NTFS Junction 免提权目录联接技术），实现环境检测、Git 仓库检测、Skills 规范源同步、企业治理规则落地、薄入口生成、三级架构骨架搭建与 AWR 运行时挂载的全流程自动化与幂等执行。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-16</td><td>spec-writer</td><td>初始方案设计：跨平台初始化流水线与技术选型</td><td>支持企业多平台团队冷启动</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 现状痛点与核心挑战</h2>
+<ol>
+  <li><b>冷启动摩擦大</b>：新项目从零配置需要依次进行 clone、软链接、建目录、写模板、加 ignore 等多项手工操作，易漏易错。</li>
+  <li><b>Windows 原生权限壁垒</b>：Windows 普通用户运行 <code>New-Item -ItemType SymbolicLink</code> 会被系统拒绝，提示权限不足；Git Bash 下默认 <code>ln -s</code> 会降级为深拷贝整目录，破坏了单版本源的更新机制。</li>
+  <li><b>规范资产需要统一收敛</b>：脚本不能只停留在某个业务工程中，必须沉淀在标准规范库 <code>HHU3637kr/skills</code> 的 <code>scripts/</code> 目录中，随规范源版本演进。</li>
+</ol>
+
+<h2>2. 详细技术实现方案</h2>
+
+<h3>2.1 核心执行流水线</h3>
+<ol>
+  <li><b>依赖与环境检测</b>：检查 <code>git</code>，探测 <code>awr</code>。若无 <code>awr</code> 输出友好指引，不阻断基础设施搭建。</li>
+  <li><b>Git 状态保障</b>：未初始化时自动执行 <code>git init -b dev</code>，符合 R&K Flow 规范。</li>
+  <li><b>Skills 规范源挂载</b>：拉取至 <code>.agents/skills</code>；若已存在则执行安全 <code>git pull --ff-only</code>。</li>
+  <li><b>跨平台免提权目录重定向</b>：
+    <ul>
+      <li>Linux / macOS：执行 <code>ln -sfn ../.agents/skills .omp/skills</code> 与 <code>ln -sfn .agents/skills/html-report html-report</code>。</li>
+      <li>Windows Git Bash：探测 <code>MSYS/MINGW</code> 环境，调用 <code>cmd.exe /c mklink /J</code> 建立 NTFS Junction。</li>
+      <li>Windows 原生 PowerShell：使用 <code>New-Item -ItemType Junction</code> 创建 NTFS 目录联接，实现普通用户零提权即时可用。</li>
+    </ul>
+  </li>
+  <li><b>企业治理规约固化</b>：从 <code>.agents/skills/.agents/rules/</code> 复制到项目级 <code>.agents/rules/</code>。</li>
+  <li><b>标准薄入口生成</b>：按模板注入项目名，生成 <code>.omp/AGENTS.md</code>。</li>
+  <li><b>三级架构与经验知识库骨架</b>：创建 <code>spec/versions/</code>，生成 <code>spec/context/experience/index.md</code> 与 <code>spec/context/knowledge/index.md</code>。</li>
+  <li><b>AWR 状态机配置</b>：生成标准 <code>GOALS.md</code>、<code>work-ledger.yaml</code> 与 <code>.awr/project.toml</code>，执行 <code>awr init</code> 和 <code>awr source reindex</code>。</li>
+  <li><b>.gitignore 规则收敛</b>：幂等追加运行时状态文件与软链接过滤项。</li>
+</ol>
+
+<h2>3. 验收标准与测试方案</h2>
+<ul>
+  <li><b>Linux 环境测试</b>：在 <code>/tmp</code> 创建临时空白目录，执行 <code>init-ai-workflow.sh</code>，校验目录树、软链接与 AWR 状态。</li>
+  <li><b>Windows 环境实测</b>：在宿主机真实 NTFS 临时空间执行 <code>init-ai-workflow.ps1</code>，检验 <code>LinkType</code> 属性确为 <code>Junction</code>。</li>
+  <li><b>幂等性校验</b>：在同一目录原地二次执行，无报错且能安全刷新。</li>
+</ul>
+
+</body>
+</html>

@@ -9,6 +9,30 @@
 
 ## 安装
 
+### 方式一：一键快速初始化（推荐）
+
+针对任何全新的或已有业务工程，推荐直接使用一键初始化脚本，全自动完成依赖拉取、免提权软链接/Junction 创建、企业治理规则固化、入口配置、三级架构骨架搭建与 AWR 运行时挂载。
+
+**Linux / macOS / Git Bash**：
+```bash
+# 在目标项目根目录下执行：
+curl -fsSL https://raw.githubusercontent.com/HHU3637kr/skills/master/scripts/init-ai-workflow.sh | bash
+# 或在已克隆规范库的机器上本地运行：
+bash scripts/init-ai-workflow.sh [目标目录]
+```
+
+**Windows 原生环境 (Windows PowerShell 5.1 或 PowerShell 7+，免管理员权限 / 免开发者模式)**：
+```powershell
+# 在目标项目根目录下执行：
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/HHU3637kr/skills/master/scripts/init-ai-workflow.ps1)))
+# 或在已克隆规范库的机器上本地运行：
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\init-ai-workflow.ps1 [-TargetDir 目标目录]
+```
+
+---
+
+### 方式二：手动分步安装
+
 直接拉取本仓库到项目的 `.agents/skills/`，再把运行时目录软链接过去。**不走 npm 分发**，仓库即唯一分发源。
 
 ```bash
@@ -21,7 +45,7 @@ ln -s ../.agents/skills .codex/skills
 ln -s ../.agents/skills .omp/skills
 ```
 
-Windows（PowerShell，需管理员或开启开发者模式）：
+Windows（PowerShell，需管理员或开启开发者模式；若无提权推荐直接使用 `init-ai-workflow.ps1` 创建 NTFS Junction）：
 
 ```powershell
 git clone https://github.com/HHU3637kr/skills.git .agents\skills
@@ -34,9 +58,8 @@ New-Item -ItemType SymbolicLink -Path .claude\skills -Target ..\.agents\skills
 cd .agents/skills && git pull
 ```
 
-> [!tip] 为什么用软链接
+> [!tip] 为什么用软链接 / Junction
 > 单一副本、单一版本源。`.claude` / `.codex` / `.omp` 三套运行时共享同一份 Skills，`git pull` 一次全部生效，不会出现多份副本版本漂移。
-
 然后在项目的 `AGENTS.md` 中添加入口导入。`AGENTS.md` 只作为项目身份和路由清单，详细规则、项目偏好和前端风格等长期约束放在 `.agents/rules/`：
 
 ```

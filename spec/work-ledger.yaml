@@ -25,3 +25,14 @@ work_items:
       - 将 AWR 接入规范、工作台账、配置与改造后的核心 Skill 提交到 master 分支
       - 成功推送到远端 GitHub 仓库且不发版打 Tag
     next_action: 代码已成功合入 master 并推送远端，本阶段任务全部闭环
+
+  - id: SKILL-INIT-001
+    title: 跨平台企业 AI Coding 工作流一键初始化脚本研发与迁移
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - 迁移并完善 Linux/macOS/Git Bash (init-ai-workflow.sh) 与 Windows 原生 PowerShell (init-ai-workflow.ps1) 脚本
+      - 建立 v2.11 版本大盘与 20260916-2200-tech-企业工作流一键初始化脚本 完整 Spec 报告链
+      - 在 Linux 沙箱与 Windows 原生 NTFS 空间完成端到端新鲜实测
+      - 沉淀跨平台经验 EXP-002 并更新 README、CODEMAP、spec-init
+    next_action: 代码已合入工作分支并通过双端沙箱验证，准备提交与收尾
