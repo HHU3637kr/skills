@@ -11,7 +11,7 @@ mode: gated
 execution: serial
 git_branch: feat/spec-20260916-init-ai-workflow-scripts
 base_branch: master
-pr_url: https://github.com/HHU3637kr/skills/compare/master...jincheng15:skills:feat/spec-20260916-init-ai-workflow-scripts
+pr_url: https://github.com/HHU3637kr/skills/pull/6
 created_at: 2026-09-16T22:00:00+08:00
 updated_at: 2026-09-16T22:30:00+08:00
 ---
