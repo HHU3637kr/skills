@@ -21,17 +21,19 @@
 
 ---
 
-## 安装入口
+## 安装入口与一键脚手架
 
 ```
 skills/
+├── scripts/                  # 跨平台一键初始化脚本库
+│   ├── init-ai-workflow.sh   # Linux / macOS / Git Bash 一键初始化脚本
+│   └── init-ai-workflow.ps1  # Windows 原生 PowerShell 免提权一键初始化脚本
 ├── package.json              # 版本元数据（private，不发布 npm）
 ├── README.md                 # 总体说明和工作流规范
 └── CODEMAP.md                # 本文件
 ```
 
-安装方式是把本仓库 `git clone` 到目标项目的 `.agents/skills/`，再把 `.claude/skills`、`.codex/skills`、`.omp/skills` 软链接到该目录；目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。更新用 `git pull`，软链接自动同步。
-
+安装方式支持使用 `scripts/init-ai-workflow.{sh,ps1}` 一键初始化目标项目，也支持手动 `git clone` 到目标项目的 `.agents/skills/` 并软链接/联接到 `.omp/skills`。目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。更新用 `git pull`，软链接自动同步。
 ---
 
 ## 核心目录地图

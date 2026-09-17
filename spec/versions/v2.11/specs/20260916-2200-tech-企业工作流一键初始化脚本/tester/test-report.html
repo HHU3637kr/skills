@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - 企业 AI Coding 工作流一键初始化脚本</title>
+
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="tech">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260916-2200-tech-企业工作流一键初始化脚本">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-16">
+<meta name="rk:updated"     content="2026-09-16">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="feat/spec-20260916-init-ai-workflow-scripts">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-report,init-scripts">
+
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<!-- spec/versions/<v>/specs/<spec-dir>/tester/test-report.html 到根目录深度为 6 层 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试报告：企业 AI Coding 工作流一键初始化脚本</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>tech</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>feat/spec-20260916-init-ai-workflow-scripts</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-16</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论</div>
+  <p>在 Linux 隔离沙箱环境与 Windows 原生 NTFS 空间通过宿主机互操作完成端到端实测。用例全绿通过，NTFS Junction 免提权创建正常，幂等二次执行无异常，AWR 状态机投射与索引验证通过。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-16</td><td>spec-tester</td><td>双端沙箱与实测用例执行报告</td><td>验收跨平台初始化脚本能力</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试用例执行矩阵</h2>
+<table>
+  <thead><tr><th>用例 ID</th><th>测试场景</th><th>执行环境</th><th>预期结果</th><th>实际结果</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TC-001</td>
+      <td>Linux 空白沙箱一键初始化</td>
+      <td>Ubuntu / Linux 6.18</td>
+      <td>软链接正常、7 份规则到位、AGENTS.md 生成、AWR 正常投射、.gitignore 生效</td>
+      <td>退出码 0，软链接指向正确，AWR status 正常索引</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-002</td>
+      <td>Linux 沙箱幂等二次执行</td>
+      <td>Ubuntu / Linux 6.18</td>
+      <td>不覆盖已有定制内容，.gitignore 不重复追加，退出码 0</td>
+      <td>退出码 0，去重有效，无异常报错</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-003</td>
+      <td>Windows 原生 NTFS 空间实测</td>
+      <td>Windows PowerShell 5.1/7+ (NTFS)</td>
+      <td>普通用户免提权成功创建 NTFS Junction，LinkType 为 Junction</td>
+      <td>成功建立 Junction，属性验证匹配，无提权异常</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-004</td>
+      <td>Windows 沙箱幂等二次执行</td>
+      <td>Windows PowerShell 5.1/7+ (NTFS)</td>
+      <td>安全移除旧 Junction 并刷新，文件不冲突，退出码 0</td>
+      <td>退出码 0，刷新成功，已存在项目平滑升级</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2. 关键验证证据</h2>
+<pre><code># TC-001 Linux 执行片断
+🚀 初始化企业 AI Coding 规范体系
+目标目录: /tmp/test-skills-migration-XXXXXX
+项目名称: test-skills-migration-XXXXXX
+📥 正在配置 Skills 依赖库 (.agents/skills)...
+🔗 正在创建运行时与报告样式软链接...
+📜 正在固化企业治理规则 (.agents/rules/)...
+📝 正在生成标准薄入口 (.omp/AGENTS.md)...
+🏗️ 正在构建三级架构与经验库骨架 (spec/)...
+⚙️ 正在初始化 AWR 运行时状态机...
+🎉 AI Coding 工作流初始化成功！
+
+# TC-003 Windows 原生 PowerShell 本地实测片断
+Target Windows directory: C:\Users\jinch\AppData\Local\Temp\test-real-win-1529261280
+Copied script to local Windows path: C:\Users\jinch\AppData\Local\Temp\init-ai-workflow.ps1
+🚀 初始化企业 AI Coding 规范体系 (Windows PowerShell)
+🔗 正在创建免提权 NTFS Junction 目录联接...
+=== Inspecting Junction LinkType ===
+.omp\skills LinkType: Junction
+.omp\skills Target: C:\Users\jinch\AppData\Local\Temp\test-real-win-1529261280\.agents\skills
+html-report LinkType: Junction
+html-report Target: C:\Users\jinch\AppData\Local\Temp\test-real-win-1529261280\.agents\skills\html-report
+=== Testing Idempotency in Windows ===
+🔄 .agents\skills 已存在，执行增量更新... Already up to date.
+🎉 AI Coding 工作流初始化成功！(Windows 原生环境)
+</code></pre>
+</html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>版本规划 - v2.11</title>
+
+<meta name="rk:title"          content="版本规划：v2.11">
+<meta name="rk:type"           content="version-plan">
+<meta name="rk:version"        content="v2.11">
+<meta name="rk:role"           content="TeamLead">
+<meta name="rk:created"        content="2026-09-16">
+<meta name="rk:updated"        content="2026-09-16">
+<meta name="rk:revision"       content="1">
+<meta name="rk:base-branch"    content="master">
+<meta name="rk:tags"           content="version,plan,init-scripts">
+
+<link rel="rk-ledger" href="version-context.md">
+<!-- 版本规划落点为 spec/versions/<v>/plan.html，回到项目根为 3 层深度 -->
+<link rel="stylesheet" href="../../../html-report/assets/rk-report.css">
+<script defer src="../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>版本规划：v2.11</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> version-plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>基线分支</b> <code>master</code></span>
+    <span><b>创建</b> 2026-09-16</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">版本里程碑目标</div>
+  <p>提供跨平台企业级 AI Coding 工作流一键初始化脚本（Bash & PowerShell），抹平 Linux、macOS 与 Windows 原生终端安装成本，提供免提权软链接技术与 AWR 运行时自动挂载能力。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-16</td><td>TeamLead</td><td>建立 v2.11 版本初始规划大盘</td><td>规划跨平台一键初始化脚本基建落地</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 规划 Spec 大盘（四类属性平权）</h2>
+
+<h3>1.1 技术底座与 AI 基建（tech）</h3>
+<table>
+  <thead><tr><th>Spec 标识</th><th>目标</th><th>负责人</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>20260916-2200-tech-企业工作流一键初始化脚本</code></td><td>跨平台一键初始化脚本研发与沙箱端到端实测验证</td><td>TeamLead</td><td>执行中</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 业务功能（feat）</h3>
+<p class="rk-empty">暂无</p>
+
+<h3>1.3 技术债与重构治理（debt）</h3>
+<p class="rk-empty">暂无</p>
+
+<h3>1.4 缺陷修复（fix）</h3>
+<p class="rk-empty">暂无</p>
+
+<h2>2. 交付成果物</h2>
+<ul>
+  <li><code>scripts/init-ai-workflow.sh</code>：通用 Linux / macOS / Git Bash 一键初始化脚本</li>
+  <li><code>scripts/init-ai-workflow.ps1</code>：原生 Windows PowerShell 5.1/7+ 一键初始化脚本（免提权 NTFS Junction）</li>
+  <li><code>spec/context/experience/</code>：跨平台联接点与沙箱测试经验记忆沉淀</li>
+  <li><code>README.md</code> & <code>CODEMAP.md</code>：一键初始化文档与代码地图更新</li>
+</ul>
+
+</body>
+</html>

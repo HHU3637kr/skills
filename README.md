@@ -7,42 +7,176 @@
 
 如果你对该工作流感兴趣,或者有疑问,欢迎加入我们的社群讨论
 
-## 安装
+## 安装与初始化
 
-直接拉取本仓库到项目的 `.agents/skills/`，再把运行时目录软链接过去。**不走 npm 分发**，仓库即唯一分发源。
+### 方式一：Shell 脚本一键初始化（推荐）
+
+针对任何全新的或已有业务工程，推荐使用官方一键初始化脚本。脚本自动完成以下 10 大标准化操作：
+1. **依赖检测**：检测 Git 及 AWR (Agent Work Runtime 0.4.0)；
+2. **Git 仓库保障**：若未初始化则自动创建并检出 `dev` 日常集成开发分支；
+3. **规范库拉取**：克隆单版本源至 `.agents/skills/`（已存在则自动增量 `git pull`）；
+4. **免提权软链接/Junction 创建**：将运行时与报告样式自动软链接到 `.omp/skills` 与 `html-report`；在 Windows 环境下自动探测并使用免提权 NTFS Junction；
+5. **企业治理规则固化**：落地 `.agents/rules/`（含 `spec-workflow.md`, `git-workflow.md`, `awr-integration.md` 等 7 份基线规则）；
+6. **标准薄入口生成**：自动识别工程名，生成精简的 `.omp/AGENTS.md`；
+7. **三级架构与经验知识库骨架**：初始化 `spec/versions/` 及 `spec/context/{experience,knowledge}/` 索引；
+8. **AWR 目标与台账**：生成 `GOALS.md`、`work-ledger.yaml` 与 `.awr/project.toml`；
+9. **AWR 状态机初始化**：自动执行 `awr init` 与 `awr source reindex` 挂载本地运行状态；
+10. **.gitignore 规则收敛**：幂等追加运行时状态与软链接忽略配置。
+
+#### 1. Linux / macOS / Git Bash
+在目标项目根目录下直接执行：
+```bash
+# 在线远程一键执行：
+curl -fsSL https://raw.githubusercontent.com/HHU3637kr/skills/master/scripts/init-ai-workflow.sh | bash
+
+# 或在已克隆规范库的机器上本地调用：
+bash /path/to/skills/scripts/init-ai-workflow.sh [目标目录]
+```
+> **说明**：在 Windows Git Bash (MSYS/MINGW) 下运行此 `.sh` 脚本时，脚本会自动检测 Windows 环境并调用 `cmd.exe /c mklink /J` 建立 NTFS 目录联接，避免默认 `ln -s` 降级为物理深拷贝。
+
+#### 2. Windows 原生环境 (PowerShell)
+适用于 Windows 10/11 系统的原生 PowerShell 5.1 或 PowerShell 7+，**免管理员权限、免开启开发者模式**：
+```powershell
+# 在线远程一键执行：
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/HHU3637kr/skills/master/scripts/init-ai-workflow.ps1)))
+
+# 或在已克隆规范库的机器上本地调用：
+powershell -NoProfile -ExecutionPolicy Bypass -File \path\to\skills\scripts\init-ai-workflow.ps1 [-TargetDir 目标目录]
+```
+
+---
+
+### 方式二：手动分步安装
+
+如果不使用一键初始化脚本，也可手动搭建：
 
 ```bash
 # 1. 拉取 Skills 到 .agents/skills/
 git clone https://github.com/HHU3637kr/skills.git .agents/skills
 
-# 2. 运行时目录软链接到 .agents/skills/（按需只建你在用的那一个）
-ln -s ../.agents/skills .claude/skills
-ln -s ../.agents/skills .codex/skills
-ln -s ../.agents/skills .omp/skills
+# 2. 根据你的运行时环境，创建软链接到 .agents/skills/
+ln -s ../.agents/skills .omp/skills      # Oh My Pi
+ln -s ../.agents/skills .claude/skills   # Claude Code
+ln -s ../.agents/skills .codex/skills    # Codex
+ln -s .agents/skills/html-report html-report # HTML 报告离线样式软链接
 ```
 
-Windows（PowerShell，需管理员或开启开发者模式）：
-
+Windows（PowerShell 原生终端）：
 ```powershell
 git clone https://github.com/HHU3637kr/skills.git .agents\skills
-New-Item -ItemType SymbolicLink -Path .claude\skills -Target ..\.agents\skills
+# 推荐使用免提权 NTFS Junction 创建目录联接：
+New-Item -ItemType Junction -Path .omp\skills -Target .agents\skills
+New-Item -ItemType Junction -Path html-report -Target .agents\skills\html-report
 ```
 
-后续更新直接在 `.agents/skills/` 里 `git pull`，软链接的运行时目录自动同步，无需重装：
-
+后续更新规范库只需在 `.agents/skills/` 目录下执行 `git pull`，所有运行时自动同步生效：
 ```bash
 cd .agents/skills && git pull
 ```
 
-> [!tip] 为什么用软链接
-> 单一副本、单一版本源。`.claude` / `.codex` / `.omp` 三套运行时共享同一份 Skills，`git pull` 一次全部生效，不会出现多份副本版本漂移。
+---
 
-然后在项目的 `AGENTS.md` 中添加入口导入。`AGENTS.md` 只作为项目身份和路由清单，详细规则、项目偏好和前端风格等长期约束放在 `.agents/rules/`：
+## 主流 Coding Agent 集成指南
+
+R&K Flow 在设计上支持 **“中立规约权威源 + 专属运行时薄适配”**，适配当前主流的 4 款 AI Coding Agent：
 
 ```
-@import .agents/rules/
-@import .agents/skills/
+项目根目录/
+├── .agents/                    # 中立核心资产（跨运行时通用）
+│   ├── rules/                  # 项目企业治理规约（spec-workflow, git-workflow 等）
+│   └── skills/                 # 本规范库单版本源（git clone）
+├── .omp/                       # Oh My Pi 运行时目录（首选推荐）
+│   ├── AGENTS.md               # 项目薄入口（导入 rules 与 skills）
+│   ├── agents/*.md             # 7 大项目级角色定义（OMP 任务角色 contract）
+│   └── skills -> ../.agents/skills
+├── .claude/                    # Claude Code 运行时目录
+│   ├── agents/*.md             # Claude 子代理定义
+│   └── skills -> ../.agents/skills
+├── .codex/                     # Codex CLI 运行时目录
+│   ├── agents/*.toml           # Codex snake_case 角色定义
+│   ├── config.toml             # Codex 代理启用配置
+│   └── skills -> ../.agents/skills
+├── .cursorrules                # Cursor 规则入口文件
+├── AGENTS.md                   # 通用项目入口清单
+└── spec/                       # 三级架构版本与 Spec 交付空间
 ```
+
+### 1. Oh My Pi (OMP) 集成教程【首选推荐】
+R&K Flow 优先面向 OMP 研发与端到端压力测试，契合度最高，支持原生的 `task` 批量 Subagent 派生、`hub` 进程与邮箱协同、以及 `edit` 高精度行级锚定编辑。
+
+- **目录结构**：
+  - 入口：`.omp/AGENTS.md`
+  - 软链接：`.omp/skills -> ../.agents/skills`
+  - 角色定义：`.omp/agents/<role-id>.md`（如 `spec-explorer.md`、`spec-writer.md` 等 7 个角色）
+- **配置与生效**：
+  1. 确保 `.omp/AGENTS.md` 包含规则与技能导入：
+     ```markdown
+     @import .agents/rules/
+     @import .agents/skills/
+     ```
+  2. OMP 的子代理定义位于 `.omp/agents/*.md`，frontmatter 必须包含 `name` 与 `description`。**默认省略 `tools` 字段**以完整继承 OMP 内置工具集；
+  3. 在对话中直接输入 `/spec-start` 启动新需求，或 `/version-start` 启动新版本，OMP 主控会自动以 TeamLead 身份驱动多角色协作。
+
+### 2. Cursor 集成教程
+Cursor 依赖项目根目录的规则文件（`.cursorrules` 或 `.cursor/rules/`）进行上下文注入：
+
+- **配置方法**：
+  1. 在项目根目录创建 `.cursorrules`（或 `.cursor/rules/rk-flow.mdc`），将 R&K Flow 核心规则与 Skills 索引加载至 Cursor 上下文：
+     ```markdown
+     # R&K Flow for Cursor
+     本项目遵循 R&K Flow Spec 驱动式开发规范（三级架构：Project -> Version -> Spec）。
+     开发功能前先查阅或执行设计方案（plan.html），测试先行，严禁跳过门禁。
+     
+     ## 核心规约引用
+     - 流程规范：.agents/rules/spec-workflow.md
+     - Git 流程：.agents/rules/git-workflow.md
+     - 技能库路径：.agents/skills/
+     ```
+  2. 在 Cursor Composer（Agent 模式）中，直接通过 `@.agents/rules/spec-workflow.md` 引导其按照规范编写 `writer/plan.html` 与测试用例；
+  3. 在需要调用具体 Skill 时（例如 `/git-work`），通过 `@.agents/skills/git-work/SKILL.md` 将操作指南喂给 Composer。
+
+### 3. OpenAI Codex (Codex CLI) 集成教程
+Codex CLI 采用 TOML 格式定义项目级 Custom Agent，并通过 `/agent` 进行多 Agent 线程调度：
+
+- **目录结构**：
+  - 软链接：`.codex/skills -> ../.agents/skills`
+  - 角色定义：`.codex/agents/<codex-agent-name>.toml`
+  - 配置文件：`.codex/config.toml`
+- **配置方法**：
+  1. Codex 使用 `snake_case` 标识角色，如 `spec_explorer.toml`、`spec_writer.toml`：
+     ```toml
+     name = "spec_explorer"
+     description = "负责代码与架构探索的 spec-explorer 角色"
+     developer_instructions = """
+     你承担 R&K Flow 中的 spec-explorer 角色。
+     完整规则请读取 .agents/rules/spec-workflow.md 与 .agents/skills/spec-explore/SKILL.md。
+     """
+     ```
+  2. 在 `.codex/config.toml` 中开启 Agent 特性支持：
+     ```toml
+     [agents]
+     enable = true
+     ```
+  3. 在 Codex CLI 交互中，使用 `/agent` 查看当前活跃的子代理线程，由当前主会话作为 TeamLead 调度各角色。
+
+### 4. Claude Code (Anthropic) 集成教程
+Claude Code 支持项目根目录的 `CLAUDE.md` 及 `.claude/agents/*.md` 专属子代理：
+
+- **目录结构**：
+  - 入口：项目根目录 `CLAUDE.md`
+  - 软链接：`.claude/skills -> ../.agents/skills`
+  - 角色定义：`.claude/agents/<role-id>.md`
+- **配置方法**：
+  1. 确保项目根目录 `CLAUDE.md` 引入规则目录：
+     ```markdown
+     # 项目 AI 协作约定
+     @import .agents/rules/
+     @import .agents/skills/
+     ```
+  2. 在 `.claude/agents/` 下放置 7 个角色定义文件（Markdown frontmatter 格式），定义其职责与约束；
+  3. 启动 `claude` 终端交互，输入 `/spec-start` 开始 Spec 闭环流程，Claude Code 会依据 `CLAUDE.md` 与 `.agents/rules/` 自动执行门禁。
+
+---
 
 ## 核心理念
 

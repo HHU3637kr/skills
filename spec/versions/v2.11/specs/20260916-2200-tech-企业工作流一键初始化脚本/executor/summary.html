@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现小结 - 企业 AI Coding 工作流一键初始化脚本</title>
+
+<meta name="rk:type"        content="summary">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="tech">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260916-2200-tech-企业工作流一键初始化脚本">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-16">
+<meta name="rk:updated"     content="2026-09-16">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="feat/spec-20260916-init-ai-workflow-scripts">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,summary,init-scripts">
+
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<!-- spec/versions/<v>/specs/<spec-dir>/executor/summary.html 到根目录深度为 6 层 -->
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>实现小结：企业 AI Coding 工作流一键初始化脚本</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>tech</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分支</b> <code>feat/spec-20260916-init-ai-workflow-scripts</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-16</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>成功将业务工程中研发的跨平台一键初始化脚本迁移至规范库官方 <code>scripts/</code> 目录，并在规范文档中完成集成升级。全套脚本已就绪且经过语法检查与权限设定。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-16</td><td>spec-executor</td><td>脚本迁移落盘、文档更新与权限固化</td><td>完成实现阶段落地</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 交付文件清单</h2>
+<table>
+  <thead><tr><th>文件路径</th><th>说明</th><th>权限 / 编码</th></tr></thead>
+  <tbody>
+    <tr><td><code>scripts/init-ai-workflow.sh</code></td><td>Linux / macOS / Git Bash 一键初始化脚本</td><td><code>chmod +x</code> (POSIX shell)</td></tr>
+    <tr><td><code>scripts/init-ai-workflow.ps1</code></td><td>Windows 原生 PowerShell 免提权一键初始化脚本</td><td>UTF-8 (PowerShell 5.1/7+)</td></tr>
+    <tr><td><code>README.md</code></td><td>更新安装章节，将一键初始化置于首选推荐</td><td>Markdown</td></tr>
+    <tr><td><code>CODEMAP.md</code></td><td>在安装入口中补充 <code>scripts/</code> 脚手架结构</td><td>Markdown</td></tr>
+    <tr><td><code>spec-init/SKILL.md</code></td><td>在核心原则中引入脚本化优选原则与路径指引</td><td>Markdown</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 核心技术实现细节</h2>
+<ul>
+  <li><b>POSIX 与 Windows Git Bash 兼容</b>：<code>init-ai-workflow.sh</code> 中加入了 <code>CYGWIN*|MINGW*|MSYS*</code> 探测，优先利用 <code>cmd.exe /c mklink /J</code> 建立 NTFS 目录联接，避免 Git Bash 下默认 <code>ln -s</code> 退化为深拷贝。</li>
+  <li><b>Windows 免提权技术</b>：<code>init-ai-workflow.ps1</code> 采用 <code>New-Item -ItemType Junction</code> 技术，无需用户开启 Windows 开发者模式或使用管理员终端。</li>
+  <li><b>全生命周期基础设施装配</b>：从代码拉取、企业规则、薄入口、三级架构骨架、AWR 运行时挂载到 <code>.gitignore</code> 幂等追加一次性全自动闭环。</li>
+</ul>
+
+</body>
+</html>
