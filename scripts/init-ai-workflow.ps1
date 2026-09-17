@@ -23,11 +23,16 @@ param (
 )
 
 $ErrorActionPreference = "Stop"
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+
+# 预先确保目标目录存在，避免 Resolve-Path 抛出异常
+if (-not (Test-Path $TargetDir)) {
+    New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
+}
 
 # 解析绝对路径
 $TargetDir = (Resolve-Path -Path $TargetDir).Path
 $ProjectName = Split-Path -Leaf $TargetDir
-
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host " 🚀 初始化企业 AI Coding 规范体系 (Windows PowerShell)" -ForegroundColor Cyan
 Write-Host " 目标目录: $TargetDir"
@@ -73,7 +78,7 @@ if (Test-Path ".agents\skills\.git") {
 Write-Host "🔗 正在创建免提权 NTFS Junction 目录联接..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path ".omp" | Out-Null
 
-# 辅助函数：安全建立 Junction
+# 辅助函数：安全建立 Junction（防破坏普通目录）
 function New-JunctionSafely {
     param (
         [string]$Path,
@@ -81,11 +86,15 @@ function New-JunctionSafely {
     )
     if (Test-Path $Path) {
         $item = Get-Item $Path -Force
-        # 如果已是 Junction 或符号链接，先移除
+        # 如果已是 Junction 或符号链接，先移除重置
         if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
             $item.Delete()
         } else {
-            Remove-Item -Recurse -Force $Path
+            # 普通物理目录：自动重命名备份，严禁硬删除用户既有数据
+            $timestamp = (Get-Date).ToString("yyyyMMdd-HHmmss")
+            $backupPath = "$Path.bak-$timestamp"
+            Write-Host "⚠️ 警告: 检测到 $Path 为普通物理目录，正在安全备份至 $backupPath..." -ForegroundColor Yellow
+            Move-Item -Path $Path -Destination $backupPath -Force
         }
     }
     New-Item -ItemType Junction -Path $Path -Target $Target | Out-Null
@@ -101,7 +110,12 @@ New-JunctionSafely -Path (Join-Path $TargetDir "html-report") -Target $HtmlRepor
 Write-Host "📜 正在固化企业治理规则 (.agents\rules\)..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path ".agents\rules" | Out-Null
 if (Test-Path ".agents\skills\.agents\rules") {
-    Copy-Item -Path ".agents\skills\.agents\rules\*" -Destination ".agents\rules\" -Recurse -Force
+    Get-ChildItem -Path ".agents\skills\.agents\rules" -File | ForEach-Object {
+        $destFile = Join-Path ".agents\rules" $_.Name
+        if (-not (Test-Path $destFile)) {
+            Copy-Item -Path $_.FullName -Destination $destFile -Force
+        }
+    }
 }
 
 # 6. 生成标准薄入口 (.omp\AGENTS.md)
@@ -126,7 +140,7 @@ if (-not (Test-Path ".omp\AGENTS.md")) {
 - **阶段与提交门禁**：
   - \`spec → plan → 执行\`，每个阶段边界必须取得人的确认；\`git commit\`、\`git push\`、开 MR 一律先经人确认。
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir ".omp\AGENTS.md"), $agentsContent, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir ".omp\AGENTS.md"), $agentsContent, $Utf8NoBom)
 }
 
 # 7. 搭建三级架构空间与经验知识库
@@ -140,7 +154,7 @@ if (-not (Test-Path "spec\versions\README.md")) {
 # 架构与版本空间 (Versions Space)
 遵循 R&K Flow 三级架构（\`Project → Version → Spec\`），后续版本规划与 Spec 均在此目录下建立。
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\versions\README.md"), $versionsReadme, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\versions\README.md"), $versionsReadme, $Utf8NoBom)
 }
 
 if (-not (Test-Path "spec\context\experience\index.md")) {
@@ -152,7 +166,7 @@ if (-not (Test-Path "spec\context\experience\index.md")) {
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | EXP-001 | 占位示例 | 经验, 样例 | 项目初始化 | 遇到复杂技术陷阱时通过 exp-reflect 沉淀到此处 | - |
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\context\experience\index.md"), $expIndex, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\context\experience\index.md"), $expIndex, $Utf8NoBom)
 }
 
 if (-not (Test-Path "spec\context\knowledge\index.md")) {
@@ -164,7 +178,7 @@ if (-not (Test-Path "spec\context\knowledge\index.md")) {
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | KNOW-001 | 系统核心架构与数据流 | 项目理解 | 架构, 数据流 | 系统端到端核心数据流转链路说明 | - |
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\context\knowledge\index.md"), $knowIndex, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\context\knowledge\index.md"), $knowIndex, $Utf8NoBom)
 }
 
 # 8. 基础目标与工作台账 (AWR 核心源)
@@ -176,7 +190,7 @@ $ProjectName 业务开发、特性演进与代码质量保障。
 - **范围**：核心业务模块及相关接口。
 - **验收准则**：系统架构稳定，代码规范统一，功能满足业务诉求。
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir "GOALS.md"), $goalsContent, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "GOALS.md"), $goalsContent, $Utf8NoBom)
 }
 
 if (-not (Test-Path "work-ledger.yaml")) {
@@ -188,7 +202,6 @@ work_items:
     status: ready
     priority: P0
     required: true
-    goal: intake-goal
     depends_on: []
     acceptance:
       - 逐项确认目标、已有实现、未完成工作和阻塞，保留来源引用。
@@ -196,7 +209,7 @@ work_items:
     next_action: 运行 awr intake inspect，按缺项读取原始资料；补齐目标引用、验收和下一步后再次复检。
     summary: 这是新建的接入工作；不代表已有项目功能尚未实现或已经通过验收。
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir "work-ledger.yaml"), $ledgerContent, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "work-ledger.yaml"), $ledgerContent, $Utf8NoBom)
 }
 
 # 9. 配置与初始化 AWR 运行时
@@ -233,7 +246,7 @@ path = ".agents/rules/spec-workflow.md"
 adapter = "markdown-rules-v1"
 [sources.options]
 "@
-    [System.IO.File]::WriteAllText($tmpManifest, $manifestContent, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllText($tmpManifest, $manifestContent, $Utf8NoBom)
     try {
         & awr init --project . --manifest $tmpManifest --accept 2>$null | Out-Null
         & awr source reindex 2>$null | Out-Null
@@ -267,7 +280,7 @@ $ignoreEntries = @(
 
 $currentLines = @()
 if (Test-Path $gitIgnorePath) {
-    $content = Get-Content $gitIgnorePath
+    $content = Get-Content $gitIgnorePath -Encoding UTF8
     if ($content) { $currentLines = @($content) }
 }
 $newLines = New-Object 'System.Collections.Generic.List[string]'
@@ -278,7 +291,7 @@ foreach ($entry in $ignoreEntries) {
     }
 }
 
-[System.IO.File]::WriteAllLines($gitIgnorePath, $newLines, [System.Text.Encoding]::UTF8)
+    [System.IO.File]::WriteAllLines($gitIgnorePath, $newLines, $Utf8NoBom)
 
 Write-Host "=================================================================" -ForegroundColor Cyan
 Write-Host " 🎉 AI Coding 工作流初始化成功！(Windows 原生环境)" -ForegroundColor Green

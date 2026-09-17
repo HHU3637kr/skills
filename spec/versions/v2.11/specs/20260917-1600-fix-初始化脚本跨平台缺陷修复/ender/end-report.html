@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>收尾报告 - 初始化脚本跨平台缺陷修复与健壮性增强</title>
+
+<meta name="rk:type"        content="end-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260917-1600-fix-初始化脚本跨平台缺陷修复">
+<meta name="rk:role"        content="spec-ender">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-17">
+<meta name="rk:updated"     content="2026-09-17">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260917-init-scripts-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/7">
+<meta name="rk:tags"        content="spec,end-report,fix,cross-platform,awr,hardening">
+
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-test"    href="../tester/test-report.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>收尾报告：初始化脚本跨平台缺陷修复与健壮性增强</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> end-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-ender</span>
+    <span><b>分支</b> <code>fix/spec-20260917-init-scripts-hardening</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-17</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">收尾结论：研发与测试闭环完成</div>
+  <p>跨平台初始化脚本的 5 项核心缺陷全部彻底闭环：目标目录自动预建自愈、消除 AWR 0.4.0 状态机悬空边错误（<code>awr doctor</code> 0 findings）、普通物理目录自动备份防硬删除、用户定制规则无覆盖保护、以及 Windows PowerShell 5.1 下 UTF-8 无 BOM 读写防 ANSI 退化闭环。已沉淀通用经验 EXP-003 至跨版本经验库。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-17</td><td>spec-ender</td><td>完成收尾报告与经验资产沉淀</td><td>收尾归档</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 交付物检查清单</h2>
+<ul>
+  <li><code>scripts/init-ai-workflow.sh</code>：加固自愈、防破坏备份、修复 AWR 模板。</li>
+  <li><code>scripts/init-ai-workflow.ps1</code>：加固自愈、防破坏备份、防覆盖规则、UTF-8 读写防退化闭环、修复 AWR 模板。</li>
+  <li><code>spec/versions/v2.11/specs/20260917-1600-fix-初始化脚本跨平台缺陷修复/</code>：完整 HTML 报告链（plan, summary, test-report, end-report, team-context, rk-manifest）。</li>
+  <li><code>spec/context/experience/exp-003-cross-platform-script-hardening.md</code>：跨版本经验沉淀。</li>
+</ul>
+
+</body>
+</html>
