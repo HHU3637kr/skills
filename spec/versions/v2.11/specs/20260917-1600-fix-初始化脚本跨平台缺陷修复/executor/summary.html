@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现总结 - 初始化脚本跨平台缺陷修复与健壮性增强</title>
+
+<meta name="rk:type"        content="summary">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260917-1600-fix-初始化脚本跨平台缺陷修复">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-17">
+<meta name="rk:updated"     content="2026-09-17">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260917-init-scripts-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/7">
+<meta name="rk:tags"        content="spec,summary,fix,cross-platform,awr,hardening">
+
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="summary.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>实现总结：初始化脚本跨平台缺陷修复与健壮性增强</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分支</b> <code>fix/spec-20260917-init-scripts-hardening</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-17</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>全面完成 <code>scripts/init-ai-workflow.sh</code> 与 <code>scripts/init-ai-workflow.ps1</code> 的 5 项关键缺陷修复：实现目标路径自愈预建、消除 AWR 0.4.0 状态机悬空边错误、建立普通目录安全重命名备份机制、实现自定义规则无覆盖同步保护、以及 Windows 下 UTF-8 无 BOM 读写防退化闭环。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-17</td><td>spec-executor</td><td>初版落地：完成 bash 与 ps1 脚本的核心修复与加固</td><td>针对性修复与闭环</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 核心修复点实施清单</h2>
+<ol>
+  <li><b>目标目录自愈 (Self-healing)</b>：
+    <ul>
+      <li><code>scripts/init-ai-workflow.sh</code>：解析绝对路径前先执行 <code>mkdir -p "$TARGET_DIR"</code>，规避未建目录 <code>cd</code> 报错。</li>
+      <li><code>scripts/init-ai-workflow.ps1</code>：在 <code>Resolve-Path</code> 前判定 <code>Test-Path</code>，未建目录先调用 <code>New-Item -ItemType Directory -Force</code>。</li>
+    </ul>
+  </li>
+  <li><b>AWR 0.4.0 状态机兼容修补</b>：
+    <ul>
+      <li>移除 <code>work-ledger.yaml</code> 生成模板中的 <code>goal: intake-goal</code>，对齐标准 intake 单独组织任务规范，消除 <code>[error] dangling_edge</code> 报错。</li>
+    </ul>
+  </li>
+  <li><b>普通物理目录安全备份保护</b>：
+    <ul>
+      <li>Bash 脚本：检测到 <code>.omp/skills</code> 或 <code>html-report</code> 为普通物理目录时，自动重命名备份至 <code>.bak-YYYYMMDD-HHMMSS</code> 并提示，避免软链接产生内部嵌套。</li>
+      <li>PS1 脚本：<code>New-JunctionSafely</code> 检测到非 ReparsePoint 普通目录时，通过 <code>Move-Item</code> 重命名备份至 <code>.bak-YYYYMMDD-HHMMSS</code>，废除硬删除操作。</li>
+    </ul>
+  </li>
+  <li><b>规则无覆盖保护</b>：
+    <ul>
+      <li>PS1 脚本同步 <code>.agents/rules</code> 时逐项判断 <code>-not (Test-Path $destFile)</code>，不覆盖用户既有定制规则，对齐 Ubuntu <code>cp -rn</code> 语义。</li>
+    </ul>
+  </li>
+  <li><b>UTF-8 无 BOM 读写防退化闭环</b>：
+    <ul>
+      <li>PS1 脚本使用 <code>$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)</code> 写入所有文本与 <code>.gitignore</code>。</li>
+      <li>读取 <code>.gitignore</code> 时显式声明 <code>-Encoding UTF8</code>，避免 PowerShell 5.1 在后续重跑时回退至系统 ANSI 代码页导致乱码。</li>
+    </ul>
+  </li>
+</ol>
+
+<h2>2. 变更影响范围</h2>
+<ul>
+  <li><code>scripts/init-ai-workflow.sh</code>：增加目录自愈、普通目录安全备份，修复 AWR 模板。</li>
+  <li><code>scripts/init-ai-workflow.ps1</code>：增加目录自愈、安全备份、规则防覆盖、UTF-8 无 BOM 读写闭环，修复 AWR 模板。</li>
+</ul>
+
+</body>
+</html>

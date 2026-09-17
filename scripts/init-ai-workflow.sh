@@ -7,6 +7,7 @@ set -euo pipefail
 
 SKILLS_REPO_URL="${SKILLS_REPO_URL:-https://github.com/HHU3637kr/skills.git}"
 TARGET_DIR="${1:-$PWD}"
+mkdir -p "$TARGET_DIR"
 TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
 PROJECT_NAME="$(basename "$TARGET_DIR")"
 
@@ -48,6 +49,18 @@ fi
 # 4. 建立运行时软链接（Windows Git Bash 下优先采用免提权 NTFS Junction）
 echo "🔗 正在创建运行时与报告样式软链接..."
 mkdir -p .omp
+
+# 安全处理已有普通物理目录，防止破坏用户既有数据或产生嵌套软链接
+if [ -d ".omp/skills" ] && [ ! -L ".omp/skills" ]; then
+    BACKUP_PATH=".omp/skills.bak-$(date +%Y%m%d-%H%M%S)"
+    echo "⚠️ 警告: 检测到 .omp/skills 为普通物理目录，正在备份至 $BACKUP_PATH..."
+    mv .omp/skills "$BACKUP_PATH"
+fi
+if [ -d "html-report" ] && [ ! -L "html-report" ]; then
+    BACKUP_PATH="html-report.bak-$(date +%Y%m%d-%H%M%S)"
+    echo "⚠️ 警告: 检测到 html-report 为普通物理目录，正在备份至 $BACKUP_PATH..."
+    mv html-report "$BACKUP_PATH"
+fi
 
 IS_WINDOWS_BASH=false
 case "$(uname -s 2>/dev/null || true)" in
@@ -148,7 +161,6 @@ work_items:
     status: ready
     priority: P0
     required: true
-    goal: intake-goal
     depends_on: []
     acceptance:
       - 逐项确认目标、已有实现、未完成工作和阻塞，保留来源引用。

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - 初始化脚本跨平台缺陷修复与健壮性增强</title>
+
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260917-1600-fix-初始化脚本跨平台缺陷修复">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-17">
+<meta name="rk:updated"     content="2026-09-17">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260917-init-scripts-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/7">
+<meta name="rk:tags"        content="spec,test-report,fix,cross-platform,awr,hardening">
+
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试报告：初始化脚本跨平台缺陷修复与健壮性增强</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>fix/spec-20260917-init-scripts-hardening</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-17</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">验收结论：ALL PASS (全绿灯)</div>
+  <p>在 Linux ext4 与 Windows NTFS 真实双端隔离沙箱中，全量覆盖冷启动自愈、AWR 0.4.0 状态机健康度、普通目录重命名备份防护、用户定制规则防覆写、无 BOM 字节级验证、以及多轮重跑中文注释防乱码测试。所有断言指标 100% 达成。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-17</td><td>spec-tester</td><td>完成 Linux 与 Windows 双端沙箱隔离回归测试报告</td><td>质量验收归档</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试用例与真实断言证据</h2>
+
+<h3>1.1 Linux / Ubuntu 原生环境回归测试</h3>
+<table class="rk-revs">
+  <thead><tr><th>用例</th><th>测试操作</th><th>实测证据与输出</th><th>结果</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>TC-U01 目标目录自愈</b></td>
+      <td>传入尚未物理创建的临时路径 <code>/tmp/test-not-exist-...</code></td>
+      <td>自动 <code>mkdir -p</code>，成功初始化空仓库与工作流骨架，退出码 0</td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-U02 AWR 0.4.0 健康检查</b></td>
+      <td>全新初始化后执行 <code>awr doctor --project .</code></td>
+      <td>输出：<code>Database intact: true, Findings: 0, No repair was applied</code>，彻底消除了 <code>[error] dangling_edge</code></td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-U03 普通目录备份防护</b></td>
+      <td>预置普通目录 <code>.omp/skills</code> 与 <code>html-report</code> 存放业务文件</td>
+      <td>自动告警并重命名备份至 <code>.bak-YYYYMMDD-HHMMSS</code>，业务文件内容完整，原路径成功建立顶级标准软链接</td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.2 Windows 原生 NTFS 环境回归测试</h3>
+<table class="rk-revs">
+  <thead><tr><th>用例</th><th>测试操作</th><th>实测证据与输出</th><th>结果</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><b>TC-W01 目标目录自愈</b></td>
+      <td>传入未预建路径 <code>win-test-not-exist-...</code></td>
+      <td>PowerShell <code>Resolve-Path</code> 前自动创建目录，成功建立并完成初始化，未抛出 <code>ItemNotFoundException</code></td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-W02 普通目录安全备份</b></td>
+      <td>预置普通物理目录并写入 <code>user-data.txt</code> 与 <code>my-report.html</code></td>
+      <td>输出黄色告警，重命名备份至 <code>.bak-YYYYMMDD-HHMMSS</code>，<code>user-data.txt</code> 依然完好保留；原路径成功创建 <code>LinkType: Junction</code></td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-W03 用户定制规则防覆盖</b></td>
+      <td>预置自定义规则 <code>spec-workflow.md</code> 并计算 SHA256</td>
+      <td>运行脚本后 SHA256 严格相等（<code>Custom rule hash unchanged: True</code>），用户修改未被覆盖</td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-W04 UTF-8 无 BOM 字节验证</b></td>
+      <td>检查 <code>.omp/AGENTS.md</code> 的前 4 个字节</td>
+      <td>实测前导字节：<code>23 20 77 69</code> (<code># wi</code>)，BOM 判定 <code>hasBom = False</code></td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-W05 .gitignore 中文防退化</b></td>
+      <td>在 <code>.gitignore</code> 中注入中文注释与条目，连续运行 2 次脚本</td>
+      <td>第 1 次运行后哈希一致（<code>Run 1 Hash equal: True</code>），第 2 次运行后哈希依然一致（<code>Run 2 Hash equal: True</code>），中文注释与条目 100% 完好</td>
+      <td><span class="rk-verdict is-pass" style="padding:2px 6px;">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

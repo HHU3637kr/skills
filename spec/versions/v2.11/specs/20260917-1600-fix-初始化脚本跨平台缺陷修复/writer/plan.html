@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>方案设计 - 初始化脚本跨平台缺陷修复与健壮性增强</title>
+
+<meta name="rk:type"        content="plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260917-1600-fix-初始化脚本跨平台缺陷修复">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-17">
+<meta name="rk:updated"     content="2026-09-17">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260917-init-scripts-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/7">
+<meta name="rk:tags"        content="spec,plan,fix,cross-platform,awr,hardening">
+
+<link rel="rk-plan"   href="plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>方案设计：初始化脚本跨平台缺陷修复与健壮性增强</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>分支</b> <code>fix/spec-20260917-init-scripts-hardening</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-17</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">设计目标与修复范围</div>
+  <p>依据在 Linux ext4 与 Windows NTFS 真实双端沙箱中暴露的实际问题，对 <code>scripts/init-ai-workflow.sh</code> 与 <code>scripts/init-ai-workflow.ps1</code> 进行彻底的健壮性修复：实现目标路径自愈预建、消除 AWR 0.4.0 状态机悬空边报错、建立 Windows 普通目录安全备份与规则防覆写机制、并全面统一为 UTF-8 无 BOM 输出及读取防退化。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-17</td><td>spec-writer</td><td>针对新鲜实测暴露的 5 项跨平台缺陷制定修复方案</td><td>按规范开展分支与缺陷闭环</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 缺陷清单与根因分析</h2>
+<ol>
+  <li><b>目标路径未预建导致解析崩溃</b>：若目标目录未物理创建，Bash 的 <code>cd "$TARGET_DIR"</code> 与 PowerShell 的 <code>Resolve-Path $TargetDir</code> 均会直接抛出致命错误中断执行。</li>
+  <li><b>AWR 0.4.0 状态机悬空边异常 (dangling_edge)</b>：在 <code>work-ledger.yaml</code> 中指定 <code>goal: intake-goal</code> 会使 AWR 在无对应显式实体注册时报告 <code>[error] dangling_edge ... target goal:intake-goal is missing or retired</code>，导致 <code>awr doctor</code> 校验失败。去除显式 goal 绑定符合标准 intake 单独组织任务定义。</li>
+  <li><b>Windows 下普通物理目录被硬删除 (破坏性行为)</b>：<code>New-JunctionSafely</code> 遇到普通物理目录直接调用 <code>Remove-Item -Recurse -Force</code>，导致用户既有数据瞬间丢失。</li>
+  <li><b>Windows 下用户定制规则被强制覆盖</b>：PS1 脚本使用 <code>Copy-Item ... -Force</code>，会无条件覆盖项目特化规则（如已被修改的 <code>spec-workflow.md</code>），而 Linux 端采用 <code>cp -rn</code> 则无此问题。</li>
+  <li><b>Windows PowerShell 5.1 编码与 BOM 退化陷阱</b>：使用无 BOM UTF-8 写出 <code>.gitignore</code> 后，若在下一次运行时使用默认 <code>Get-Content</code>，PS 5.1 会以系统默认 ANSI 代码页（如 CP936）读取，造成非 ASCII/中文注释内容乱码并写回，破坏文件。</li>
+</ol>
+
+<h2>2. 详细修复技术方案</h2>
+
+<h3>2.1 目标路径前置自愈</h3>
+<ul>
+  <li><code>scripts/init-ai-workflow.sh</code>：在第 10 行执行 <code>mkdir -p "$TARGET_DIR"</code>，再执行 <code>cd "$TARGET_DIR" && pwd</code>。</li>
+  <li><code>scripts/init-ai-workflow.ps1</code>：在第 28 行前执行 <code>if (-not (Test-Path $TargetDir)) { New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null }</code>。</li>
+</ul>
+
+<h3>2.2 AWR 0.4.0 模板兼容修补</h3>
+<ul>
+  <li>修改 <code>scripts/init-ai-workflow.sh</code> 和 <code>.ps1</code> 中的 <code>work-ledger.yaml</code> 生成模板，移除 <code>goal: intake-goal</code>。</li>
+  <li>实测保证 <code>awr doctor</code> 返回 <code>Findings: 0</code>，<code>Database intact: true</code>。</li>
+</ul>
+
+<h3>2.3 目录安全重命名与防覆盖保护</h3>
+<ul>
+  <li><b>Windows Junction 安全重命名</b>：在 <code>New-JunctionSafely</code> 中，遇到非 ReparsePoint 目录时，采用 <code>Move-Item -Path $Path -Destination "$Path.bak-..."</code> 备份，并输出黄色告警。</li>
+  <li><b>Linux 软链接防护</b>：若 <code>.omp/skills</code> 或 <code>html-report</code> 为普通物理目录，同样备份至 <code>.bak</code>，防止 <code>ln -sfn</code> 产生嵌套。</li>
+  <li><b>Windows 规则无覆盖同步</b>：遍历源规则目录，仅当目标规则文件不存在时才执行复制，完整对齐 <code>cp -rn</code> 语义。</li>
+</ul>
+
+<h3>2.4 UTF-8 无 BOM 读写闭环防退化</h3>
+<ul>
+  <li>在 PowerShell 脚本开头声明 <code>$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)</code>。</li>
+  <li>写出 <code>.omp/AGENTS.md</code>、<code>spec/...</code>、<code>GOALS.md</code>、<code>work-ledger.yaml</code> 与 <code>.gitignore</code> 时统一传入 <code>$Utf8NoBom</code>。</li>
+  <li>读取 <code>.gitignore</code> 时显式使用 <code>Get-Content $gitIgnorePath -Encoding UTF8</code>，保证即使多次运行且包含中文注释，也不会发生 ANSI 二次污染。</li>
+</ul>
+
+<h2>3. 验收标准</h2>
+<ol>
+  <li>Ubuntu 沙箱运行后，<code>awr doctor</code> 检查 <code>Findings: 0</code>。</li>
+  <li>Windows 沙箱运行后，哨兵普通目录成功备份为 <code>.bak</code>，哨兵文件不丢失；用户定制规则哈希不变。</li>
+  <li>目标路径在不存在时传入两端脚本，均能平滑自愈并成功初始化。</li>
+  <li>Windows 原生 Node.js 解析生成的文件，首字节无 BOM (<code>0xEF 0xBB 0xBF</code>)，且中文内容完整。</li>
+  <li>在 <code>.gitignore</code> 中预置中文注释与特殊条目，连续运行 2 次 PS1，文件字节哈希与中文内容严格保持无损。</li>
+</ol>
+
+</body>
+</html>
