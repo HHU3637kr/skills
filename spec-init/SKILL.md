@@ -31,10 +31,30 @@ git rev-parse --is-inside-work-tree
 git branch --show-current
 git remote -v
 ```
-
 如果 AGENTS.md 和 spec/ 都已存在，告知用户无需重复初始化，建议直接使用 `spec-start` 启动开发任务。
-如果部分存在，只补充缺失部分。
+如果完全未初始化，Agent 可优先通过一键脚本完成底层物理目录与角色挂载，再执行后续基本信息补齐。
 
+### 自动化优选：触发一键初始化脚本（推荐）
+
+在全新项目初始化时，Agent 无需手工一步步 `mkdir`、`cp` 或手写符号链接，优先调用中央规范库提供的跨平台初始化脚本：
+
+- **Windows 环境（PowerShell）**：
+  ```powershell
+  # 自动采用免管理员权限的 NTFS Junction 联接
+  powershell -ExecutionPolicy Bypass -File .agents/skills/scripts/init-ai-workflow.ps1
+  ```
+- **macOS / Linux / Git Bash 环境**：
+  ```bash
+  bash .agents/skills/scripts/init-ai-workflow.sh
+  ```
+
+该脚本会自动执行：
+1. 依赖检测（Git、AWR、IDE 适配探针）；
+2. 基础目录骨架搭建（`.agents/`、`spec/`、`html-report/assets/`、`.omp/`）；
+3. 建立角色与样式资产软链接/Junction（免提权）；
+4. 准备初始 `.gitignore` 与 `.awrignore`。
+
+脚本执行完毕后，Agent 直接跳到**步骤 2**与用户对齐项目业务信息（名称、技术栈、类型），生成定制化的 `AGENTS.md` 与初始 `spec/work-ledger.yaml`。
 Git 检查规则：
 - 如果已经是 Git 仓库，记录当前分支和远程仓库；不要重新 `git init`
 - 如果不是 Git 仓库，询问用户是否初始化 Git 仓库
