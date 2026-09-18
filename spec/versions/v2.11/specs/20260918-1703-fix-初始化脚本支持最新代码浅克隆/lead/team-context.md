@@ -11,6 +11,7 @@ mode: gated
 execution: serial
 git_branch: fix/spec-20260918-shallow-clone
 base_branch: master
+pr_url: https://github.com/HHU3637kr/skills/pull/8
 created_at: 2026-09-18T17:03:00+08:00
 updated_at: 2026-09-18T17:15:00+08:00
 ---
