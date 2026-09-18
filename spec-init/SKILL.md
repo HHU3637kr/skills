@@ -220,7 +220,7 @@ mkdir -p ".agents/rules"
 直接把 Skills 仓库克隆到 `.agents/skills/`：
 
 ```bash
-git clone https://github.com/HHU3637kr/skills.git .agents/skills
+git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents/skills
 ```
 
 再把当前 `<runtime>` 的 skills 目录软链接过去，三套运行时共享同一份副本（只建 `<runtime>` 对应的那一个）：

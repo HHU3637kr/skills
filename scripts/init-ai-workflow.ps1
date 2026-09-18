@@ -71,7 +71,7 @@ if (Test-Path ".agents\skills\.git") {
     if (Test-Path ".agents\skills") {
         Remove-Item -Recurse -Force ".agents\skills"
     }
-    git clone $SkillsRepoUrl ".agents\skills"
+    git clone --depth=1 $SkillsRepoUrl ".agents\skills"
 }
 
 # 4. 建立免管理员权限的 NTFS Junction (目录联接)

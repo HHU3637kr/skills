@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - 初始化脚本与分发文档浅克隆（--depth=1）优化</title>
+
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260918-1703-fix-初始化脚本支持最新代码浅克隆">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-18">
+<meta name="rk:updated"     content="2026-09-18">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260918-shallow-clone">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-report,fix,git,shallow-clone,verification">
+
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-report" href="test-report.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试报告：初始化脚本与分发文档浅克隆（--depth=1）优化</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>fix/spec-20260918-shallow-clone</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-18</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论：全部通过 (PASS)</div>
+  <p>通过严格的测试先行（反向红灯用例）与新鲜实测（端到端绿灯用例），验证了 <code>scripts/init-ai-workflow.sh</code> 浅克隆行为与后续增量更新能力：首次克隆提交历史数严格为 1，生成 <code>.git/shallow</code> 标记；远端追加新提交后，<code>git -C .agents/skills pull --ff-only</code> 成功增量合入，无任何兼容性问题。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-18</td><td>spec-tester</td><td>执行红绿用例与端到端实测验证，输出测试报告</td><td>按规范进行新鲜验证</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试用例与执行结果</h2>
+<table class="rk-table">
+  <thead><tr><th>用例编号</th><th>测试目标</th><th>验证方式</th><th>预期结果</th><th>实际结果</th><th>判定</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TC-001</td>
+      <td>红灯复现（未加 --depth=1 时拉取全量历史）</td>
+      <td>执行 <code>reproduce-test.sh</code> 验证修改前行为</td>
+      <td>拉取全部 3 次历史提交，<code>is_shallow=false</code></td>
+      <td>Commit count=3, is_shallow=false, 用例退出码 1</td>
+      <td><span class="rk-badge is-pass">PASS（成功红灯）</span></td>
+    </tr>
+    <tr>
+      <td>TC-002</td>
+      <td>绿灯验证（修改后首次克隆仅获取最新代码）</td>
+      <td>执行 <code>e2e-shallow-test.sh</code> 阶段 3</td>
+      <td><code>git rev-list --count HEAD == 1</code>，<code>.git/shallow</code> 存在</td>
+      <td>Commit count=1, is_shallow=true</td>
+      <td><span class="rk-badge is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-003</td>
+      <td>增量更新兼容性（git pull --ff-only）</td>
+      <td>模拟上游仓库产生 commit 4，再次执行初始化脚本</td>
+      <td>成功执行 fast-forward pull，新文件存在，工作流就绪</td>
+      <td>Fast-forward updating, file4.txt 存在, count=2</td>
+      <td><span class="rk-badge is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>TC-004</td>
+      <td>文档口径一致性检查</td>
+      <td>检查 README.md 与 spec-init/SKILL.md</td>
+      <td>手动命令均包含 <code>--depth=1</code></td>
+      <td>全部 3 处手动安装命令已对齐更新</td>
+      <td><span class="rk-badge is-pass">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2. 证据日志记录</h2>
+<pre><code>=== 1. 构建模拟远程仓库 (具有多提交历史) ===
+Initialized empty Git repository in /tmp/test-shallow-e2e-AdjZ0P/mock-skills-remote/.git/
+[master (root-commit) 8a4a0db] commit 1
+[master 9d77ebd] commit 2
+[master dc1a347] commit 3
+=== 2. 运行修改后的 init-ai-workflow.sh ===
+...
+Cloning into '.agents/skills'...
+=== 3. 验证浅克隆属性 (GREEN) ===
+Commit count in .agents/skills: 1
+Is shallow repository: true
+✅ 成功: 首次执行成功完成浅克隆 (depth=1)
+=== 4. 验证增量拉取能力 (git pull --ff-only) ===
+[master 3dc97d1] commit 4
+...
+🔄 .agents/skills 已存在，执行增量更新...
+Updating dc1a347..3dc97d1
+Fast-forward
+ file4.txt | 1 +
+Commit count after incremental pull: 2
+✅ 成功: 浅克隆后执行增量更新 (pull --ff-only) 完美兼容且新提交成功合入！
+=== ALL TESTS PASSED ===</code></pre>
+
+</body>
+</html>

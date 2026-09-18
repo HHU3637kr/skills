@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现总结 - 初始化脚本与分发文档浅克隆（--depth=1）优化</title>
+
+<meta name="rk:type"        content="summary">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260918-1703-fix-初始化脚本支持最新代码浅克隆">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-18">
+<meta name="rk:updated"     content="2026-09-18">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260918-shallow-clone">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,summary,fix,git,shallow-clone,init-script">
+
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="summary.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>实现总结：初始化脚本与分发文档浅克隆（--depth=1）优化</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分支</b> <code>fix/spec-20260918-shallow-clone</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-18</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>全面完成初始化脚本 <code>scripts/init-ai-workflow.sh</code>、<code>scripts/init-ai-workflow.ps1</code> 及相关分发指引的浅克隆改造：引入 <code>--depth=1</code> 仅克隆最新代码，减少下载量与磁盘占用；并同步更新了 <code>README.md</code> 与 <code>spec-init/SKILL.md</code> 中手动安装命令口径。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-18</td><td>spec-executor</td><td>完成双端脚本与两处核心文档的 --depth=1 优化改造</td><td>实现最新代码轻量化下载诉求</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 核心变更点落地清单</h2>
+<ol>
+  <li><b>Bash 初始化脚本优化 (<code>scripts/init-ai-workflow.sh</code>)</b>：
+    <ul>
+      <li>第 46 行：由 <code>git clone "$SKILLS_REPO_URL" .agents/skills</code> 升级为 <code>git clone --depth=1 "$SKILLS_REPO_URL" .agents/skills</code>。</li>
+    </ul>
+  </li>
+  <li><b>PowerShell 初始化脚本优化 (<code>scripts/init-ai-workflow.ps1</code>)</b>：
+    <ul>
+      <li>第 74 行：由 <code>git clone $SkillsRepoUrl ".agents\skills"</code> 升级为 <code>git clone --depth=1 $SkillsRepoUrl ".agents\skills"</code>。</li>
+    </ul>
+  </li>
+  <li><b>根目录 README 文档同步 (<code>README.md</code>)</b>：
+    <ul>
+      <li>第 55 行（Linux/macOS Bash）：<code>git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents/skills</code>。</li>
+      <li>第 66 行（Windows PowerShell）：<code>git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents\skills</code>。</li>
+    </ul>
+  </li>
+  <li><b>初始化技能规约同步 (<code>spec-init/SKILL.md</code>)</b>：
+    <ul>
+      <li>第 223 行：手动克隆示例命令同步追加 <code>--depth=1</code> 参数，保持文档与实现统一。</li>
+    </ul>
+  </li>
+</ol>
+
+<h2>2. 触达文件与 Git 状态</h2>
+<pre><code>modified:   scripts/init-ai-workflow.sh
+modified:   scripts/init-ai-workflow.ps1
+modified:   README.md
+modified:   spec-init/SKILL.md</code></pre>
+
+</body>
+</html>
