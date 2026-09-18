@@ -52,7 +52,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File \path\to\skills\scripts\init
 
 ```bash
 # 1. 拉取 Skills 到 .agents/skills/
-git clone https://github.com/HHU3637kr/skills.git .agents/skills
+git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents/skills
 
 # 2. 根据你的运行时环境，创建软链接到 .agents/skills/
 ln -s ../.agents/skills .omp/skills      # Oh My Pi
@@ -63,7 +63,7 @@ ln -s .agents/skills/html-report html-report # HTML 报告离线样式软链接
 
 Windows（PowerShell 原生终端）：
 ```powershell
-git clone https://github.com/HHU3637kr/skills.git .agents\skills
+git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents\skills
 # 推荐使用免提权 NTFS Junction 创建目录联接：
 New-Item -ItemType Junction -Path .omp\skills -Target .agents\skills
 New-Item -ItemType Junction -Path html-report -Target .agents\skills\html-report

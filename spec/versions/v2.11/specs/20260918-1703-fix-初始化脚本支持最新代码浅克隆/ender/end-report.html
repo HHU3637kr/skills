@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>收尾归档报告 - 初始化脚本与分发文档浅克隆（--depth=1）优化</title>
+
+<meta name="rk:type"        content="end-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260918-1703-fix-初始化脚本支持最新代码浅克隆">
+<meta name="rk:role"        content="spec-ender">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-18">
+<meta name="rk:updated"     content="2026-09-18">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260918-shallow-clone">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,end-report,fix,git,shallow-clone,archived">
+
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-report" href="end-report.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>收尾归档报告：初始化脚本与分发文档浅克隆（--depth=1）优化</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> end-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-ender</span>
+    <span><b>分支</b> <code>fix/spec-20260918-shallow-clone</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-18</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">交付结论：原位归档完成 (DONE)</div>
+  <p>本 Spec 完整解决了用户提出的「初始化脚本克隆全量 Git 仓库、仅需最新代码」的诉求。通过 <code>--depth=1</code> 参数引入与严密验证，兼顾了快速下载、空间节约与后续 <code>git pull --ff-only</code> 增量更新的无缝兼容；全部角色产物完备，满足三条 Iron Law，正式归档交付。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-18</td><td>spec-ender</td><td>输出收尾复盘报告并原位归档 Spec</td><td>流程闭环</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 交付产物清单</h2>
+<table class="rk-table">
+  <thead><tr><th>产物路径</th><th>说明</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr><td><code>scripts/init-ai-workflow.sh</code></td><td>Bash 初始化脚本：增加 <code>--depth=1</code> 浅克隆</td><td>已修改并验证</td></tr>
+    <tr><td><code>scripts/init-ai-workflow.ps1</code></td><td>PowerShell 初始化脚本：增加 <code>--depth=1</code> 浅克隆</td><td>已修改并验证</td></tr>
+    <tr><td><code>README.md</code></td><td>更新 Bash 与 PowerShell 手动安装克隆命令为 <code>--depth=1</code></td><td>已同步</td></tr>
+    <tr><td><code>spec-init/SKILL.md</code></td><td>更新规范库手动安装克隆命令为 <code>--depth=1</code></td><td>已同步</td></tr>
+    <tr><td><code>spec/versions/v2.11/specs/.../writer/plan.html</code></td><td>方案设计产物</td><td>已完工</td></tr>
+    <tr><td><code>spec/versions/v2.11/specs/.../executor/summary.html</code></td><td>实现总结产物</td><td>已完工</td></tr>
+    <tr><td><code>spec/versions/v2.11/specs/.../tester/test-report.html</code></td><td>测试验证报告产物（含测试先行红绿证据）</td><td>已完工</td></tr>
+    <tr><td><code>spec/versions/v2.11/specs/.../lead/team-context.md</code></td><td>团队协作与门禁决策账本</td><td>已核销归档</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 经验沉淀建议</h2>
+<p>在下游工程依赖型仓库的分发设计中，除非下游有提交或特定历史 blame 需求，默认应优先提供 <code>--depth=1</code> 的浅克隆配置，既能大幅降低网络下载等待时间，又完全兼容现代 Git 的 fast-forward pull 增量更新机制。</p>
+
+</body>
+</html>
