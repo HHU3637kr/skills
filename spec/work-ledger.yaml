@@ -36,3 +36,12 @@ work_items:
       - 在 Linux 沙箱与 Windows 原生 NTFS 空间完成端到端新鲜实测
       - 沉淀跨平台经验 EXP-002 并更新 README、CODEMAP、spec-init
     next_action: 代码已合入工作分支并通过双端沙箱验证，准备提交与收尾
+  - id: SKILL-INIT-002
+    title: 初始化脚本支持最新代码浅克隆(--depth=1)并同步分发文档
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - scripts/init-ai-workflow.{sh,ps1} 增加 --depth=1 浅克隆参数
+      - README.md 与 spec-init/SKILL.md 同步更新分发说明
+      - 验证浅克隆后 git pull --ff-only 增量更新兼容性
+    next_action: PR #8 已合入 master，全部验收项已闭环
