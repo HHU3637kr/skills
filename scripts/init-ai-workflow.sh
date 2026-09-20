@@ -43,7 +43,7 @@ if [ -d ".agents/skills/.git" ]; then
     git -C .agents/skills pull --ff-only || true
 else
     rm -rf .agents/skills
-    git clone "$SKILLS_REPO_URL" .agents/skills
+    git clone --depth=1 "$SKILLS_REPO_URL" .agents/skills
 fi
 
 # 4. 建立运行时软链接（Windows Git Bash 下优先采用免提权 NTFS Junction）

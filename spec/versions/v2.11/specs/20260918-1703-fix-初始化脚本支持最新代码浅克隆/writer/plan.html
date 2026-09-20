@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>方案设计 - 初始化脚本与分发文档浅克隆（--depth=1）优化</title>
+
+<meta name="rk:type"        content="plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260918-1703-fix-初始化脚本支持最新代码浅克隆">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-18">
+<meta name="rk:updated"     content="2026-09-18">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260918-shallow-clone">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,plan,fix,git,shallow-clone,init-script">
+
+<link rel="rk-plan"   href="plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>方案设计：初始化脚本与分发文档浅克隆（--depth=1）优化</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>分支</b> <code>fix/spec-20260918-shallow-clone</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-18</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">设计目标与优化范围</div>
+  <p>解决初始化脚本 <code>init-ai-workflow.sh</code>、<code>init-ai-workflow.ps1</code> 在执行 <code>git clone</code> 时拉取仓库全量提交历史导致的下载耗时与冗余空间占用问题。通过引入 <code>--depth=1</code> 浅克隆参数，确保下游目标项目仅拉取最新代码镜像，并经严密测试验证其对既有 <code>git pull --ff-only</code> 增量更新逻辑的无缝兼容性；同时同步更新 <code>README.md</code> 与 <code>spec-init/SKILL.md</code> 中手动安装命令口径。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-18</td><td>spec-writer</td><td>制定浅克隆优化设计与兼容性验证方案</td><td>用户反馈初始化脚本下载全量 Git 历史，需仅克隆最新代码</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 现状痛点与根因分析</h2>
+<ol>
+  <li><b>全量克隆的历史包袱</b>：当前 <code>scripts/init-ai-workflow.sh</code> (第 46 行) 与 <code>scripts/init-ai-workflow.ps1</code> (第 74 行) 均使用裸 <code>git clone "$SKILLS_REPO_URL" .agents/skills</code>。下游项目使用该脚本仅作为 Skills 规范运行时依赖，并不需要回溯或提交历史提交，全量拉取带来额外的网络传输带宽消耗与磁盘体积浪费。</li>
+  <li><b>手动文档与脚本口径不一致</b>：<code>README.md</code> 第 55、66 行与 <code>spec-init/SKILL.md</code> 第 223 行指引的手动克隆命令同样为全量 <code>git clone</code>，缺乏 <code>--depth=1</code> 最佳实践指导。</li>
+  <li><b>浅克隆后续更新的兼容性确认</b>：脚本内置了 <code>git -C .agents/skills pull --ff-only</code> 的增量更新逻辑。必须在方案中确认现代 Git（1.9+）在 <code>--depth=1</code> 单分支浅克隆状态下执行 fast-forward pull 的行为与对象树扩展能力，确保未来用户在执行增量更新时不会失败或中断。</li>
+</ol>
+
+<h2>2. 详细改造方案</h2>
+
+<h3>2.1 双端初始化脚本更新</h3>
+<ul>
+  <li><b>Bash 脚本</b> (<code>scripts/init-ai-workflow.sh</code>)：
+    <pre><code># 原代码
+git clone "$SKILLS_REPO_URL" .agents/skills
+
+# 修改为
+git clone --depth=1 "$SKILLS_REPO_URL" .agents/skills</code></pre>
+  </li>
+  <li><b>PowerShell 脚本</b> (<code>scripts/init-ai-workflow.ps1</code>)：
+    <pre><code># 原代码
+git clone $SkillsRepoUrl ".agents\skills"
+
+# 修改为
+git clone --depth=1 $SkillsRepoUrl ".agents\skills"</code></pre>
+  </li>
+</ul>
+
+<h3>2.2 分发与安装文档同步</h3>
+<ul>
+  <li><code>README.md</code>：Linux/macOS 与 Windows 原生 PowerShell 手动安装章节中的 <code>git clone https://github.com/HHU3637kr/skills.git ...</code> 命令均追加 <code>--depth=1</code>。</li>
+  <li><code>spec-init/SKILL.md</code>：手动安装命令代码块中的 <code>git clone https://github.com/HHU3637kr/skills.git .agents/skills</code> 同步追加 <code>--depth=1</code>。</li>
+</ul>
+
+<h2>3. 验证与测试设计（测试先行与双向验证）</h2>
+<ol>
+  <li><b>反向复现 (RED)</b>：
+    验证无 <code>--depth=1</code> 时的 clone 会包含多条历史提交记录（commit count > 1），证实原脚本拉取了全量历史。
+  </li>
+  <li><b>功能验证 (GREEN)</b>：
+    修改脚本后，在隔离测试环境中执行克隆，验证 <code>.agents/skills</code> 的 commit 深度严格为 1（<code>git rev-list --count HEAD == 1</code>），且 <code>.git/shallow</code> 标记文件存在。
+  </li>
+  <li><b>增量更新兼容性验证 (Regression Proof)</b>：
+    模拟远端产生新提交场景，在浅克隆出的目录中执行 <code>git -C .agents/skills pull --ff-only</code>，验证：
+    <ul>
+      <li>增量 pull 成功退出（退出码 0）；</li>
+      <li>最新提交的代码正确合入工作区；</li>
+      <li>脚本中的更新分支分支逻辑无任何报错。</li>
+    </ul>
+  </li>
+</ol>
+
+</body>
+</html>
