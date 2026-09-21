@@ -54,13 +54,16 @@ bug 修复仍由 spec-debugger 负责。
 
 ## 工作流程
 
-### 步骤 1：读取 AWR 聚焦上下文并验证 writer/plan.html
+### 步骤 1：接力 AWR 会话、读取聚焦上下文并验证 writer/plan.html
 
-1. 执行 AWR 检查以确认前置依赖与任务可用性：
+1. 执行 AWR 会话接力与上下文准备：
    ```bash
-   awr work prepare <SPEC-ID> --response-view summary
+   # 接力上游 spec-writer 的会话并转移任务租约（Claim Transfer）
+   awr session resume --from-session <WRITER-SESSION-ID> --agent spec-executor --expected-revision <REV>
+   # 绑定会话准备聚焦上下文
+   awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    ```
-   从准备输出中核查验收标准、依赖与变更；若超预算可追加 `--budget <N>`。
+   从准备输出中核查验收标准、依赖与变更（必须以 context 中的 Acceptance 作为实现和单测的硬指标）；若超预算可追加 `--budget <N>`。
 2. 使用 `Read` 工具读取 `writer/plan.html`
 3. 理解目标、范围、设计方案、数据模型、接口定义
 4. 记录 Spec 所在目录（用于创建 `executor/summary.html` 和后续交接）
@@ -115,11 +118,10 @@ bug 修复仍由 spec-debugger 负责。
 - 实现期遇到的过程性问题（环境不一致、依赖缺失、脚本报错、plan 与现状冲突）在「问题闭环记录」记一行，「分类」选 `env` / `dependency` / `process` / `scope`
 - 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
-- 向 AWR 提交实现阶段会话检查点，绑定本轮新鲜验证证据：
+- 向 AWR 提交实现阶段会话检查点，绑定本轮新鲜验证证据与上下文 HASH：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --digest "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/" --next-action "spec-tester: 执行集成测试并产出 test-report.html" --expected-revision <REV>
+  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/" --next-action "spec-tester: 执行集成测试并产出 test-report.html" --expected-revision <REV>
   ```
-```text
 通知 TeamLead：executor/summary.html 已完成，请发起用户确认，并在确认后启动 spec-tester 执行测试。
 ```
 

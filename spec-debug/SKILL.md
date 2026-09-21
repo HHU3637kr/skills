@@ -50,15 +50,20 @@ spec-tester 发现 bug
 
 ## 工作流程
 
-### 步骤 1：收集问题信息
+### 步骤 1：接力 AWR 会话并收集问题信息
 
-从 TeamLead 转交的 bug handoff 中获取：
-- 问题现象和复现步骤
-- 预期行为 vs 实际行为
-- 相关测试用例编号
-
-读取相关文档：`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`（草稿）。
-
+1. 执行 AWR 会话接力与上下文准备：
+   ```bash
+   # 接力 spec-tester 发现 Bug 时的会话与 Open-Loop
+   awr session resume --from-session <TESTER-SESSION-ID> --agent spec-debugger --expected-revision <REV>
+   # 绑定会话准备上下文
+   awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
+   ```
+2. 从 TeamLead 转交的 bug handoff 中获取：
+   - 问题现象和复现步骤
+   - 预期行为 vs 实际行为
+   - 相关测试用例编号
+3. 读取相关文档：`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`（草稿）。
 ### 步骤 2：检索历史经验
 
 ```bash
@@ -220,9 +225,9 @@ spec-tester 发现 bug
 - 「状态」标记为 `fixed_pending_verification`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-debugger`
 - 只修改「任务进度」/「问题闭环记录」/「决策记录」/「修复循环预算」，不要修改 TeamLead 其他控制面区块
-- 向 AWR 提交修复轮次会话检查点：
+- 向 AWR 提交修复轮次会话检查点（带上下文 HASH）：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --digest "spec-debugger: 完成第 {rounds_used} 轮修复，产出 debug-xxx-fix.html" --next-action "spec-tester: 重新验证测试用例 TC-XXX" --expected-revision <REV>
+  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-debugger: 完成第 {rounds_used} 轮修复，产出 debug-xxx-fix.html" --next-action "spec-tester: 重新验证测试用例 TC-XXX" --expected-revision <REV>
   ```
 如果预算未触上限：
 

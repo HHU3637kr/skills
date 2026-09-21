@@ -61,7 +61,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 | 步骤 | 操作 | 要点 |
 |------|------|------|
-| 1 | 读取 Spec 文档 | 读取 `writer/plan.html` 或 `updater/update-xxx.html`，提取功能点、数据模型、接口定义 |
+| 1 | 接力 AWR 会话并读取 Spec 文档 | 执行 `awr session resume --from-session <TESTER-SESSION-ID> --agent spec-reviewer --expected-revision <REV>` 接棒认领，执行 `awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary`；读取 `writer/plan.html` 或 `updater/update-xxx.html`，提取功能点、数据模型、接口定义 |
 | 2 | 读取实现与测试产物 | 读取 `executor/summary.html` 或 `updater/update-xxx-summary.html`、`tester/test-plan.html`、`tester/test-report.html`，并列出 `executor/artifacts/` 下的证据文件 |
 | 3 | 建立检查清单 | 从 Spec 提取所有需实现的功能点、模型、接口、测试；按 `references/review-rubric.md` 的五类清单展开 |
 | 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
@@ -95,9 +95,9 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - 「状态」根据审查结果标记为 `done` / `needs-fix`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-reviewer`
 - 若发现阻塞问题，在「问题闭环记录」中追加问题行，「分类」按性质选（`bug` / `scope` / `process` 等），「发现者」 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
-- 向 AWR 提交审查结论会话检查点：
+- 向 AWR 提交审查结论会话检查点（带上下文 HASH）：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --digest "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html" --next-action "spec-ender: 进行收尾复盘与原位归档" --expected-revision <REV>
+  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html" --next-action "spec-ender: 进行收尾复盘与原位归档" --expected-revision <REV>
   ```
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 `gated` 模式的用户响应处理：

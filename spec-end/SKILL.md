@@ -32,14 +32,20 @@ description: >
 
 ## 工作流程
 
-### 步骤 1：接收任务
+### 步骤 1：接收任务与接力 AWR 会话
 
-从 TeamLead 的启动指令中获取：
-- 当前 Spec 的目录路径
-- 确认所有阶段（计划/实现/测试）已完成
-- 当前工作分支（应与 `lead/team-context.md` 的 `git_branch` 一致）
-- base 分支（用 `git symbolic-ref refs/remotes/origin/HEAD` 读远程默认分支，不要假定分支名；`lead/team-context.md` 的 `base_branch` 与之不符时以远程为准并向用户说明）
-
+1. 执行 AWR 会话接力与上下文准备：
+   ```bash
+   # 接力上游 spec-reviewer 的会话并转移任务租约（Claim Transfer）
+   awr session resume --from-session <REVIEWER-SESSION-ID> --agent spec-ender --expected-revision <REV>
+   # 绑定会话提取全景上下文
+   awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
+   ```
+2. 从 TeamLead 的启动指令中获取：
+   - 当前 Spec 的目录路径
+   - 确认所有阶段（计划/实现/测试/审查）已完成
+   - 当前工作分支（应与 `lead/team-context.md` 的 `git_branch` 一致）
+   - base 分支（用 `git symbolic-ref refs/remotes/origin/HEAD` 读远程默认分支）
 ### 步骤 2：扫描 Spec 目录
 
 读取当前 spec 目录下的所有角色产物：
@@ -137,9 +143,13 @@ exp-reflect 会根据经验的重要性分流：
 
 用户选择"确认原位归档并创建 PR/MR"（`autopilot` 下为自门禁通过）：
 
-1. **原位归档更新**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。同步向 AWR 提交最终会话检查点：
+1. **原位归档更新与释放租约**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，在 `spec/work-ledger.yaml` 中将该工作项标记为 `completed`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
+   同步向 AWR 提交最终会话检查点并显式释放租约（Session End）：
    ```bash
-   awr session checkpoint --session <SESSION-ID> --digest "spec-ender: Spec 原位归档完成，测试全绿，已创建 PR/MR，产出 end-report.html" --next-action "Spec 已完结，等待合流与版本集成" --expected-revision <REV>
+   # 1. 提交完工检查点
+   awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-ender: Spec 原位归档完成，测试全绿，已创建 PR/MR，产出 end-report.html" --next-action "Spec 已完结，等待合流与版本集成" --expected-revision <REV>
+   # 2. 显式关闭会话并释放工作项独占租约，彻底杜绝 orphan_session 孤儿会话
+   awr session end --session <SESSION-ID> --outcome ended --expected-revision <REV>
    ```
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不等于远程默认分支（`git symbolic-ref refs/remotes/origin/HEAD` 读出，不要假定分支名）

@@ -45,3 +45,13 @@ work_items:
       - README.md 与 spec-init/SKILL.md 同步更新分发说明
       - 验证浅克隆后 git pull --ff-only 增量更新兼容性
     next_action: PR #8 已合入 master，全部验收项已闭环
+  - id: SKILL-AWR-003
+    title: 演练并验证 AWR 官方 L0 正统会话生命周期与租约接力规范
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - 演练 session start --claim 独占认领租约消除需认领状态
+      - 演练 work prepare --session 绑定会话获取上下文 Hash
+      - 演练 session resume 接力转移租约
+      - 演练 session checkpoint 盖章与 session end 显式释放租约
+    next_action: 全流程实测通过，租约与上下文接力机制已闭环

@@ -261,13 +261,20 @@ description: >
 
 ## 阶段二：执行测试（测试执行阶段）
 
-### 步骤 1：读取必要文档
+### 步骤 1：接力 AWR 会话、准备上下文并读取必要文档
 
-- `writer/plan.html`：了解设计方案
-- `tester/test-plan.html`：测试用例和验收标准
-- `executor/summary.html`：了解实现细节
-- `html-report` skill：报告骨架、frontmatter 双轨等价字段、双向关联、修订标记与 Decision Log 联动规范
-
+1. 执行 AWR 会话接力与上下文准备：
+   ```bash
+   # 接力上游 spec-executor 的会话并转移任务租约（Claim Transfer）
+   awr session resume --from-session <EXECUTOR-SESSION-ID> --agent spec-tester --expected-revision <REV>
+   # 绑定会话准备测试聚焦上下文与最新代码变更基线
+   awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
+   ```
+2. 读取关键业务与规范文档：
+   - `writer/plan.html`：了解设计方案
+   - `tester/test-plan.html`：测试用例和验收标准
+   - `executor/summary.html`：了解实现细节
+   - `html-report` skill：报告骨架、双向关联、修订标记规范
 ### 步骤 2：执行测试用例
 
 按 `tester/test-plan.html` 的用例逐一执行，记录结果。
@@ -537,9 +544,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
-- 向 AWR 提交测试完成会话检查点：
+- 向 AWR 提交测试完成会话检查点（带上下文 HASH，全绿则无 open-loop）：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --digest "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html" --next-action "spec-reviewer: 进行代码与状态一致性审查" --expected-revision <REV>
+  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html" --next-action "spec-reviewer: 进行代码与状态一致性审查" --expected-revision <REV>
   ```
 - 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
