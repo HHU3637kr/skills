@@ -25,9 +25,11 @@
 
 ```
 skills/
-├── scripts/                  # 跨平台一键初始化脚本库
+├── scripts/                  # 跨平台一键自动化与 AWR 工具库
 │   ├── init-ai-workflow.sh   # Linux / macOS / Git Bash 一键初始化脚本
-│   └── init-ai-workflow.ps1  # Windows 原生 PowerShell 免提权一键初始化脚本
+│   ├── init-ai-workflow.ps1  # Windows 原生 PowerShell 免提权一键初始化脚本
+│   ├── rk-awr-checkpoint.sh  # Linux / macOS / Git Bash AWR 检查点自动化脚本
+│   └── rk-awr-checkpoint.ps1 # Windows 原生 PowerShell AWR 检查点自动化脚本
 ├── package.json              # 版本元数据（private，不发布 npm）
 ├── README.md                 # 总体说明和工作流规范
 └── CODEMAP.md                # 本文件

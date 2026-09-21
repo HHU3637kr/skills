@@ -92,18 +92,20 @@ git push origin --delete release/<version>
 git worktree remove .worktrees/<version> --force
 ```
 
-### 步骤 7：向 AWR 提交版本归档检查点与创建运行时备份
+### 步骤 7：AWR 运行时状态同步与创建版本冷备
 
-1. 提交版本归档检查点：
+1. **版本工作项检查点（若有对应任务）**：
+   AWR 0.5.0 中 Session 绑定原子 WorkItem。若当前版本在台账中声明了专属版本归档任务（如 `<VERSION-WORK-ID>`），提交收尾检查点并正常关闭会话：
    ```bash
-   awr session checkpoint --session <SESSION-ID> --digest "version-end: 版本 <version> 已完成交付复盘与收尾归档，状态更新为已归档" --next-action "版本交付完毕，项目基线归档" --expected-revision <REV>
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <VERSION-WORK-ID> --agent version-end --digest "version-end: 版本 <version> 已完成交付复盘与收尾归档，状态更新为已归档" --next-action "版本交付完毕，项目基线归档" --end
    ```
 
-2. 执行 AWR 本地运行时密封备份（AWR 0.4.0+），生成一致性冷备：
+2. **执行 AWR 本地运行时密封备份（AWR 0.5.0+）**，生成当前版本一致性冷备：
    ```bash
-   awr runtime backup
+   mkdir -p .awr-backups && awr runtime backup --output ".awr-backups/<version>-$(date +%Y%m%d-%H%M%S)"
    ```
-
+   注：AWR 0.5.0 要求备份目标位于 `.awr/` 目录之外且必须为未创建的新目录（附加时间戳可防止多次收尾时目录冲突），`--output <OUTPUT>` 为必需参数；若安装了 MCP 服务，可追加 `--companion <MCP-PATH>` 同步归档。
 ### 步骤 8：收尾通报
 
 通知 TeamLead 与团队：`<version>` 版本已完整交付并完成原位归档，项目基线已更新，临时分支已清理。

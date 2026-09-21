@@ -12,7 +12,7 @@
 ### 方式一：Shell 脚本一键初始化（推荐）
 
 针对任何全新的或已有业务工程，推荐使用官方一键初始化脚本。脚本自动完成以下 10 大标准化操作：
-1. **依赖检测**：检测 Git 及 AWR (Agent Work Runtime 0.4.0)；
+1. **依赖检测**：检测 Git 及 AWR (Agent Work Runtime ≥0.5.0)；
 2. **Git 仓库保障**：若未初始化则自动创建并检出 `dev` 日常集成开发分支；
 3. **规范库拉取**：克隆单版本源至 `.agents/skills/`（已存在则自动增量 `git pull`）；
 4. **免提权软链接/Junction 创建**：将运行时与报告样式自动软链接到 `.omp/skills` 与 `html-report`；在 Windows 环境下自动探测并使用免提权 NTFS Junction；
@@ -20,7 +20,7 @@
 6. **标准薄入口生成**：自动识别工程名，生成精简的 `.omp/AGENTS.md`；
 7. **三级架构与经验知识库骨架**：初始化 `spec/versions/` 及 `spec/context/{experience,knowledge}/` 索引；
 8. **AWR 目标与台账**：生成 `GOALS.md`、`work-ledger.yaml` 与 `.awr/project.toml`；
-9. **AWR 状态机初始化**：自动执行 `awr init` 与 `awr source reindex` 挂载本地运行状态；
+9. **AWR 状态机初始化**：自动执行 `awr init` 与 `awr source reindex` 挂载本地运行状态，并提供 `scripts/rk-awr-checkpoint.{sh,ps1}` 接管各阶段会话检查点；
 10. **.gitignore 规则收敛**：幂等追加运行时状态与软链接忽略配置。
 
 #### 1. Linux / macOS / Git Bash

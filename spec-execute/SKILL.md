@@ -58,9 +58,10 @@ bug 修复仍由 spec-debugger 负责。
 
 1. 执行 AWR 会话接力与上下文准备：
    ```bash
-   # 接力上游 spec-writer 的会话并转移任务租约（Claim Transfer）
-   awr session resume --from-session <WRITER-SESSION-ID> --agent spec-executor --expected-revision <REV>
-   # 绑定会话准备聚焦上下文
+   # 自动接力上游 spec-writer 的会话并转移任务租约（Claim Transfer）
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <SPEC-ID> --agent spec-executor --digest "接力开工进入实现" --next-action "执行代码与单测编写"
+   # 绑定当前会话准备聚焦上下文
    awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    ```
    从准备输出中核查验收标准、依赖与变更（必须以 context 中的 Acceptance 作为实现和单测的硬指标）；若超预算可追加 `--budget <N>`。
@@ -118,10 +119,12 @@ bug 修复仍由 spec-debugger 负责。
 - 实现期遇到的过程性问题（环境不一致、依赖缺失、脚本报错、plan 与现状冲突）在「问题闭环记录」记一行，「分类」选 `env` / `dependency` / `process` / `scope`
 - 只修改「任务进度」/「决策记录」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 
-- 向 AWR 提交实现阶段会话检查点，绑定本轮新鲜验证证据与上下文 HASH：
+- 向 AWR 提交实现阶段会话检查点，绑定本轮新鲜验证证据：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/" --next-action "spec-tester: 执行集成测试并产出 test-report.html" --expected-revision <REV>
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent spec-executor --digest "spec-executor: 完成代码实现与单元测试，证据保存在 executor/artifacts/" --next-action "spec-tester: 执行集成测试并产出 test-report.html"
   ```
+```text
 通知 TeamLead：executor/summary.html 已完成，请发起用户确认，并在确认后启动 spec-tester 执行测试。
 ```
 

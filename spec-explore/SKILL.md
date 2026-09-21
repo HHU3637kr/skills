@@ -42,13 +42,17 @@ description: >
 
 ### 步骤 1：接收任务并获取 AWR 聚焦上下文
 
-从 TeamLead 的启动指令中获取任务描述、范围、Spec 目录与当前角色的 `<SESSION-ID>`。开工前先通过 AWR 0.4.0+ 组合命令准备并绑定聚焦上下文：
+从 TeamLead 的启动指令中获取任务描述、范围与 Spec 目录。开工前先通过辅助脚本完成首发会话启动与独占租约锁定，再准备聚焦上下文：
 
 ```bash
+# 首发角色自动启动会话并认领独占租约
+AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+bash "$AWR_CP" --work <SPEC-ID> --agent spec-explorer --digest "启动背景探索" --next-action "探索代码库与可行性分析"
+# 使用上一步输出中的 Session ID 准备聚焦上下文（若提示超预算可追加 --budget <N>）
 awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 ```
-
 从 AWR 准备输出中提取当前目标、已知约束、未完成事项与相关源文件指针（若提示超预算可追加 `--budget <N>`）；若 AWR 未就绪或报错，则按 `lead/team-context.md` 与项目落盘文档作为权威来源继续，不阻塞探索流程。
+### 步骤 2：检索历史经验
 
 ```bash
 /exp-search <关键词>
@@ -196,7 +200,8 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 更新账本后，向 AWR 提交本阶段会话检查点：
 
 ```bash
-awr session checkpoint --session <SESSION-ID> --digest "spec-explorer: 完成背景探索与可行性分析，产出 exploration-report.html" --next-action "spec-writer: 撰写设计方案 writer/plan.html" --expected-revision <REV>
+AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+bash "$AWR_CP" --work <SPEC-ID> --agent spec-explorer --digest "spec-explorer: 完成背景探索与可行性分析，产出 exploration-report.html" --next-action "spec-writer: 撰写设计方案 writer/plan.html"
 ```
 
 记录探索阶段的关键发现、识别的风险项、下游 spec-writer 与 spec-tester 的输入指针。

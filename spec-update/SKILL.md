@@ -92,7 +92,8 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 4. **创建 updater/update-xxx.html**：参照 [references/update-template.html](references/update-template.html)，严格结合 AWR 准备输出中的增量验收标准在 `updater/` 下创建；完整填写 `rk:*` meta 与 `rk-*` link，`.rk-meta` 镜像同样字段，并继承 `writer/plan.html` 的分支 / 基准分支 / PR 元信息
 5. **等待用户确认**：使用当前运行环境的确认方式（节点 1），确认后向 AWR 提交 `update` 会话检查点：
    ```bash
-   awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-update: update-xxx 方案确认，准备进入实现" --next-action "spec-update: 按方案执行代码更新与单测" --expected-revision <REV>
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <SPEC-ID> --agent spec-update --digest "spec-update: update-xxx 方案确认，准备进入实现" --next-action "spec-update: 按方案执行代码更新与单测"
    ```
 6. **检索历史经验**：调用 `/exp-search <关键词>`
 7. **创建任务清单**：根据 `updater/update-xxx.html` 的"实现步骤"章节创建
@@ -126,10 +127,8 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 5. 如有 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 并通过 amend + force-with-lease 并入同一次提交
 6. 更新 `lead/team-context.md` 的「任务进度」，必要时更新「问题闭环记录」和「决策记录」
 7. **不归档**，保留在原目录
-8. 向 AWR 提交更新完成会话检查点并释放会话：
+8. 向 AWR 提交更新完成会话检查点：
    ```bash
-   # 1. 提交更新完工检查点
-   awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-update: 完成 update-xxx 更新与验证，产出 updater/update-xxx-summary.html" --next-action "待用户确认或合流" --expected-revision <REV>
-   # 2. 显式释放更新会话租约
-   awr session end --session <SESSION-ID> --outcome ended --expected-revision <REV>
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <SPEC-ID> --agent spec-update --digest "spec-update: 完成 update-xxx 更新与验证，产出 updater/update-xxx-summary.html" --next-action "待用户确认或合流" --end
    ```

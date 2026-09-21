@@ -324,27 +324,30 @@ TeamLead → 下游角色：查账本句柄 → 核对状态 → 能续接就发
 ```
 
 角色可以在产物中声明建议接收方，但不假设运行环境支持直接 Agent-to-Agent 通信。例如，`spec-tester` 发现 bug 时向 TeamLead 提交 bug handoff，由 TeamLead 启动或恢复 `spec-debugger`；`spec-debugger` 修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动或恢复 `spec-tester`。
-### AWR 正统会话生命周期与任务认领接续
+### AWR 0.5.0 上下文准备与任务会话接续
 
-Spec 启动时，TeamLead 必须先通过 AWR 获取运行视图并完成工作项准备：
+Spec 启动或恢复时，TeamLead 必须先通过 AWR 0.5.0+ 获取运行视图并完成准备：
 ```bash
 awr status
 ```
 确认当前工作项处于 `ready` 或 `Claimable` 状态。
 
-按 AWR L0 正统契约完成任务认领与会话建立：
-1. **首个角色认领独占租约（带 `--claim`）**：
+认领与交接必须按 AWR 会话规范执行：
+1. **启动会话（认领独占租约）**：
+   通常直接通过检查点脚本（`AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh`）自动管理会话生命周期与租约锁定；若需手动提前声明认领，执行：
    ```bash
-   awr session start --work <SPEC-ID> --agent <ROLE> --provider omp --model default --claim --ttl-ms 3600000 --expected-revision <REV>
+   STATUS_OUT=$(awr status --json 2>/dev/null || echo "{}")
+   REV=$(printf "%s" "$STATUS_OUT" | python3 -c "import sys, json; print(json.load(sys.stdin).get('project_revision',''))" 2>/dev/null || printf "%s" "$STATUS_OUT" | grep -o '"project_revision":[0-9]*' | head -n 1 | cut -d: -f2 || true)
+   [ -n "$REV" ] || { echo "❌ 错误: 无法获取 AWR 项目版本号，拒绝伪造版本执行" >&2; exit 1; }
+   awr session start --work <SPEC-ID> --agent <ROLE> --provider omp --model default --claim --ttl-ms 3600000 --expected-revision "$REV"
    ```
-   **核心红线**：必须显式带上 `--claim` 锁定运行时租约，杜绝看板显示“需认领”；返回的 `session.id` 与 `project_revision` 必须立即记录到 `lead/team-context.md` 的「角色运行句柄」中。
-2. **绑定会话提取上下文**：
+2. **阶段盖章**：每次角色交接后统一调用封装脚本自动提取会话与版本完成检查点落盘：
    ```bash
-   awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <SPEC-ID> --agent <ROLE> --digest "<完成简述>" --next-action "<下一步动作>"
    ```
-   若提示 `BudgetExceeded`，可追加 `--budget <N>`。Agent 提取出当前目标、验收标准与变更记录，并据此开展后续工作。
-3. **阶段盖章与留痕**：每次角色交接后通过 `awr session checkpoint` 写入最新进度、证据路径、未完成项与下一动作。
-4. **批注联动**：HTML `rk-note` 必须登记为 AWR review/open-loop task，并在会话 checkpoint 中关闭对应 open loop，保留 `data-note-id` 闭环。详见 `.agents/rules/awr-integration.md`。
+3. **批注联动**：HTML `rk-note` 必须登记为 AWR review/open-loop task，并在会话 checkpoint 中关闭对应 open loop，保留 `data-note-id` 闭环。详见 `.agents/rules/awr-integration.md`。
+### 步骤 6：启动阶段二（探索）
 
 需求对齐、分支准备、角色定义加载和通信规则建立后，TeamLead 启动或恢复 `spec-explorer`，并传递任务描述、探索范围、Spec 目录和 Git 元数据。
 

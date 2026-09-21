@@ -55,3 +55,16 @@ work_items:
       - 演练 session resume 接力转移租约
       - 演练 session checkpoint 盖章与 session end 显式释放租约
     next_action: 全流程实测通过，租约与上下文接力机制已闭环
+
+  - id: SKILL-AWR-004
+    title: AWR 运行时闭环强化（脚手架开箱修复、会话检查点脚本与零缺口门禁）
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - 修复 scripts/init-ai-workflow.{sh,ps1} 开箱结构缺口，确保新建项目 AWR 0 缺口就绪
+      - 新增 scripts/rk-awr-checkpoint.{sh,ps1} 跨平台会话检查点脚本，在各角色/版本 Skill 中消除伪代码占位符
+      - 在 spec-test 增加测试证据落地契约，在 spec-review 与 spec-end 增加零缺口硬门禁（支持 Fail-Closed 阻断）
+    evidence:
+      - locator: "scripts/rk-awr-checkpoint.sh"
+        summary: "沙箱端到端实测验证通过：新项目开箱 0 结构缺口，5 角色链式接力与会话复用（开工+完工共10次调用）全部 RC: 0，最终通过 --end 释放租约且 awr doctor 0 findings"
+    next_action: 代码变更已自洽闭环，创建分支并提交 PR
