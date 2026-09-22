@@ -43,7 +43,7 @@
     <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
     <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/11">#11</a></span>
     <span><b>创建</b> 2026-09-22</span>
-    <span><b>修订</b> r3（2026-09-22）</span>
+    <span><b>修订</b> r4（2026-09-22）</span>
   </div>
 </header>
 
@@ -51,7 +51,7 @@
 
 <section class="rk-verdict is-pass">
   <div class="rk-verdict-label">收尾结论</div>
-  <p>Spec 已圆满闭环：成功消除了 AWR 完工核验契约断裂缺陷，确立了官方三字段 work complete 协议与 completion.report.v1 双轨制；根治 P0-1 首发开工状态机断裂（检查点脚本内置 ready→in_progress 自动推进），按实测将终态释放契约改写为状态相关表述，并在真实脚手架默认路径沙箱完成全链路实测与 v2.11 联合回归；零破坏性回归，达成原位归档标准。</p>
+  <p data-rev="r4">Spec 已圆满闭环：成功消除了 AWR 完工核验契约断裂缺陷，确立了官方三字段 work complete 协议与 completion.report.v1 双轨制；根治 P0-1 首发开工状态机断裂（检查点脚本内置 ready→in_progress 自动推进），按实测将终态释放契约改写为状态相关表述，并在真实脚手架默认路径沙箱完成全链路实测与 v2.11 联合回归；零破坏性回归，达成原位归档标准。</p>
 </section>
 
 <h2>修订历史</h2>
@@ -66,9 +66,8 @@
 </table>
 
 <h2>1. 交付成果总览</h2>
-<div class="rk-kpis">
-  <div class="rk-kpi is-pass"><div class="v">5</div><div class="k">规范与文档文件修复</div></div>
-  <div class="rk-kpi is-pass"><div class="v">2</div><div class="k">执行脚本根因修复（P0-1）</div></div>
+<div class="rk-kpis" data-rev="r4">
+  <div class="rk-kpi is-pass"><div class="v">7</div><div class="k">修复文件（5 规范文档 + 2 执行脚本）</div></div>
   <div class="rk-kpi is-pass"><div class="v">6/6</div><div class="k">静态硬断言通过</div></div>
   <div class="rk-kpi is-pass"><div class="v">81/81</div><div class="k">既有全量用例重测通过</div></div>
   <div class="rk-kpi is-pass"><div class="v">rc=0</div><div class="k">TC-E2E-07 真实脚手架 / Case D 释放</div></div>
@@ -78,9 +77,9 @@
 <h2>2. 变更文件清单</h2>
 <ul>
   <li><code>spec-test/SKILL.md</code>：修正 prepare-completion 契约与 completion.report.v1 双轨制，补充 evidence add 字段过滤与严禁测试阶段执行 complete 的纪律</li>
-  <li><code>.agents/rules/awr-integration.md</code>：补齐 4.5 节官方三字段 work complete 完工核验协议与第 1 节 awr work progress 推进开工规范；按 Case D 实测将终态释放契约改写为状态相关表述（同角色持会时脚本可复用会话释放，跨角色接力报 `InvalidTransition: resume requires known nonterminal work`、无活跃会话新建报 `DependencyBlocked: source status is completed`），并注明脚本已内置 ready→in_progress 自动推进</li>
-  <li><code>scripts/rk-awr-checkpoint.sh</code> 与 <code>scripts/rk-awr-checkpoint.ps1</code>：P0-1 根因修复——开工时双键检测工作项 `raw_status`/`status`，若为 `ready` 则先现读 REV 并经 `awr work progress` 推进至 `in_progress`（两键均缺失即 fail-closed 退出），消灭首发开工后仍停留 ready 导致 `work complete` 报 `cannot Complete work with source state Ready` 的状态机断裂</li>
-  <li><code>spec-end/SKILL.md</code>：确立先 work complete 机器核验后释放租约的闭环指引；按实测将终态任务调用脚本 --end 的绝对化禁令改为状态相关契约，并保留完工失败时同角色脚本 / 直接 session end 的兜底释放路径</li>
+  <li data-rev="r4"><code>.agents/rules/awr-integration.md</code>：补齐 4.5 节官方三字段 work complete 完工核验协议与第 1 节 awr work progress 推进开工规范；按 Case D 实测解除跨角色接力（`InvalidTransition: resume requires known nonterminal work`）与无会话新建（`DependencyBlocked: source status is completed`）的边界表述，确立同角色持会时可脚本释放的契约，并注明脚本已内置 ready→in_progress 自动推进</li>
+  <li data-rev="r4"><code>scripts/rk-awr-checkpoint.sh</code> 与 <code>scripts/rk-awr-checkpoint.ps1</code>：P0-1 根因修复——开工时双键检测工作项 `raw_status`/`status`，若为 `ready` 则先现读 REV 并经 `awr work progress` 推进至 `in_progress`（两键均缺失即 fail-closed 退出），消灭首发开工后仍停留 ready 导致 `work complete` 报 `cannot Complete work with source state Ready` 的状态机断裂</li>
+  <li data-rev="r4"><code>spec-end/SKILL.md</code>：确立先 work complete 机器核验后释放租约的闭环指引；按实测解除终态任务调用脚本 --end 的绝对化禁令，改为状态相关契约（同角色持会时脚本 --end 实测 rc=0 可释放；跨角色接力报 InvalidTransition、无会话新建报 DependencyBlocked），并保留完工失败时同角色脚本 / 直接 session end 的兜底释放路径</li>
   <li><code>spec-execute/references/tdd-discipline.md</code>：完善为「RED：四个确认」，强化最小空桩与杜绝全 SKIP 假红纪律</li>
   <li><code>spec/versions/v2.11/plan.html</code>：版本大盘递增 r3 并同步登记本 Spec</li>
 </ul>
