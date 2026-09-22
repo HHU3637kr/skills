@@ -51,18 +51,31 @@ AWR（Agent Work Runtime）是 R&K Flow 的底层运行状态机与上下文编�
                                │ 租约与上下文无缝转移给下游角色
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
+│ 4.5 完工核验与证据上链 (Work Complete)                      │
+│    awr work complete --session <FINAL_ID> ...               │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ 状态机注入 verification 块并置 completed
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
 │ 5. 完工释放租约 (Session End & Release Claim)               │
-│    awr session end --session <FINAL_ID> --outcome ended --expected-revision <REV> │
+│    awr session end --session <FINAL_ID> --outcome ended ...  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 1. 首个角色认领独占租约（Session Start with `--claim`）
+### 1. 首个角色认领独占租约与推进开工（Session Start with `--claim` & `work progress`）
 当首个角色（如 `spec-explorer` 或 `spec-start` TeamLead）进入新工作项时，必须显式带上 `--claim` 参数：
 ```bash
 awr session start --work <SPEC-ID> --agent <ROLE> --provider omp --model default --claim --ttl-ms 3600000 --expected-revision <REV>
 ```
 - **核心原理**：缺省 `--claim` 会导致 AWR 仅创建只读观察会话，看板显示“需认领”；带上 `--claim` 后，工作项被加独占运行时锁，其他人无法并发抢占。
 - 获取返回的 `session.id`，登记入 `lead/team-context.md` 的「角色运行句柄」。
+
+**重要：从 ready 到 in_progress 的必经状态迁移（消灭 InvalidTransition）**：
+新创建的工作项在台账中初始状态为 `status: ready`。根据 AWR 状态机硬契约，处于 `ready` 状态的任务**严禁直接执行 `work complete`**（会直接报 `cannot Complete work with source state Ready` 退出码 1 阻断）。首发角色认领后开工时，必须显式通过 `awr work progress` 将其推进为 `in_progress`：
+```bash
+REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+awr work progress <SPEC-ID> --summary "<开工推进简述>" --next-action "<下一阶段动作>" --session <SESSION_ID> --reason "开工推进" --expected-revision "$REV"
+```
 
 ### 2. 绑定会话的上下文准备（Session-Bound `work prepare`）
 提取当前任务的聚焦上下文时，必须传 `--session` 参数：
@@ -101,7 +114,7 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 - **核心原理**：脚本底层会自动执行 `awr session resume --from-session <PREV-SESSION-ID> --agent <NEXT-ROLE> --provider omp --model default --claim ...` 完成租约转移（Claim Transfer），并将上游角色的上下文快照与未完成事项无损传递给下游角色。
 
 ### 4.5 完工机器核验与证据上链（Work Completion & Evidence Binding）
-在角色测试通过、提请结项前，必须执行 AWR 官方 0.5.0 机器核验闭环，杜绝仅靠手工修改台账导致的 `completion_not_checked` 审计缺口：
+在角色测试通过、审查全绿、由 `spec-ender` 进入收尾时，统一执行 AWR 官方 0.5.0 机器核验闭环，杜绝仅靠手工修改台账导致的 `completion_not_checked` 审计缺口：
 1. **自动派生机器核验报告（completion.report.v1）**：
    测试脚本必须在 `tester/artifacts/test-logs/<run-id>/` 自动派生符合 schema 的机器 JSON（不得直接将 HTML 报告传入 `prepare-completion`）：
    - `version`: 整数 `1`
@@ -115,12 +128,13 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    ```bash
    # 验证报告结构真实性与台账标准映射
    awr work prepare-completion --report <JSON-PATH> --evidence-key "<WORK-ID>/evidence/<KEY>" --source-sha <40-CHAR-FULL-SHA> <WORK-ID>
-   # 注册证据元数据草稿
+   # 注册证据元数据草稿（注意：必须剔除 prepare-completion 输出中的 branch 与 work 两个只读回显字段，否则报 unknown evidence input field）
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
    awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
    ```
-3. **执行官方三字段完工确认（Work Complete）**：
-   在当前会话下执行完工确认，传入官方标准的 3 字段 input JSON（`version`、`source_sha`、`acceptance`）：
+3. **由 spec-ender 执行官方三字段完工确认与租约释放（消灭终检点死锁）**：
+   **物理铁律**：`awr work complete` 执行后工作项立即变为终态 `completed`，此后 AWR 拒绝该工作项上的任何后续会话操作（`session resume` 报 `resume requires known nonterminal work`，`session start` 报 `source status is completed`）。
+   因此，**严禁在 `work complete` 之后再调用 `rk-awr-checkpoint.sh --end`**！必须由持有活性会话的 `spec-ender` 在同一会话内直接完成完工与释放：
    ```bash
    cat > /tmp/complete-input.json <<EOF
    {
@@ -135,28 +149,34 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    }
    EOF
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr work complete --session <SESSION_ID> --reason "验收通过且证据已全部绑定" --input /tmp/complete-input.json --expected-revision "$REV" <WORK-ID>
-   ```
-   *重要特征*：`awr work complete` 执行成功后，AWR 状态机会自动向源文件 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 块并将工作项置为 `completed`。由于状态机重写了源文件并完成重投影，项目的 `project_revision` 会随之递增。因此在执行第 5 步关闭会话释放租约前，必须重新从 `awr status` 获取最新的 CAS 版本号：
-   ```bash
+   awr work complete --session <ENDER_SESSION_ID> --reason "验收通过且证据已全部绑定" --input /tmp/complete-input.json --expected-revision "$REV" <WORK-ID>
+   
+   # work complete 会自动重写 work-ledger.yaml 注入 verification 块并使 project_revision 递增
+   # 必须现读最新的 CAS 版本号，直接调用 session end 释放租约：
    LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr session end --session <SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
+   awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
    ```
-   此时即可达成 `awr doctor` **0 findings** 的无瑕闭环。
+   随后执行 `awr doctor` 审计，即可达成 **0 findings** 的完全干净终态。
 ### 5. 交付收尾与显式释放租约（Session End）
-当 Spec 经过测试、审查全绿，在 `spec-end` 原位归档时，调用脚本带 `--end` 显式关闭会话并释放锁：
-- **Linux / macOS / Git Bash 环境**：
-  ```bash
-  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
-  bash "$AWR_CP" --work <SPEC-ID> --agent spec-ender --digest "原位归档完成" --next-action "全部完结" --end
-  ```
-- **Windows 原生 PowerShell 环境**：
-  ```powershell
-  $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
-  powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent spec-ender -Digest "原位归档完成" -NextAction "全部完结" -End
-  ```
-- **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；脚本收尾时调用 `awr session end --session <SESSION_ID> --outcome ended --expected-revision <REV>` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
----
+当 Spec 经过测试、审查全绿，在 `spec-end` 收尾时，释放独占租约分两种路径：
+
+1. **标准机器核验路径（强烈推荐）**：
+   若已按上述「4.5 节」执行了 `awr work complete`，工作项在底层已转入终态 `completed`。此时 AWR 状态机禁止在该工作项上执行任何后续会话接力（`resume` 报 `resume requires known nonterminal work`）或新会话启动（`session start` 报 `status_not_selectable`）。
+   **因此在此路径下，严禁调用 `rk-awr-checkpoint.sh --end`**，必须严格按照 4.5 节指令，由 `spec-ender` 在同一会话内直接调用 `awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"`，实现租约释放与 0 findings 干净终态。
+
+2. **无机器核验的降级/源声明路径**：
+   若项目未配置 AWR 证据机器核验，仅通过手工修改 `work-ledger.yaml` 的 `status: completed`，且在修改前 `spec-ender` 已持有活跃会话，则可调用检查点脚本带 `--end` 显式关闭会话并释放锁：
+   - **Linux / macOS / Git Bash 环境**：
+     ```bash
+     AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+     bash "$AWR_CP" --work <SPEC-ID> --agent spec-ender --digest "原位归档完成" --next-action "全部完结" --end
+     ```
+   - **Windows 原生 PowerShell 环境**：
+     ```powershell
+     $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
+     powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent spec-ender -Digest "原位归档完成" -NextAction "全部完结" -End
+     ```
+   - **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；脚本收尾时调用 `awr session end --session <SESSION_ID> --outcome ended --expected-revision <REV>` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
 
 ## 四、配置与数据安全
 

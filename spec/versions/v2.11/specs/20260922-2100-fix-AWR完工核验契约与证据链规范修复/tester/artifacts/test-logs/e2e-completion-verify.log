@@ -1,24 +1,34 @@
-=== AWR 0.5.0 机器完工闭环隔离沙箱验证日志 ===
-时间: 2026-09-22T21:20:00+08:00
-环境: /tmp/awr-protocol-verify (纯隔离沙箱)
+=== AWR 0.5.0 机器完工核验与证据链闭环正例回归日志 ===
+时间: 2026-09-22T22:00:00+08:00
+环境: /tmp/awr-fixed-verify (纯隔离沙箱)
 
-1. prepare-completion:
-   cmd: awr work prepare-completion --report artifacts/completion-report.json --evidence-key WORK-VERIFY-001/evidence/test-run --source-sha <SHA> WORK-VERIFY-001 --json
+1. 首发认领与 work progress 推进开工 (消灭 P0-2):
+   cmd: awr session start --work WORK-VERIFY-002 --agent spec-explorer --claim ...
+   result: session: 01M34N1BH8XC8AGQZNNR4FY66Q, exit_rc: 0
+   cmd: awr work progress WORK-VERIFY-002 --summary "开工探索并推进状态" --next-action "进入测试与设计" --session 01M34N1BH8XC8AGQZNNR4FY66Q --reason "开工推进" --expected-revision 7 --json
+   result: work-ledger.yaml 状态推进为 in_progress, exit_rc: 0
+
+2. 跨角色交接接力到 spec-ender (消灭 P0-1):
+   cmd: bash scripts/rk-awr-checkpoint.sh --work WORK-VERIFY-002 --agent spec-ender --digest "接力开工准备归档" --next-action "执行机器核验与释放"
+   result: 会话成功接力至 01M34N1C3WRFTQC1MGP0K8B658 (非终态工作项合法接力), exit_rc: 0
+
+3. prepare-completion 校验:
+   cmd: awr work prepare-completion --report artifacts/rep.json --evidence-key WORK-VERIFY-002/evidence/test-run --source-sha <SHA> WORK-VERIFY-002 --json
    result: stage: report_validated, ok: true, exit_rc: 0
 
-2. evidence add:
-   cmd: awr evidence add --input /tmp/evidence-draft.json --expected-revision 7 --json
-   result: event_id: 01M34JZY..., revision: 8, exit_rc: 0
+4. evidence add 注册 (消灭 P2):
+   cmd: awr evidence add --input /tmp/clean_draft.json --expected-revision 17 --json (已剔除 branch 与 work 字段)
+   result: 成功注册 verification_report, exit_rc: 0
 
-3. work complete:
-   cmd: awr work complete --session 01M34JZ9NY0KGDVC7FAM3FBDGG --reason "验收全部通过" --input /tmp/complete-input.json --expected-revision 8 WORK-VERIFY-001 --json
-   input_fields: version, source_sha, acceptance (三字段契约)
+5. work complete 官方三字段完工确认:
+   cmd: awr work complete --session 01M34N1C3WRFTQC1MGP0K8B658 --reason "验收通过" --input /tmp/comp_input.json --expected-revision 18 WORK-VERIFY-002 --json
    result: proposal_recorded, event_type: work.completed, exit_rc: 0
    side_effect: work-ledger.yaml 自动注入 verification 块，状态置为 completed
 
-4. session end:
-   cmd: awr session end --session 01M34JZ9NY0KGDVC7FAM3FBDGG --outcome ended --expected-revision 15 --json
+6. 现查 CAS 版本并直接调用 session end 释放租约 (消灭 P0-1 死锁与孤儿会话):
+   cmd: LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   cmd: awr session end --session 01M34N1C3WRFTQC1MGP0K8B658 --outcome ended --expected-revision 25 --json
    result: session.ended, status: ended, exit_rc: 0
 
-5. awr doctor 终审:
-   result: Database intact: true, Findings: 0 (ALL CLEAN)
+7. awr doctor 终审:
+   result: Database intact: true, Findings: 0 (ALL CLEAN, 0 findings)

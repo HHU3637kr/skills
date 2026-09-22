@@ -261,15 +261,19 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
    }
    EOF
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr work complete --session <SESSION_ID> --reason "全部验收通过且证据已完整绑定" --input /tmp/complete-input.json --expected-revision "$REV" <SPEC-ID> --json
+   awr work complete --session <ENDER_SESSION_ID> --reason "全部验收通过且证据已完整绑定" --input /tmp/complete-input.json --expected-revision "$REV" <SPEC-ID> --json
    ```
-   *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为 `completed`。*
+   *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为终态 `completed`。*
 
-   **最后提交终检点并显式释放租约**：
+   **直接调用 session end 释放租约并复核 doctor（消灭脚本死锁与孤儿会话）**：
+   **物理铁律**：工作项转为终态 `completed` 后，AWR 禁止在其上执行后续会话接力或新建（调用 `rk-awr-checkpoint.sh --end` 会报 `InvalidTransition: resume requires known nonterminal work` 退出码 1 阻断并遗留孤儿会话）。必须由当前持有活跃会话的 `spec-ender` 直接关闭会话：
    ```bash
-   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
-   bash "$AWR_CP" --work <SPEC-ID> --agent spec-ender --digest "spec-ender: Spec 原位归档完成，测试全绿，已创建 PR/MR，产出 end-report.html" --next-action "Spec 已完结，等待合流与版本集成" --end
+   # work complete 重写台账后 project_revision 会递增，必须现读最新 CAS 版本号
+   LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
+   awr doctor  # 终态复核：0 findings
    ```
+   *降级说明*：仅在未配置机器核验、仅手工修改台账为 `completed` 的降级路径下，且 `spec-ender` 已持有活跃会话时，才使用 `rk-awr-checkpoint.sh --end` 释放。
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不等于远程默认分支（`git symbolic-ref refs/remotes/origin/HEAD` 读出，不要假定分支名）
    - 确认当前分支等于 `lead/team-context.md` 的 `git_branch`

@@ -573,10 +573,16 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
        ]
      }
      ```
-     然后执行机器准备（注意 `--source-sha` 必须传 40 位完整 SHA，传短哈希会被 AWR 强拦截）：
+     然后执行机器校验与证据元数据注册（注意 `--source-sha` 必须传 40 位完整 SHA，传短哈希会被 AWR 强拦截）：
      ```bash
+     # 1. 验证报告契约有效性
      awr work prepare-completion --report <JSON-PATH> --evidence-key "<SPEC-ID>/evidence/<KEY>" --source-sha <40-CHAR-SHA> <SPEC-ID>
+     
+     # 2. 注册证据元数据（注意：从 prepare-completion 输出提炼 draft 时，必须剔除 branch 与 work 两个只读回显字段，否则报 unknown evidence input field）
+     REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+     awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
      ```
+     *重要原则*：`spec-tester` 阶段仅完成报告校验与证据注册，**严禁在测试阶段执行 `awr work complete`**。工作项必须保持 `in_progress` 状态，以便下游 `spec-reviewer` 与 `spec-ender` 能够合法通过检查点脚本接力会话。真正的机器完工与租约释放统一由收尾阶段的 `spec-ender` 执行。
 - 向 AWR 提交测试完成会话检查点：
   ```bash
   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh

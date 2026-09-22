@@ -12,7 +12,7 @@
 <meta name="rk:title"       content="AWR完工核验契约与证据链规范修复-收尾报告">
 <meta name="rk:created"     content="2026-09-22">
 <meta name="rk:updated"     content="2026-09-22">
-<meta name="rk:revision"    content="2">
+<meta name="rk:revision"    content="3">
 <meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
 <meta name="rk:base-branch" content="master">
 <meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/11">
@@ -43,7 +43,7 @@
     <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
     <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/11">#11</a></span>
     <span><b>创建</b> 2026-09-22</span>
-    <span><b>修订</b> r2（2026-09-22）</span>
+    <span><b>修订</b> r3（2026-09-22）</span>
   </div>
 </header>
 
@@ -60,6 +60,7 @@
   <tbody>
     <tr><td>r1</td><td>2026-09-22</td><td>spec-ender</td><td>初版收尾归档报告</td><td>—</td></tr>
     <tr><td>r2</td><td>2026-09-22</td><td>spec-ender</td><td>写回官方主仓 PR #11 链接</td><td>结项归档写回</td></tr>
+    <tr><td>r3</td><td>2026-09-22</td><td>spec-ender</td><td>闭环复审发现：消除终检点脚本死锁、补齐 work progress 状态迁移与证据字段过滤，并在沙箱完成正例全链路实测</td><td>用户审查意见闭环</td></tr>
   </tbody>
 </table>
 
@@ -73,10 +74,9 @@
 
 <h2>2. 变更文件清单</h2>
 <ul>
-  <li><code>spec-test/SKILL.md</code>：修正 prepare-completion 参数契约与 completion.report.v1 双轨制</li>
-  <li><code>.agents/rules/awr-integration.md</code>：补齐 4.5 节官方三字段 work complete 完工核验协议</li>
-  <li><code>spec-end/SKILL.md</code>：补充在 session end 前通过 work complete 闭环机器核验的操作引导</li>
-  <li><code>spec-execute/references/tdd-discipline.md</code>：强化最小空桩与杜绝全 SKIP 假红纪律</li>
+  <li><code>.agents/rules/awr-integration.md</code>：补齐 4.5 节官方三字段 work complete 完工核验协议，消除终检点脚本死锁，并在第 1 节补齐 awr work progress 推进开工规范</li>
+  <li><code>spec-end/SKILL.md</code>：确立先 work complete 机器核验后直接 session end 释放租约的闭环指引，废除终态任务调用脚本 --end 的死锁指令</li>
+  <li><code>spec-execute/references/tdd-discipline.md</code>：完善为「RED：四个确认」，强化最小空桩与杜绝全 SKIP 假红纪律</li>
   <li><code>spec/versions/v2.11/plan.html</code>：版本大盘递增 r3 并同步登记本 Spec</li>
 </ul>
 

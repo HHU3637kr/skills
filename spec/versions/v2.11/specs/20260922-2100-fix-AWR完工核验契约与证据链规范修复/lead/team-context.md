@@ -47,9 +47,12 @@ updated_at: 2026-09-22T21:00:00+08:00
 
 | 问题号 | 分类 | 发现者 | 负责角色 | 问题 | 解决方案 | 关联产物 | 状态 | 更新者 |
 |--------|--------|--------|----------|------|----------|----------|------|--------|
-| I-001 | bug | spec-explorer | spec-writer | spec-test/SKILL.md 将 HTML 报告直接传给 prepare-completion 导致 InvalidInput | 明确 prepare-completion 须传 completion.report.v1 JSON，HTML 仅作为人类审查报告与台账 locator | spec-test/SKILL.md | open | spec-explorer |
-| I-002 | bug | spec-explorer | spec-writer | spec-end 与 awr-integration.md 缺少 work complete 官方三字段契约与 40 位 SHA 告诫 | 补齐三字段 input 规范与完整 40 位 SHA 约束 | .agents/rules/awr-integration.md, spec-end/SKILL.md | open | spec-explorer |
-| I-003 | process | spec-tester | spec-writer | tdd-discipline 对 RED 阶段缺失命令走 SKIP 存在假红风险 | 规范明确被测命令需先具备最小 stub 执行并产生断言级 FAIL | spec-execute/references/tdd-discipline.md | open | spec-tester |
+| I-001 | bug | spec-explorer | spec-writer | spec-test/SKILL.md 将 HTML 报告直接传给 prepare-completion 导致 InvalidInput | 明确 prepare-completion 须传 completion.report.v1 JSON，HTML 仅作为人类审查报告与台账 locator | spec-test/SKILL.md | resolved | spec-writer |
+| I-002 | bug | spec-explorer | spec-writer | spec-end 与 awr-integration.md 缺少 work complete 官方三字段契约与 40 位 SHA 告诫 | 补齐三字段 input 规范与完整 40 位 SHA 约束 | .agents/rules/awr-integration.md, spec-end/SKILL.md | resolved | spec-writer |
+| I-003 | process | spec-tester | spec-writer | tdd-discipline 对 RED 阶段缺失命令走 SKIP 存在假红风险 | 规范明确被测命令需先具备最小 stub 执行并产生断言级 FAIL | spec-execute/references/tdd-discipline.md | resolved | spec-writer |
+| I-004 | review | user (审查) | spec-writer | P0-1 完工流程终检点 rk-awr-checkpoint.sh --end 必然 RC=1 引发孤儿会话与尾部门禁死锁 | 完工收敛至 spec-ender，执行 work complete 后直接 session end 释放租约，§5 明确两种路径边界 | .agents/rules/awr-integration.md, spec-end/SKILL.md | resolved | spec-writer |
+| I-005 | review | user (审查) | spec-writer | P0-2 缺少 ready -> in_progress 必经过渡导致 complete 报 InvalidTransition | 在 §1 补充 awr work progress 开工推进契约与命令示范 | .agents/rules/awr-integration.md | resolved | spec-writer |
+| I-006 | review | user (审查) | spec-writer | P2 evidence add 必须剔除 prepare-completion 输出中的 branch 与 work 字段 | 在 §4.5 明确剔除两字段以消除 unknown evidence input field 报错 | .agents/rules/awr-integration.md, spec-test/SKILL.md | resolved | spec-writer |
 
 ## 决策记录
 
@@ -57,6 +60,7 @@ updated_at: 2026-09-22T21:00:00+08:00
 |--------|--------|--------|------|--------|------|------|--------|----------|------|
 | D-001 | intent | TeamLead | 版本归属与破例授权 | A 破例入 v2.11 / B 立项 v2.12 | A | 用户在 ask 门禁中明确选择选项 A，在 v2.11 闭环 AWR 完工契约断裂缺陷 | user | 2026-09-22T21:00:00+08:00 | 用户在 ask 门禁中选择「选项 A：破例追加进入 v2.11」 |
 | D-002 | intent | TeamLead | 规则变更永远门禁 | 放行修改 .agents/rules/awr-integration.md | 放行 | 修正 AWR 0.5.0 完工协议缺失与契约断裂，经用户明确授权 | user | 2026-09-22T21:00:00+08:00 | 同上 |
+| D-003 | design | spec-writer | 检查点脚本 complete 封装范围 | A 脚本增加 --complete 参数 / B 保持脚本纯净由流程调用 awr 命令 | B | 脚本会话租约与检查点机制完全稳定，不引入复杂 JSON 组装参数，完工由文档确立标准命令闭环 | spec-writer | 2026-09-22T21:15:00+08:00 | plan.html §1.3 范围定义与用户审查意见 |
 
 ## 角色运行句柄
 
