@@ -241,7 +241,31 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
 
 用户选择"确认原位归档并创建 PR/MR"（`autopilot` 下为自门禁通过）：
 
-1. **原位归档更新**：保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。同步向 AWR 提交最终会话检查点：
+1. **AWR 机器完工核验与原位归档更新**：
+   保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。
+   在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
+   
+   **执行 AWR 官方 0.5.0 机器完工闭环（先 complete 后 end）**：
+   当全量测试通过且已通过 `awr evidence add` 注册证据后，在当前活动会话中执行机器完工确认（传入官方三字段 JSON，`source_sha` 必须 40 位，`criterion` 与台账逐字一致）：
+   ```bash
+   cat > /tmp/complete-input.json <<EOF
+   {
+     "version": 1,
+     "source_sha": "$(git rev-parse HEAD)",
+     "acceptance": [
+       {
+         "criterion": "<台账 acceptance 第 1 项原文>",
+         "evidence": ["<EVIDENCE-EXTERNAL-KEY>"]
+       }
+     ]
+   }
+   EOF
+   REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   awr work complete --session <SESSION_ID> --reason "全部验收通过且证据已完整绑定" --input /tmp/complete-input.json --expected-revision "$REV" <SPEC-ID> --json
+   ```
+   *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为 `completed`。*
+
+   **最后提交终检点并显式释放租约**：
    ```bash
    AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
    bash "$AWR_CP" --work <SPEC-ID> --agent spec-ender --digest "spec-ender: Spec 原位归档完成，测试全绿，已创建 PR/MR，产出 end-report.html" --next-action "Spec 已完结，等待合流与版本集成" --end

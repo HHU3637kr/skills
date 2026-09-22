@@ -546,13 +546,37 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
-- **沉淀结构化测试证据到工作台账**：在对应工作台账（如 `work-ledger.yaml`）中，为当前 Spec 追加物理测试证据引用（Evidence Locator），禁止无证据报告自封完成：
-  ```yaml
-  evidence:
-    - locator: "spec/versions/<version>/specs/<spec-dir>/tester/test-report.html"
-      summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
-  ```
-  注：AWR 0.5.0 的 `yaml-ledger-v1` 适配器将 `evidence` 映射为源证据定位符（`locator` 与 `summary`）；执行完整机器核验时使用 `awr work prepare-completion --report <REPORT-PATH> --evidence-key <KEY> --source-sha <SHA> <SPEC-ID>`。
+- **沉淀结构化测试证据到工作台账与机器核验准备**：
+  1. **人工可读报告与台账定位符**：在对应工作台账（如 `work-ledger.yaml`）中，为当前 Spec 追加物理测试证据引用（Evidence Locator），指向 `tester/test-report.html`：
+     ```yaml
+     evidence:
+       - locator: "spec/versions/<version>/specs/<spec-dir>/tester/test-report.html"
+         summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
+     ```
+  2. **AWR 0.5.0 机器核验准备（双轨制）**：
+     `awr work prepare-completion` 强校验 `completion.report.v1` 机器 JSON 契约（**传 HTML 报告会被拒绝报错**）。测试运行或自动化脚本必须在 `tester/artifacts/test-logs/<run-id>/` 同步自动派生 `completion-report.json`：
+     ```json
+     {
+       "version": 1,
+       "work_item": "<SPEC-ID>",
+       "source_sha": "<40位完整Git哈希>",
+       "command": "测试命令，如 bash tests/run.sh",
+       "scope": ["<SPEC-ID>"],
+       "verified_at": 1790000000000,
+       "checks": [
+         {
+           "name": "TC-001",
+           "passed": true,
+           "details": "断言详情",
+           "criteria": ["<必须与台账 acceptance 原文逐字完全一致>"]
+         }
+       ]
+     }
+     ```
+     然后执行机器准备（注意 `--source-sha` 必须传 40 位完整 SHA，传短哈希会被 AWR 强拦截）：
+     ```bash
+     awr work prepare-completion --report <JSON-PATH> --evidence-key "<SPEC-ID>/evidence/<KEY>" --source-sha <40-CHAR-SHA> <SPEC-ID>
+     ```
 - 向 AWR 提交测试完成会话检查点：
   ```bash
   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh

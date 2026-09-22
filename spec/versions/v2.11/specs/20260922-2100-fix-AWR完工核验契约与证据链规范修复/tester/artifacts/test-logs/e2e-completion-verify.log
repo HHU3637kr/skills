@@ -1,0 +1,24 @@
+=== AWR 0.5.0 机器完工闭环隔离沙箱验证日志 ===
+时间: 2026-09-22T21:20:00+08:00
+环境: /tmp/awr-protocol-verify (纯隔离沙箱)
+
+1. prepare-completion:
+   cmd: awr work prepare-completion --report artifacts/completion-report.json --evidence-key WORK-VERIFY-001/evidence/test-run --source-sha <SHA> WORK-VERIFY-001 --json
+   result: stage: report_validated, ok: true, exit_rc: 0
+
+2. evidence add:
+   cmd: awr evidence add --input /tmp/evidence-draft.json --expected-revision 7 --json
+   result: event_id: 01M34JZY..., revision: 8, exit_rc: 0
+
+3. work complete:
+   cmd: awr work complete --session 01M34JZ9NY0KGDVC7FAM3FBDGG --reason "验收全部通过" --input /tmp/complete-input.json --expected-revision 8 WORK-VERIFY-001 --json
+   input_fields: version, source_sha, acceptance (三字段契约)
+   result: proposal_recorded, event_type: work.completed, exit_rc: 0
+   side_effect: work-ledger.yaml 自动注入 verification 块，状态置为 completed
+
+4. session end:
+   cmd: awr session end --session 01M34JZ9NY0KGDVC7FAM3FBDGG --outcome ended --expected-revision 15 --json
+   result: session.ended, status: ended, exit_rc: 0
+
+5. awr doctor 终审:
+   result: Database intact: true, Findings: 0 (ALL CLEAN)

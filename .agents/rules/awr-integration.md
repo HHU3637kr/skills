@@ -100,6 +100,49 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
   ```
 - **核心原理**：脚本底层会自动执行 `awr session resume --from-session <PREV-SESSION-ID> --agent <NEXT-ROLE> --provider omp --model default --claim ...` 完成租约转移（Claim Transfer），并将上游角色的上下文快照与未完成事项无损传递给下游角色。
 
+### 4.5 完工机器核验与证据上链（Work Completion & Evidence Binding）
+在角色测试通过、提请结项前，必须执行 AWR 官方 0.5.0 机器核验闭环，杜绝仅靠手工修改台账导致的 `completion_not_checked` 审计缺口：
+1. **自动派生机器核验报告（completion.report.v1）**：
+   测试脚本必须在 `tester/artifacts/test-logs/<run-id>/` 自动派生符合 schema 的机器 JSON（不得直接将 HTML 报告传入 `prepare-completion`）：
+   - `version`: 整数 `1`
+   - `work_item`: 工作项内部键
+   - `source_sha`: **40 位完整 Git 哈希**（执行 `git rev-parse HEAD` 获取；AWR 强约束禁止短 SHA）
+   - `command`: 验证命令
+   - `scope`: 字符串数组，如 `["<WORK-ID>"]`
+   - `verified_at`: 毫秒级时间戳整数
+   - `checks`: 用例清单，其中 `criteria` 必须与工作台账中 `acceptance` 的原文逐字完全一致。
+2. **执行校验与证据注册**：
+   ```bash
+   # 验证报告结构真实性与台账标准映射
+   awr work prepare-completion --report <JSON-PATH> --evidence-key "<WORK-ID>/evidence/<KEY>" --source-sha <40-CHAR-FULL-SHA> <WORK-ID>
+   # 注册证据元数据草稿
+   REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
+   ```
+3. **执行官方三字段完工确认（Work Complete）**：
+   在当前会话下执行完工确认，传入官方标准的 3 字段 input JSON（`version`、`source_sha`、`acceptance`）：
+   ```bash
+   cat > /tmp/complete-input.json <<EOF
+   {
+     "version": 1,
+     "source_sha": "<40-CHAR-FULL-SHA>",
+     "acceptance": [
+       {
+         "criterion": "<台账 acceptance 原文>",
+         "evidence": ["<WORK-ID>/evidence/<KEY>"]
+       }
+     ]
+   }
+   EOF
+   REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   awr work complete --session <SESSION_ID> --reason "验收通过且证据已全部绑定" --input /tmp/complete-input.json --expected-revision "$REV" <WORK-ID>
+   ```
+   *重要特征*：`awr work complete` 执行成功后，AWR 状态机会自动向源文件 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 块并将工作项置为 `completed`。由于状态机重写了源文件并完成重投影，项目的 `project_revision` 会随之递增。因此在执行第 5 步关闭会话释放租约前，必须重新从 `awr status` 获取最新的 CAS 版本号：
+   ```bash
+   LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+   awr session end --session <SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
+   ```
+   此时即可达成 `awr doctor` **0 findings** 的无瑕闭环。
 ### 5. 交付收尾与显式释放租约（Session End）
 当 Spec 经过测试、审查全绿，在 `spec-end` 原位归档时，调用脚本带 `--end` 显式关闭会话并释放锁：
 - **Linux / macOS / Git Bash 环境**：
