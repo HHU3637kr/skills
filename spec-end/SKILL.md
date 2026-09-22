@@ -265,15 +265,17 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
    ```
    *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为终态 `completed`。*
 
-   **直接调用 session end 释放租约并复核 doctor（消灭脚本死锁与孤儿会话）**：
-   **物理铁律**：工作项转为终态 `completed` 后，AWR 禁止在其上执行后续会话接力或新建（调用 `rk-awr-checkpoint.sh --end` 会报 `InvalidTransition: resume requires known nonterminal work` 退出码 1 阻断并遗留孤儿会话）。必须由当前持有活跃会话的 `spec-ender` 直接关闭会话：
-   ```bash
-   # work complete 重写台账后 project_revision 会递增，必须现读最新 CAS 版本号
-   LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
-   awr doctor  # 终态复核：0 findings
-   ```
-   *降级说明*：仅在未配置机器核验、仅手工修改台账为 `completed` 的降级路径下，且 `spec-ender` 已持有活跃会话时，才使用 `rk-awr-checkpoint.sh --end` 释放。
+   **释放租约并复核 doctor（支持直接关闭与同角色脚本释放）**：
+   **会话释放与接力状态契约**：
+   - **推荐主路径（直接关闭会话）**：由当前持有活跃会话的 `spec-ender` 现读 CAS 版本号并直接执行 `awr session end`：
+     ```bash
+     # work complete 重写台账后 project_revision 会递增，必须现读最新 CAS 版本号
+     LATEST_REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+     awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"
+     awr doctor  # 终态复核：0 findings
+     ```
+   - **同角色脚本释放（实测兼容）**：若 `spec-ender` 此前已通过脚本开工并持有该工作项的活动会话，在 `work complete` 之后调用 `rk-awr-checkpoint.sh --end`（或在 `work complete` 遭遇失败需要退出时）脚本会自动复用同角色活跃会话并成功释放租约（退出码为 0，`doctor` 0 findings）。
+   - **边界异常防范**：工作项转为终态 `completed` 后，AWR 禁止在其上执行**跨角色接力**（此时尝试 `resume` 会报 `InvalidTransition: resume requires known nonterminal work`）或**新建会话**（此时尝试 `session start` 会报 `DependencyBlocked: source status is completed`）。因此，如果未能直接获取 `<ENDER_SESSION_ID>`，必须确保仅由持有该会话的原角色执行释放。
 2. 调用 `/git-work` 的“完成 Spec 分支”模式：
    - 确认当前分支不等于远程默认分支（`git symbolic-ref refs/remotes/origin/HEAD` 读出，不要假定分支名）
    - 确认当前分支等于 `lead/team-context.md` 的 `git_branch`

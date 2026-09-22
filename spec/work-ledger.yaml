@@ -81,4 +81,6 @@ work_items:
     evidence:
       - locator: "spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/tester/test-report.html"
         summary: "静态断言 6/6 全绿，沙箱正例全流程（ready->progress->prepare-completion->complete->direct end）实测全 RC=0 且 0 findings，v2.11 既有用例 81/81 PASS"
+      - locator: "spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/tester/artifacts/test-logs/e2e-scaffold-default-path.log"
+        summary: "TC-E2E-07 真实脚手架默认路径实测：init-ai-workflow.sh 开箱后 rk-awr-checkpoint.sh 首发开工自动推进 ready->in_progress（P0-1 根因修复生效），接力 prepare-completion->evidence add->work complete 全 RC=0，Case D 同角色脚本 --end 释放租约实测 rc=0，awr doctor 终态 0 findings"
     next_action: 代码变更自洽闭环，原位归档完成，更新至官方主仓 PR #11

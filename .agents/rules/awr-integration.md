@@ -76,6 +76,7 @@ awr session start --work <SPEC-ID> --agent <ROLE> --provider omp --model default
 REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
 awr work progress <SPEC-ID> --summary "<开工推进简述>" --next-action "<下一阶段动作>" --session <SESSION_ID> --reason "开工推进" --expected-revision "$REV"
 ```
+*说明：`scripts/rk-awr-checkpoint.{sh,ps1}` 已内置上述 `ready` → `in_progress` 自动推进逻辑（开工时自动检测并执行，失败即 fail-closed 退出）。手动执行 `awr work progress` 仅适用于未通过检查点脚本开工的场景（例如直接使用 `awr session start --claim` 的裸流程），避免读者按旧文重复双推动作。*
 
 ### 2. 绑定会话的上下文准备（Session-Bound `work prepare`）
 提取当前任务的聚焦上下文时，必须传 `--session` 参数：
@@ -133,8 +134,12 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
    ```
 3. **由 spec-ender 执行官方三字段完工确认与租约释放（消灭终检点死锁）**：
-   **物理铁律**：`awr work complete` 执行后工作项立即变为终态 `completed`，此后 AWR 拒绝该工作项上的任何后续会话操作（`session resume` 报 `resume requires known nonterminal work`，`session start` 报 `source status is completed`）。
-   因此，**严禁在 `work complete` 之后再调用 `rk-awr-checkpoint.sh --end`**！必须由持有活性会话的 `spec-ender` 在同一会话内直接完成完工与释放：
+   **会话释放与接力状态契约**：
+   - **脚本探会话机制**：`rk-awr-checkpoint.sh --end` 运行时，优先复用当前调用方 agent 在该工作项上的活跃会话；若活跃会话属于其他 agent，才会尝试 `resume` 转移租约；若无活跃会话，才会回退 `session start` 新建会话。
+   - **完工后边界状态（实测）**：`awr work complete` 执行后工作项立即变为终态 `completed`。此时脚本若尝试**跨角色接力**，AWR 返回 `InvalidTransition: resume requires known nonterminal work`；若脚本在无活跃会话下**新建会话**，AWR 返回 `DependencyBlocked: source status is completed`。
+   - **推荐主路径**：`work complete` 成功后，优先由持有活跃会话的 `spec-ender` 在同一会话内直接关闭会话（现读最新 CAS 版本号并执行 `awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"`）。
+   - **同角色脚本释放兼容（实测 Case D 验证）**：若 `spec-ender` 此前已通过 `rk-awr-checkpoint.sh` 开工并持有该工作项的活跃会话，在 `work complete` 之后调用 `rk-awr-checkpoint.sh --end` 亦能成功复用该会话并释放租约（退出码 0，`doctor` 0 findings）。
+   - **完工失败释放**：若 `work complete` 前遭遇校验失败或状态冲突，持有活跃会话的 `spec-ender` 调用 `rk-awr-checkpoint.sh --end` 或直接执行 `awr session end` 均为兜底释放租约的 sanctioned 路径。
    ```bash
    cat > /tmp/complete-input.json <<EOF
    {
@@ -161,8 +166,8 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 当 Spec 经过测试、审查全绿，在 `spec-end` 收尾时，释放独占租约分两种路径：
 
 1. **标准机器核验路径（强烈推荐）**：
-   若已按上述「4.5 节」执行了 `awr work complete`，工作项在底层已转入终态 `completed`。此时 AWR 状态机禁止在该工作项上执行任何后续会话接力（`resume` 报 `resume requires known nonterminal work`）或新会话启动（`session start` 报 `status_not_selectable`）。
-   **因此在此路径下，严禁调用 `rk-awr-checkpoint.sh --end`**，必须严格按照 4.5 节指令，由 `spec-ender` 在同一会话内直接调用 `awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"`，实现租约释放与 0 findings 干净终态。
+   若已按上述「4.5 节」执行了 `awr work complete`，工作项在底层已转入终态 `completed`。此时推荐由持有该工作项活跃会话的 `spec-ender` 直接调用 `awr session end --session <ENDER_SESSION_ID> --outcome ended --expected-revision "$LATEST_REV"` 完成租约释放与 0 findings 干净终态。
+   若采用脚本方式释放，必须确保当前调用方即为持有活跃会话的 `spec-ender`：同角色持会时脚本复用会话释放成功（实测退出码 0）；否则 AWR 状态机禁止在该工作项上执行**跨角色接力**（`resume` 报 `InvalidTransition: resume requires known nonterminal work`）或**无活跃会话的新建**（`session start` 报 `DependencyBlocked: source status is completed`）。
 
 2. **无机器核验的降级/源声明路径**：
    若项目未配置 AWR 证据机器核验，仅通过手工修改 `work-ledger.yaml` 的 `status: completed`，且在修改前 `spec-ender` 已持有活跃会话，则可调用检查点脚本带 `--end` 显式关闭会话并释放锁：

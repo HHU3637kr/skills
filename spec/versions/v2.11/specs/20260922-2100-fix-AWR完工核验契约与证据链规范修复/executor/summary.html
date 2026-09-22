@@ -14,7 +14,7 @@
 <meta name="rk:status"      content="未确认">
 <meta name="rk:created"     content="2026-09-22">
 <meta name="rk:updated"     content="2026-09-22">
-<meta name="rk:revision"    content="1">
+<meta name="rk:revision"    content="2">
 <meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
 <meta name="rk:base-branch" content="master">
 <meta name="rk:pr-url"      content="">
@@ -50,7 +50,7 @@
 
 <section class="rk-verdict is-pass">
   <div class="rk-verdict-label">实现结论</div>
-  <p>全部任务已严格按 plan.html 实施完成：静态断言由 RED（4 项失败）转为 GREEN（0 失败）；沙箱全流程实测 prepare-completion、evidence add、work complete、session end 全部 RC=0，awr doctor 达到 0 findings；v2.11 既有 Spec 联合重测 81/81 PASS，零回归破坏。</p>
+  <p>全部任务已严格按 plan.html 实施完成：静态断言由 RED（4 项失败）转为 GREEN（0 失败）；沙箱全流程实测 prepare-completion、evidence add、work complete、session end 全部 RC=0，awr doctor 达到 0 findings；P0-1 根因修复后，在真实脚手架默认路径沙箱复测：rk-awr-checkpoint.sh 首发开工自动推进 ready→in_progress，完工后 Case D 同角色脚本 --end 实测 rc=0，awr doctor 0 findings；v2.11 既有 Spec 联合重测 81/81 PASS，零回归破坏。</p>
 </section>
 
 <h2>修订历史</h2>
@@ -58,6 +58,7 @@
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
   <tbody>
     <tr><td>r1</td><td>2026-09-22</td><td>spec-executor</td><td>初版实现总结</td><td>—</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-executor</td><td>补充 P0-1 根因修复（rk-awr-checkpoint.{sh,ps1} 内置 ready→in_progress 自动推进）变更条目与真实脚手架默认路径 TC-E2E-07、Case D 实测事实</td><td>复审发现 P0-1 未闭环</td></tr>
   </tbody>
 </table>
 
@@ -69,6 +70,16 @@
       <td><span class="rk-ref">spec-test/SKILL.md</span></td>
       <td>修改</td>
       <td>纠正 prepare-completion 参数契约，确立 completion.report.v1 JSON 与 HTML 报告双轨制，增加 40 位 SHA 约束说明。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">scripts/rk-awr-checkpoint.sh</span></td>
+      <td>修改</td>
+      <td>P0-1 根因修复：开工时双键检测 <code>work.raw_status</code>/<code>work.status</code>，若为 <code>ready</code> 先现读 REV 并经 <code>awr work progress</code> 推进至 <code>in_progress</code>（推进后再次现读 REV）；<code>extract_json_field</code> 补齐 raw_status/status 解析分支，两键均缺失即 fail-closed 退出。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">scripts/rk-awr-checkpoint.ps1</span></td>
+      <td>修改</td>
+      <td>与 .sh 对等实现：解析 <code>$workObj.work.raw_status</code>/<code>status</code>，ready 时先刷新 <code>$rev</code> 再执行 <code>awr work progress</code> 并再次刷新，两键均缺失 fail-closed 阻断。</td>
     </tr>
     <tr>
       <td><span class="rk-ref">.agents/rules/awr-integration.md</span></td>
@@ -98,10 +109,12 @@
   <div class="rk-kpi is-pass"><div class="v">6/6</div><div class="k">静态契约断言通过</div></div>
   <div class="rk-kpi is-pass"><div class="v">0</div><div class="k">AWR Doctor 异常</div></div>
   <div class="rk-kpi is-pass"><div class="v">81/81</div><div class="k">v2.11 联合重测通过</div></div>
+  <div class="rk-kpi is-pass"><div class="v">rc=0</div><div class="k">真实脚手架默认路径 / Case D 释放</div></div>
 </div>
 
 <h2>3. 偏差与决策说明</h2>
 <div class="rk-cal key"><div class="t">保持检查点脚本参数稳定</div><p>经评估，检查点脚本 scripts/rk-awr-checkpoint.{sh,ps1} 现有的会话认领、接力、盖章与释放机制完全满足 AWR 标准，完工核验由流程明确调用官方命令闭环，不向脚本额外引入复杂的 JSON 拼装参数，确保纯净与跨平台对等稳定性。</p></div>
+<div class="rk-cal key"><div class="t">P0-1 后续修复：脚本内置 ready→in_progress 自动推进</div><p>真实脚手架默认路径实测发现：首发角色经旧版脚本开工后工作项仍停留 <code>ready</code>，下游 <code>work complete</code> 报 <code>cannot Complete work with source state Ready</code>。本次修复仅在脚本内新增 <code>awr work progress</code> 状态推进（现读 REV、双键检测、fail-closed），未引入任何 JSON 拼装参数，r1 决策「不向脚本引入复杂 JSON 参数」的边界保持不变。</p></div>
 
 <h2>关联产物</h2>
 <h3>本报告引用</h3>
