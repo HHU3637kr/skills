@@ -1,0 +1,27 @@
+=================================================================
+🧪 正在执行脚手架 CLI 中立化测试 (目标脚本: /home/WorkSpace/skills/scripts/init-ai-workflow.sh)
+=================================================================
+
+▶ [TC-01] 场景 1: 默认纯中立执行 (不传 --runtime)
+  ❌ FAIL: 根目录必存在 AGENTS.md (文件不存在: /tmp/test-scaffold-none-xPy7yn/AGENTS.md)
+  ❌ FAIL: 不得存在 .omp/AGENTS.md (意外存在文件/目录: /tmp/test-scaffold-none-xPy7yn/.omp/AGENTS.md)
+  ❌ FAIL: 默认不得生成 .omp 目录 (意外存在文件/目录: /tmp/test-scaffold-none-xPy7yn/.omp)
+  ❌ FAIL: .agents/roles 目录必存在 (目录不存在: /tmp/test-scaffold-none-xPy7yn/.agents/roles)
+  ❌ FAIL: .agents/roles 下必须有 7 个中立角色文件 (期望: '7', 实际: '0')
+
+▶ [TC-02] 场景 2: OMP 按需适配 (--runtime omp)
+  ❌ FAIL: 根目录必存在 AGENTS.md (文件不存在: /tmp/test-scaffold-omp-my3zq6/AGENTS.md)
+  ❌ FAIL: .omp/agents 目录必存在 (目录不存在: /tmp/test-scaffold-omp-my3zq6/.omp/agents)
+  ❌ FAIL: .omp/agents 下必须有 7 个适配角色文件 (期望: '7', 实际: '0')
+  ❌ FAIL: OMP 原生发现下不得生成冗余软链接 .omp/skills (意外存在文件/目录: /tmp/test-scaffold-omp-my3zq6/.omp/skills)
+  ❌ FAIL: .agents/roles 中立角色目录必须存在 (目录不存在: /tmp/test-scaffold-omp-my3zq6/.agents/roles)
+
+▶ [TC-03] 场景 3: Claude 按需适配 (--runtime claude)
+  ❌ FAIL: 根目录必存在 AGENTS.md (文件不存在: /tmp/test-scaffold-claude-AG5FQt/AGENTS.md)
+  ❌ FAIL: .claude/agents 目录必存在 (目录不存在: /tmp/test-scaffold-claude-AG5FQt/.claude/agents)
+  ❌ FAIL: .claude/skills 软链接必存在 (文件不存在: /tmp/test-scaffold-claude-AG5FQt/.claude/skills/README.md)
+
+=================================================================
+📊 测试统计结果: PASS=0, FAIL=13
+=================================================================
+Exit code: 1

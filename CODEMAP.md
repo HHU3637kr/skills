@@ -35,7 +35,7 @@ skills/
 └── CODEMAP.md                # 本文件
 ```
 
-安装方式支持使用 `scripts/init-ai-workflow.{sh,ps1}` 一键初始化目标项目，也支持手动 `git clone` 到目标项目的 `.agents/skills/` 并软链接/联接到 `.omp/skills`。目标项目通过薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。更新用 `git pull`，软链接自动同步。
+安装方式支持使用 `scripts/init-ai-workflow.{sh,ps1}` 一键初始化目标项目，也支持手动 `git clone` 到目标项目的 `.agents/skills/`。目标项目通过根目录薄入口 `AGENTS.md` 加载 `.agents/rules/` 和 `.agents/skills/`。更新用 `git pull`，各运行时自动同步。
 ---
 
 ## 核心目录地图

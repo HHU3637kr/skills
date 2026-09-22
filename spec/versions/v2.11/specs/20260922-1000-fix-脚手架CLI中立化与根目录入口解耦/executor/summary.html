@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现总结 - 脚手架 CLI 中立化：根目录 AGENTS.md、中立角色补全与消除冗余软链接</title>
+
+<meta name="rk:type"        content="summary">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-1000-fix-脚手架CLI中立化与根目录入口解耦">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="fix/spec-20260922-cli-neutral-scaffold">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,summary,fix,cli-neutral,scaffold,agents-md,roles">
+
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="summary.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>实现总结：脚手架 CLI 中立化（根目录 AGENTS.md、中立角色补全与消除冗余软链接）</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分支</b> <code>fix/spec-20260922-cli-neutral-scaffold</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r2（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>全面完成脚手架脚本 <code>scripts/init-ai-workflow.{sh,ps1}</code> 的重构改造与规范库核心文档同步：将 <code>AGENTS.md</code> 还原至业务项目根目录，作为跨 Agent 统一标准入口；在目标项目固化 <code>.agents/roles/</code> 7 大中立角色权威定义；解除 OMP 冗余的 <code>.omp/skills</code> 软链接，新增 <code>--runtime &lt;none|omp|claude|codex&gt;</code> 运行时参数化按需适配；并将客户端本地适配路径纳入 <code>.gitignore</code>。并进一步闭环 P0 真实物理目录防护与 P1 参数强校验。TDD 6 大场景 45 项自动化测试验证全绿通过。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-executor</td><td>重构双端脚手架脚本，同步更新文档与落地中立 roles</td><td>落实 plan.html 设计方案与 CLI 中立架构要求</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-executor</td><td>修复建链函数真实目录安全防护 (P0-1) 与参数 Fail-Closed 校验 (P1-1)，完善 .gitignore 去重</td><td>响应用户对抗式审查，消除边界隐患</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 核心变更点落地清单</h2>
+<ol>
+  <li><b>Bash 初始化脚本重构 (<code>scripts/init-ai-workflow.sh</code>)</b>：
+    <ul>
+      <li>支持 <code>--runtime &lt;none|omp|claude|codex&gt;</code> 参数，默认 <code>none</code> 纯中立；</li>
+      <li>支持 <code>--runtime=val</code> 等号形式传参，对未知选项与非法 runtime 执行 Fail-Closed 强校验阻断 (exit 1)；</li>
+      <li>根目录生成 <code>AGENTS.md</code>，彻底移除 <code>.omp/AGENTS.md</code>；</li>
+      <li>创建 <code>.agents/roles/</code> 并完整落地 7 个中立角色 Markdown 文件；</li>
+      <li>修复 <code>create_symlink_or_junction</code> 丢失真实物理目录防护问题，遇到真实目录自动 <code>.bak-时间戳</code> 备份，彻底消除软链接内部静默嵌套与数据破坏隐患；</li>
+      <li>移除 <code>.omp/skills</code> 软链接，仅在指定 claude/codex 时按需创建对应的 skills 软链接；</li>
+      <li><code>.gitignore</code> 追加 <code>.omp/</code>、<code>.claude/</code>、<code>.codex/</code> 本地私有隔离配置。</li>
+    </ul>
+  </li>
+  <li><b>PowerShell 初始化脚本重构 (<code>scripts/init-ai-workflow.ps1</code>)</b>：
+    <ul>
+      <li>增加 <code>-Runtime &lt;none|omp|claude|codex&gt;</code> 参数化支持与对应分支处理；</li>
+      <li>对齐根目录 <code>AGENTS.md</code>、<code>.agents/roles/</code> 及 Junction 逻辑；</li>
+      <li>修复 <code>.gitignore</code> 空行重复插入问题。</li>
+    </ul>
+  </li>
+  <li><b>规范库中央中立角色定义创建 (<code>.agents/roles/</code>)</b>：
+    <ul>
+      <li>规范库本体补全 <code>spec-explorer.md</code> ~ <code>spec-ender.md</code> 7 个权威 Markdown 定义，供初始化脚本直接无损复制至下游目标工程。</li>
+    </ul>
+  </li>
+  <li><b>规范与指引文档同步 (<code>spec-init/SKILL.md</code>, <code>README.md</code>, <code>CODEMAP.md</code>)</b>：
+    <ul>
+      <li>同步修正步骤 3 与 4.2 说明，澄清根目录入口与 OMP 原生发现机制；</li>
+      <li>修正拓扑结构图，使项目整体架构表述统一无歧义。</li>
+    </ul>
+  </li>
+</ol>
+
+<h2>2. 触达文件清单</h2>
+<ul>
+  <li><code>scripts/init-ai-workflow.sh</code> (重构 + P0/P1 防御)</li>
+  <li><code>scripts/init-ai-workflow.ps1</code> (重构 + 幂等修复)</li>
+  <li><code>.agents/roles/*.md</code> (7 个中立角色新增)</li>
+  <li><code>spec-init/SKILL.md</code> (规约修正)</li>
+  <li><code>README.md</code> (拓扑与步骤说明修正)</li>
+  <li><code>CODEMAP.md</code> (架构与安装路径修正)</li>
+  <li><code>spec/versions/v2.11/version-context.md</code> (追加范围变更)</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试计划 - 脚手架 CLI 中立化：根目录 AGENTS.md、中立角色补全与消除冗余软链接</title>
+
+<meta name="rk:type"        content="test-plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-1000-fix-脚手架CLI中立化与根目录入口解耦">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260922-cli-neutral-scaffold">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-plan,fix,cli-neutral,tdd,scaffold">
+
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试计划：脚手架 CLI 中立化（根目录 AGENTS.md、中立角色补全与消除冗余软链接）</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>fix/spec-20260922-cli-neutral-scaffold</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试策略与先行断言准则</div>
+  <p>遵循 R&K Flow 测试先行（TDD）纪律。编写独立测试脚本 <code>tester/artifacts/test-logs/reproduce-red.sh</code>，在隔离沙箱中直接运行初始化脚本并对<b>期望目标态</b>进行严格断言。在旧实现上运行测试必将出现红灯（RED）；在实现重构后，复跑测试验证全部转绿（GREEN），同时覆盖默认中立、OMP 按需适配、Claude/Codex 适配及幂等性等边界矩阵。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-tester</td><td>制定测试先行用例、红绿判定标准与场景矩阵</td><td>基于 writer/plan.html 制定机械化测试方案</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试范围与原则</h2>
+<ul>
+  <li><b>不可手写证据</b>：所有测试结果、标准输出、退出码均由测试脚本自动落盘至 <code>tester/artifacts/test-logs/</code>。</li>
+  <li><b>新鲜验证（Fresh Verification）</b>：必须在真实的临时隔离沙箱目录（<code>/tmp/test-rk-scaffold-*</code>）中运行实际的脚本文件。</li>
+  <li><b>断言期望态（Expectation Assertions）</b>：断言逻辑严格根据产品期望设计，不针对坏态写通过逻辑。</li>
+</ul>
+
+<h2>2. 核心测试用例与判定矩阵</h2>
+<table>
+  <thead>
+    <tr><th>用例编号</th><th>场景描述</th><th>执行命令</th><th>断言条件（必须全过）</th><th>预期旧脚本结果</th><th>预期新脚本结果</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><b>TC-01</b></td>
+      <td>默认纯中立执行</td>
+      <td><code>bash init-ai-workflow.sh [dir]</code></td>
+      <td>
+        1. 根目录存在 <code>AGENTS.md</code><br>
+        2. 不存在 <code>.omp/AGENTS.md</code><br>
+        3. 不存在 <code>.omp/</code> 目录<br>
+        4. <code>.agents/roles/</code> 存在且包含 7 个角色 .md 文件
+      </td>
+      <td><span class="rk-tag is-fail">FAIL (RED)</span><br>AGENTS 位于 .omp/，且缺 roles</td>
+      <td><span class="rk-tag is-pass">PASS (GREEN)</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-02</b></td>
+      <td>OMP 按需适配</td>
+      <td><code>bash init-ai-workflow.sh [dir] --runtime omp</code></td>
+      <td>
+        1. 根目录存在 <code>AGENTS.md</code><br>
+        2. 存在 <code>.omp/agents/</code> 且含 7 个角色定义<br>
+        3. <b>不存在</b> <code>.omp/skills</code> 软链接（OMP 原生发现）<br>
+        4. <code>.agents/roles/</code> 存在且完整
+      </td>
+      <td><span class="rk-tag is-fail">FAIL (RED)</span><br>未支持参数，生成冗余软链接</td>
+      <td><span class="rk-tag is-pass">PASS (GREEN)</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-03</b></td>
+      <td>Claude 按需适配</td>
+      <td><code>bash init-ai-workflow.sh [dir] --runtime claude</code></td>
+      <td>
+        1. 根目录存在 <code>AGENTS.md</code><br>
+        2. 存在 <code>.claude/agents/</code> 且含 7 个角色定义<br>
+        3. 存在 <code>.claude/skills</code> 软链接指向 <code>../.agents/skills</code><br>
+        4. <code>.agents/roles/</code> 存在且完整
+      </td>
+      <td><span class="rk-tag is-fail">FAIL (RED)</span><br>缺少 Claude 分支</td>
+      <td><span class="rk-tag is-pass">PASS (GREEN)</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-04</b></td>
+      <td>Codex 按需适配</td>
+      <td><code>bash init-ai-workflow.sh [dir] --runtime codex</code></td>
+      <td>
+        1. 根目录存在 <code>AGENTS.md</code><br>
+        2. 存在 <code>.codex/agents/</code> 且含 7 个 .toml 文件<br>
+        3. 存在 <code>.codex/config.toml</code><br>
+        4. 存在 <code>.codex/skills</code> 软链接
+      </td>
+      <td><span class="rk-tag is-fail">FAIL (RED)</span><br>缺少 Codex 分支</td>
+      <td><span class="rk-tag is-pass">PASS (GREEN)</span></td>
+    </tr>
+    <tr>
+      <td><b>TC-05</b></td>
+      <td>幂等性与重复执行</td>
+      <td>在已有目录连续执行 2 次脚本</td>
+      <td>
+        1. 退出码均为 0<br>
+        2. 现有 AGENTS.md 与配置不被破坏或产生嵌套软链接
+      </td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+      <td><span class="rk-tag is-pass">PASS (GREEN)</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. 验证步骤规划</h2>
+<ol>
+  <li>编写 <code>tester/artifacts/test-logs/reproduce-red.sh</code> 脚本；</li>
+  <li>在当前工作区对未经修改的 <code>scripts/init-ai-workflow.sh</code> 运行测试，抓取红灯输出日志；</li>
+  <li>移交 <code>spec-executor</code> 实施脚本改造与文档更新；</li>
+  <li>对改造后的脚本复跑测试，验证全部测试转绿，抓取绿灯输出日志；</li>
+  <li>由 <code>spec-tester</code> 撰写 <code>tester/test-report.html</code>。</li>
+</ol>
+
+</body>
+</html>
