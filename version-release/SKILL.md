@@ -85,7 +85,9 @@ description: >
      git commit -m "docs(version): 更新 <version> 版本账本状态为已发布（<tag>）"
     git push origin dev
     ```
-6. **向 AWR 提交版本发布检查点**：
+6. **AWR 运行时状态同步（若有对应发布任务）**：
+   AWR 0.5.0 中 Session 绑定原子 WorkItem。若当前版本在台账中声明了专属版本发版任务（如 `<VERSION-WORK-ID>`，例 `TASK-RELEASE-<version>`），提交发版检查点并正常关闭会话：
    ```bash
-   awr session checkpoint --session <SESSION-ID> --digest "version-release: 版本 <version> 已完成发布并打 Tag <tag>，状态更新为已发布" --next-action "version-end: 准备复盘收尾" --expected-revision <REV>
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <VERSION-WORK-ID> --agent version-release --digest "version-release: 版本 <version> 已完成发布并打 Tag <tag>，状态更新为已发布" --next-action "version-end: 准备复盘收尾" --end
    ```

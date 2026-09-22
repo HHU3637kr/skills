@@ -1,7 +1,7 @@
 ﻿<#
 .SYNOPSIS
     Enterprise AI Coding Workflow 一键初始化脚本 (Windows 原生 PowerShell 版本)
-    基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime 0.4.0)
+    基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime ≥0.5.0)
 
 .DESCRIPTION
     适用于 Windows 10/11 (Windows PowerShell 5.1 或 PowerShell 7+)。
@@ -50,7 +50,7 @@ $HasAwr = $false
 if (Get-Command awr -ErrorAction SilentlyContinue) {
     $HasAwr = $true
 } else {
-    Write-Host "⚠️ 提示: 系统尚未检测到 awr 命令 (建议全局安装: npm install -g @originoneai/agent-work-runtime@0.4.0 或 cargo install)" -ForegroundColor Yellow
+    Write-Host "⚠️ 提示: 系统尚未检测到 awr 命令 (建议全局安装最新版: npm install -g @originoneai/agent-work-runtime@latest 或 cargo install)" -ForegroundColor Yellow
 }
 
 Set-Location -Path $TargetDir
@@ -126,7 +126,7 @@ if (-not (Test-Path ".omp\AGENTS.md")) {
 
 ## 项目身份
 - **类型**: 企业应用服务
-- **运行时**: OMP (Oh My Pi) + AWR (Agent Work Runtime 0.4.0)
+- **运行时**: OMP (Oh My Pi) + AWR (Agent Work Runtime ≥0.5.0)
 - **版本控制**: \`dev + release\` 分支流（PR/MR 审查）
 
 ## 规则与技能导入
@@ -200,6 +200,7 @@ work_items:
     kind: intake
     title: 核实项目目标、现状与下一步交付
     status: ready
+    goal: "goal#intake-goal"
     priority: P0
     required: true
     depends_on: []
@@ -231,7 +232,7 @@ path = "GOALS.md"
 adapter = "markdown-heading-v1"
 [sources.options]
 status = "active"
-
+key_prefix = "goal"
 [[sources]]
 domain = "ledger"
 role = "primary"
@@ -245,11 +246,26 @@ role = "primary"
 path = ".agents/rules/spec-workflow.md"
 adapter = "markdown-rules-v1"
 [sources.options]
+severity = "soft"
+scope = "project"
+value = "*"
 "@
     [System.IO.File]::WriteAllText($tmpManifest, $manifestContent, $Utf8NoBom)
     try {
-        & awr init --project . --manifest $tmpManifest --accept 2>$null | Out-Null
-        & awr source reindex 2>$null | Out-Null
+        if (-not (Test-Path ".awr/project.toml")) {
+            $initOut = & awr init --project . --manifest $tmpManifest --accept 2>&1
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ 错误: AWR 项目初始化失败！" -ForegroundColor Red
+                if ($initOut) { Write-Host "AWR 详情: $initOut" -ForegroundColor Yellow }
+                exit 1
+            }
+        }
+        $reindexOut = & awr source reindex 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "❌ 错误: AWR 源索引 (reindex) 失败！" -ForegroundColor Red
+            if ($reindexOut) { Write-Host "AWR 详情: $reindexOut" -ForegroundColor Yellow }
+            exit 1
+        }
     } finally {
         if (Test-Path $tmpManifest) { Remove-Item -Force $tmpManifest }
     }
@@ -273,6 +289,7 @@ $ignoreEntries = @(
     ".awr/cache/",
     ".awr/clients/",
     ".awr/executions/",
+    ".awr-backups/",
     ".agents/skills/",
     "html-report",
     ".omp/skills"

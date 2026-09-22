@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ==============================================================================
 # Enterprise AI Coding Workflow 一键初始化脚本
-# 基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime 0.4.0)
+# 基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime ≥0.5.0)
 # ==============================================================================
 set -euo pipefail
 
@@ -24,7 +24,7 @@ command -v git >/dev/null 2>&1 || { echo "❌ 错误: 未安装 git 命令"; exi
 HAS_AWR=true
 command -v awr >/dev/null 2>&1 || {
     HAS_AWR=false
-    echo "⚠️ 提示: 系统尚未检测到 awr 命令 (建议全局安装: npm install -g @originoneai/agent-work-runtime@0.4.0 或 cargo install)"
+    echo "⚠️ 提示: 系统尚未检测到 awr 命令 (建议全局安装最新版: npm install -g @originoneai/agent-work-runtime@latest 或 cargo install)"
 }
 
 cd "$TARGET_DIR"
@@ -92,7 +92,7 @@ if [ ! -f ".omp/AGENTS.md" ]; then
 
 ## 项目身份
 - **类型**: 企业应用服务
-- **运行时**: OMP (Oh My Pi) + AWR (Agent Work Runtime 0.4.0)
+- **运行时**: OMP (Oh My Pi) + AWR (Agent Work Runtime ≥0.5.0)
 - **版本控制**: \`dev + release\` 分支流（PR/MR 审查）
 
 ## 规则与技能导入
@@ -159,6 +159,7 @@ work_items:
     kind: intake
     title: 核实项目目标、现状与下一步交付
     status: ready
+    goal: "goal#intake-goal"
     priority: P0
     required: true
     depends_on: []
@@ -189,7 +190,7 @@ path = "GOALS.md"
 adapter = "markdown-heading-v1"
 [sources.options]
 status = "active"
-
+key_prefix = "goal"
 [[sources]]
 domain = "ledger"
 role = "primary"
@@ -203,12 +204,23 @@ role = "primary"
 path = ".agents/rules/spec-workflow.md"
 adapter = "markdown-rules-v1"
 [sources.options]
+severity = "soft"
+scope = "project"
+value = "*"
 EOF
-    awr init --project . --manifest "$TMP_MANIFEST" --accept >/dev/null 2>&1 || true
+    if [ ! -f ".awr/project.toml" ]; then
+        if ! awr init --project . --manifest "$TMP_MANIFEST" --accept; then
+            echo "❌ 错误: AWR 项目初始化失败，请检查上方输出排障" >&2
+            rm -f "$TMP_MANIFEST"
+            exit 1
+        fi
+    fi
     rm -f "$TMP_MANIFEST"
-    awr source reindex >/dev/null 2>&1 || true
+    if ! awr source reindex; then
+        echo "❌ 错误: AWR 源索引 (reindex) 失败，请检查源文件语法" >&2
+        exit 1
+    fi
 fi
-
 # 10. 更新 .gitignore（幂等）
 echo "🛡️ 正在更新 .gitignore 过滤规则..."
 touch .gitignore
@@ -225,6 +237,7 @@ cat << 'EOF' >> .gitignore
 .awr/cache/
 .awr/clients/
 .awr/executions/
+.awr-backups/
 
 # Skills 单版本源与运行时软链接
 .agents/skills/

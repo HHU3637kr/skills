@@ -59,6 +59,7 @@ lark-*/
 .awr/cache/
 .awr/clients/
 .awr/executions/
+.awr-backups/
 
 # CodeGraph index
 .codegraph/

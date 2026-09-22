@@ -1,4 +1,4 @@
-# AWR 运行时接入规范（L0 官方正统生命周期规范）
+# AWR 运行时接入规范（v0.5.0 L0 官方正统生命周期规范）
 
 ## 一、定位与权威边界
 
@@ -72,31 +72,51 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 - **核心原理**：绑定会话后，AWR 将分发的 Context Hash 与当前 Agent 真实关联，后续盖章时能够证明“Agent 确实依据本版上下文进行设计与编码”。若提示超预算，追加 `--budget <N>`。
 
 ### 3. 会话检查点（Session Checkpoint）
-阶段工作或测试完成后，必须向 AWR 提交检查点：
-```bash
-awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "<本次完成简述>" --next-action "<下一动作>" --expected-revision <REV>
-```
+阶段工作或测试完成后，必须向 AWR 提交检查点。优先调用封装辅助工具自动提取 Session ID、Context Hash 与 CAS 版本，杜绝手动输入占位符：
+- **Linux / macOS / Git Bash 环境**：
+  ```bash
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent <AGENT-ROLE> --digest "<本次完成简述>" --next-action "<下一动作>"
+  ```
+- **Windows 原生 PowerShell 环境**：
+  ```powershell
+  $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
+  powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent <AGENT-ROLE> -Digest "<本次完成简述>" -NextAction "<下一动作>"
+  ```
 - 若测试发现 Bug 或阻断，追加 `--open-loop "<阻断简述>"`，使任务在看板中保持 Waiting/Blocked 态。
 - 若 Bug 已修复并验证，在下一个检查点中省略该 open loop 即完成闭环。
 
-### 4. 跨角色交接的原生接力棒（Session Resume Handoff）
-当下游角色（如 writer 接 explorer、executor 接 writer、tester 接 executor）接手时，**严禁重新开全新的 session**，必须使用 AWR 原生恢复接力：
-```bash
-awr session resume --from-session <PREV-SESSION-ID> --agent <NEXT-ROLE> --provider omp --model default --expected-revision <REV>
-```
-- **核心原理**：`session resume` 会**自动完成租约转移（Claim Transfer）**，并将上游角色的上下文快照、检查点和未完成事项无损传递给下游角色。新生成的 `session.id` 覆写回 `team-context.md`。
+### 4. 跨角色交接的会话接力（Session Resume Handoff）
+当下游角色（如 writer 接 explorer、executor 接 writer、tester 接 executor）接手时，统一调用辅助脚本自动完成接力转交：
+- **Linux / macOS / Git Bash 环境**：
+  ```bash
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent <NEXT-ROLE> --digest "接力开工进入本阶段" --next-action "<下一动作>"
+  ```
+- **Windows 原生 PowerShell 环境**：
+  ```powershell
+  $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
+  powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent <NEXT-ROLE> -Digest "接力开工进入本阶段" -NextAction "<下一动作>"
+  ```
+- **核心原理**：脚本底层会自动执行 `awr session resume --from-session <PREV-SESSION-ID> --agent <NEXT-ROLE> --provider omp --model default --claim ...` 完成租约转移（Claim Transfer），并将上游角色的上下文快照与未完成事项无损传递给下游角色。
 
 ### 5. 交付收尾与显式释放租约（Session End）
-当 Spec 经过测试、审查全绿，在 `spec-end` 原位归档后，必须显式关闭会话并释放锁：
-```bash
-awr session end --session <FINAL-SESSION-ID> --outcome ended --expected-revision <REV>
-```
-- **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；显式调用 `session end` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
-
+当 Spec 经过测试、审查全绿，在 `spec-end` 原位归档时，调用脚本带 `--end` 显式关闭会话并释放锁：
+- **Linux / macOS / Git Bash 环境**：
+  ```bash
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent spec-ender --digest "原位归档完成" --next-action "全部完结" --end
+  ```
+- **Windows 原生 PowerShell 环境**：
+  ```powershell
+  $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
+  powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent spec-ender -Digest "原位归档完成" -NextAction "全部完结" -End
+  ```
+- **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；脚本收尾时调用 `awr session end --work <WORK> --outcome ended` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
 ---
 
 ## 四、配置与数据安全
 
 1. 项目配置文件 `.awr/project.toml` 必须显式声明 primary ledger 与 supporting plans，禁止使用黑盒扫描。
-2. `.awrignore` 与 `.gitignore` 必须排除运行态产物（`*.sqlite`、日志、二进制媒介等）。
-3. 在版本交付（`version-end`）时，统一触发 `awr runtime backup` 进行本地数据库冷备。
+2. `.awrignore` 与 `.gitignore` 必须排除运行态产物（`*.sqlite`、日志、二进制媒介、`.awr-backups/` 等）。
+3. 在版本交付（`version-end`）时，统一触发 `mkdir -p .awr-backups && awr runtime backup --output ".awr-backups/<version>-$(date +%Y%m%d-%H%M%S)"` 进行本地数据库冷备。

@@ -21,6 +21,11 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 ## 核心规则
 
+### 审查基调与立场
+
+- **保持中立客观，优先指出方案与实现的缺陷与不足**，拒绝盲目附和与形式化夸赞；
+- 重点识别方案漏洞、逻辑断裂、漏判边界与竞态条件，结论必须给出明确的失效场景与可验证依据；
+- **支持对抗式红蓝审查流**：若由独立高阶模型或专职红队审查，严格执行「审查方附带最小反例 + 修复方先复现实测 + 同一反例对称验证」的闭环契约（详见 `references/review-rubric.md`）。
 ### 确认方式随模式（必须执行）
 
 **介入方式随模式**：`gated` 模式下 spec-reviewer 可选，由 TeamLead 按需启动；`autopilot` 模式下 **spec-reviewer 强制介入**，因为它是自动驾驶下唯一的独立视角，没有它就没有任何人核对「实现是否等于已确认的 plan」。
@@ -61,7 +66,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 | 步骤 | 操作 | 要点 |
 |------|------|------|
-| 1 | 接力 AWR 会话并读取 Spec 文档 | 执行 `awr session resume --from-session <TESTER-SESSION-ID> --agent spec-reviewer --expected-revision <REV>` 接棒认领，执行 `awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary`；读取 `writer/plan.html` 或 `updater/update-xxx.html`，提取功能点、数据模型、接口定义 |
+| 1 | 接力 AWR 会话并读取 Spec 文档 | 调用检查点脚本（`AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; if [ ! -f "$AWR_CP" ]; then AWR_CP=scripts/rk-awr-checkpoint.sh; fi` 随后执行 `bash "$AWR_CP" --work <SPEC-ID> --agent spec-reviewer --digest "接力开工进入审查" --next-action "执行一致性审查"`）自动从前驱完成租约接力；随后执行 `awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary`；读取 `writer/plan.html` 或 `updater/update-xxx.html`，提取功能点、数据模型、接口定义 |
 | 2 | 读取实现与测试产物 | 读取 `executor/summary.html` 或 `updater/update-xxx-summary.html`、`tester/test-plan.html`、`tester/test-report.html`，并列出 `executor/artifacts/` 下的证据文件 |
 | 3 | 建立检查清单 | 从 Spec 提取所有需实现的功能点、模型、接口、测试；按 `references/review-rubric.md` 的五类清单展开 |
 | 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
@@ -76,8 +81,10 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - **🟡 `major`**：行为与 plan 不符，或存在明确的失败路径未处理，应在本 Spec 内修
 - **🟢 `minor`**：可读性、命名、重复代码等，记录为延后项，不阻塞
 
-### 步骤 6：审查报告要求
+AWR 状态机与结构一致性检查：
+核对当前 Spec 是否在工作台账（如 `work-ledger.yaml`）中完整登记、是否正确关联目标（`goal`）、验收标准是否与 `plan.html` 逐条一致，以及是否存在未决的 AWR 结构缺口（Gaps）。若存在断裂缺口，按上述标准记为 `major` 级问题要求修复。
 
+### 步骤 6：审查报告要求
 - 撰写报告前先读 `html-report` skill，确认最新的骨架、修订规范和禁止事项
 - 元信息与正文模板详见 [references/review-template.html](references/review-template.html)
 - 每个检查项必须标注具体的 Spec 位置和代码位置，代码位置写成 `<span class="rk-ref">src/x.ts:88</span>`
@@ -95,9 +102,10 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 - 「状态」根据审查结果标记为 `done` / `needs-fix`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-reviewer`
 - 若发现阻塞问题，在「问题闭环记录」中追加问题行，「分类」按性质选（`bug` / `scope` / `process` 等），「发现者」 写 `spec-reviewer`，`owner` 建议写 `TeamLead` 或 `spec-debugger`
-- 向 AWR 提交审查结论会话检查点（带上下文 HASH）：
+- 向 AWR 提交审查结论会话检查点：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html" --next-action "spec-ender: 进行收尾复盘与原位归档" --expected-revision <REV>
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent spec-reviewer --digest "spec-reviewer: 完成 Spec 一致性审查，结论产出在 reviewer/review.html" --next-action "spec-ender: 进行收尾复盘与原位归档"
   ```
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
 `gated` 模式的用户响应处理：

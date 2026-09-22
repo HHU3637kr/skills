@@ -265,16 +265,17 @@ description: >
 
 1. 执行 AWR 会话接力与上下文准备：
    ```bash
-   # 接力上游 spec-executor 的会话并转移任务租约（Claim Transfer）
-   awr session resume --from-session <EXECUTOR-SESSION-ID> --agent spec-tester --expected-revision <REV>
-   # 绑定会话准备测试聚焦上下文与最新代码变更基线
+   # 自动接力上游 spec-executor 的会话并转移任务租约（Claim Transfer）
+   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+   bash "$AWR_CP" --work <SPEC-ID> --agent spec-tester --digest "接力开工进入测试" --next-action "执行全量用例测试"
+   # 绑定当前会话准备测试聚焦上下文与最新代码变更基线
    awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    ```
 2. 读取关键业务与规范文档：
    - `writer/plan.html`：了解设计方案
    - `tester/test-plan.html`：测试用例和验收标准
    - `executor/summary.html`：了解实现细节
-   - `html-report` skill：报告骨架、双向关联、修订标记规范
+   - `html-report` skill：报告骨架、frontmatter 双轨等价字段、双向关联、修订标记与 Decision Log 联动规范
 ### 步骤 2：执行测试用例
 
 按 `tester/test-plan.html` 的用例逐一执行，记录结果。
@@ -318,7 +319,8 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「更新者」 写 `spec-tester`
 - 向 AWR 提交会话检查点并登记 open-loop 阻塞项：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --digest "spec-tester: 发现用例失败 [TC-XXX]，已登记 open-loop 并交接" --open-loop "TC-XXX 失败待修复并复验" --next-action "spec-debugger: 定位根因并修复 TC-XXX" --expected-revision <REV>
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent spec-tester --digest "spec-tester: 发现用例失败 [TC-XXX]，已登记 open-loop 并交接" --open-loop "TC-XXX 失败待修复并复验" --next-action "spec-debugger: 定位根因并修复 TC-XXX"
   ```
 - 只修改「问题闭环记录」，不要修改 TeamLead 控制面区块
 ```text
@@ -539,14 +541,22 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 ### 步骤 7：通知 TeamLead 完成
 
-先更新当前 Spec 的 `lead/team-context.md` 共享区：
+先更新当前 Spec 的 `lead/team-context.md` 共享区与 AWR 证据链：
 - 在「任务进度」中追加或更新 spec-tester 的测试执行任务行
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
-- 向 AWR 提交测试完成会话检查点（带上下文 HASH，全绿则无 open-loop）：
+- **沉淀结构化测试证据到工作台账**：在对应工作台账（如 `work-ledger.yaml`）中，为当前 Spec 追加物理测试证据引用（Evidence Locator），禁止无证据报告自封完成：
+  ```yaml
+  evidence:
+    - locator: "spec/versions/<version>/specs/<spec-dir>/tester/test-report.html"
+      summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
+  ```
+  注：AWR 0.5.0 的 `yaml-ledger-v1` 适配器将 `evidence` 映射为源证据定位符（`locator` 与 `summary`）；执行完整机器核验时使用 `awr work prepare-completion --report <REPORT-PATH> --evidence-key <KEY> --source-sha <SHA> <SPEC-ID>`。
+- 向 AWR 提交测试完成会话检查点：
   ```bash
-  awr session checkpoint --session <SESSION-ID> --context-hash <HASH> --digest "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html" --next-action "spec-reviewer: 进行代码与状态一致性审查" --expected-revision <REV>
+  AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
+  bash "$AWR_CP" --work <SPEC-ID> --agent spec-tester --digest "spec-tester: 完成测试执行，测试报告产出在 tester/test-report.html" --next-action "spec-reviewer: 进行代码与状态一致性审查"
   ```
 - 若测试过程中发现的问题已验证修复，在「问题闭环记录」中把对应行状态更新为 `verified`
 - 只修改「任务进度」/「问题闭环记录」，不要修改 TeamLead 控制面区块
