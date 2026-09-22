@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>收尾报告 - 脚手架 CLI 中立化：根目录 AGENTS.md、中立角色补全与消除冗余软链接</title>
+
+<meta name="rk:type"        content="end-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-1000-fix-脚手架CLI中立化与根目录入口解耦">
+<meta name="rk:role"        content="spec-ender">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="7">
+<meta name="rk:git-branch"  content="fix/spec-20260922-cli-neutral-scaffold">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/10">
+<meta name="rk:tags"        content="spec,end-report,fix,cli-neutral,archive">
+
+<link rel="rk-plan"        href="../writer/plan.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+<link rel="rk-summary"     href="../executor/summary.html">
+<link rel="rk-ledger"      href="../lead/team-context.md">
+<link rel="stylesheet"     href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>收尾报告：脚手架 CLI 中立化（根目录 AGENTS.md、中立角色补全与消除冗余软链接）</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> end-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-ender</span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/10">#10</a></span>
+    <span><b>分支</b> <code>fix/spec-20260922-cli-neutral-scaffold</code> ← <code>master</code></span>
+    <span><b>修订</b> r7（2026-09-22）</span>
+    <span><b>创建</b> 2026-09-22</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">收尾结论：已达成原位归档标准</div>
+  <p>本 Spec 顺利闭环「脚手架本地环境强绑定偏置」、「符号链接物理目录防护缺失」与「生产克隆回退失效」全链路问题：重构了 Linux/macOS Bash 与 Windows 原生 PowerShell 初始化脚手架，将业务入口确立于根目录 <code>./AGENTS.md</code>；在业务工程完整沉淀 <code>.agents/roles/</code> 7 大中立角色，并在上游缺少角色时自动无损兜底完整定义；对既有非 Git 的 <code>.agents/skills</code> 目录增加 <code>.bak-时间戳</code> 自动备份防护，并在克隆失败时自动回滚还原既有数据；目标工程完整固化 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code> 彻底消除 RC=127；解除 OMP 冗余的 <code>.omp/skills</code> 软链接，新增 <code>--runtime</code> 运行时参数化按需适配；修复通用建链函数的普通物理文件与目录自动备份防护；全面对齐 <code>spec-init/SKILL.md</code>、<code>README.md</code> 与 <code>CODEMAP.md</code>；TDD 9 个场景 81 项断言全绿通过。遵循原位归档原则完成收尾。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-ender</td><td>完成收尾验收、经验沉淀与原位归档报告编写</td><td>Spec 研发交付完成</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-ender</td><td>修正断言数量（39 项）、更新 rebase 合并状态，并补充 PowerShell 脚本需在 Windows 原生环境验证的开放说明</td><td>保持证据与运行实况严密一致</td></tr>
+    <tr><td>r3</td><td>2026-09-22</td><td>spec-ender</td><td>补充 P0 真实目录防护 (TC-05) 与 P1 参数强校验 (TC-06) 验收断言至 45 项全绿</td><td>闭环边界防回归缺陷</td></tr>
+    <tr><td>r4</td><td>2026-09-22</td><td>spec-ender</td><td>补充生产回退路径角色完整性断言 (TC-07)、固化检查点脚本并补齐各步骤退出码与 SCRIPT_DIR 检查点存在性，测试升级至 67 项全绿</td><td>彻底消除 fail-open 盲区</td></tr>
+    <tr><td>r5</td><td>2026-09-22</td><td>spec-ender</td><td>确立 .agents/roles/ 唯一源消除重复定义，新增 TC-08 骨架覆盖并升级至 73 项断言全绿，写回 PR #10 URL</td><td>按 D-007 闭环角色 DRY 治理与 PR 写回留痕</td></tr>
+    <tr><td>r6</td><td>2026-09-22</td><td>spec-ender</td><td>增加 TC-09 非 Git skills 自动备份防护实测，断言总数升级至 77 项全绿</td><td>闭环 P0-1 预置非 Git 目录销毁缺陷</td></tr>
+    <tr><td>r7</td><td>2026-09-22</td><td>spec-ender</td><td>增加 TC-09.2 克隆失败自动回滚还原实测，断言总数升级至 81 项全绿</td><td>闭环克隆失败现场不退化保障</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 目标达成情况对照</h2>
+<table>
+  <thead><tr><th>计划目标</th><th>验收指标</th><th>达成情况</th><th>状态</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>根目录 AGENTS.md 解耦</td>
+      <td>脚本生成 <code>$TARGET_DIR/AGENTS.md</code>，无 <code>.omp/AGENTS.md</code></td>
+      <td>完全达成，TC-01/TC-02 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+    <tr>
+      <td>中立角色权威源落地</td>
+      <td>目标工程 <code>.agents/roles/</code> 包含 7 个角色定义文件（含 inputs/rules 完整定义，上游缺失时自动无损兜底）</td>
+      <td>完全达成，TC-01/TC-07/TC-08 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+    <tr>
+      <td>检查点脚本固化</td>
+      <td>目标工程自动固化 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code>，彻底消除 RC=127</td>
+      <td>完全达成，TC-01 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+    <tr>
+      <td>OMP 冗余软链接消除</td>
+      <td>OMP 模式下不生成 <code>.omp/skills</code></td>
+      <td>完全达成，TC-02 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+    <tr>
+      <td>参数化运行时适配</td>
+      <td>支持 <code>none/omp/claude/codex</code> 参数按需生成对应配置，支持等号传参与非法拦截</td>
+      <td>完全达成，TC-03/TC-04/TC-06 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+    <tr>
+      <td>物理目录防破坏与自动备份</td>
+      <td>预置普通文件/目录自动 <code>.bak-时间戳</code> 备份，防止静默嵌套软链接与强制覆盖</td>
+      <td>完全达成，TC-05 实测通过</td>
+      <td><span class="rk-tag is-pass">100%</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2. 经验反思与沉淀 (Experience Reflection)</h2>
+<div class="rk-cal key">
+  <div class="t">架构经验：业务项目公共资产与开发者本地环境外挂必须彻底分层</div>
+  <p><b>困境</b>：脚手架脚本若为了方便单一本机环境（如 OMP），把入口生成进私有隐藏目录（<code>.omp/AGENTS.md</code>），会导致业务代码库被单一开发工具绑架，使其他 Agent 和 CI/CD 流水线失效。<br>
+  <b>策略</b>：任何 AI 开发规范必须将「项目公共规约」与「客户端本地外挂」严格物理隔离：根目录 <code>AGENTS.md</code>、<code>.agents/rules/</code>、<code>.agents/roles/</code> 是团队唯一权威资产；而 <code>.omp/</code>、<code>.claude/</code>、<code>.codex/</code> 属于个人开发环境，统一由 <code>.gitignore</code> 隔离。</p>
+</div>
+
+</body>
+</html>

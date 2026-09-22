@@ -305,7 +305,7 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
 4. 已在当前工作树上跑过全量测试并观察输出，绿了之后才出的收尾菜单
 5. 已按模式完成归档确认（`gated` 用户确认 / `autopilot` 新鲜验证 + `rk-verdict`）
-6. 如归档：已移动目录 + 已调用 git-work 提交、推送、创建 PR；合并、改动远程默认分支均留给用户；force push 仅以收尾 amend 形式用于并入 PR URL
+6. 如归档：已完成原位归档（保留原物理目录，禁止移出目录）+ 已调用 git-work 提交、推送、创建 PR；合并、改动远程默认分支均留给用户；force push 仅以收尾 amend 形式用于并入 PR URL
 7. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.html`（含 `rk:pr-url` meta 与 `.rk-meta` 镜像，且留下修订痕迹），并通过 amend + force-with-lease 并入同一次提交（收尾历史只有一次提交）
 8. 如已发生合并：已在合并结果上重跑全量测试并观察输出
 9. 已更新 `lead/team-context.md` 的「任务进度」中自己的收尾任务行

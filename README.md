@@ -15,9 +15,9 @@
 1. **依赖检测**：检测 Git 及 AWR (Agent Work Runtime ≥0.5.0)；
 2. **Git 仓库保障**：若未初始化则自动创建并检出 `dev` 日常集成开发分支；
 3. **规范库拉取**：克隆单版本源至 `.agents/skills/`（已存在则自动增量 `git pull`）；
-4. **免提权软链接/Junction 创建**：将运行时与报告样式自动软链接到 `.omp/skills` 与 `html-report`；在 Windows 环境下自动探测并使用免提权 NTFS Junction；
-5. **企业治理规则固化**：落地 `.agents/rules/`（含 `spec-workflow.md`, `git-workflow.md`, `awr-integration.md` 等 7 份基线规则）；
-6. **标准薄入口生成**：自动识别工程名，生成精简的 `.omp/AGENTS.md`；
+4. **免提权联接创建**：将报告样式自动联接为 `html-report`；在 Windows 环境下自动探测并使用免提权 NTFS Junction；
+5. **企业治理规则与中立角色固化**：落地 `.agents/rules/` 与 `.agents/roles/`（包含 7 个 CLI 中立角色权威定义）；
+6. **标准根入口生成**：在业务项目根目录生成通用的 `AGENTS.md` 薄入口；
 7. **三级架构与经验知识库骨架**：初始化 `spec/versions/` 及 `spec/context/{experience,knowledge}/` 索引；
 8. **AWR 目标与台账**：生成 `GOALS.md`、`work-ledger.yaml` 与 `.awr/project.toml`；
 9. **AWR 状态机初始化**：自动执行 `awr init` 与 `awr source reindex` 挂载本地运行状态，并提供 `scripts/rk-awr-checkpoint.{sh,ps1}` 接管各阶段会话检查点；
@@ -54,8 +54,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File \path\to\skills\scripts\init
 # 1. 拉取 Skills 到 .agents/skills/
 git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents/skills
 
-# 2. 根据你的运行时环境，创建软链接到 .agents/skills/
-ln -s ../.agents/skills .omp/skills      # Oh My Pi
+# 2. 根据你的运行时环境，创建软链接（OMP 原生发现 .agents/skills/，无需软链接）
 ln -s ../.agents/skills .claude/skills   # Claude Code
 ln -s ../.agents/skills .codex/skills    # Codex
 ln -s .agents/skills/html-report html-report # HTML 报告离线样式软链接
@@ -64,8 +63,7 @@ ln -s .agents/skills/html-report html-report # HTML 报告离线样式软链接
 Windows（PowerShell 原生终端）：
 ```powershell
 git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents\skills
-# 推荐使用免提权 NTFS Junction 创建目录联接：
-New-Item -ItemType Junction -Path .omp\skills -Target .agents\skills
+# 推荐使用免提权 NTFS Junction 创建报告目录联接：
 New-Item -ItemType Junction -Path html-report -Target .agents\skills\html-report
 ```
 
@@ -82,35 +80,32 @@ R&K Flow 在设计上支持 **“中立规约权威源 + 专属运行时薄适�
 
 ```
 项目根目录/
+├── AGENTS.md                    # 通用项目入口清单（根目录唯一入口）
 ├── .agents/                    # 中立核心资产（跨运行时通用）
 │   ├── rules/                  # 项目企业治理规约（spec-workflow, git-workflow 等）
+│   ├── roles/                  # 7 个 CLI 中立角色权威定义
 │   └── skills/                 # 本规范库单版本源（git clone）
-├── .omp/                       # Oh My Pi 运行时目录（首选推荐）
-│   ├── AGENTS.md               # 项目薄入口（导入 rules 与 skills）
-│   ├── agents/*.md             # 7 大项目级角色定义（OMP 任务角色 contract）
-│   └── skills -> ../.agents/skills
-├── .claude/                    # Claude Code 运行时目录
+├── .omp/                       # Oh My Pi 运行时目录（按需可选）
+│   └── agents/*.md             # 7 大项目级角色定义（OMP 任务角色 contract）
+├── .claude/                    # Claude Code 运行时目录（按需可选）
 │   ├── agents/*.md             # Claude 子代理定义
 │   └── skills -> ../.agents/skills
-├── .codex/                     # Codex CLI 运行时目录
+├── .codex/                     # Codex CLI 运行时目录（按需可选）
 │   ├── agents/*.toml           # Codex snake_case 角色定义
 │   ├── config.toml             # Codex 代理启用配置
 │   └── skills -> ../.agents/skills
 ├── .cursorrules                # Cursor 规则入口文件
-├── AGENTS.md                   # 通用项目入口清单
 └── spec/                       # 三级架构版本与 Spec 交付空间
 ```
 
 ### 1. Oh My Pi (OMP) 集成教程【首选推荐】
 R&K Flow 优先面向 OMP 研发与端到端压力测试，契合度最高，支持原生的 `task` 批量 Subagent 派生、`hub` 进程与邮箱协同、以及 `edit` 高精度行级锚定编辑。
-
 - **目录结构**：
-  - 入口：`.omp/AGENTS.md`
-  - 软链接：`.omp/skills -> ../.agents/skills`
+  - 入口：根目录 `AGENTS.md`
   - 角色定义：`.omp/agents/<role-id>.md`（如 `spec-explorer.md`、`spec-writer.md` 等 7 个角色）
+  - 技能发现：OMP 原生通过 `enableAgentsProject` 发现 `.agents/skills/`，无需私有软链接
 - **配置与生效**：
-  1. 确保 `.omp/AGENTS.md` 包含规则与技能导入：
-     ```markdown
+  1. 确保根目录 `AGENTS.md` 包含规则与技能导入：
      @import .agents/rules/
      @import .agents/skills/
      ```

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>方案设计 - 脚手架 CLI 中立化：根目录 AGENTS.md、中立角色补全与消除冗余软链接</title>
+
+<meta name="rk:type"        content="plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-1000-fix-脚手架CLI中立化与根目录入口解耦">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260922-cli-neutral-scaffold">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,plan,fix,cli-neutral,agents-md,scaffold,roles">
+
+<link rel="rk-plan"   href="plan.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>方案设计：脚手架 CLI 中立化（根目录 AGENTS.md、中立角色补全与消除冗余软链接）</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>分支</b> <code>fix/spec-20260922-cli-neutral-scaffold</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">设计目标与核心方案</div>
+  <p>彻底消除 <code>scripts/init-ai-workflow.{sh,ps1}</code> 中对本地 OMP 环境的硬编码强绑定偏置。将 <code>AGENTS.md</code> 还原至业务项目根目录，作为跨 Agent 统一公共入口；在目标项目补齐 <code>.agents/roles/</code> 7 大中立角色权威定义；解除 OMP 冗余的 <code>.omp/skills</code> 软链接并支持 <code>--runtime &lt;none|omp|claude|codex&gt;</code> 参数化按需适配；同步对齐 <code>spec-init/SKILL.md</code>、<code>README.md</code> 与 <code>CODEMAP.md</code> 规约文档。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-writer</td><td>制定 CLI 中立化重构方案与测试设计</td><td>按 D-001/D-002 消除脚本与规范库架构脱节问题</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 现状痛点与缺陷根因分析</h2>
+<ol>
+  <li><b>入口锁死在私有目录</b>：当前脚本直接将入口生成至 <code>.omp/AGENTS.md</code>，导致业务项目根目录缺失统一的 <code>./AGENTS.md</code>。团队中若有成员使用 Claude Code、Codex、Cursor，或在 CI/CD 中运行 Headless Agent，均无法读取规范入口。</li>
+  <li><b>中立角色定义权威源丢失</b>：脚本全程没有 <code>mkdir -p .agents/roles</code>，未生成 <code>spec-explorer.md</code> 等 7 个中立角色定义。而 CODEMAP 与 <code>spec-start</code> 明确以 <code>.agents/roles/</code> 作为角色定义的跨 CLI 唯一权威源。</li>
+  <li><b>私有软链接冗余与无脑绑定</b>：脚本无条件创建 <code>.omp/skills</code> 软链接。实际上 OMP 客户端原生即可从 <code>.agents/skills/</code> 发现技能，该链接纯属冗余；且脚本缺少对 Claude Code（需 <code>.claude/skills</code>）与 Codex（需 <code>.codex/skills</code>）的按需支持。</li>
+  <li><b>文档规范与脚本行为不一致</b>：<code>spec-init/SKILL.md</code> 步骤 4.2 未说明 OMP 的原生发现能力，遗留了历史软链接描述，且未对 <code>.gitignore</code> 隔离本地私有运行时给出明确边界。</li>
+</ol>
+
+<h2>2. 详细改造方案</h2>
+
+<h3>2.1 脚手架双端脚本重构 (scripts/init-ai-workflow.{sh,ps1})</h3>
+<ul>
+  <li><b>参数化运行时支持</b>：
+    <ul>
+      <li>新增 <code>--runtime</code> (Bash) / <code>-Runtime</code> (PowerShell) 参数，可选值：<code>none</code> (默认)、<code>omp</code>、<code>claude</code>、<code>codex</code>。</li>
+      <li>默认 <code>none</code> 时保持纯中立：只装配业务规范公共资产，不创建任何私有隐藏目录。</li>
+    </ul>
+  </li>
+  <li><b>根目录 AGENTS.md 落地</b>：
+    <ul>
+      <li>彻底废除 <code>.omp/AGENTS.md</code> 生成逻辑。</li>
+      <li>文件直接写入目标根目录 <code>$TARGET_DIR/AGENTS.md</code>，显式引入 <code>@import .agents/rules/</code> 与 <code>@import .agents/skills/</code>，声明三级架构与角色目录路由。</li>
+    </ul>
+  </li>
+  <li><b>落地 .agents/roles/ 中立角色定义</b>：
+    <ul>
+      <li>创建 <code>.agents/roles/</code> 目录。</li>
+      <li>从 <code>.agents/skills/.agents/roles/</code>（若规范库已自带）或预置规范中无损复制 7 个角色定义：<code>spec-explorer.md</code>、<code>spec-writer.md</code>、<code>spec-tester.md</code>、<code>spec-executor.md</code>、<code>spec-debugger.md</code>、<code>spec-reviewer.md</code>、<code>spec-ender.md</code>。</li>
+    </ul>
+  </li>
+  <li><b>差异化按需适配矩阵</b>：
+    <ul>
+      <li><code>--runtime omp</code>：创建 <code>.omp/agents/</code>，生成 7 个薄适配 Markdown（首行读取中立 roles），<b>绝不创建</b> <code>.omp/skills</code> 软链接。</li>
+      <li><code>--runtime claude</code>：创建 <code>.claude/agents/</code> 并建立 <code>.claude/skills -&gt; ../.agents/skills</code> 软链接。</li>
+      <li><code>--runtime codex</code>：创建 <code>.codex/agents/</code>、<code>.codex/config.toml</code> 并建立 <code>.codex/skills -&gt; ../.agents/skills</code> 软链接。</li>
+    </ul>
+  </li>
+  <li><b>.gitignore 收敛与隔离</b>：
+    追加 <code>.omp/</code>、<code>.claude/</code>、<code>.codex/</code> 至忽略规则，确保个人客户端外挂不污染团队业务 Git 仓库。
+  </li>
+</ul>
+
+<h3>2.2 规范与指引文档同步</h3>
+<ul>
+  <li><code>spec-init/SKILL.md</code>：
+    <ul>
+      <li>步骤 3：明确 <code>AGENTS.md</code> 位于项目根目录，是唯一中立入口。</li>
+      <li>步骤 4.2：澄清 OMP 原生发现 <code>.agents/skills/</code>，无需建立 <code>.omp/skills</code> 软链接；保留 Claude/Codex 的按需软链接说明。</li>
+      <li>步骤 4.3：强调 <code>.agents/roles/</code> 为团队权威源，运行时适配为开发者本地私有外挂。</li>
+    </ul>
+  </li>
+  <li><code>README.md</code> 与 <code>CODEMAP.md</code>：
+    更新初始化产物拓扑图与各 Coding Agent 集成说明，修正目录层次。
+  </li>
+</ul>
+
+<h2>3. 关键决策与边界 (Key Decisions)</h2>
+<div class="rk-cal key">
+  <div class="t">架构决策：业务公共资产与客户端本地适配严格物理隔离</div>
+  <p><b>结论</b>：业务代码库仅持有 <code>AGENTS.md</code>、<code>.agents/rules/</code>、<code>.agents/roles/</code>、<code>spec/</code> 与 <code>html-report/</code>。所有 <code>.&lt;runtime&gt;/</code> 目录均被视为开发者本地环境外挂，默认忽略，彻底保障项目跨平台、跨 IDE、跨 Agent 的通用性与整洁性。</p>
+</div>
+
+</body>
+</html>

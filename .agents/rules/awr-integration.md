@@ -52,7 +52,7 @@ AWR（Agent Work Runtime）是 R&K Flow 的底层运行状态机与上下文编�
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 5. 完工释放租约 (Session End & Release Claim)               │
-│    awr session end --session <FINAL_ID> --outcome ended     │
+│    awr session end --session <FINAL_ID> --outcome ended --expected-revision <REV> │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -112,7 +112,7 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
   $AwrCp = if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") { ".agents\skills\scripts\rk-awr-checkpoint.ps1" } else { "scripts\rk-awr-checkpoint.ps1" }
   powershell -ExecutionPolicy Bypass -File $AwrCp -Work <SPEC-ID> -Agent spec-ender -Digest "原位归档完成" -NextAction "全部完结" -End
   ```
-- **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；脚本收尾时调用 `awr session end --work <WORK> --outcome ended` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
+- **核心原理**：修改 `work-ledger.yaml` 为 `completed` 仅是源声明；脚本收尾时调用 `awr session end --session <SESSION_ID> --outcome ended --expected-revision <REV>` 才会解除数据库租约，彻底杜绝 `awr doctor` 报 `orphan_session` 孤儿会话。
 ---
 
 ## 四、配置与数据安全

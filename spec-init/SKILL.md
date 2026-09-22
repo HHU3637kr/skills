@@ -223,14 +223,13 @@ mkdir -p ".agents/rules"
 git clone --depth=1 https://github.com/HHU3637kr/skills.git .agents/skills
 ```
 
-再把当前 `<runtime>` 的 skills 目录软链接过去，三套运行时共享同一份副本（只建 `<runtime>` 对应的那一个）：
+OMP 原生支持直接从 `.agents/skills/` 发现技能（受 `enableAgentsProject` 门控），无需创建 `.omp/skills` 软链接。
+仅当 `runtime == claude` 或 `runtime == codex` 时，才创建对应私有运行时的 skills 软链接：
 
 ```bash
-ln -s ../.agents/skills .omp/skills      # runtime == omp
 ln -s ../.agents/skills .claude/skills   # runtime == claude
 ln -s ../.agents/skills .codex/skills    # runtime == codex
 ```
-
 Windows PowerShell（需管理员或开发者模式）：
 
 ```powershell
@@ -242,8 +241,7 @@ New-Item -ItemType SymbolicLink -Path .claude\skills -Target ..\.agents\skills
 如果 `.agents/skills/` 已存在，不要覆盖：先确认是否已是本仓库的 clone，是则提示用户 `git pull` 更新，否则说明差异并等待用户决定。软链接目标已存在时同样先检查再处理。
 
 #### 4.3 创建项目级角色定义与运行时 Agent 适配
-
-**角色定义属于 spec-init**：`spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。7 个角色的唯一源定义见 [references/project-agent-roles.md](references/project-agent-roles.md)。
+**角色定义属于 spec-init**：`spec-start` 只负责加载和唤起角色实例，不再内联维护 7 个角色的 prompt 模板。规范库中立角色权威源定义为 `.agents/roles/`（详细设计规范见 [references/project-agent-roles.md](references/project-agent-roles.md)）。
 
 创建中立角色定义目录（始终创建），以及 **仅当前运行环境** 的适配目录：
 
@@ -257,7 +255,7 @@ mkdir -p ".agents/roles"
 # <runtime> == codex  → mkdir -p ".codex/agents"
 ```
 
-按 [references/project-agent-roles.md](references/project-agent-roles.md) 创建 7 个中立角色定义：
+按规范在 `.agents/roles/` 固化 7 个中立角色权威定义（或由脚手架直接从规范库复制）：
 
 ```text
 .agents/roles/spec-explorer.md
