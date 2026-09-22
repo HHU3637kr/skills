@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>收尾报告 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:type"        content="end-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"        content="spec-ender">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:title"       content="AWR完工核验契约与证据链规范修复-收尾报告">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="4">
+<meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/11">
+<meta name="rk:tags"        content="spec,end-report,awr">
+<link rel="rk-exploration" href="../explorer/exploration-report.html">
+<link rel="rk-plan"        href="../writer/plan.html">
+<link rel="rk-summary"     href="../executor/summary.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+<link rel="rk-review"      href="../reviewer/review.html">
+<link rel="rk-ledger"      href="../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>收尾报告：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> end-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-ender</span>
+    <span><b>模式</b> gated</span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/11">#11</a></span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r4（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">收尾结论</div>
+  <p data-rev="r4">Spec 已圆满闭环：成功消除了 AWR 完工核验契约断裂缺陷，确立了官方三字段 work complete 协议与 completion.report.v1 双轨制；根治 P0-1 首发开工状态机断裂（检查点脚本内置 ready→in_progress 自动推进），按实测将终态释放契约改写为状态相关表述，并在真实脚手架默认路径沙箱完成全链路实测与 v2.11 联合回归；零破坏性回归，达成原位归档标准。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-ender</td><td>初版收尾归档报告</td><td>—</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-ender</td><td>写回官方主仓 PR #11 链接</td><td>结项归档写回</td></tr>
+    <tr><td>r3</td><td>2026-09-22</td><td>spec-ender</td><td>闭环复审发现：消除终检点脚本死锁、补齐 work progress 状态迁移与证据字段过滤，并在沙箱完成正例全链路实测</td><td>用户审查意见闭环</td></tr>
+    <tr><td>r4</td><td>2026-09-22</td><td>spec-ender</td><td>补齐 P0-1 根因修复（rk-awr-checkpoint.{sh,ps1}）变更清单；按 Case D 实测将 awr-integration.md 与 spec-end/SKILL.md 终态释放契约改写为状态相关表述（同角色持会时脚本 --end 实测 rc=0，跨角色接力报 InvalidTransition、无会新建报 DependencyBlocked）；登记 TC-E2E-07 真实脚手架默认路径全链路实测</td><td>用户审查意见闭环</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 交付成果总览</h2>
+<div class="rk-kpis" data-rev="r4">
+  <div class="rk-kpi is-pass"><div class="v">7</div><div class="k">修复文件（5 规范文档 + 2 执行脚本）</div></div>
+  <div class="rk-kpi is-pass"><div class="v">6/6</div><div class="k">静态硬断言通过</div></div>
+  <div class="rk-kpi is-pass"><div class="v">81/81</div><div class="k">既有全量用例重测通过</div></div>
+  <div class="rk-kpi is-pass"><div class="v">rc=0</div><div class="k">TC-E2E-07 真实脚手架 / Case D 释放</div></div>
+  <div class="rk-kpi is-pass"><div class="v">0</div><div class="k">AWR 结构缺口与异常</div></div>
+</div>
+
+<h2>2. 变更文件清单</h2>
+<ul>
+  <li><code>spec-test/SKILL.md</code>：修正 prepare-completion 契约与 completion.report.v1 双轨制，补充 evidence add 字段过滤与严禁测试阶段执行 complete 的纪律</li>
+  <li data-rev="r4"><code>.agents/rules/awr-integration.md</code>：补齐 4.5 节官方三字段 work complete 完工核验协议与第 1 节 awr work progress 推进开工规范；按 Case D 实测解除跨角色接力（`InvalidTransition: resume requires known nonterminal work`）与无会话新建（`DependencyBlocked: source status is completed`）的边界表述，确立同角色持会时可脚本释放的契约，并注明脚本已内置 ready→in_progress 自动推进</li>
+  <li data-rev="r4"><code>scripts/rk-awr-checkpoint.sh</code> 与 <code>scripts/rk-awr-checkpoint.ps1</code>：P0-1 根因修复——开工时双键检测工作项 `raw_status`/`status`，若为 `ready` 则先现读 REV 并经 `awr work progress` 推进至 `in_progress`（两键均缺失即 fail-closed 退出），消灭首发开工后仍停留 ready 导致 `work complete` 报 `cannot Complete work with source state Ready` 的状态机断裂</li>
+  <li data-rev="r4"><code>spec-end/SKILL.md</code>：确立先 work complete 机器核验后释放租约的闭环指引；按实测解除终态任务调用脚本 --end 的绝对化禁令，改为状态相关契约（同角色持会时脚本 --end 实测 rc=0 可释放；跨角色接力报 InvalidTransition、无会话新建报 DependencyBlocked），并保留完工失败时同角色脚本 / 直接 session end 的兜底释放路径</li>
+  <li><code>spec-execute/references/tdd-discipline.md</code>：完善为「RED：四个确认」，强化最小空桩与杜绝全 SKIP 假红纪律</li>
+  <li><code>spec/versions/v2.11/plan.html</code>：版本大盘递增 r3 并同步登记本 Spec</li>
+</ul>
+
+<h2>3. 经验沉淀与规范维护</h2>
+<div class="rk-cal ok"><div class="t">规范与规则维护确认</div><p>已在当前 Spec 中将官方真实的 AWR 完工契约固化至企业规范 <code>.agents/rules/awr-integration.md</code>，已获得用户明确授权，无需额外增补规则文件。</p></div>
+
+<h2>4. 归档与后续集成</h2>
+<ul>
+  <li>原位归档：当前 Spec 完整保留在 <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/</code>；</li>
+  <li>本工作分支 <code>fix/spec-20260922-awr-completion-hardening</code> 代码自洽闭环，准备向主干提交 PR/MR。</li>
+</ul>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration">探索报告</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a></li>
+  <li><a href="../reviewer/review.html" data-rk-link="review">审查报告</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../../plan.html" data-rk-backlink="version-plan">版本规划</a></li>
+</ul>
+
+</body>
+</html>

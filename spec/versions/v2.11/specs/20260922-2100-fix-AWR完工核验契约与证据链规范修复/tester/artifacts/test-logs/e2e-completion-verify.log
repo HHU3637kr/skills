@@ -1,0 +1,40 @@
+Initialized verify-fixed using /tmp/awr-fixed-verify-run/.awr/project.toml
+Operation ok: true; projection complete: true
+Indexed: 2; unchanged: 0; pending: 0; retired: 0; project revision: 6
+indexed fresh file:///tmp/awr-fixed-verify-run/GOALS.md
+indexed fresh file:///tmp/awr-fixed-verify-run/work-ledger.yaml
+Project organization: Ready
+Business execution ready: true
+Next: Select an executable_work item, inspect its work context and claim ownership before execution. Findings on other items remain open.
+Reuse authoritative material. A small project needs one source-declared goal and work items with id, title, status, goal, acceptance and next_action. Goals and work_items may share one YAML ledger. Add plans/milestones only when needed; do not create separate plan/rule files just to satisfy intake.
+AWR checks declared structure, references and evidence bindings. The Coding Agent must compare user intent, README, implementation and development history, record its reasoning and sources, and keep uncertain goals as draft/candidate/needs_confirmation. Ask the user only for intent that cannot be established. An active/confirmed goal is a source assertion, not proof that AWR understood or approved the business intent.
+
+Operation ok: true; projection complete: true
+Indexed: 0; unchanged: 2; pending: 0; retired: 0; project revision: 6
+unchanged fresh file:///tmp/awr-fixed-verify-run/GOALS.md
+unchanged fresh file:///tmp/awr-fixed-verify-run/work-ledger.yaml
+=== 1. 首发认领与 work progress 推进开工 (消灭 P0-2) ===
+explorer claimed: session=01M34N90N4CFN8Q6A0YAVGG13J, rev=7
+progress_rc=0
+台账状态确认:     status: in_progress
+=== 2. 角色交接接力到 spec-ender (合法接力非终态工作项) ===
+✅ AWR 会话检查点保存成功: 01M34N91C10CZ6Z7CR47NSC1TZ (Session: 01M34N913WTPDB24CHXPA1TDMF, Rev: 15)
+ender active session: 01M34N913WTPDB24CHXPA1TDMF, rev=17
+=== 3. 生成报告并执行 prepare-completion ===
+prepare_rc=0
+prepare stage: report_validated ok: True
+=== 4. 剔除 branch/work 字段注册 evidence add (消灭 P2) ===
+add_rc=0
+=== 5. 由 spec-ender 在同一会话执行 work complete ===
+complete_rc=0
+=== 6. 现查 CAS 版本号并直接调用 session end 释放租约 (消灭 P0-1) ===
+latest project_revision after complete is: 25
+end_rc=0
+=== 7. 执行 awr doctor 终审 ===
+Database intact: true
+Project revision: 26
+Sources checked: 2
+Artifacts checked: 0
+Findings: 0
+No repair was applied. Select one named repair with --expected-revision and --reason when appropriate.
+=== 全部回归成功完成 ===

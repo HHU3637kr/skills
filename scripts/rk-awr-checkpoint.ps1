@@ -66,9 +66,15 @@ if (-not $rev) {
 
 # 2. 获取当前工作项内部 ID 并查找匹配的活动会话（传 --limit 100 防分页截断）
 $workShowJson = awr work show $Work --json 2>$null
+$workObj = $null
 $workUlid = $null
 if ($workShowJson) {
-    try { $workUlid = (($workShowJson -join "`n") | ConvertFrom-Json).work.id } catch { }
+    try {
+        $workObj = ($workShowJson -join "`n") | ConvertFrom-Json
+        if ($workObj -and $workObj.work -and $workObj.work.id) {
+            $workUlid = $workObj.work.id
+        }
+    } catch { }
 }
 
 if (-not $workUlid) {
@@ -146,6 +152,43 @@ if (-not $sessionId) {
     if ($startErr) { Write-Host "AWR 错误: $startErr" -ForegroundColor Yellow }
     exit 1
 }
+
+# 4.1 检查工作项状态：若为 ready，自动通过 awr work progress 推进至 in_progress (消灭 P0-1 状态机断裂)
+# 执行前先刷新一次 rev 防止并发或 resume 抬高版本冲突
+$freshStatusJson = awr status --json 2>$null
+if ($freshStatusJson) {
+    try {
+        $freshStatusObj = ($freshStatusJson -join "`n") | ConvertFrom-Json
+        if ($freshStatusObj.project_revision) { $rev = $freshStatusObj.project_revision }
+    } catch { }
+}
+
+$workRawStatus = $null
+$workStatus = $null
+if ($workObj -and $workObj.work) {
+    $workRawStatus = $workObj.work.raw_status
+    $workStatus = $workObj.work.status
+}
+
+if (-not $workRawStatus -and -not $workStatus) {
+    Write-Host "❌ 错误: 无法解析工作项 [$Work] 的当前状态 (raw_status 与 status 均为空)，拒绝盲目执行！" -ForegroundColor Red
+    exit 1
+}
+
+if ($workRawStatus -eq "ready" -or $workStatus -eq "ready") {
+    $progressErrFile = [System.IO.Path]::GetTempFileName()
+    $nextActionVal = if ($NextAction) { $NextAction } else { "推进下一步工作" }
+    $progressOut = & awr work progress $Work --summary "开工推进：状态转入进行中" --next-action $nextActionVal --session $sessionId --reason "开工自动推进状态" --expected-revision $rev --json 2>$progressErrFile
+    $progressErr = if (Test-Path $progressErrFile) { Get-Content $progressErrFile -Raw -ErrorAction SilentlyContinue } else { "" }
+    Remove-Item -Force $progressErrFile -ErrorAction SilentlyContinue
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ 错误: 自动推进工作项 [$Work] 状态 (ready -> in_progress) 失败！" -ForegroundColor Red
+        if ($progressErr) { Write-Host "AWR 错误: $progressErr" -ForegroundColor Yellow }
+        exit 1
+    }
+}
+
+# progress 推进后台账重写且 project_revision 递增，必须再次现读最新版本号
 
 # 5. 二次刷新 project_revision 防止并发冲突
 $latestJson = awr status --json 2>$null

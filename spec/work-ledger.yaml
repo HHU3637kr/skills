@@ -68,3 +68,19 @@ work_items:
       - locator: "scripts/rk-awr-checkpoint.sh"
         summary: "沙箱端到端实测验证通过：新项目开箱 0 结构缺口，5 角色链式接力与会话复用（开工+完工共10次调用）全部 RC: 0，最终通过 --end 释放租约且 awr doctor 0 findings"
     next_action: 代码变更已自洽闭环，创建分支并提交 PR
+  - id: SKILL-AWR-005
+    title: 修复 AWR 0.5.0 完工核验与证据链契约断裂缺陷
+    status: completed
+    goal: rk-flow-core
+    acceptance:
+      - 修正 spec-test/SKILL.md 中 prepare-completion 的 --report 必须为 completion.report.v1 JSON，消除传 HTML 报 InvalidInput
+      - 在 .agents/rules/awr-integration.md 补齐 work complete 官方三字段契约与 40 位完整 SHA 约束，并在第 1 节补齐 awr work progress 推进开工规范
+      - 在 spec-end/SKILL.md 确立先 work complete 后直接 session end 释放租约的闭环指引，消除终态任务调用脚本 --end 的死锁与孤儿会话
+      - 在 spec-execute/references/tdd-discipline.md 强化 RED 阶段必须执行真实断言而非走 SKIP 分支
+      - 在 /tmp 隔离沙箱完成端到端回归验证，证明 ready -> work progress -> complete -> direct session end 全流程均为 RC=0 且 awr doctor 0 findings
+    evidence:
+      - locator: "spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/tester/test-report.html"
+        summary: "静态断言 6/6 全绿，沙箱正例全流程（ready->progress->prepare-completion->complete->direct end）实测全 RC=0 且 0 findings，v2.11 既有用例 81/81 PASS"
+      - locator: "spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/tester/artifacts/test-logs/e2e-scaffold-default-path.log"
+        summary: "TC-E2E-07 真实脚手架默认路径实测：init-ai-workflow.sh 开箱后 rk-awr-checkpoint.sh 首发开工自动推进 ready->in_progress（P0-1 根因修复生效），接力 prepare-completion->evidence add->work complete 全 RC=0，Case D 同角色脚本 --end 释放租约实测 rc=0，awr doctor 终态 0 findings"
+    next_action: 代码变更自洽闭环，原位归档完成，更新至官方主仓 PR #11

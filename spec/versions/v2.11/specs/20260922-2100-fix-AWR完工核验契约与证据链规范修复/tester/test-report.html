@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:title"       content="测试报告">
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:status"      content="未确认">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-report,awr">
+<link rel="rk-plan"      href="../writer/plan.html">
+<link rel="rk-test-plan" href="test-plan.html">
+<link rel="rk-ledger"    href="../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>测试报告：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r2（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论</div>
+  <p>全部测试项全绿通过：静态契约断言由 RED（4 项失败）完全转为 GREEN（6/6 PASS）；沙箱端到端实测 AWR 完工核验全链路退出码均为 0，终态 0 findings；v2.11 联合重测 81/81 PASS，判定测试通过。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-tester</td><td>初版测试报告：静态断言、沙箱实测与联合回归全部闭环</td><td>—</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-tester</td><td>追加真实脚手架默认路径实测 (TC-E2E-07) 与 Case D 脚本释放验证</td><td>复审证据链补齐</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试概况</h2>
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="v">6/6</div><div class="k">静态契约通过</div></div>
+  <div class="rk-kpi is-pass"><div class="v">5/5</div><div class="k">AWR 动态场景通过</div></div>
+  <div class="rk-kpi is-pass"><div class="v">81/81</div><div class="k">v2.11 联合重测通过</div></div>
+  <div class="rk-kpi"><div class="v">0</div><div class="k">遗留缺陷 / 阻塞</div></div>
+</div>
+
+<h2>2. 详细测试结果</h2>
+
+<h3>2.1 静态契约硬断言（TDD RED → GREEN）</h3>
+<table>
+  <thead><tr><th>用例编号</th><th>描述</th><th>修复前状态</th><th>修复后状态</th><th>证据位置</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TC-STATIC-01</td>
+      <td>spec-test 包含 completion.report.v1 描述</td>
+      <td>通过</td>
+      <td>通过</td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-02</td>
+      <td>awr-integration.md 包含 work complete 协议</td>
+      <td><del class="rk-del">失败</del></td>
+      <td><ins class="rk-ins">通过</ins></td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-03</td>
+      <td>awr-integration.md 40 位 SHA 约束告诫</td>
+      <td><del class="rk-del">失败</del></td>
+      <td><ins class="rk-ins">通过</ins></td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-04</td>
+      <td>tdd-discipline.md 空桩与杜绝全 SKIP 假红</td>
+      <td><del class="rk-del">失败</del></td>
+      <td><ins class="rk-ins">通过</ins></td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-05</td>
+      <td>spec-end.md 包含 work complete 完工引导</td>
+      <td>通过</td>
+      <td>通过</td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-06</td>
+      <td>v2.11/plan.html 包含本 fix Spec 规划</td>
+      <td><del class="rk-del">失败</del></td>
+      <td><ins class="rk-ins">通过</ins></td>
+      <td><code>executor/artifacts/green-static.log</code></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.2 AWR 0.5.0 动态生命周期闭环实测</h3>
+<table>
+  <thead><tr><th>场景</th><th>命令</th><th>退出码</th><th>核心事实</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>prepare-completion</td>
+      <td><code>awr work prepare-completion --report ...</code></td>
+      <td>0</td>
+      <td>返回 stage: report_validated，acceptance 完整映射</td>
+    </tr>
+    <tr>
+      <td>evidence add</td>
+      <td><code>awr evidence add --input ...</code></td>
+      <td>0</td>
+      <td>证据元数据成功上链，revision 正常递增</td>
+    </tr>
+    <tr>
+      <td>work complete</td>
+      <td><code>awr work complete --session ... --input ...</code></td>
+      <td>0</td>
+      <td>触发 work.completed 事件，自动向台账注入 verification 块</td>
+    </tr>
+    <tr>
+      <td>session end</td>
+      <td><code>awr session end --outcome ended ...</code></td>
+      <td>0</td>
+      <td>成功解除独占租约并关闭会话</td>
+    </tr>
+    <tr>
+      <td>doctor 终审</td>
+      <td><code>awr doctor</code></td>
+      <td>0</td>
+      <td>Database intact: true, Findings: 0 (无任何孤儿会话或缺口)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.3 v2.11 既有 Spec 联合重测 (TC-E2E-06)</h3>
+<p>在当前分支基线上联合运行 <code>reproduce-red.sh</code>（覆盖场景 1~9 全平台脚手架、NTFS Junction、安全备份、纯中立模式与浅克隆）：</p>
+<p><b>执行结果</b>：<code>PASS=81, FAIL=0, RC=0</code>（详见 <code>tester/artifacts/test-logs/tc-e2e-06-combined.log</code>）。</p>
+
+<h3 data-rev="r2">2.4 真实脚手架默认路径与 Case D 脚本释放实测 (TC-E2E-07)</h3>
+<p data-rev="r2">使用 <code>scripts/init-ai-workflow.sh</code> 建立全新工程并追加 <code>ready</code> 业务任务，验证修复后的 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code> 默认开工推进与完工后释放：</p>
+<ul data-rev="r2">
+  <li><b>首发开工自动推进</b>：首发角色通过脚本开工后，工作项由 <code>status: ready</code> 自动推进为 <code>in_progress</code>（消灭 P0-1）；</li>
+  <li><b>全链路执行</b>：<code>prepare-completion</code> 校验（RC=0）→ <code>evidence add</code> 注册（RC=0）→ <code>work complete</code> 完工（RC=0）；</li>
+  <li><b>Case D 同角色脚本释放</b>：完工后，同一 <code>spec-ender</code> 角色运行 <code>rk-awr-checkpoint.sh --end</code>，实测退出码为 0，成功释放租约；</li>
+  <li><b>终态审计</b>：<code>awr doctor</code> 返回 <b>Findings: 0</b>（详见 <code>tester/artifacts/test-logs/e2e-scaffold-default-path.log</code>）。</li>
+</ul>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a>（待创建）</li>
+</ul>
+
+</body>
+</html>

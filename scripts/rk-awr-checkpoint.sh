@@ -138,6 +138,12 @@ except Exception:
       fi
       printf "%s" "$val"
       ;;
+    "work.status"|work_status)
+      printf "%s" "$input" | grep -o '"status":[[:space:]]*"[^"]*"' | head -n 1 | awk -F'"' '{print $(NF-1)}' || true
+      ;;
+    "work.raw_status"|work_raw_status|raw_status)
+      printf "%s" "$input" | grep -o '"raw_status":[[:space:]]*"[^"]*"' | head -n 1 | awk -F'"' '{print $(NF-1)}' || true
+      ;;
     id)
       printf "%s" "$input" | grep -o '"id":[[:space:]]*"01[0-9A-Z]*"' | head -n 1 | awk -F'"' '{print $(NF-1)}' || true
       ;;
@@ -298,6 +304,49 @@ if [ -z "$SESSION_ID" ]; then
 fi
 [ -n "$RESUME_ERR_FILE" ] && rm -f "$RESUME_ERR_FILE"
 [ -n "$START_ERR_FILE" ] && rm -f "$START_ERR_FILE"
+
+# 4. 检查工作项状态：若为 ready，自动通过 awr work progress 推进至 in_progress (消灭 P0-1 状态机断裂)
+# 执行前先现读刷新一次 REV，防止 resume 抬高了版本引发 RevisionConflict
+FRESH_STATUS=$(awr status --json 2>/dev/null || echo "{}")
+FRESH_REV=$(printf "%s" "$FRESH_STATUS" | extract_json_field "project_revision")
+[ -n "$FRESH_REV" ] && REV="$FRESH_REV"
+
+WORK_RAW_STATUS=$(printf "%s" "$WORK_SHOW" | extract_json_field "raw_status")
+WORK_STATUS=$(printf "%s" "$WORK_SHOW" | extract_json_field "status")
+if [ -z "$WORK_RAW_STATUS" ] || [ -z "$WORK_STATUS" ]; then
+  if command -v python3 >/dev/null 2>&1; then
+    WORK_STATUS_JSON=$(printf "%s" "$WORK_SHOW" | python3 -c 'import sys, json
+try:
+    w = json.load(sys.stdin).get("work", {})
+    print(f"{w.get(\"raw_status\", \"\")}|{w.get(\"status\", \"\")}")
+except Exception:
+    pass' 2>/dev/null || true)
+    [ -z "$WORK_RAW_STATUS" ] && WORK_RAW_STATUS="${WORK_STATUS_JSON%%|*}"
+    [ -z "$WORK_STATUS" ] && WORK_STATUS="${WORK_STATUS_JSON##*|}"
+  elif command -v jq >/dev/null 2>&1; then
+    [ -z "$WORK_RAW_STATUS" ] && WORK_RAW_STATUS=$(printf "%s" "$WORK_SHOW" | jq -r '.work.raw_status // empty' 2>/dev/null || true)
+    [ -z "$WORK_STATUS" ] && WORK_STATUS=$(printf "%s" "$WORK_SHOW" | jq -r '.work.status // empty' 2>/dev/null || true)
+  fi
+fi
+
+if [ -z "$WORK_RAW_STATUS" ] && [ -z "$WORK_STATUS" ]; then
+  echo "❌ 错误: 无法解析工作项 [$WORK] 的当前状态 (raw_status 与 status 均为空)，拒绝盲目执行！" >&2
+  exit 1
+fi
+
+if [ "$WORK_RAW_STATUS" = "ready" ] || [ "$WORK_STATUS" = "ready" ]; then
+  PROGRESS_ERR_FILE=$(mktemp 2>/dev/null || echo "/tmp/awr-progress-err-$$-${RANDOM:-0}")
+  NEXT_ACTION_VAL="${NEXT_ACTION:-推进下一步工作}"
+  if ! awr work progress "$WORK" --summary "开工推进：状态转入进行中" --next-action "$NEXT_ACTION_VAL" --session "$SESSION_ID" --reason "开工自动推进状态" --expected-revision "$REV" --json >/dev/null 2>"$PROGRESS_ERR_FILE"; then
+    echo "❌ 错误: 自动推进工作项 [$WORK] 状态 (ready -> in_progress) 失败！" >&2
+    [ -s "$PROGRESS_ERR_FILE" ] && cat "$PROGRESS_ERR_FILE" >&2
+    rm -f "$PROGRESS_ERR_FILE"
+    exit 1
+  fi
+  rm -f "$PROGRESS_ERR_FILE"
+fi
+
+# progress 推进后台账重写且 project_revision 递增，必须再次现读最新版本号
 LATEST_STATUS=$(awr status --json 2>/dev/null || echo "{}")
 LATEST_REV=$(printf "%s" "$LATEST_STATUS" | extract_json_field "project_revision")
 [ -n "$LATEST_REV" ] && REV="$LATEST_REV"

@@ -1,0 +1,125 @@
+=== 1. 使用 init-ai-workflow.sh 初始化全新沙箱工程 ===
+=================================================================
+ 🚀 初始化企业 AI Coding 规范体系 (CLI 中立架构)
+ 目标目录: /tmp/test-scaffold-verify-p0-final
+ 项目名称: test-scaffold-verify-p0-final
+ Skills源: /home/WorkSpace/skills
+ 运行时:   omp
+=================================================================
+📦 正在初始化 Git 仓库 (默认分支: dev)...
+Initialized empty Git repository in /tmp/test-scaffold-verify-p0-final/.git/
+📥 正在配置 Skills 依赖库 (.agents/skills)...
+Cloning into '.agents/skills'...
+warning: --depth is ignored in local clones; use file:// instead.
+done.
+🔗 正在创建 HTML 报告样式资产联接...
+📜 正在固化企业治理规则 (.agents/rules/)...
+🎭 正在固化 CLI 中立角色权威定义 (.agents/roles/)...
+📝 正在生成标准薄入口 (AGENTS.md)...
+⚙️ 正在装配 OMP 运行时专属适配 (.omp/agents/)...
+🏗️ 正在构建三级架构与经验库骨架 (spec/)...
+⚙️ 正在初始化 AWR 运行时状态机...
+Initialized test-scaffold-verify-p0-final using /tmp/test-scaffold-verify-p0-final/.awr/project.toml
+Operation ok: true; projection complete: true
+Indexed: 3; unchanged: 0; pending: 0; retired: 0; project revision: 9
+indexed fresh file:///tmp/test-scaffold-verify-p0-final/GOALS.md
+indexed fresh file:///tmp/test-scaffold-verify-p0-final/work-ledger.yaml
+indexed fresh file:///tmp/test-scaffold-verify-p0-final/.agents/rules/spec-workflow.md
+Project organization: NeedsOrganization
+Business execution ready: false
+Next: Follow actions in order; organize known facts and keep uncertain intent explicit. Recheck with awr intake inspect after editing the authoritative sources.
+- intake_work_only [INTAKE-001]: This task organizes the project. Complete the organization and create concrete delivery work; an intake task is not business execution readiness.
+  Source: file:///tmp/test-scaffold-verify-p0-final/work-ledger.yaml/work_items/0 @r1
+- business_work_missing [project]: Only intake work is present. Organizing a baseline does not establish the business delivery scope; add the actual delivery work before claiming project completion.
+1. Compare README, existing code, development history and the goal. Turn the next concrete delivery into work items; link each task using goal/goals, add acceptance and next_action, and preserve known progress with evidence. A generic intake task is organization work; replace/split proposals into concrete business tasks before execution.
+   Done when: At least one non-intake task has a resolved goal, nonempty acceptance and a concrete next action. Add plans/milestones only for actual coordination needs.
+2. Run awr intake inspect --json after source edits. Follow remaining actions until the intended work appears in executable_work; review its context before claiming it. Do not treat draft generation as completion.
+   Done when: The fresh diagnosis resolves the selected work's structural gaps. Semantic uncertainties are resolved or explicitly deferred to unaffected work.
+Reuse authoritative material. A small project needs one source-declared goal and work items with id, title, status, goal, acceptance and next_action. Goals and work_items may share one YAML ledger. Add plans/milestones only when needed; do not create separate plan/rule files just to satisfy intake.
+AWR checks declared structure, references and evidence bindings. The Coding Agent must compare user intent, README, implementation and development history, record its reasoning and sources, and keep uncertain goals as draft/candidate/needs_confirmation. Ask the user only for intent that cannot be established. An active/confirmed goal is a source assertion, not proof that AWR understood or approved the business intent.
+
+Operation ok: true; projection complete: true
+Indexed: 0; unchanged: 3; pending: 0; retired: 0; project revision: 9
+unchanged fresh file:///tmp/test-scaffold-verify-p0-final/GOALS.md
+unchanged fresh file:///tmp/test-scaffold-verify-p0-final/work-ledger.yaml
+unchanged fresh file:///tmp/test-scaffold-verify-p0-final/.agents/rules/spec-workflow.md
+🛡️ 正在更新 .gitignore 过滤规则...
+=================================================================
+ 🎉 AI Coding 工作流初始化成功！(CLI 中立架构)
+ 已就绪组件:
+  - 通用薄入口:     AGENTS.md
+  - 企业治理规范:   .agents/rules/
+  - 中立角色权威源: .agents/roles/
+  - 规范库依赖:     .agents/skills/
+  - 三级架构空间:   spec/versions/ & spec/context/
+  - AWR 目标与台账: GOALS.md & work-ledger.yaml
+  - 客户端适配模式: omp
+=================================================================
+初始 commit 建立成功，当前 commit: f279f3a
+=== 2. 在工程中登记新业务工作项 (初始 status: ready) ===
+Operation ok: true; projection complete: true
+Indexed: 1; unchanged: 2; pending: 0; retired: 0; project revision: 11
+unchanged fresh file:///tmp/test-scaffold-verify-p0-final/GOALS.md
+indexed fresh file:///tmp/test-scaffold-verify-p0-final/work-ledger.yaml
+unchanged fresh file:///tmp/test-scaffold-verify-p0-final/.agents/rules/spec-workflow.md
+=== 3. 首发角色通过修改后的 rk-awr-checkpoint.sh 认领并开工 ===
+开工前状态:     status: ready
+✅ AWR 会话检查点保存成功: 01M34Q3VJWJG081NT8KYFMRB4M (Session: 01M34Q3TP8CWMJQH9BXBMQ5XGB, Rev: 19)
+开工后状态:     status: in_progress
+=== 4. 角色接力转交至 spec-ender ===
+✅ AWR 会话检查点保存成功: 01M34Q3WJA5ETV8E6GWA06ER0F (Session: 01M34Q3VVWXQYQE6R845BQ7VR6, Rev: 22)
+ender active session: 01M34Q3VVWXQYQE6R845BQ7VR6, rev: 24, source_sha: f279f3a2aba28c9b2c6c766c501ab984b851463d
+=== 5. 准备机器完成报告并执行 prepare-completion ===
+prepare_rc=0 (stage: report_validated)
+=== 6. 剔除 branch/work 字段注册 evidence add ===
+=== 7. 由 spec-ender 在会话中执行 work complete ===
+work complete 成功！台账状态:     status: completed
+=== 8. 【验证 Case D】完工后，同一 spec-ender 运行脚本 --end 释放租约 ===
+✅ AWR 会话检查点保存成功: 01M34Q3XK2RFJH86HSNQ8KZKZK (Session: 01M34Q3VVWXQYQE6R845BQ7VR6, Rev: 32)
+{
+  "closed_claim_ids": [],
+  "event": {
+    "artifact_id": null,
+    "branch_id": null,
+    "checkpoint_id": null,
+    "created_at": 1790086084281,
+    "id": "01M34Q3XNSN3AKY3WA6V9XMTNY",
+    "importance": "normal",
+    "project_revision": 35,
+    "session_id": "01M34Q3VVWXQYQE6R845BQ7VR6",
+    "source_id": null,
+    "summary": "Ended agent work session",
+    "type": "session.ended",
+    "work_item_id": "01M34Q3TH6A3XE7BFRDBV4HS3Z"
+  },
+  "freshness_basis": "runtime_database",
+  "ok": true,
+  "project_revision": 35,
+  "session": {
+    "agent_id": "spec-ender",
+    "branch_id": null,
+    "end_project_revision": 35,
+    "ended_at": 1790086084281,
+    "id": "01M34Q3VVWXQYQE6R845BQ7VR6",
+    "last_checkpoint_id": "01M34Q3XK2RFJH86HSNQ8KZKZK",
+    "model": "default",
+    "project_id": "01M34Q3TB2C3CX0DZQA506JHZV",
+    "provider": "omp",
+    "revision": 4,
+    "start_project_revision": 21,
+    "started_at": 1790086082428,
+    "status": "ended",
+    "work_item_id": "01M34Q3TH6A3XE7BFRDBV4HS3Z"
+  },
+  "source_refresh_performed": false
+}
+🔒 已正常关闭 AWR 会话并释放租约: 01M34Q3VVWXQYQE6R845BQ7VR6
+Case D script_end_rc=0
+=== 9. 执行 awr doctor 终态核验 ===
+Database intact: true
+Project revision: 35
+Sources checked: 3
+Artifacts checked: 0
+Findings: 0
+No repair was applied. Select one named repair with --expected-revision and --reason when appropriate.
+=== 高保真真实脚手架默认路径验证 100% 成功闭环 ===

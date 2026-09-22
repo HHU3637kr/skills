@@ -1,0 +1,106 @@
+=================================================================
+🧪 正在执行脚手架 CLI 中立化测试 (目标脚本: /home/WorkSpace/skills/scripts/init-ai-workflow.sh)
+=================================================================
+
+▶ [TC-01] 场景 1: 默认纯中立执行 (不传 --runtime)
+  ✅ PASS: 脚手架执行必须成功退出 (RC=0)
+  ✅ PASS: 根目录必存在 AGENTS.md (文件存在: /tmp/test-scaffold-none-hXfyZV/AGENTS.md)
+  ✅ PASS: 不得存在 .omp/AGENTS.md (文件不存在: /tmp/test-scaffold-none-hXfyZV/.omp/AGENTS.md)
+  ✅ PASS: 默认不得生成 .omp 目录 (文件不存在: /tmp/test-scaffold-none-hXfyZV/.omp)
+  ✅ PASS: .agents/roles 目录必存在 (目录存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles)
+  ✅ PASS: 中立角色文件必须存在: spec-explorer (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-explorer.md)
+  ✅ PASS: 角色定义 spec-explorer 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-explorer 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-writer (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-writer.md)
+  ✅ PASS: 角色定义 spec-writer 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-writer 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-tester (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-tester.md)
+  ✅ PASS: 角色定义 spec-tester 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-tester 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-executor (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-executor.md)
+  ✅ PASS: 角色定义 spec-executor 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-executor 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-debugger (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-debugger.md)
+  ✅ PASS: 角色定义 spec-debugger 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-debugger 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-reviewer (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-reviewer.md)
+  ✅ PASS: 角色定义 spec-reviewer 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-reviewer 必须为无损完整定义 (含 rules:)
+  ✅ PASS: 中立角色文件必须存在: spec-ender (文件存在: /tmp/test-scaffold-none-hXfyZV/.agents/roles/spec-ender.md)
+  ✅ PASS: 角色定义 spec-ender 必须为无损完整定义 (含 inputs:)
+  ✅ PASS: 角色定义 spec-ender 必须为无损完整定义 (含 rules:)
+  ✅ PASS: spec/versions/README.md 必须生成 (文件存在: /tmp/test-scaffold-none-hXfyZV/spec/versions/README.md)
+  ✅ PASS: 经验索引 spec/context/experience/index.md 必须生成 (文件存在: /tmp/test-scaffold-none-hXfyZV/spec/context/experience/index.md)
+  ✅ PASS: 知识索引 spec/context/knowledge/index.md 必须生成 (文件存在: /tmp/test-scaffold-none-hXfyZV/spec/context/knowledge/index.md)
+  ✅ PASS: GOALS.md 必须生成 (文件存在: /tmp/test-scaffold-none-hXfyZV/GOALS.md)
+  ✅ PASS: work-ledger.yaml 必须生成 (文件存在: /tmp/test-scaffold-none-hXfyZV/work-ledger.yaml)
+  ✅ PASS: .gitignore 必须包含 .awr/state.db
+  ✅ PASS: 目标工程必须具备 scripts/rk-awr-checkpoint.sh (文件存在: /tmp/test-scaffold-none-hXfyZV/scripts/rk-awr-checkpoint.sh)
+
+▶ [TC-02] 场景 2: OMP 按需适配 (--runtime omp)
+  ✅ PASS: OMP 适配执行必须成功退出 (RC=0)
+  ✅ PASS: 根目录必存在 AGENTS.md (文件存在: /tmp/test-scaffold-omp-vk55qB/AGENTS.md)
+  ✅ PASS: .omp/agents 目录必存在 (目录存在: /tmp/test-scaffold-omp-vk55qB/.omp/agents)
+  ✅ PASS: .omp/agents 下必须有 7 个适配角色文件
+  ✅ PASS: OMP 原生发现下不得生成冗余软链接 .omp/skills (文件不存在: /tmp/test-scaffold-omp-vk55qB/.omp/skills)
+  ✅ PASS: .agents/roles 中立角色目录必须存在 (目录存在: /tmp/test-scaffold-omp-vk55qB/.agents/roles)
+
+▶ [TC-03] 场景 3: Claude 按需适配 (--runtime claude)
+  ✅ PASS: Claude 适配执行必须成功退出 (RC=0)
+  ✅ PASS: 根目录必存在 AGENTS.md (文件存在: /tmp/test-scaffold-claude-BD6lck/AGENTS.md)
+  ✅ PASS: .claude/agents 目录必存在 (目录存在: /tmp/test-scaffold-claude-BD6lck/.claude/agents)
+  ✅ PASS: .claude/skills 软链接必存在 (文件存在: /tmp/test-scaffold-claude-BD6lck/.claude/skills/README.md)
+
+▶ [TC-04] 场景 4: Codex 按需适配 (--runtime codex)
+  ✅ PASS: Codex 适配执行必须成功退出 (RC=0)
+  ✅ PASS: 根目录必存在 AGENTS.md (文件存在: /tmp/test-scaffold-codex-OhUiqN/AGENTS.md)
+  ✅ PASS: .codex/agents 目录必存在 (目录存在: /tmp/test-scaffold-codex-OhUiqN/.codex/agents)
+  ✅ PASS: .codex/agents 下必须有 7 个 toml 角色文件
+  ✅ PASS: .codex/config.toml 必须存在 (文件存在: /tmp/test-scaffold-codex-OhUiqN/.codex/config.toml)
+  ✅ PASS: .codex/config.toml 必须包含 [agents]
+  ✅ PASS: .codex/skills 软链接必存在 (文件存在: /tmp/test-scaffold-codex-OhUiqN/.codex/skills/README.md)
+
+▶ [TC-05] 场景 5: 预置普通目录与文件安全防护与备份 (P0-1/P0-3 验证)
+  ✅ PASS: 预置文件/目录时脚手架仍须成功退出 (RC=0)
+  ✅ PASS: 预置真实目录必须被自动备份保护 (文件存在: /tmp/test-scaffold-guard-nD7eEb/.claude/skills.bak-20260922-205518/mine/SKILL.md)
+  ✅ PASS: 预置普通文件必须被自动备份保护 (P0-3) (文件存在: /tmp/test-scaffold-guard-nD7eEb/html-report.bak-20260922-205518)
+  ✅ PASS: 正向 skills 软链接必须正确建立在 .claude/skills (文件存在: /tmp/test-scaffold-guard-nD7eEb/.claude/skills/README.md)
+  ✅ PASS: 不得产生嵌套软链接 .claude/skills/skills (文件不存在: /tmp/test-scaffold-guard-nD7eEb/.claude/skills/skills)
+
+▶ [TC-06] 场景 6: 运行时参数校验 (Fail-Closed 验证)
+  ✅ PASS: 传入无效运行时参数必须 exit != 0 强阻断
+  ✅ PASS: 支持 --runtime=omp 等号传参并成功退出
+  ✅ PASS: --runtime=omp 等号传参必须成功生成 .omp/agents (目录存在: /tmp/test-scaffold-validate-NgM4xs/.omp/agents)
+  ✅ PASS: 缺少 --skills-repo-url 参数值必须 exit 1 阻断
+
+▶ [TC-07] 场景 7: 缺少中立角色源时的兜底机制 (P0-1 回退验证)
+  ✅ PASS: 兜底路径下脚手架仍须成功退出 (RC=0)
+  ✅ PASS: 兜底模式下必须生成 spec-executor.md (文件存在: /tmp/test-scaffold-fallback-ZlFd7P/.agents/roles/spec-executor.md)
+  ✅ PASS: 兜底 spec-executor 必须拥有正确的 required_skill: spec-execute
+  ✅ PASS: 兜底 spec-executor 必须为完整定义 (含 inputs:)
+  ✅ PASS: 兜底 spec-executor 必须为完整定义 (含 rules:)
+  ✅ PASS: 兜底 spec-ender 必须指向原位归档
+  ✅ PASS: SCRIPT_DIR 回退必须提供 scripts/rk-awr-checkpoint.sh (消除生产 RC=127) (文件存在: /tmp/test-scaffold-fallback-ZlFd7P/scripts/rk-awr-checkpoint.sh)
+  ✅ PASS: SCRIPT_DIR 回退必须提供 scripts/rk-awr-checkpoint.ps1 (文件存在: /tmp/test-scaffold-fallback-ZlFd7P/scripts/rk-awr-checkpoint.ps1)
+
+▶ [TC-08] 场景 8: curl | bash 单脚本孤立执行与纯骨架兜底验证 (TC-08)
+  ✅ PASS: 单脚本孤立执行脚手架必须成功退出 (RC=0)
+  ✅ PASS: 孤立模式下必须生成 spec-executor.md (文件存在: /tmp/test-scaffold-target8-YL4U4R/.agents/roles/spec-executor.md)
+  ✅ PASS: 孤立骨架 spec-executor 必须拥有正确的 required_skill: spec-execute
+  ✅ PASS: 孤立骨架 spec-executor 必须包含 inputs:
+  ✅ PASS: 孤立骨架 spec-executor 必须包含 rules:
+  ✅ PASS: 孤立骨架 spec-ender 必须声明 in-place
+
+▶ [TC-09] 场景 9: 非 Git .agents/skills 目录自动备份防护 (P0-1)
+  ✅ PASS: 预置非 Git skills 目录时脚手架仍须成功退出 (RC=0)
+  ✅ PASS: 非 Git skills 必须被自动备份保护 (.bak) (文件存在: /tmp/test-scaffold-skills-bak-FIE52A/.agents/skills.bak-20260922-205520/my-notes.md)
+  ✅ PASS: 子目录数据在备份中完整保留 (文件存在: /tmp/test-scaffold-skills-bak-FIE52A/.agents/skills.bak-20260922-205520/sub/x.md)
+  ✅ PASS: 全新克隆的 skills 必须正常就位 (文件存在: /tmp/test-scaffold-skills-bak-FIE52A/.agents/skills/README.md)
+  ✅ PASS: 克隆失败时脚手架必须返回非零错误 (RC!=0)
+  ✅ PASS: 克隆失败后原 my-notes.md 必须被自动回滚还原 (文件存在: /tmp/test-scaffold-rollback-MW4Wno/.agents/skills/my-notes.md)
+  ✅ PASS: 克隆失败后原 sub/x.md 必须被自动回滚还原 (文件存在: /tmp/test-scaffold-rollback-MW4Wno/.agents/skills/sub/x.md)
+  ✅ PASS: 还原后的内容必须完全一致
+
+=================================================================
+📊 测试统计结果: PASS=81, FAIL=0
+=================================================================

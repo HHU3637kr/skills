@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>探索报告 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:type"        content="exploration-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"        content="spec-explorer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,exploration,awr">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan"   href="../writer/plan.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>探索报告：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> exploration-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-explorer</span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">探索结论</div>
+  <p>官方源码（awr v0.5.0 test_workflow.py）与沙箱实测已双重证伪文档旧假设：AWR 机器完工闭环完全成立，但依赖于 completion.report.v1 JSON、40 位完整 SHA 以及三字段 work complete input；修复路径清晰，可直接指导下游撰写 plan 与测试。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-explorer</td><td>初版探索报告：官方 v0.5.0 源码与沙箱双重实证</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 现状痛点与缺陷根因</h2>
+
+<h3>1.1 spec-test/SKILL.md 完工指引断裂</h3>
+<p>在 <span class="rk-ref">spec-test/SKILL.md:555</span> 中，文档指示：</p>
+<pre><code>awr work prepare-completion --report &lt;REPORT-PATH&gt; --evidence-key &lt;KEY&gt; --source-sha &lt;SHA&gt; &lt;SPEC-ID&gt;</code></pre>
+<p>由于上文全在描述 <code>tester/test-report.html</code>，执行者误将 HTML 文件传入 <code>--report</code>，直接触发 AWR 的 <code>completion.report.v1</code> schema 校验拒绝：</p>
+<pre><code>{"code":"InvalidInput","message":"invalid source: invalid completion report schema"}</code></pre>
+
+<h3>1.2 .agents/rules/awr-integration.md 缺少 work complete 协议</h3>
+<p>规则文件只定义了：</p>
+<ol>
+  <li>session start --claim</li>
+  <li>work prepare --session</li>
+  <li>session checkpoint</li>
+  <li>session resume</li>
+  <li>session end</li>
+</ol>
+<p>完全缺失了由 AWR 官方提供的从 <code>prepare-completion</code> 到 <code>work complete</code> 的机器核验步骤，导致任务在 AWR 数据库中要么仅停留在源声明 completed（常驻 <code>completion_not_checked</code> 缺口），要么无法在释放租约前将任务推进为真正的机器核验完工。</p>
+
+<h3>1.3 40 位完整 SHA 强约束未做文档化</h3>
+<p>实测执行 <code>--source-sha $(git rev-parse --short HEAD)</code> 时，AWR 强拦截：<code>--source-sha requires a full source SHA</code>，必须传 40 位哈希。</p>
+
+<h2>2. 官方源码调研证据（AWR v0.5.0）</h2>
+
+<p>查阅 <code>github.com/originoneai/awr</code> 标签 <code>v0.5.0</code> 的测试夹具 <span class="rk-ref">examples/host-app/test_workflow.py:52-62</span>：</p>
+
+<h3>2.1 prepare-completion 标准报告 JSON (completion.report.v1)</h3>
+<pre><code>report = {
+    "version": 1,                               # 整数 1
+    "work_item": "SPEC-ID",                     # 工作项键
+    "source_sha": "40位完整Git哈希",             # 必须40位
+    "command": "测试执行命令",
+    "scope": ["SPEC-ID"],                       # 字符串数组
+    "verified_at": 1790000000000,               # 毫秒时间戳整数
+    "checks": [
+        {
+            "name": "TC-001",
+            "passed": True,
+            "details": "测试断言详情",
+            "criteria": ["台账中 acceptance 的原文"]  # 必须与台账逐字完全一致
+        }
+    ]
+}</code></pre>
+
+<h3>2.2 work complete 标准 input JSON</h3>
+<pre><code>input = {
+    "version": 1,
+    "source_sha": "40位完整Git哈希",
+    "acceptance": [
+        {
+            "criterion": "台账中 acceptance 的原文",
+            "evidence": ["EVIDENCE_EXTERNAL_KEY"]
+        }
+    ]
+}</code></pre>
+
+<h2>3. 沙箱实测验证结论</h2>
+<p>在 <code>/tmp/rksim</code> 隔离沙箱中，使用上述官方三字段 input 执行：</p>
+<pre><code>awr work complete --session "$SESS" --reason "验收通过" --input /tmp/official-complete.json --expected-revision "$REV" SPEC-RKGREET-001 --json</code></pre>
+<p><b>执行结果</b>：返回退出码 0，事件 <code>work.completed</code> 成功上链，AWR 自动在 <code>work-ledger.yaml</code> 注入机器核验标识 <code>verification: {evidence_level: locally_verified}</code>！随后执行 <code>session end</code>，<code>awr doctor</code> 达到 <b>0 findings</b> 的无瑕闭环。</p>
+
+<h2>4. 对设计与测试的建议</h2>
+<ul>
+  <li><b>双轨制定位</b>：明确 HTML 报告（人读 + Gutter批注 + 修订追溯）与 JSON 报告（AWR 机器核验）双轨并存，不可偏废。</li>
+  <li><b>检查点脚本封装</b>：评估在 <code>scripts/rk-awr-checkpoint.sh</code> 中增加 <code>--complete</code> 选项，由脚本自动组装三字段 JSON 调 <code>awr work complete</code>，彻底解脱手动拼接 JSON 的负担。</li>
+</ul>
+
+<div class="rk-cal key"><div class="t">关键决策</div><p>保持对 AWR 官方 0.5.0 契约的 100% 绝对兼容，不私造 schema，通过机器报告与辅助脚本完成自动化闭环。</p></div>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="https://github.com/originoneai/awr/tree/v0.5.0" data-rk-link="external">AWR v0.5.0 源码仓库</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../writer/plan.html" data-rk-backlink="plan">设计方案</a>（待创建）</li>
+  <li><a href="../tester/test-plan.html" data-rk-backlink="test-plan">测试计划</a>（待创建）</li>
+</ul>
+
+</body>
+</html>
