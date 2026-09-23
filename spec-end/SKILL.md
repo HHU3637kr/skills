@@ -247,7 +247,7 @@ evidence_violations = 0
 need_meta = ["rk:type","rk:version","rk:spec-dir","rk:category","rk:role","rk:mode",
              "rk:git-branch","rk:base-branch","rk:created","rk:updated","rk:revision","rk:pr-url"]
 need_cls = ["rk-verdict","rk-meta","rk-revs","rk-links","rk-backlinks"]
-CODE_SPAN = re.compile(r"(?s)<pre>.*?</pre>|<code>.*?</code>")
+CODE_SPAN = re.compile(r"(?s)<pre>.*?</pre>|<code>.*?</code>|`[^`\n]*`")
 def lineno(text, needle):
     i = text.find(needle)
     return text[:i].count("\n") + 1 if i >= 0 else 1
@@ -272,7 +272,7 @@ for root, _, files in os.walk(spec_dir):
         mi, ji = t.find("rk-manifest.js"), t.find("rk-report.js")
         if ji != -1 and (mi == -1 or mi > ji):
             violations.append(f"{p}:{lineno(t, 'rk-report.js')}: rk-manifest.js 必须排在 rk-report.js 之前（defer 按文档序执行，反序则 file:// 导航树为空）")
-        # 行内样式/禁 fetch 检查前先剔除 <pre>/<code> 内容：报告在代码引用里讨论这些模式（如修复 HTML 契约的 Spec）是合规叙述，不算违规
+        # 行内样式/禁 fetch 检查前先剔除 <pre>/<code>/行内反引号内容：报告在代码引用里讨论这些模式（如修复 HTML 契约的 Spec）是合规叙述，不算违规
         t_visible = CODE_SPAN.sub("", t)
         if 'style="' in t_visible or re.search(r"<style[\s>]", t_visible):
             violations.append(f"{p}:{lineno(t_visible, 'style=')}: 禁止行内样式/<style> 块（样式只改 html-report/assets/rk-report.css）")
