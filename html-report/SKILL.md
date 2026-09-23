@@ -405,3 +405,7 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 - 用 `<b>`/`<i>` 假冒修订标记 → 必须用 `ins`/`del` 语义标签
 - 新增报告后忘记更新 `rk-manifest.js` → 导航树里看不到新文件（由 TeamLead 统一更新）
 - 用 `fetch` 探测同级报告是否存在 → `file://` 下必然失败，只能读 `window.RK_SPEC_TREE`
+- `rk-report.js` 排在 `rk-manifest.js` 之前 → 两者 defer 按文档序执行，反序时导航树渲染为空（深度失效：正文正常、左侧全白）
+- 漏写 `rk:version` / `rk:category`（Spec 级报告二者必填）→ 元数据检索与版本归属缺失
+- 漏掉「引用本报告」（`rk-backlinks`）节 → 反向发现能力丢失，双向关联只剩单向
+- 用行内 `style="` 或 `<style>` 块调色 → 违反固定样式约定，且 spec-end 机检会拦截
