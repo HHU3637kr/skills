@@ -11,7 +11,7 @@ mode: gated
 execution: serial
 git_branch: fix/spec-20260923-skill-routing-boundary
 base_branch: master
-pr_url:
+pr_url: https://github.com/HHU3637kr/skills/pull/13
 awr_work_id: WORK-f60583d5247c58735d9679a6a244961f
 created_at: 2026-09-23T13:35:00+08:00
 updated_at: 2026-09-23T13:35:00+08:00
@@ -121,5 +121,7 @@ updated_at: 2026-09-23T13:35:00+08:00
 
 ## 下一步动作
 
-- 收尾完成：EXP-005 已落盘、验收项文字已与 25/26 实测对齐、version-context 已登记。
-- 剩余：提交并推送分支、创建 PR、AWR 机器完工核验（source_sha 取提交后 40 位完整哈希）。
+- 收尾完成：EXP-005 已落盘、验收项文字已与 25/26 实测对齐、version-context 已登记、七份报告已回填 PR URL。
+- 已交付：分支已推送，PR https://github.com/HHU3637kr/skills/pull/13 已建（base = upstream master）；
+  AWR 已完成机器完工核验（source_sha a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e，awr doctor 0 findings）。
+- 待用户决定是否合并（合并分支属永远门禁，须显式授权）。
