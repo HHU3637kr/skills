@@ -1,10 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-test
-description: >
-  当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html、在实现完成后执行测试并产出 tester/test-report.html，
-  或在 spec-debugger 修复后重新验证时使用。若测试对象属于 Web 前端、端侧应用、API、CLI 等具体场景，
-  先选择对应 references 测试策略；不要用于普通代码实现或 bug 修复。
+description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html、在实现完成后执行测试并产出 tester/test-report.html，或在 spec-debugger 修复后重新验证时使用。若测试对象属于 Web 前端、端侧应用、API、CLI 等具体场景，先选择对应 references 测试策略。也用于核对用例与证据是否真跑过：校验测试是否在当前工作树实际运行、证据是否由测试运行自动生成（禁止事后手写补写）、识别假测试假绿与测试有效性、评估 spec-executor 的单元测试质量。不要用于普通代码实现、bug 修复，或审查实现是否符合 Spec（后者归 spec-review）。
 ---
 
 # Spec Test

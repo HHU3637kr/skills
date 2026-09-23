@@ -1,10 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-start
-description: >
-  当用户开始新的开发任务、需要启动完整 Spec 流程（需求对齐→探索→设计→实现→测试→收尾），
-  或需要为一个新 Spec 创建协作上下文和 GitHub Flow 工作分支时使用。
-  不要用于已有完成 Spec 的小迭代（用 spec-update）或项目首次初始化（用 spec-init）。
+description: 当用户开始新的开发任务、需要启动完整 Spec 流程（需求对齐→探索→设计→实现→测试→收尾），或需要为一个新 Spec 创建协作上下文和 GitHub Flow 工作分支时使用。不要用于已有完成 Spec 的小迭代（用 spec-update）、项目首次初始化（用 spec-init）、运行期故障诊断与 bug 修复（用 spec-debug），或不需要启动 Spec 流程的纯文档/记忆写入（用对应 Skill）。
 ---
 
 # Spec Start

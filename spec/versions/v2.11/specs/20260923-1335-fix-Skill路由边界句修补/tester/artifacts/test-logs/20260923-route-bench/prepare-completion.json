@@ -1,0 +1,67 @@
+{
+  "completion": {
+    "acceptance": [
+      {
+        "criterion": "8 个 SKILL.md（spec-update / html-report / exp-write / exp-reflect / spec-test / spec-review / spec-start / spec-debug）的 description 补齐与对侧 skill 的显式职责边界句，frontmatter 可解析、name 不变、description 不超过 1024 字符",
+        "evidence": [
+          "WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"
+        ]
+      },
+      {
+        "criterion": "同一 26 条中文请求路由基准中，4 个已知错判（改 writer/plan.html 漏的分页参数、线上分页接口偶发 500、把 AWR 踩坑沉淀到记忆、核对 tester 用例是否真跑过）在修补后全部闭合，GREEN 复跑零 flap；修补前同一基准 18/26 且 4 个已知错判全命中",
+        "evidence": [
+          "WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"
+        ]
+      },
+      {
+        "criterion": "roster 其余 14 个 SKILL.md 与 .agents/rules/ 零改动",
+        "evidence": [
+          "WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"
+        ]
+      }
+    ],
+    "minimum_level": "locally_verified",
+    "required_evidence": [],
+    "source_sha": "a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e",
+    "version": 1
+  },
+  "completion_claimed": false,
+  "evidence": {
+    "branch": null,
+    "command": "python3 tester/artifacts/test-logs/20260923-route-bench/route_bench.py --source worktree --answers tester/artifacts/test-logs/20260923-route-bench/answers-green-3.json",
+    "evidence_type": "verification_report",
+    "external_key": "WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench",
+    "level": "locally_verified",
+    "locator": "spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补/tester/artifacts/test-logs/20260923-route-bench/completion-report.json",
+    "scope": [
+      "WORK-f60583d5247c58735d9679a6a244961f"
+    ],
+    "sha256": "ed680bd3cd8d5aadde083dfaaef9b244109b9cf2322507595102bb3a708ff36a",
+    "source_sha": "a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e",
+    "summary": "Completion report for WORK-f60583d5247c58735d9679a6a244961f",
+    "verified_at": 1790143185126,
+    "work": "WORK-f60583d5247c58735d9679a6a244961f"
+  },
+  "freshness_basis": "source_refresh",
+  "level_basis": "caller_assertion",
+  "next_action": "record_evidence_then_complete_with_current_revision_and_owned_session",
+  "ok": true,
+  "project_revision": 91,
+  "read_only": false,
+  "report_sha256": "ed680bd3cd8d5aadde083dfaaef9b244109b9cf2322507595102bb3a708ff36a",
+  "snapshot": {
+    "coherent": true,
+    "project_revision": 91,
+    "source_currentness_verified": true,
+    "source_refresh_revision": 91,
+    "source_state_fingerprint": "sha256:a27a0dae4f1e7ec80bb3816c9d4d763df249550314a14748ba0d2d1a65a9c306",
+    "storage": "private_memory",
+    "version": 1
+  },
+  "source_issues": [],
+  "source_refresh_performed": true,
+  "source_warnings": 0,
+  "stage": "report_validated",
+  "verification_executed": false,
+  "version": 1
+}

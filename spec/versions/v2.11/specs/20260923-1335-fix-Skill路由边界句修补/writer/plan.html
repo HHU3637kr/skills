@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设计方案 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-writer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/13">
+<meta name="rk:tags"        content="spec,plan,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-exploration-report" href="../explorer/exploration-report.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>设计方案：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/13">#13</a></span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r2（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">方案结论</div>
+  <p>只改 8 个 <code>SKILL.md</code> 的 frontmatter <code>description</code>：逐句保留原文，追加与对侧 skill 的显式职责边界句与用户向触发词，把「改报告内容 vs 规定报告格式」「识别分类 vs 落盘写入」「审查符合性 vs 核对证据真假」「主动迭代 vs 被动修复」四组边界写进契约文本。不动流程铁律、不动 <code>.agents/rules/</code>，其余 14 个 roster skill 零改动。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-writer</td><td>初版：8 个 description 的逐条变更集、实现与测试策略、风险与回滚</td><td>—</td></tr>
+<tr><td>r2</td><td>2026-09-23</td><td>TeamLead</td><td>回填 PR URL 并递增修订号</td><td>PR 已创建，收尾按 html-report 契约回填 Git 元信息</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 目标与非目标</h2>
+<h3>1.1 目标</h3>
+<ol>
+  <li>闭合 4 条已实测的中文请求错判（r02 改 plan.html 漏参数、r08 沉淀记忆、r13 核对用例真跑、r06 线上故障诊断修复）。</li>
+  <li>给 8 个 skill 补齐<b>成对</b>的边界句——两侧同时改，避免把边界单方面推给某一方造成新的不对称。</li>
+  <li>保持 description ≤1024 字符、frontmatter 可解析、<code>name</code> 不变。</li>
+</ol>
+<h3>1.2 非目标</h3>
+<ul>
+  <li>不改 <code>.agents/rules/</code>、<code>README.md</code>、<code>CODEMAP.md</code>、任何流程 Skill 正文（永远门禁 + 范围控制，见账本 D-004）。</li>
+  <li>不做 skill 自动装载改造（本仓库全部 <code>disable-model-invocation: true</code>，改动运行时要另行立项）。</li>
+  <li>不重写 description 的原有语义句，只做边界追加与两处定向重写（html-report、spec-start，理由见 §3.3、§3.6）。</li>
+</ul>
+
+<h2>2. 方案总览</h2>
+<table>
+  <thead><tr><th>边界</th><th>宽口径方（收敛触发条件）</th><th>窄口径方（补用户向触发词）</th></tr></thead>
+  <tbody>
+    <tr><td>报告格式 vs 报告内容</td><td><code>html-report</code></td><td><code>spec-update</code></td></tr>
+    <tr><td>识别分类 vs 落盘写入</td><td><code>exp-reflect</code></td><td><code>exp-write</code></td></tr>
+    <tr><td>审查符合性 vs 核对证据真假</td><td><code>spec-review</code></td><td><code>spec-test</code></td></tr>
+    <tr><td>主动迭代 vs 被动修复</td><td><code>spec-start</code></td><td><code>spec-debug</code></td></tr>
+  </tbody>
+</table>
+
+<h2>3. 逐条变更集（8 个 SKILL.md frontmatter）</h2>
+<p>规则：原文逐句保留；新增句置于语义相邻处；<code>spec-start</code> 与 <code>html-report</code> 为定向重写（原文含义全部保留，仅收窄触发面）。</p>
+
+<h3>3.1 spec-test/SKILL.md:4-8 —— 补「证据核对」触发面</h3>
+<p>追加：<code>也用于核对用例与证据是否真跑过：校验测试是否在当前工作树实际运行、证据是否由测试运行自动生成（禁止事后手写补写）、识别假测试假绿与测试有效性、评估 spec-executor 的单元测试质量。</code>；负面句保持「不要用于普通代码实现或 bug 修复」。</p>
+
+<h3>3.2 spec-review/SKILL.md:4 —— 补对侧归属</h3>
+<p>追加：<code>不要用于核对用例或证据是否真跑过、识别假测试与评估测试质量（归 spec-test），也不要用于运行期故障诊断与 bug 修复（归 spec-debug）。</code></p>
+
+<h3>3.3 html-report/SKILL.md:3-11 —— 重写为格式契约口径</h3>
+<p>首句收窄为「…Spec 报告（exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report）<b>的格式</b>时使用」；典型信号加「核对修订号/修订历史/meta/双向关联/样式表是否符合契约」；新增两条边界：</p>
+<ul>
+  <li><code>本 Skill 只规定"报告长什么样"，不决定"报告里写什么"：补漏需求参数、改方案、调整验收标准、修结论、补修订历史内容分别属于 spec-update / spec-write / spec-execute 等角色 Skill，它们只在需要遵守格式契约时读本 Skill。</code></li>
+  <li><code>请求里出现 report/plan/update 等文件名不构成本 Skill 的触发条件。</code></li>
+</ul>
+<p>「不要用于记忆库文件（<code>spec/context/**/*.md</code>…）」原句保留。</p>
+
+<h3>3.4 spec-update/SKILL.md:4 —— 补用户向触发词</h3>
+<p>在入口句与「默认复用 git_branch」之间插入：</p>
+<ul>
+  <li><code>典型信号："改 writer/plan.html 里漏掉的分页参数""补一条原 Spec 没覆盖的需求""修 update 方案里写错的验收标准"、修订既有 writer/plan.html / executor/summary.html、给已有报告递增修订号并补修订历史行（5 列格式与 &lt;ins&gt;/&lt;del&gt; 标记规则由 html-report 定义，写什么内容、为什么归本 Skill）——只要动的是报告所承载的 Spec 内容，就走本 Skill；请求里出现 report/html 字样不改变归属。</code></li>
+  <li><code>只关心报告骨架、样式表、修订标记或 meta/双链格式本身时改用 html-report。</code></li>
+</ul>
+
+<h3>3.5 exp-reflect/SKILL.md:4 + exp-write/SKILL.md:4 —— 落盘责任切开</h3>
+<p><code>exp-reflect</code> 追加：<code>本 Skill 只做识别 + 分类 + 权重判断 + 草稿 + 用户确认，不落盘写入；内容已经明确、只需写入经验/知识文件并更新索引时直接用 exp-write。</code></p>
+<p><code>exp-write</code> 重写触发行（原文「触发场景：exp-reflect 确认后、手动添加经验或知识」的三个入口全部保留并显式化）：<code>触发场景：/exp-write type=experience、/exp-write type=knowledge 手动写入，exp-reflect 确认后落盘，或用户要求把内容已经确定的经验/知识写进记忆时使用，典型信号："把这次 AWR 踩坑写进经验记忆""把架构调研整理成知识记忆""把 exp-reflect 确认过的草稿写入索引"。</code>，并加 <code>本 Skill 只执行写入；判断是否值得沉淀、归哪类记忆、去重与草稿生成由 exp-reflect 负责，需要先识别分类时用 exp-reflect。</code></p>
+
+<h3>3.6 spec-start/SKILL.md:4-6 —— 负面清单补 debug</h3>
+<p>末句由「不要用于已有完成 Spec 的小迭代（用 spec-update）或项目首次初始化（用 spec-init）。」扩为「…<b>运行期故障诊断与 bug 修复（用 spec-debug）</b>，或不需要启动 Spec 流程的纯文档/记忆写入（用对应 Skill）。」</p>
+
+<h3>3.7 spec-debug/SKILL.md:4-8 —— 补用户向触发词</h3>
+<p>触发条件追加第 (4) 条 <code>用户要求诊断/修复线上问题、偶发故障、异常报错、环境依赖问题或回归排查</code>；末尾追加 <code>触发词：诊断、修复、线上问题、偶发 500、复现、回滚。主动迭代新需求归 spec-start / spec-update</code>。原文「不修改已确认的 writer/plan.html…由 TeamLead 启动 spec-tester」等句全部保留。</p>
+
+<h2>4. 实现步骤</h2>
+<ol>
+  <li><b>RED 先行</b>：在未打补丁的 HEAD 描述上跑 26 条 gold 基准，必须观测到 ≥3 条错判（r02/r06/r08/r13 至少中 3 条），留存 <code>tester/artifacts/test-logs/&lt;run-id&gt;/red-route-bench.log</code>。</li>
+  <li><b>应用补丁</b>：按 §3 逐条改 8 个 <code>SKILL.md</code> frontmatter，只改 <code>description</code> 块，其他字节不动。</li>
+  <li><b>静态自检</b>：8 个文件 frontmatter 可解析、<code>name</code> 不变、description ≤1024、原文句子未被删（逐句包含审计）。</li>
+  <li><b>GREEN</b>：同一基准在补丁后工作树上重跑，目标 26/26（允许 1 条兜底类抖动，抖动项不得是原错判）。</li>
+  <li><b>改动面断言</b>：<code>git diff --name-only</code> 恰为 8 个 SKILL.md（不含 <code>.agents/rules/</code>、不含 roster 其余 14 个）。</li>
+</ol>
+
+<h2>5. 测试策略（详见 tester/test-plan.html）</h2>
+<ul>
+  <li><b>TC-01 行为基准（RED→GREEN）</b>：26 条中文请求 × judge Choice 路由，gold 写死；RED ≥3 miss，GREEN ≥25/26。</li>
+  <li><b>TC-02 静态契约</b>：8 个 description 均 ≤1024、frontmatter 可解析、<code>name</code> 不变。</li>
+  <li><b>TC-03 边界双向性</b>：4 组边界的每一侧都显式点名对侧 skill 名。</li>
+  <li><b>TC-04 改动面</b>：diff 文件集 = 8 个 SKILL.md。</li>
+  <li><b>TC-05 抖动复跑</b>：GREEN 复跑一次，记录 flap 项并判定是否落在原错判集合。</li>
+</ul>
+
+<h2>6. 风险与回滚</h2>
+<table>
+  <thead><tr><th>风险</th><th>影响</th><th>缓解</th></tr></thead>
+  <tbody>
+    <tr><td>边界句写得太长，反而稀释主触发条件</td><td>原本正确的请求被推走</td><td>TC-01 的 12 条反向探测项（必须仍归 html-report/exp-search/exp-reflect/spec-test/exp-write）即防过纠；修后复跑 25-26/26 已验证</td></tr>
+    <tr><td>「报告内容 vs 格式」边界仍有一类模糊表述（纯修订历史表操作）</td><td>r16 类请求偶发判偏</td><td>已实测：补「递增修订号并补修订历史行…归本 Skill」后 r16/r22 均正确；残余抖动记录在测试报告，不作为本次验收项</td></tr>
+    <tr><td>改 description 影响下游已克隆项目的 skill 列表展示</td><td>仅展示文本变化，无行为变化</td><td>只追加/收窄描述，不增删 skill、不改 name</td></tr>
+    <tr><td>回滚</td><td>—</td><td>单 PR 内 <code>git revert</code> 即回到 18/26 状态；无数据/结构迁移</td></tr>
+  </tbody>
+</table>
+
+<h2>7. 验收标准（对应 AWR 台账 acceptance 原文）</h2>
+<ol>
+  <li>8 个 SKILL.md 的 description 补齐与对侧 skill 的显式职责边界句，frontmatter 可解析、name 不变、description 不超过 1024 字符。</li>
+  <li>26 条中文请求路由基准在修补后的工作树上全绿；同一基准在修补前至少 3 条错判。</li>
+  <li>roster 其余 14 个 SKILL.md 与 .agents/rules/ 零改动。</li>
+</ol>
+
+<h2>8. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration-report">探索报告</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a>（待创建）</li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a>（待创建）</li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a>（待创建）</li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../explorer/exploration-report.html" data-rk-backlink="exploration-report">探索报告</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

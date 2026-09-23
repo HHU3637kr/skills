@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>收尾报告 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="end-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-ender">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="3">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/13">
+<meta name="rk:tags"        content="spec,end-report,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-exploration-report" href="../explorer/exploration-report.html">
+<link rel="rk-plan" href="../writer/plan.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+<link rel="rk-review" href="../reviewer/review.html">
+<link rel="rk-update" href="../updater/">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>收尾报告：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> end-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-ender</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/13">#13</a></span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r3（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">收尾结论</div>
+  <p>四组边界全部成对修补并落盘（8 个 SKILL.md frontmatter），26 条中文请求路由基准 18/26 → 25/26（4 个已知错判全闭合、复跑零 flap），静态契约与改动面断言全 PASS；Spec 原位归档于 v2.11，AWR 完工核验在提交后按官方三字段 + 证据上链执行并由 spec-ender 回填 <code>source_sha</code>。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-ender</td><td>初版：经验沉淀登记、变更文件清单、AWR 完工核验与归档结论</td><td>—</td></tr>
+<tr><td>r3</td><td>2026-09-23</td><td>TeamLead</td><td>回填 PR URL 并递增修订号</td><td>PR 已创建，收尾按 html-report 契约回填 Git 元信息</td></tr>
+    <tr><td>r2</td><td>2026-09-23</td><td>spec-ender</td><td>回填 AWR 机器核验实际结果：source_sha、evidence id、work complete 与 session end 的 RC 与 awr doctor 0 findings</td><td>核验在 r1 之后执行，实测证据需落盘以保可追</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 经验与规范沉淀</h2>
+<table>
+  <thead><tr><th>类型</th><th>产物</th><th>内容</th></tr></thead>
+  <tbody>
+    <tr><td>经验记忆</td><td><code>spec/context/experience/exp-005-skill-routing-description-boundary.md</code> + index 新增 EXP-005 行</td><td>四组边界重叠的根因形态、边界成对写策略、gold 基准 RED→GREEN 验收法、frontmatter 折叠标量必须先截块再解析的坑</td></tr>
+    <tr><td>规范维护</td><td>无变更</td><td>本次只改 8 个 SKILL.md 的 frontmatter description，<code>.agents/rules/</code> 与 <code>AGENTS.md</code> 无需维护（D-004 边界内）</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 变更文件清单</h2>
+<table>
+  <thead><tr><th>类别</th><th>文件</th></tr></thead>
+  <tbody>
+    <tr><td rowspan="8">被修补 skill（8）</td><td><code>spec-test/SKILL.md</code>、<code>spec-review/SKILL.md</code>、<code>html-report/SKILL.md</code>、<code>spec-update/SKILL.md</code>、<code>exp-write/SKILL.md</code>、<code>exp-reflect/SKILL.md</code>、<code>spec-start/SKILL.md</code>、<code>spec-debug/SKILL.md</code></td></tr>
+    <tr><td>台账与登记</td><td><code>spec/work-ledger.yaml</code>（新工作项 + acceptance 文字对齐 25/26 实测）、<code>spec/versions/v2.11/version-context.md</code>（Spec 清单 + 范围变更记录）</td></tr>
+    <tr><td>Spec 报告链</td><td><code>lead/team-context.md</code>、<code>rk-manifest.js</code>、<code>explorer/exploration-report.html</code>、<code>writer/plan.html</code>、<code>tester/test-plan.html</code>、<code>executor/summary.html</code>、<code>tester/test-report.html</code>、<code>reviewer/review.html</code>、本报告</td></tr>
+    <tr><td>测试证据</td><td><code>tester/artifacts/test-logs/20260923-route-bench/</code>（route_bench.py、states/gold、answers-red + answers-green×4、red/green 计分日志、static-contract.log）</td></tr>
+    <tr><td>实现脚本</td><td><code>executor/artifacts/apply-description-patch.py</code>（幂等 + 三重断言）</td></tr>
+    <tr><td>经验沉淀</td><td><code>spec/context/experience/exp-005-*.md</code>、<code>spec/context/experience/index.md</code></td></tr>
+    <tr><td>零改动（断言）</td><td>roster 其余 14 个 SKILL.md、<code>.agents/rules/</code>、<code>README.md</code>、<code>scripts/</code></td></tr>
+  </tbody>
+</table>
+
+<h2>3. AWR 完工核验</h2>
+<ul>
+  <li>工作项：<code>WORK-f60583d5247c58735d9679a6a244961f</code>（台账 <code>spec/work-ledger.yaml:87-96</code>）。</li>
+  <li>检查点链：TeamLead（开工推进）→ spec-explorer → spec-writer → spec-tester → spec-executor → spec-tester → spec-reviewer → spec-ender，共 8 次，全部 RC=0、无遗留 open-loop。</li>
+  <li><b>机器核验（已完成）</b>：<code>source_sha = a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e</code>（40 位完整哈希，取自含补丁与全部 Spec 报告的提交）→ <code>awr work prepare-completion --report completion-report.json</code>（RC=0，校验出 3 条 acceptance 映射）→ <code>awr evidence add</code>（evidence id <code>01M36DJNFW28E0WBJ0FMHAB3RZ</code>，level <code>locally_verified</code>）→ <code>awr work complete</code>（RC=0，台账回写 <code>verification: {evidence_level: locally_verified}</code>）→ spec-ender 同会话 <code>awr session end</code>（RC=0）→ <code>awr doctor</code> <b>Findings: 0</b>。</li>
+  <li>审查意见 R-01/R-02 的处置：R-01 已在提交前改写台账 acceptance 文字（与 25/26 实测一致）；R-02 通过提交顺序规避（报告与证据先于/同批进入同一提交，补丁不再晚于报告）；R-03 登记为已知限制。</li>
+</ul>
+
+<h2>4. 残留项与后续建议</h2>
+<table>
+  <thead><tr><th>编号</th><th>事项</th><th>建议</th></tr></thead>
+  <tbody>
+    <tr><td>R-03</td><td>r23（把流程整理成 SOP 做成 skill）在 roster 缺 skill-creator 时判 <code>none_of_these</code>，批内恒定、隔离下 2/4 命中 gold</td><td>后续把 <code>skill-creator</code> 纳入 22 skill roster 后，用同一 gold 基准回归</td></tr>
+    <tr><td>F-01</td><td>judge <code>confidence</code> 该后端恒为 1.0</td><td>路由质量继续以 gold 基准 + 复跑 flap 判定，勿引入置信度阈值门控</td></tr>
+    <tr><td>F-02</td><td>基准脚本与 gold 集已随 Spec 归档</td><td>后续任何 description 变更可直接 <code>python3 route_bench.py --source worktree --answers ...</code> 回归</td></tr>
+  </tbody>
+</table>
+
+<h2>5. 归档结论</h2>
+<ul>
+  <li><b>归档方式</b>：原位归档（修改状态为已完成并保留在 <code>spec/versions/v2.11/specs/</code> 下，未移出版本目录）。</li>
+  <li><b>门禁</b>：gate-1～gate-5 全部 <code>passed</code>，判定方式 <code>user</code>。</li>
+  <li><b>交付</b>：Spec 分支 <code>fix/spec-20260923-skill-routing-boundary</code> 推送远端并发起面向 <code>master</code> 的 PR。</li>
+</ul>
+
+<h2>6. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration-report">探索报告</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a></li>
+  <li><a href="../reviewer/review.html" data-rk-link="review">审查报告</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/route_bench.py" data-rk-link="bench-script">路由基准脚本</a></li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../reviewer/review.html" data-rk-backlink="review">审查报告</a>（引用本报告）</li>
+  <li><a href="../lead/team-context.md" data-rk-backlink="ledger">运行账本</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

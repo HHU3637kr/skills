@@ -1,13 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-debug
-description: >
-  诊断并修复 Spec 执行过程中发现的问题。由角色 spec-debugger 调用。
-  触发条件：(1) 角色 spec-debugger 接收到 TeamLead 转交的 bug handoff，
-  (2) spec-executor 执行后出现 bug 或 writer/plan.html 中未考虑到的情况，
-  (3) 运行时出现问题、依赖环境或配置问题。
-  不修改已确认的 writer/plan.html，而是在 debugger/ 下创建独立的诊断文档（debug-xxx.html）和修复总结（debug-xxx-fix.html）。
-  修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动 spec-tester。
+description: 诊断并修复 Spec 执行过程中发现的问题。由角色 spec-debugger 调用。触发条件：(1) 角色 spec-debugger 接收到 TeamLead 转交的 bug handoff，(2) spec-executor 执行后出现 bug 或 writer/plan.html 中未考虑到的情况，(3) 运行时出现问题、依赖环境或配置问题，(4) 用户要求诊断/修复线上问题、偶发故障、异常报错、环境依赖问题或回归排查。不修改已确认的 writer/plan.html，而是在 debugger/ 下创建独立的诊断文档（debug-xxx.html）和修复总结（debug-xxx-fix.html）。修复完成后向 TeamLead 提交重新验证请求，由 TeamLead 启动 spec-tester。触发词：诊断、修复、线上问题、偶发 500、复现、回滚。主动迭代新需求归 spec-start / spec-update，不要被笼统的'帮我做个开发任务'带走。
 ---
 
 # Spec Debug
