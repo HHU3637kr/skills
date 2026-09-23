@@ -554,7 +554,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
          summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
      ```
   2. **AWR 0.5.0 机器核验准备（双轨制）**：
-     `awr work prepare-completion` 强校验 `completion.report.v1` 机器 JSON 契约（**传 HTML 报告会被拒绝报错**）。测试运行或自动化脚本必须在 `tester/artifacts/test-logs/<run-id>/` 同步自动派生 `completion-report.json`：
+     `awr work prepare-completion` 强校验 `completion.report.v1` 机器 JSON 契约（**传 HTML 报告会被拒绝报错**；**传项目外路径会被拒绝**——`--report` 只接受项目根/`authorized_roots` 内路径，`/tmp` 会报 `RuleViolation` rc=1）。测试运行或自动化脚本必须在 `tester/artifacts/test-logs/<run-id>/` 同步自动派生 `completion-report.json`：
      ```json
      {
        "version": 1,
@@ -568,19 +568,25 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
            "name": "TC-001",
            "passed": true,
            "details": "断言详情",
-           "criteria": ["<必须与台账 acceptance 原文逐字完全一致>"]
+           "criteria": ["<必须与台账 acceptance 原文逐字一致（按 YAML 解析值比较，AWR 回写台账后的引号转义会使原始子串匹配假阴性）>"]
          }
        ]
      }
      ```
-     然后执行机器校验与证据元数据注册（注意 `--source-sha` 必须传 40 位完整 SHA，传短哈希会被 AWR 强拦截）：
+     然后执行机器校验与证据元数据注册（`--source-sha` 必须传 40 位完整 SHA；证据草稿一律落 `<run-id>/evidence-draft.json`，**并发场景下禁止固定共享路径**）：
      ```bash
-     # 1. 验证报告契约有效性
-     awr work prepare-completion --report <JSON-PATH> --evidence-key "<SPEC-ID>/evidence/<KEY>" --source-sha <40-CHAR-SHA> <SPEC-ID>
-     
-     # 2. 注册证据元数据（注意：从 prepare-completion 输出提炼 draft 时，必须剔除 branch 与 work 两个只读回显字段，否则报 unknown evidence input field）
+     # 1. 验证报告契约有效性（--report 必须为项目内路径）
+     PREP_OUT=$(awr work prepare-completion --report "tester/artifacts/test-logs/<run-id>/completion-report.json" --evidence-key "<SPEC-ID>/evidence/<KEY>" --source-sha <40-CHAR-SHA> <SPEC-ID> --json)
+
+     # 2. 注册证据元数据：prepare-completion --json 的顶层草稿键名是 evidence，
+     #    其中 branch 与 work 是只读回显字段，必须剔除后再传，否则报 unknown evidence input field
+     EVIDENCE_DRAFT=$(printf "%s" "$PREP_OUT" | python3 -c "import sys, json
+d = json.load(sys.stdin).get('evidence', {})
+d.pop('branch', None); d.pop('work', None)
+print(json.dumps(d))")
+     echo "$EVIDENCE_DRAFT" > "tester/artifacts/test-logs/<run-id>/evidence-draft.json"
      REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-     awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
+     awr evidence add --input "tester/artifacts/test-logs/<run-id>/evidence-draft.json" --expected-revision "$REV"
      ```
      *重要原则*：`spec-tester` 阶段仅完成报告校验与证据注册，**严禁在测试阶段执行 `awr work complete`**。工作项必须保持 `in_progress` 状态，以便下游 `spec-reviewer` 与 `spec-ender` 能够合法通过检查点脚本接力会话。真正的机器完工与租约释放统一由收尾阶段的 `spec-ender` 执行。
 - 向 AWR 提交测试完成会话检查点：

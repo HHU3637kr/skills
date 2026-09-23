@@ -3,7 +3,7 @@
 ## 一、定位与权威边界
 
 AWR（Agent Work Runtime）是 R&K Flow 的底层运行状态机与上下文编译器，不替代 R&K Flow 的流程治理：
-1. **唯一真相源（Source of Truth）**：`spec/work-ledger.yaml`、`AGENTS.md`、`.agents/rules/`、各角色 HTML 报告与 Git 提交是唯一权威。
+1. **唯一真相源（Source of Truth）**：工作台账（路径以 `.awr/project.toml` 的 `sources` 声明为准，脚手架项目为根目录 `work-ledger.yaml`）、`AGENTS.md`、`.agents/rules/`、各角色 HTML 报告与 Git 提交是唯一权威。
 2. **状态机投影**：本地 `.awr/state.db` 仅作为机器索引、租约锁、事件日志与接续缓存，严禁作为业务权威，且必须被 `.gitignore` 忽略。
 3. **流程裁决权归 R&K**：AWR 的任务状态（`ready`/`in_progress`/`completed`）是状态观测，不等于 R&K 门禁放行；`writer/plan.html` 未确认前，即使 AWR 状态为 ready 也绝对不得进入实现阶段。
 
@@ -65,7 +65,7 @@ AWR（Agent Work Runtime）是 R&K Flow 的底层运行状态机与上下文编�
 ### 1. 首个角色认领独占租约与推进开工（Session Start with `--claim` & `work progress`）
 当首个角色（如 `spec-explorer` 或 `spec-start` TeamLead）进入新工作项时，必须显式带上 `--claim` 参数：
 ```bash
-awr session start --work <SPEC-ID> --agent <ROLE> --provider omp --model default --claim --ttl-ms 3600000 --expected-revision <REV>
+awr session start --work "<SPEC-ID>" --agent "<ROLE>" --provider omp --model default --claim --ttl-ms 3600000 --expected-revision "<REV>"
 ```
 - **核心原理**：缺省 `--claim` 会导致 AWR 仅创建只读观察会话，看板显示“需认领”；带上 `--claim` 后，工作项被加独占运行时锁，其他人无法并发抢占。
 - 获取返回的 `session.id`，登记入 `lead/team-context.md` 的「角色运行句柄」。
@@ -124,15 +124,25 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    - `command`: 验证命令
    - `scope`: 字符串数组，如 `["<WORK-ID>"]`
    - `verified_at`: 毫秒级时间戳整数
-   - `checks`: 用例清单，其中 `criteria` 必须与工作台账中 `acceptance` 的原文逐字完全一致。
+   - `checks`: 用例清单，其中 `criteria` 必须与工作台账中 `acceptance` 的原文逐字完全一致（按 YAML 解析后的字符串值比较；AWR 回写台账后会做引号转义，原始文本子串匹配会出现假阴性）。
+   - **路径硬约束（0.5.0 实测）**：该 JSON 必须位于项目根或 `.awr/project.toml` 的 `authorized_roots` 之内（脚手架默认 `authorized_roots=[]`，即只认项目内路径）。传项目外路径（如 `/tmp/...`）会被 `awr work prepare-completion --report` 以 `RuleViolation: registered file is outside project and authorized roots`（退出码 1）拒绝。标准落点：`tester/artifacts/test-logs/<run-id>/completion-report.json`。
 2. **执行校验与证据注册**：
    ```bash
-   # 验证报告结构真实性与台账标准映射
-   awr work prepare-completion --report <JSON-PATH> --evidence-key "<WORK-ID>/evidence/<KEY>" --source-sha <40-CHAR-FULL-SHA> <WORK-ID>
-   # 注册证据元数据草稿（注意：必须剔除 prepare-completion 输出中的 branch 与 work 两个只读回显字段，否则报 unknown evidence input field）
+   # 验证报告结构真实性与台账标准映射（--report 必须传项目内路径；--source-sha 必须 40 位完整 SHA）
+   PREP_OUT=$(awr work prepare-completion --report "tester/artifacts/test-logs/<run-id>/completion-report.json" --evidence-key "<WORK-ID>/evidence/<KEY>" --source-sha <40-CHAR-FULL-SHA> <WORK-ID> --json)
+
+   # 注册证据元数据草稿。实测契约：prepare-completion --json 的顶层草稿键名是 evidence（不是任何别的名字），
+   # 其中附带了 branch 与 work 两个只读回显字段，必须剔除后再传给 evidence add，否则报 unknown evidence input field。
+   EVIDENCE_DRAFT=$(printf "%s" "$PREP_OUT" | python3 -c "import sys, json
+d = json.load(sys.stdin).get('evidence', {})
+d.pop('branch', None); d.pop('work', None)
+print(json.dumps(d))")
+   echo "$EVIDENCE_DRAFT" > "tester/artifacts/test-logs/<run-id>/evidence-draft.json"
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr evidence add --input <DRAFT-JSON> --expected-revision "$REV"
+   awr evidence add --input "tester/artifacts/test-logs/<run-id>/evidence-draft.json" --expected-revision "$REV"
    ```
+   *可选旗标（0.5.0 实测存在、默认不传亦可）*：`--level locally_verified` 可显式声明证据级别；不传时 AWR 按报告内容自动定级。
+   *路径边界（两个参数限制不同，勿混述）*：`--report` 只接受项目内路径；`evidence add --input` 与 `work complete --input` 对路径无项目内限制（`/tmp` 亦接受）——但并发环境下**一律使用项目内按 `<run-id>` 隔离的路径**，固定共享路径（如 `/tmp/complete-input.json`）会被并发进程互相覆盖，导致静默错绑（见 P1 并发缺陷实录）。
 3. **由 spec-ender 执行官方三字段完工确认与租约释放（消灭终检点死锁）**：
    **会话释放与接力状态契约**：
    - **脚本探会话机制**：`rk-awr-checkpoint.sh --end` 运行时，优先复用当前调用方 agent 在该工作项上的活跃会话；若活跃会话属于其他 agent，才会尝试 `resume` 转移租约；若无活跃会话，才会回退 `session start` 新建会话。
@@ -141,20 +151,22 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
    - **同角色脚本释放兼容（实测 Case D 验证）**：若 `spec-ender` 此前已通过 `rk-awr-checkpoint.sh` 开工并持有该工作项的活跃会话，在 `work complete` 之后调用 `rk-awr-checkpoint.sh --end` 亦能成功复用该会话并释放租约（退出码 0，`doctor` 0 findings）。
    - **完工失败释放**：若 `work complete` 前遭遇校验失败或状态冲突，持有活跃会话的 `spec-ender` 调用 `rk-awr-checkpoint.sh --end` 或直接执行 `awr session end` 均为兜底释放租约的 sanctioned 路径。
    ```bash
-   cat > /tmp/complete-input.json <<EOF
+   # 完工输入按 run-id 落项目内，严禁固定共享路径（并发多 Spec 会互相覆盖）
+   mkdir -p "tester/artifacts/test-logs/<run-id>"
+   cat > "tester/artifacts/test-logs/<run-id>/complete-input.json" <<EOF
    {
      "version": 1,
-     "source_sha": "<40-CHAR-FULL-SHA>",
+     "source_sha": "$(git rev-parse HEAD)",
      "acceptance": [
        {
-         "criterion": "<台账 acceptance 原文>",
+         "criterion": "<台账 acceptance 第 1 项原文>",
          "evidence": ["<WORK-ID>/evidence/<KEY>"]
        }
      ]
    }
    EOF
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr work complete --session <ENDER_SESSION_ID> --reason "验收通过且证据已全部绑定" --input /tmp/complete-input.json --expected-revision "$REV" <WORK-ID>
+   awr work complete --session <ENDER_SESSION_ID> --reason "验收通过且证据已全部绑定" --input "tester/artifacts/test-logs/<run-id>/complete-input.json" --expected-revision "$REV" <WORK-ID>
    
    # work complete 会自动重写 work-ledger.yaml 注入 verification 块并使 project_revision 递增
    # 必须现读最新的 CAS 版本号，直接调用 session end 释放租约：
