@@ -463,6 +463,10 @@ if ! grep -qF "# AI Coding Workflow 忽略规则" .gitignore; then
 .awr-backups/
 *.bak-*
 
+# Python 运行缓存（评测沙箱遗留 __pycache__ 未跟踪文件后的修复）
+__pycache__/
+*.pyc
+
 # Skills 单版本源与共享样式
 .agents/skills/
 html-report
