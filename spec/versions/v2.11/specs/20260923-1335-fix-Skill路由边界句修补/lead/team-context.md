@@ -56,6 +56,7 @@ updated_at: 2026-09-23T13:35:00+08:00
 | I-005 | bug | spec-tester | spec-executor | TC-04 首轮 FAIL：spec-test description 未点名 spec-review，边界非双向 | 补「或审查实现是否符合 Spec（后者归 spec-review）」后重跑 PASS | spec-test/SKILL.md | resolved | spec-executor |
 | I-006 | review | spec-reviewer | spec-ender | R-01 台账 acceptance 第 2 项写「全绿」与实测 25/26 不符 | 改写为「4 个已知错判全部闭合 + 复跑零 flap」的可判据表述 | spec/work-ledger.yaml | resolved | spec-ender |
 | I-007 | process | spec-reviewer | spec-ender | R-02 补丁脚本基线依赖 HEAD，若先提交补丁则 RED 与断言失效 | 提交顺序约束：报告与证据先于/同批进入提交，补丁不晚于报告 | — | resolved | spec-ender |
+| I-008 | process | TeamLead | spec-ender | spec-ender 开工检查点 digest 误写占位符「da39a3...」，未写真实提交号 | 已用真实 SHA a4b35af7 追加后续检查点，事件流保留误写记录以便审计 | lead/team-context.md | resolved | spec-ender |
 
 ## 决策记录
 

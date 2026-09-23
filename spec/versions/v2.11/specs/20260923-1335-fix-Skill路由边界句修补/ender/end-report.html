@@ -12,7 +12,7 @@
 <meta name="rk:mode"        content="gated">
 <meta name="rk:created"     content="2026-09-23">
 <meta name="rk:updated"     content="2026-09-23">
-<meta name="rk:revision"    content="1">
+<meta name="rk:revision"    content="2">
 <meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
 <meta name="rk:base-branch" content="master">
 <meta name="rk:pr-url"      content="">
@@ -45,7 +45,7 @@
     <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
     <span><b>PR</b> —</span>
     <span><b>创建</b> 2026-09-23</span>
-    <span><b>修订</b> r1（2026-09-23）</span>
+    <span><b>修订</b> r2（2026-09-23）</span>
   </div>
 </header>
 
@@ -61,6 +61,7 @@
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
   <tbody>
     <tr><td>r1</td><td>2026-09-23</td><td>spec-ender</td><td>初版：经验沉淀登记、变更文件清单、AWR 完工核验与归档结论</td><td>—</td></tr>
+    <tr><td>r2</td><td>2026-09-23</td><td>spec-ender</td><td>回填 AWR 机器核验实际结果：source_sha、evidence id、work complete 与 session end 的 RC 与 awr doctor 0 findings</td><td>核验在 r1 之后执行，实测证据需落盘以保可追</td></tr>
   </tbody>
 </table>
 
@@ -91,7 +92,7 @@
 <ul>
   <li>工作项：<code>WORK-f60583d5247c58735d9679a6a244961f</code>（台账 <code>spec/work-ledger.yaml:87-96</code>）。</li>
   <li>检查点链：TeamLead（开工推进）→ spec-explorer → spec-writer → spec-tester → spec-executor → spec-tester → spec-reviewer → spec-ender，共 8 次，全部 RC=0、无遗留 open-loop。</li>
-  <li><b>机器核验（提交后执行）</b>：由 spec-ender 以提交后的 40 位完整 SHA 为 <code>source_sha</code> 生成 <code>completion.report.v1</code>（<code>criteria</code> 与台账 acceptance 原文逐字一致）→ <code>awr work prepare-completion</code> → <code>awr evidence add</code> → <code>awr work complete</code> → <code>awr session end</code>，并在本报告追加 r2 修订回填实际 <code>source_sha</code>。</li>
+  <li><b>机器核验（已完成）</b>：<code>source_sha = a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e</code>（40 位完整哈希，取自含补丁与全部 Spec 报告的提交）→ <code>awr work prepare-completion --report completion-report.json</code>（RC=0，校验出 3 条 acceptance 映射）→ <code>awr evidence add</code>（evidence id <code>01M36DJNFW28E0WBJ0FMHAB3RZ</code>，level <code>locally_verified</code>）→ <code>awr work complete</code>（RC=0，台账回写 <code>verification: {evidence_level: locally_verified}</code>）→ spec-ender 同会话 <code>awr session end</code>（RC=0）→ <code>awr doctor</code> <b>Findings: 0</b>。</li>
   <li>审查意见 R-01/R-02 的处置：R-01 已在提交前改写台账 acceptance 文字（与 25/26 实测一致）；R-02 通过提交顺序规避（报告与证据先于/同批进入同一提交，补丁不再晚于报告）；R-03 登记为已知限制。</li>
 </ul>
 

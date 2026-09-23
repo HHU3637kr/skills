@@ -86,7 +86,7 @@ work_items:
     next_action: 代码变更自洽闭环，原位归档完成，更新至官方主仓 PR #11
   - id: WORK-f60583d5247c58735d9679a6a244961f
     title: 修复 8 个核心 Skill description 路由边界句，闭合中文请求错判
-    status: in_progress
+    status: completed
     goal: rk-flow-core
     spec_dir: spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补
     acceptance:
@@ -95,3 +95,5 @@ work_items:
       - roster 其余 14 个 SKILL.md 与 .agents/rules/ 零改动
     next_action: 启动 spec-explorer 固化三个路由错判的根因与实测证据
     "summary": "需求对齐确认（v2.11/fix/serial/gated），分支 fix/spec-20260923-skill-routing-boundary 与 Spec 骨架已建"
+    "evidence": ["spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补/tester/artifacts/test-logs/20260923-route-bench/completion-report.json"]
+    "verification": {"evidence_level":"locally_verified"}
