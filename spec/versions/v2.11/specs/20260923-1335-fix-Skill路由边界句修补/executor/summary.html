@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>实现总结 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="summary">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-executor">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,summary,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan" href="../writer/plan.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+<link rel="rk-review" href="../reviewer/review.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>实现总结：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> summary</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-executor</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r1（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">实现结论</div>
+  <p>已按 <code>writer/plan.html</code> §3 变更集应用 8 个 <code>SKILL.md</code> frontmatter <code>description</code> 修补，实现方式为幂等脚本
+  <code>executor/artifacts/apply-description-patch.py</code>（只替换 frontmatter 的 description 块，正文字节不变，附 name/长度/正文三重断言）。
+  测试侧已由 spec-tester 完成 RED→GREEN 实测：18/26 → 25/26，4 个已知错判全部闭合，GREEN 4 轮零 flap。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-executor</td><td>初版：8 个 description 修补应用记录、脚本与自校验、相对计划的偏差</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 变更清单</h2>
+<table>
+  <thead><tr><th>Skill</th><th>字符数</th><th>修补性质</th></tr></thead>
+  <tbody>
+    <tr><td><code>spec-test</code></td><td>193 → 318</td><td>补「核对用例与证据是否真跑过」触发面 + 显式把符合性审查让给 spec-review</td></tr>
+    <tr><td><code>spec-review</code></td><td>228 → 306</td><td>补两条负面归属：证据真假核对归 spec-test、运行期故障诊断归 spec-debug</td></tr>
+    <tr><td><code>html-report</code></td><td>275 → 494</td><td>重写为格式契约口径：只规定「长什么样」，明确「内容归谁」</td></tr>
+    <tr><td><code>spec-update</code></td><td>235 → 536</td><td>补用户向触发词（改 plan.html 漏的参数、修订既有报告、补修订历史行）</td></tr>
+    <tr><td><code>exp-write</code></td><td>178 → 397</td><td>触发入口显式化 + 「只执行写入，识别分类归 exp-reflect」</td></tr>
+    <tr><td><code>exp-reflect</code></td><td>132 → 249</td><td>「不落盘写入」+ SOP 落盘用 skill-creator</td></tr>
+    <tr><td><code>spec-start</code></td><td>147 → 210</td><td>负面清单补 spec-debug 与非流程性文档/记忆写入</td></tr>
+    <tr><td><code>spec-debug</code></td><td>323 → 439</td><td>补用户向触发条件 (4) 与触发词，明确不吞主动迭代</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 实现方式与自校验</h2>
+<ul>
+  <li><b>脚本</b>：<code>executor/artifacts/apply-description-patch.py</code>，幂等，可重复应用。</li>
+  <li><b>断言（每次应用自动执行）</b>：frontmatter 可解析；<code>name</code> 与改前一致且等于目录名；<code>description</code> ≤1024 字符；<code>---</code> 之后正文逐字节未变。</li>
+  <li><b>改动面</b>：<code>git diff --name-only</code> = 8 个 SKILL.md + <code>spec/work-ledger.yaml</code>（AWR 台账登记）；无 <code>.agents/rules/</code>、无 roster 其余 14 个 SKILL.md。</li>
+</ul>
+
+<h2>3. 与计划的偏差</h2>
+<table>
+  <thead><tr><th>偏差</th><th>原因</th><th>处置</th></tr></thead>
+  <tbody>
+    <tr><td>TC-04 首轮 FAIL：<code>spec-test</code> 未点名 <code>spec-review</code></td><td>计划 §3.1 只要求补「证据核对」触发面，漏写对侧归属</td><td>按边界双向性原则补「或审查实现是否符合 Spec（后者归 spec-review）」后重跑 PASS；记 I-005</td></tr>
+    <tr><td>exp-reflect 额外补「程序记忆（SOP）落盘成新 Skill 用 skill-creator」</td><td>探明 r23 的 gold 与 <code>none_of_these</code> 之争根源是 roster 外 skill-creator 未点名</td><td>保留该从句（提升边界可读性）；r23 仍为残留不确定项，见测试报告</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 附带的实现期发现</h2>
+<ul>
+  <li>基准脚本 <code>route_bench.py</code> 首版 frontmatter 正则缺 <code>re.S</code>，导致折叠标量（<code>&gt;</code>）全部解析失败（22/22 报错）。修正为先截取 frontmatter 块再匹配。该缺陷只影响测试脚本，不影响仓库文件。</li>
+  <li>该缺陷与本次调查同一族：<b>对 SKILL.md frontmatter 做机械解析时，折叠标量与多行块必须按块截取，不能行内正则</b>——已作为经验沉淀候选写入 exp-reflect 阶段。</li>
+</ul>
+
+<h2>5. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a>（待创建）</li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/red-route-bench.log" data-rk-link="red-log">RED 计分日志</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/green-route-bench.log" data-rk-link="green-log">GREEN 计分日志</a></li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../writer/plan.html" data-rk-backlink="plan">设计方案</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

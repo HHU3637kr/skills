@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-review
-description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，在 reviewer/ 下生成审查报告（review.html）。在 spec-execute 完成 executor/summary.html 后、spec-end 归档前使用。`gated` 模式下可选，由 TeamLead 按需启动；`autopilot` 模式下强制介入（自动驾驶下唯一的独立视角）。触发词：审查 Spec、检查实现、Spec Review。
+description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spec 执行，识别未完成项和不符项，在 reviewer/ 下生成审查报告（review.html）。在 spec-execute 完成 executor/summary.html 后、spec-end 归档前使用。`gated` 模式下可选，由 TeamLead 按需启动；`autopilot` 模式下强制介入（自动驾驶下唯一的独立视角）。触发词：审查 Spec、检查实现、Spec Review。不要用于核对用例或证据是否真跑过、识别假测试与评估测试质量（归 spec-test），也不要用于运行期故障诊断与 bug 修复（归 spec-debug）。
 ---
 
 # Spec Review

@@ -1,11 +1,6 @@
 ---
 name: html-report
-description: >
-  当需要产出或修改 R&K Flow 的 Spec 报告（exploration-report / plan / test-plan /
-  test-report / summary / debug / review / update / end-report）时使用。
-  定义 HTML 报告的固定结构、固定样式和可追溯修订标记规范。
-  典型信号：要写某个 Spec 阶段的报告、要修订已有报告、要让用户看清两版之间改了什么。
-  不要用于记忆库文件（`spec/context/**/*.md`，保持 Markdown 供 `exp-search` 检索）。
+description: 当需要产出或修改 R&K Flow 的 Spec 报告（exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report）的格式时使用。定义 HTML 报告的固定结构、固定样式和可追溯修订标记规范。典型信号：要写某个 Spec 阶段的报告骨架、要修订已有报告、要让用户看清两版之间改了什么、或要核对修订号/修订历史/meta/双向关联/样式表是否符合契约。本 Skill 只规定'报告长什么样'，不决定'报告里写什么'：补漏需求参数、改方案、调整验收标准、修结论、补修订历史内容分别属于 spec-update / spec-write / spec-execute 等角色 Skill，它们只在需要遵守格式契约时读本 Skill。请求里出现 report/plan/update 等文件名不构成本 Skill 的触发条件。不要用于记忆库文件（`spec/context/**/*.md`，保持 Markdown 供 `exp-search` 检索）。
 ---
 
 # HTML Report

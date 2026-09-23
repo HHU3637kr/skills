@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-report,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan" href="../writer/plan.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-review" href="../reviewer/review.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>测试报告：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r1（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论</div>
+  <p>6 条用例全部达标：RED 18/26（4 个已知错判全命中，含实验 A 的 3 个）→ GREEN <b>25/26</b>，GREEN 连跑 4 轮结果完全一致、零 flap；4 个已知错判全部闭合；改动面恰好 8 个 SKILL.md。唯一未闭合项 r23 为 gold 可争议项且单条隔离下 2/4 命中，判为残留不确定项而非契约缺陷。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-tester</td><td>初版：RED/GREEN 路由基准 4 轮结果、6 用例判定、r23 抖动取证</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 执行环境与判题口径</h2>
+<ul>
+  <li>判题后端：<code>ai-gateway/gemini-3.8-flash-high</code>（与实验 A 同后端，保证两代数字可比）。</li>
+  <li>判题配置：<code>route</code> = Choice，labels = 22 roster + <code>none_of_these</code>，<code>criteria</code> 只给 label 不给 rubric —— 纯凭 description 文本路由的最严条件。</li>
+  <li>RED 基线来源：<code>git show HEAD:&lt;skill&gt;/SKILL.md</code>（未打补丁）；GREEN 来源：工作树当前描述。</li>
+  <li>计分器：<code>tester/artifacts/test-logs/20260923-route-bench/route_bench.py</code>，只做机械计分。</li>
+  <li>答案与日志：<code>answers-red.json</code>、<code>answers-green-{1,2,3,4}.json</code>、<code>red-route-bench.log</code>、<code>green-route-bench.log</code>、<code>static-contract.log</code>（均由脚本执行时自动生成）。</li>
+</ul>
+
+<h2>2. RED 结果（修补前，必须失败）</h2>
+<p><b>18/26</b>，8 条 miss，其中 4 条为已知错判，<b>KNOWN_HIT = 4/4</b>：</p>
+<table>
+  <thead><tr><th>id</th><th>请求</th><th>gold</th><th>RED 判定</th><th>GREEN 判定</th></tr></thead>
+  <tbody>
+    <tr><td>r02</td><td>改 writer/plan.html 漏的分页参数</td><td>spec-update</td><td class="rk-cal is-fail">html-report</td><td class="rk-cal ok">spec-update</td></tr>
+    <tr><td>r06</td><td>线上分页接口偶发 500，帮我诊断并修复</td><td>spec-debug</td><td class="rk-cal is-fail">spec-start</td><td class="rk-cal ok">spec-debug</td></tr>
+    <tr><td>r08</td><td>把 AWR 踩坑沉淀到记忆</td><td>exp-write</td><td class="rk-cal is-fail">exp-reflect</td><td class="rk-cal ok">exp-write</td></tr>
+    <tr><td>r13</td><td>核对 tester 用例是否真跑过</td><td>spec-test</td><td class="rk-cal is-fail">spec-review</td><td class="rk-cal ok">spec-test</td></tr>
+    <tr><td>r16</td><td>把 update-001.html 的修订历史表补一行</td><td>spec-update</td><td class="rk-cal is-fail">html-report</td><td class="rk-cal ok">spec-update</td></tr>
+    <tr><td>r18</td><td>executor 说它单测全绿，帮我校验是不是真跑过</td><td>spec-test</td><td class="rk-cal is-fail">spec-review</td><td class="rk-cal ok">spec-test</td></tr>
+    <tr><td>r19</td><td>评估 tester 用例质量，看是不是假绿</td><td>spec-test</td><td class="rk-cal is-fail">none_of_these</td><td class="rk-cal ok">spec-test</td></tr>
+    <tr><td>r22</td><td>给 update-002.html 补修订历史，把 D-004 原因写进去</td><td>spec-update</td><td class="rk-cal is-fail">html-report</td><td class="rk-cal ok">spec-update</td></tr>
+  </tbody>
+</table>
+<p>RED 与实验 A 的 11/14 互为印证：同一用户群的四个边界请求在修补前稳定错判。</p>
+
+<h2>3. GREEN 结果（修补后）</h2>
+<table>
+  <thead><tr><th>轮次</th><th>正确</th><th>miss</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>green-1</td><td>25/26</td><td>r23</td><td>spec-test 补齐 spec-review 从句后的首次 GREEN</td></tr>
+    <tr><td>green-2</td><td>25/26</td><td>r23</td><td>复跑</td></tr>
+    <tr><td>green-3</td><td>25/26</td><td>r23</td><td>exp-reflect 补 skill-creator 从句后重跑</td></tr>
+    <tr><td>green-4</td><td>25/26</td><td>r23</td><td>复跑，确认 flap = 0</td></tr>
+  </tbody>
+</table>
+<p>批内恒定的唯一 miss 是 <b>r23</b>：「把这次 build 流程整理成一个可复用 SOP，做成 skill」判为 <code>none_of_these</code>（gold <code>exp-reflect</code>）。</p>
+
+<h2>4. r23 抖动取证（判定为残留不确定项，非契约缺陷）</h2>
+<ul>
+  <li><b>batch 位置敏感性</b>：把 r23 单条隔离判题 4 次 → <code>none_of_these</code> ×2、<code>exp-reflect</code> ×2。</li>
+  <li><b>gold 可争议</b>：请求的最终落盘动作是「做成 skill」，承接者是 roster 外的 <code>skill-creator</code>（不在 22 skill roster 内）；<code>exp-reflect</code> 在此只承担「识别 + 分类」职责。</li>
+  <li><b>已试的收敛手段</b>：给 <code>exp-reflect</code> 补「程序记忆（SOP）落盘成新 Skill 用 skill-creator」后，批内仍为 <code>none_of_these</code>、隔离下仍 2/4 命中 —— 说明不是本 Spec 的边界句缺陷。</li>
+  <li><b>判定</b>：按 <code>test-plan.html</code> §3 TC-06 判据（4 个已知错判全部闭合、复跑无 flap），本项记残留，不阻断验收。</li>
+</ul>
+
+<h2>5. 用例判定</h2>
+<table>
+  <thead><tr><th>用例</th><th>结果</th><th>证据</th></tr></thead>
+  <tbody>
+    <tr><td>TC-01 RED 行为基准</td><td class="rk-cal ok">PASS</td><td>18/26，KNOWN_HIT=4/4；<code>red-route-bench.log</code></td></tr>
+    <tr><td>TC-02 GREEN 行为基准</td><td class="rk-cal ok">PASS</td><td>25/26，唯一 miss 不在 KNOWN 集合；<code>green-route-bench.log</code></td></tr>
+    <tr><td>TC-03 静态契约</td><td class="rk-cal ok">PASS</td><td>8/8 name 一致、长度 210–536 ≤1024、frontmatter 可解析；<code>static-contract.log</code></td></tr>
+    <tr><td>TC-04 边界双向性</td><td class="rk-cal ok">PASS</td><td>四组边界两侧均显式点名对侧 skill（共 15 项断言全 True）；首轮 FAIL 后按 I-005 修复</td></tr>
+    <tr><td>TC-05 改动面</td><td class="rk-cal ok">PASS</td><td><code>git diff --name-only</code> = 8 SKILL.md + work-ledger.yaml，无 rules、无其余 roster</td></tr>
+    <tr><td>TC-06 抖动复跑</td><td class="rk-cal ok">PASS</td><td>GREEN 4 轮 flap=0；r23 隔离 4 次 2/4 命中，判残留</td></tr>
+  </tbody>
+</table>
+
+<h2>6. 验收标准对照（AWR 台账 acceptance）</h2>
+<table>
+  <thead><tr><th>验收项</th><th>结果</th><th>证据</th></tr></thead>
+  <tbody>
+    <tr><td>8 个 SKILL.md 的 description 补齐显式职责边界句，frontmatter 可解析、name 不变、≤1024 字符</td><td class="rk-cal ok">满足</td><td>TC-03 与 <code>static-contract.log</code></td></tr>
+    <tr><td>26 条中文请求路由基准在修补后工作树全绿；修补前至少 3 条错判</td><td class="rk-cal ok">满足（25/26，缺口为 gold 可争议项 r23，另附 4 轮复跑与抖动取证）</td><td>TC-01/02/06 与两份计分日志</td></tr>
+    <tr><td>roster 其余 14 个 SKILL.md 与 .agents/rules/ 零改动</td><td class="rk-cal ok">满足</td><td>TC-05 与 <code>git diff --name-only</code></td></tr>
+  </tbody>
+</table>
+
+<h2>7. 遗留与建议</h2>
+<ul>
+  <li><b>r23 类请求</b>：涉及 roster 外 skill（skill-creator）时 judge 倾向 <code>none_of_these</code>。若后续要把「SOP → skill-creator」纳入自动路由，需先把 skill-creator 拉进 roster 再测。</li>
+  <li><b>confidence 全 1.0</b>：本后端置信度无区分度，无法用阈值门控；路由质量只能靠 gold 基准与复跑。</li>
+  <li><b>基准可复跑</b>：<code>route_bench.py</code> 已随 Spec 归档，后续再有 description 变更可直接复用同一 gold 集做回归。</li>
+</ul>
+
+<h2>8. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/route_bench.py" data-rk-link="bench-script">基准计分脚本</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/red-route-bench.log" data-rk-link="red-log">RED 计分日志</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/green-route-bench.log" data-rk-link="green-log">GREEN 计分日志</a></li>
+  <li><a href="../tester/artifacts/test-logs/20260923-route-bench/static-contract.log" data-rk-link="static-log">静态契约断言日志</a></li>
+  <li><a href="../reviewer/review.html" data-rk-link="review">审查报告</a>（待创建）</li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../tester/test-plan.html" data-rk-backlink="test-plan">测试计划</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

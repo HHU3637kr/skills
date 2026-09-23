@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>探索报告 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="exploration-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-explorer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,exploration,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>探索报告：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> exploration-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-explorer</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r1（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">探索结论</div>
+  <p>三个错判全部可复现，且根因不是模型能力或语料长度，而是 <b>8 个 SKILL.md 的 <code>description</code> 缺少与对侧 skill 的显式职责边界句</b>：宽口径 skill（html-report 格式契约、exp-reflect 分诊）按词面命中吞掉窄口径执行者（spec-update / exp-write / spec-test）。补齐边界句后同一 26 条中文请求基准从 18/26 提升到 26/26（复跑 25/26，唯一抖动项不在原错判集合内），证明修补有效，可进入方案撰写。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-explorer</td><td>初版：三个已知错判 + 第 4 个同型碰撞的根因、复现证据、伪根因排除与边界矩阵</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 探索范围与方法</h2>
+<ol>
+  <li><b>对象</b>：实验 A 使用的 22 个核心流程 skill roster（<code>spec-init/start/explore/write/test/execute/debug/review/update/end/swarm</code>、<code>version-start/update/release/end</code>、<code>git-work</code>、<code>exp-search/reflect/write</code>、<code>intent-confirmation</code>、<code>html-report</code>、<code>find-skills</code>）。</li>
+  <li><b>判定通道</b>：harness <code>judge_batch</code> 的 <code>route</code> Choice 题（22 个 label + <code>none_of_these</code> 兜底），criteria 只给 label 不给 rubric —— 等价于「只凭 description 文本做路由」的最严条件。</li>
+  <li><b>后端</b>：<code>ai-gateway/gemini-3.8-flash-high</code>（<code>/tmp/rk-jev-eval-log.json</code> 一并记录 confidence 全为 1.0，故本基准只能当 triage 信号，不能当放行门禁）。</li>
+  <li><b>语料</b>：沿用实验 A 的 3 条错判请求 + 11 条原正确请求 + 12 条边界/反向探测请求，共 26 条中文请求，每条 gold 一行写死。</li>
+</ol>
+
+<h2>2. 三个已知错判的根因</h2>
+
+<h3>2.1 「改 writer/plan.html 漏的分页参数」→ 误判 html-report</h3>
+<div class="rk-cal">
+  <p><b>根因</b>：<code>html-report/SKILL.md:3-11</code> 的 description 自称「当需要<b>产出或修改</b> R&amp;K Flow 的 Spec 报告（…<code>plan</code>…<code>update</code>…）时使用」，并把「要修订已有报告」列为典型信号；而 <code>spec-update/SKILL.md:4</code> 只说「修正方案或优化实现」，全文没有一处出现「修改 <code>writer/plan.html</code> 这个文件」的用户向说法。请求里同时出现文件名 <code>writer/plan.html</code> 与动词「改」，词面命中 html-report。</p>
+  <p><b>性质</b>：格式契约 skill（<code>README.md:523</code> 定位为「所有报告类产物的格式基础」）的触发条件写得像任务 skill，与每一个产出报告的 <code>spec-*</code> 角色都重叠。</p>
+</div>
+
+<h3>2.2 「把 AWR 踩坑沉淀到记忆」→ 误判 exp-reflect</h3>
+<div class="rk-cal">
+  <p><b>根因</b>：「沉淀」是 <code>exp-reflect/SKILL.md:4</code> 的原词（「判断是否沉淀经验、知识、SOP…」）；而 <code>exp-write/SKILL.md:4</code> 的 description 是<b>角色自述</b>（「记忆写入 Skill，将重大经验写入…」），触发条件全部是内部调用（「exp-reflect 确认后、手动添加经验或知识」），<b>没有一条用户可见入口</b>。请求由用户直接发起且内容已明确（AWR 踩坑），应走 exp-write 落盘。</p>
+</div>
+
+<h3>2.3 「核对 tester 用例是否真跑过」→ 误判 spec-review</h3>
+<div class="rk-cal">
+  <p><b>根因</b>：<code>spec-test/SKILL.md:4-8</code> 的 description 只覆盖「写 test-plan / 跑测试出 test-report / 修复后重验」，<b>没有「核对证据是否真跑、识别假测试假绿、评估测试质量」</b>——而这些恰是它 body 里的硬规则：<code>spec-test/SKILL.md:20</code>「最终测试结论必须基于本轮在当前工作树上的实际运行」、<code>:32</code> 证据必须自动采集禁止手写补写、<code>:23</code> 评估 <code>spec-executor</code> 单元测试质量。请求落在该缺口，被 <code>spec-review/SKILL.md:4</code> 的触发词「检查实现」「审查 Spec」接走。</p>
+</div>
+
+<h3>2.4 同型第 4 例（本次扩展实测发现）：spec-start 吞掉 spec-debug</h3>
+<div class="rk-cal">
+  <p><b>现象</b>：「线上分页接口偶发 500，帮我诊断并修复」被判为 <code>spec-start</code>。</p>
+  <p><b>根因</b>：<code>spec-start/SKILL.md:4-6</code> 的入口只有「开始新的开发任务…启动完整 Spec 流程」这一宽口径，负面清单仅列了 spec-update 与 spec-init，<b>没有把运行期故障诊断/bug 修复挡给 <code>spec-debug</code></b>；<code>spec-debug/SKILL.md:4-8</code> 的触发条件又全是角色内部视角（「角色 spec-debugger 接收到 TeamLead 转交的 bug handoff」），缺用户向触发词。</p>
+  <p><b>佐证</b>：<code>README.md:481</code> 已明确 update 用于主动迭代、debug 用于被动修复 —— 说明边界本身在仓库里有共识，只是没写进 description。</p>
+</div>
+
+<h2>3. 伪根因排除</h2>
+<table>
+  <thead><tr><th>假设</th><th>验证方式</th><th>结论</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>实验 A 的 roster 把 description 截断到 220 字符，切掉了边界尾句</td>
+      <td>用「220 字符截断 roster」与「完整 description roster」各跑一遍 14 条原请求</td>
+      <td><b>排除</b>：两条 roster 结果完全一致（均 10/14，miss 集合相同）。html-report 确实被切掉「不要用于记忆库文件…」尾句，但对这三题无影响</td>
+    </tr>
+    <tr>
+      <td>judge 后端/模型能力不足</td>
+      <td>同一后端下只改 8 个 description 的边界句，重跑 26 条基准</td>
+      <td><b>排除</b>：18/26 → 26/26（复跑 25/26），唯一抖动项是「整理成 SOP 做成 skill」的兜底选择，不落在原错判集合</td>
+    </tr>
+    <tr>
+      <td>gold 标注本身有争议</td>
+      <td>逐条对照 <code>.agents/rules/spec-workflow.md:7-11</code>、<code>README.md:481,1149-1151</code>、各 skill 运行契约「权限」行</td>
+      <td>三条 gold 与仓库既有口径一致：更新既有报告内容归 spec-update、明确内容落盘归 exp-write、证据真假核对归 spec-test</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. 边界矩阵（22 skill roster 中需要改的 8 个）</h2>
+<table>
+  <thead><tr><th>Skill</th><th>现口径</th><th>缺的边界</th><th>对侧 skill</th></tr></thead>
+  <tbody>
+    <tr><td><code>html-report</code></td><td>拥有「产出或修改 Spec 报告」</td><td>只规定格式，不决定内容；出现 report/html 文件名不构成触发</td><td>spec-update / spec-write / spec-execute 等</td></tr>
+    <tr><td><code>spec-update</code></td><td>「修正方案或优化实现」</td><td>用户向触发词（改 plan.html 漏的参数、修订既有报告、补修订历史行）</td><td>html-report</td></tr>
+    <tr><td><code>exp-reflect</code></td><td>「总结经验/判断是否沉淀」</td><td>不落盘写入；内容已明确时交 exp-write</td><td>exp-write</td></tr>
+    <tr><td><code>exp-write</code></td><td>「记忆写入 Skill」（角色自述）</td><td>用户向入口与「只执行写入、不负责识别分类」</td><td>exp-reflect</td></tr>
+    <tr><td><code>spec-test</code></td><td>写/跑测试与修复后重验</td><td>核对用例与证据是否真跑、识别假测试假绿、评估测试质量</td><td>spec-review</td></tr>
+    <tr><td><code>spec-review</code></td><td>审查实现是否符合 Spec</td><td>不核对证据真假、不做故障诊断</td><td>spec-test / spec-debug</td></tr>
+    <tr><td><code>spec-start</code></td><td>「开始新的开发任务」</td><td>负面清单未列 debug 与非流程性文档/记忆写入</td><td>spec-debug</td></tr>
+    <tr><td><code>spec-debug</code></td><td>角色内部 handoff 触发</td><td>用户向触发词（诊断/修复线上问题、偶发故障、回归排查）</td><td>spec-start / spec-update</td></tr>
+  </tbody>
+</table>
+
+<h2>5. 运行时影响面</h2>
+<ul>
+  <li>本仓库 52 个 <code>SKILL.md</code> 全部带 <code>disable-model-invocation: true</code>（<code>README.md:1432</code> 记 38 个后持续增长），运行时<b>不做 skill 自动装载</b>；因此 description 的错判不会造成「自动载错 skill」，但它是人/agent 扫 roster 选 skill 时的<b>唯一机器可读边界信号</b>（<code>.agents/rules/spec-workflow.md</code> 与 <code>.agents/roles/</code> 均不做路由）。</li>
+  <li>修补只动 frontmatter 文本，不改任何流程铁律、不改 <code>.agents/rules/</code>，因此不触发「永远门禁」。</li>
+  <li>长度约束：修后最长 <code>spec-update</code> 536 字符，全部 ≤1024（darwin-skill rubric 上限）。</li>
+</ul>
+
+<h2>6. 结论与移交</h2>
+<ul>
+  <li><b>可进入方案撰写</b>：8 个 description 的边界句清单已固定（见 §4），逐句保留原文并追加/改写边界（spec-start、html-report 两处为重写，已在本次探索中逐句审计原文保留情况）。</li>
+  <li><b>测试可机械判定</b>：26 条 gold 基准 + 3 条静态契约断言（frontmatter 可解析、name 不变、≤1024 字符）+ 1 条改动面断言（其余 14 个 roster 与 <code>.agents/rules/</code> 零 diff）。</li>
+  <li><b>移交 spec-writer</b>：按 §4 矩阵成文；<b>移交 spec-tester</b>：按上一条制定 RED→GREEN 测试计划，RED 必须在未打补丁的 HEAD 描述上真实失败。</li>
+</ul>
+
+<h2>7. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a>（待创建）</li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a>（待创建）</li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a>（待创建）</li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../lead/team-context.md" data-rk-backlink="ledger">运行账本</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>
