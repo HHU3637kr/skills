@@ -54,7 +54,7 @@ git remote -v
 3. 建立角色与样式资产软链接/Junction（免提权）；
 4. 准备初始 `.gitignore` 与 `.awrignore`。
 
-脚本执行完毕后，Agent 直接跳到**步骤 2**与用户对齐项目业务信息（名称、技术栈、类型），生成定制化的 `AGENTS.md` 与初始 `spec/work-ledger.yaml`。
+脚本执行完毕后，Agent 直接跳到**步骤 2**与用户对齐项目业务信息（名称、技术栈、类型），生成定制化的 `AGENTS.md` 与初始 `work-ledger.yaml`（根目录，路径以 `.awr/project.toml` 声明为准）。
 Git 检查规则：
 - 如果已经是 Git 仓库，记录当前分支和远程仓库；不要重新 `git init`
 - 如果不是 Git 仓库，询问用户是否初始化 Git 仓库
