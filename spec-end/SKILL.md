@@ -225,6 +225,92 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
 
 若返回非 0 退出码，必须回退排查并闭环工作项的目标关联、验收准则或测试证据，严禁带缺口归档。
 
+**报告契约与测试证据机检（Report Contract & Evidence Gate）**：
+零缺口门禁只管 AWR 结构，不管产物形态。以下机检覆盖 html-report 契约与 tdd-discipline 证据三要素，与零缺口门禁同为归档前置硬门禁（依据 2026-09-22 四场景并发实测：tech 7/7 报告违约、debt 7/7 缺反链+11 处行内样式、3/4 场景证据缺退出码/时间戳；本仓历史交付物中亦有同类先例，如 20260917-1600 Spec 的 test-report 8 处行内样式、20260916-2200 tech Spec 全部报告缺 manifest 脚本——全部由此类机检捕获）。
+
+范围声明：**本门禁只扫描本次收尾的 `<SPEC-DIR>`**，历史归档 Spec 的既有偏差不追溯、不阻断；修历史报告属另一件工作，不在本门禁职责内。另注意本门禁只能校验产物**形态**，无法识别事后补写的伪造证据行——产出时效约束（证据必须由测试运行自身产出、禁止手写补写）仍以 `spec-execute/references/tdd-discipline.md` 为准。
+
+- **Linux / macOS / Git Bash 环境**：
+  ```bash
+  # <SPEC-DIR> 为本 Spec 物理目录，如 spec/versions/v0.1/specs/20260923-1000-feat-示例
+  if ! command -v python3 >/dev/null 2>&1; then
+      echo "❌ 门禁阻断: 系统缺少 python3，无法执行报告契约机检，拒绝归档！"
+      exit 1
+  fi
+  if ! python3 - "<SPEC-DIR>" <<'PYEOF'
+import os, re, sys
+spec_dir = sys.argv[1]
+if not os.path.isdir(spec_dir):
+    sys.stderr.write(f"❌ Spec 目录不存在: {spec_dir}\n"); sys.exit(1)
+violations = []
+evidence_violations = 0
+need_meta = ["rk:type","rk:version","rk:spec-dir","rk:category","rk:role","rk:mode",
+             "rk:git-branch","rk:base-branch","rk:created","rk:updated","rk:revision","rk:pr-url"]
+need_cls = ["rk-verdict","rk-meta","rk-revs","rk-links","rk-backlinks"]
+CODE_SPAN = re.compile(r"(?s)<pre>.*?</pre>|<code>.*?</code>|`[^`\n]*`")
+def lineno(text, needle):
+    i = text.find(needle)
+    return text[:i].count("\n") + 1 if i >= 0 else 1
+html_count = 0
+for root, _, files in os.walk(spec_dir):
+    for fn in sorted(files):
+        if not fn.endswith(".html"):
+            continue
+        html_count += 1
+        p = os.path.join(root, fn)
+        t = open(p, encoding="utf-8").read()
+        depth = "../" * os.path.relpath(p, ".").count("/")
+        for m in need_meta:
+            if f'name="{m}"' not in t:
+                violations.append(f"{p}:{lineno(t, '<meta')}: 缺 <meta name=\"{m}\">（<head> 内补齐，Spec 级报告必填）")
+        for c in need_cls:
+            if c not in t:
+                violations.append(f"{p}:{lineno(t, '<body')}: 缺 .{c} 区块（按 html-report 骨架补；rk-backlinks 只要求节存在，无对侧引用时保留空节并标（待创建））")
+        css = re.findall(r'href="((?:\.\./)+)html-report/assets/rk-report\.css"', t)
+        if not css or css[0] != depth:
+            violations.append(f"{p}:{lineno(t, 'rk-report.css')}: assets 相对深度应为 {depth}html-report/assets/，实得 {css}")
+        mi, ji = t.find("rk-manifest.js"), t.find("rk-report.js")
+        if ji != -1 and (mi == -1 or mi > ji):
+            violations.append(f"{p}:{lineno(t, 'rk-report.js')}: rk-manifest.js 必须排在 rk-report.js 之前（defer 按文档序执行，反序则 file:// 导航树为空）")
+        # 行内样式/禁 fetch 检查前先剔除 <pre>/<code>/行内反引号内容：报告在代码引用里讨论这些模式（如修复 HTML 契约的 Spec）是合规叙述，不算违规
+        t_visible = CODE_SPAN.sub("", t)
+        if 'style="' in t_visible or re.search(r"<style[\s>]", t_visible):
+            violations.append(f"{p}:{lineno(t_visible, 'style=')}: 禁止行内样式/<style> 块（样式只改 html-report/assets/rk-report.css）")
+        if "fetch(" in t_visible:
+            violations.append(f"{p}:{lineno(t_visible, 'fetch(')}: 禁止 fetch 探测同级文件（file:// 必失败，用 rk-manifest.js）")
+if html_count == 0:
+    violations.append("<SPEC-DIR> 内未发现任何 HTML 角色报告，请确认目录参数")
+# 测试证据三要素（tdd-discipline：缺退出码或缺时间戳的证据视为无效）
+for base in ("tester/artifacts", "executor/artifacts"):
+    d = os.path.join(spec_dir, base)
+    for root, _, files in os.walk(d):
+        for fn in sorted(files):
+            if not (fn.endswith(".log") or fn.endswith(".txt")):
+                continue
+            p = os.path.join(root, fn)
+            t = open(p, encoding="utf-8", errors="replace").read()
+            if not re.search(r"^Command:", t, re.M):
+                violations.append(f"{p}:1: 缺 Command: 行（必须能看出跑了什么命令）"); evidence_violations += 1
+            if not re.search(r"Exit code|_RC=", t):
+                violations.append(f"{p}:1: 缺退出码记录（缺退出码按 tdd-discipline 视为无效证据）"); evidence_violations += 1
+            if not re.search(r"\d{4}-\d{2}-\d{2}T", t):
+                violations.append(f"{p}:1: 缺时间戳（缺时间戳按 tdd-discipline 视为无效证据）"); evidence_violations += 1
+if evidence_violations:
+    sys.stderr.write("证据三要素被接受的等价形态：命令=「Command: <原文字符串>」行或 runner/框架原生输出中自带的命令回显；"
+                     "退出码=「Exit code: N」「_RC=N」「AUDIT_RC=N」之一；时间戳=ISO8601（YYYY-MM-DDTHH:MM:SS，可用 date -Iseconds 取）。\n")
+if violations:
+    sys.stderr.write(f"❌ 报告契约/证据机检未通过（{len(violations)} 项），禁止结项归档：\n")
+    for v in violations:
+        sys.stderr.write(f"   - {v}\n")
+    sys.exit(1)
+print(f"✅ 报告契约与测试证据机检通过（{html_count} 份报告）")
+PYEOF
+  then
+      exit 1
+  fi
+  ```
+- **Windows 原生 PowerShell 环境**：**ps1 对等实现待补**（本机无 pwsh 不可实测；补齐前由 spec-ender 用 python3 完成等价机检——检项与 bash 分支一致：rk:* 必填 meta 含 rk:version/rk:category、rk-verdict/meta/revs/links/backlinks 区块、assets 相对深度、manifest 先于 rk-report.js、零行内样式（剔除代码引用后判断）、证据三要素——并在 `end-report.html` 注明实测过程与结论）。
+
 `gated` 模式下向用户确认：
 
 ```text
@@ -246,9 +332,10 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
    在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
    
    **执行 AWR 官方 0.5.0 机器完工闭环（先 complete 后 end）**：
-   当全量测试通过且已通过 `awr evidence add` 注册证据后，在当前活动会话中执行机器完工确认（传入官方三字段 JSON，`source_sha` 必须 40 位，`criterion` 与台账逐字一致）：
+   当全量测试通过且已通过 `awr evidence add` 注册证据后，在当前活动会话中执行机器完工确认（传入官方三字段 JSON，`source_sha` 必须 40 位，`criterion` 与台账逐字一致）。完工输入按 `<run-id>` 落**项目内**路径，严禁固定共享路径（并发多 Spec 会互相覆盖导致静默错绑）：
    ```bash
-   cat > /tmp/complete-input.json <<EOF
+   mkdir -p "tester/artifacts/test-logs/<run-id>"
+   cat > "tester/artifacts/test-logs/<run-id>/complete-input.json" <<EOF
    {
      "version": 1,
      "source_sha": "$(git rev-parse HEAD)",
@@ -261,9 +348,9 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
    }
    EOF
    REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
-   awr work complete --session <ENDER_SESSION_ID> --reason "全部验收通过且证据已完整绑定" --input /tmp/complete-input.json --expected-revision "$REV" <SPEC-ID> --json
+   awr work complete --session <ENDER_SESSION_ID> --reason "全部验收通过且证据已完整绑定" --input "tester/artifacts/test-logs/<run-id>/complete-input.json" --expected-revision "$REV" <SPEC-ID> --json
    ```
-   *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为终态 `completed`。*
+   *注：`work complete` 执行成功后，AWR 会自动向 `work-ledger.yaml` 注入 `verification: {evidence_level: locally_verified}` 属性并将工作项置为终态 `completed`。注意 AWR 只注入终态标记，**不会刷新 `summary` / `next_action`**——收尾时必须手工把这两项更新为结论文案（如「已交付并归档，验收标准逐条达成」），否则终态台账仍停留在开工推进文案，误导后续读者；AWR 回写可能使用带引号键/flow 风格，人工维护时保持 YAML block 风格，勿再制造语法漂移。*
 
    **释放租约并复核 doctor（支持直接关闭与同角色脚本释放）**：
    **会话释放与接力状态契约**：
@@ -286,9 +373,9 @@ print("✅ AWR 结构缺口检查通过 (0 Blocking Gaps)")'; then
 3. 如果获得 PR/MR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
 
    ```bash
-   git add <spec-docs>
+   git add "<spec-docs>"
    git commit --amend --no-edit
-   git push --force-with-lease origin <branch-name>
+   git push --force-with-lease origin "<branch-name>"
    ```
 
    `--force-with-lease` 只覆盖自己刚推送的 Spec 分支，若远程分支被他人改动会拒绝，不会误覆盖。
