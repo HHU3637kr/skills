@@ -1,7 +1,8 @@
-﻿<#
+<#
 .SYNOPSIS
     Enterprise AI Coding Workflow 一键初始化脚本 (Windows 原生 PowerShell 版本)
     基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime ≥0.5.0)
+    CLI 中立架构：根目录 AGENTS.md + .agents/roles/ 权威源 + 参数化运行时适配
 
 .DESCRIPTION
     适用于 Windows 10/11 (Windows PowerShell 5.1 或 PowerShell 7+)。
@@ -12,6 +13,9 @@
 
 .PARAMETER SkillsRepoUrl
     规范库 Git 地址，支持环境变量 SKILLS_REPO_URL 覆盖。
+
+.PARAMETER Runtime
+    客户端运行时适配类型：none (默认纯中立)、omp、claude、codex。
 #>
 [CmdletBinding()]
 param (
@@ -19,9 +23,14 @@ param (
     [string]$TargetDir = (Get-Location).Path,
 
     [Parameter(Position = 1)]
-    [string]$SkillsRepoUrl = $(if ($env:SKILLS_REPO_URL) { $env:SKILLS_REPO_URL } else { "https://github.com/HHU3637kr/skills.git" })
+    [string]$SkillsRepoUrl = $(if ($env:SKILLS_REPO_URL) { $env:SKILLS_REPO_URL } else { "https://github.com/HHU3637kr/skills.git" }),
+
+    [ValidateSet("none", "omp", "claude", "codex")]
+    [string]$Runtime = "none"
 )
 
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+if (-not $ScriptDir) { $ScriptDir = $PSScriptRoot }
 $ErrorActionPreference = "Stop"
 $Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
@@ -34,10 +43,11 @@ if (-not (Test-Path $TargetDir)) {
 $TargetDir = (Resolve-Path -Path $TargetDir).Path
 $ProjectName = Split-Path -Leaf $TargetDir
 Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host " 🚀 初始化企业 AI Coding 规范体系 (Windows PowerShell)" -ForegroundColor Cyan
+Write-Host " 🚀 初始化企业 AI Coding 规范体系 (Windows PowerShell / CLI 中立)" -ForegroundColor Cyan
 Write-Host " 目标目录: $TargetDir"
 Write-Host " 项目名称: $ProjectName"
 Write-Host " Skills源: $SkillsRepoUrl"
+Write-Host " 运行时:   $Runtime"
 Write-Host "=================================================================" -ForegroundColor Cyan
 
 # 1. 依赖检测
@@ -65,20 +75,30 @@ if (-not (Test-Path ".git")) {
 Write-Host "📥 正在配置 Skills 依赖库 (.agents\skills)..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path ".agents" | Out-Null
 if (Test-Path ".agents\skills\.git") {
-    Write-Host "🔄 .agents\skills 已存在，执行增量更新..."
+    Write-Host "🔄 .agents\skills 已存在且为 Git 仓库，执行增量更新..." -ForegroundColor Green
     git -C ".agents\skills" pull --ff-only 2>$null
 } else {
+    $skillsBak = $null
     if (Test-Path ".agents\skills") {
-        Remove-Item -Recurse -Force ".agents\skills"
+        $skillsBak = ".agents\skills.bak-" + (Get-Date).ToString("yyyyMMdd-HHmmss")
+        Write-Host "⚠️ 警告: 检测到 .agents\skills 已存在但不是 Git 仓库，正在安全备份至 $skillsBak..." -ForegroundColor Yellow
+        Move-Item -Path ".agents\skills" -Destination $skillsBak -Force
     }
     git clone --depth=1 $SkillsRepoUrl ".agents\skills"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "❌ 错误: 克隆规范库失败 ($SkillsRepoUrl)" -ForegroundColor Red
+        if ($skillsBak -and (Test-Path $skillsBak)) {
+            Write-Host "🔄 正在自动回滚还原既有 .agents\skills..." -ForegroundColor Yellow
+            if (Test-Path ".agents\skills") { Remove-Item -Recurse -Force ".agents\skills" }
+            Move-Item -Path $skillsBak -Destination ".agents\skills" -Force
+        }
+        exit 1
+    }
 }
 
 # 4. 建立免管理员权限的 NTFS Junction (目录联接)
 Write-Host "🔗 正在创建免提权 NTFS Junction 目录联接..." -ForegroundColor Green
-New-Item -ItemType Directory -Force -Path ".omp" | Out-Null
 
-# 辅助函数：安全建立 Junction（防破坏普通目录）
 function New-JunctionSafely {
     param (
         [string]$Path,
@@ -86,11 +106,9 @@ function New-JunctionSafely {
     )
     if (Test-Path $Path) {
         $item = Get-Item $Path -Force
-        # 如果已是 Junction 或符号链接，先移除重置
         if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) {
             $item.Delete()
         } else {
-            # 普通物理目录：自动重命名备份，严禁硬删除用户既有数据
             $timestamp = (Get-Date).ToString("yyyyMMdd-HHmmss")
             $backupPath = "$Path.bak-$timestamp"
             Write-Host "⚠️ 警告: 检测到 $Path 为普通物理目录，正在安全备份至 $backupPath..." -ForegroundColor Yellow
@@ -103,7 +121,6 @@ function New-JunctionSafely {
 $SkillsAbsPath = Join-Path $TargetDir ".agents\skills"
 $HtmlReportAbsPath = Join-Path $SkillsAbsPath "html-report"
 
-New-JunctionSafely -Path (Join-Path $TargetDir ".omp\skills") -Target $SkillsAbsPath
 New-JunctionSafely -Path (Join-Path $TargetDir "html-report") -Target $HtmlReportAbsPath
 
 # 5. 落地项目级企业治理规则 (.agents\rules\)
@@ -118,15 +135,90 @@ if (Test-Path ".agents\skills\.agents\rules") {
     }
 }
 
-# 6. 生成标准薄入口 (.omp\AGENTS.md)
-if (-not (Test-Path ".omp\AGENTS.md")) {
-    Write-Host "📝 正在生成标准薄入口 (.omp\AGENTS.md)..." -ForegroundColor Green
+# 6. 落地 CLI 中立角色权威定义 (.agents\roles\)
+Write-Host "🎭 正在固化 CLI 中立角色权威定义 (.agents\roles\)..." -ForegroundColor Green
+New-Item -ItemType Directory -Force -Path ".agents\roles" | Out-Null
+$rolesSource = if (Test-Path ".agents\skills\.agents\roles") {
+    ".agents\skills\.agents\roles"
+} elseif ($ScriptDir -and (Test-Path (Join-Path $ScriptDir "..\.agents\roles"))) {
+    Join-Path $ScriptDir "..\.agents\roles"
+} else { $null }
+
+if ($rolesSource) {
+    Get-ChildItem -Path $rolesSource -File | ForEach-Object {
+        $destFile = Join-Path ".agents\roles" $_.Name
+        if (-not (Test-Path $destFile)) {
+            Copy-Item -Path $_.FullName -Destination $destFile -Force
+        }
+    }
+}
+
+$RequiredSkillMap = @{
+    "spec-explorer" = "spec-explore"
+    "spec-writer"   = "spec-write"
+    "spec-tester"   = "spec-test"
+    "spec-executor" = "spec-execute"
+    "spec-debugger" = "spec-debug"
+    "spec-reviewer" = "spec-review"
+    "spec-ender"    = "spec-end"
+}
+
+function Get-CanonicalRoleContent {
+    param ([string]$Role)
+    $skill = if ($RequiredSkillMap.ContainsKey($Role)) { $RequiredSkillMap[$Role] } else { $Role -replace '^spec-', 'spec-' }
+    $inPlaceNote = if ($Role -eq "spec-ender") { "`n  - in-place archived Spec directory" } else { "" }
+@"
+---
+role_id: $Role
+required_skill: $skill
+purpose: R&K Flow $Role 专职角色定义
+activation: TeamLead 按阶段流转驱动
+communication: TeamLead-mediated
+inputs:
+  - task_description
+  - spec_dir
+outputs:
+  - status$inPlaceNote
+rules:
+  - 遵循 R&K Flow 对应 Skill 规约执行。
+---
+
+# $Role
+
+负责 R&K Flow 工作流中 $Role 阶段的职责履行与产物交付。
+"@
+}
+
+$Roles = @("spec-explorer", "spec-writer", "spec-tester", "spec-executor", "spec-debugger", "spec-reviewer", "spec-ender")
+foreach ($role in $Roles) {
+    $roleFile = Join-Path ".agents\roles" "$role.md"
+    if (-not (Test-Path $roleFile)) {
+        $roleContent = Get-CanonicalRoleContent -Role $role
+        [System.IO.File]::WriteAllText((Join-Path $TargetDir $roleFile), $roleContent, $Utf8NoBom)
+    }
+}
+
+# 6.1 固化 AWR 检查点自动化脚本 (scripts\rk-awr-checkpoint.{ps1,sh})
+New-Item -ItemType Directory -Force -Path "scripts" | Out-Null
+if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.ps1") {
+    Copy-Item -Path ".agents\skills\scripts\rk-awr-checkpoint.ps1" -Destination "scripts\rk-awr-checkpoint.ps1" -Force
+} elseif ($ScriptDir -and (Test-Path (Join-Path $ScriptDir "rk-awr-checkpoint.ps1"))) {
+    Copy-Item -Path (Join-Path $ScriptDir "rk-awr-checkpoint.ps1") -Destination "scripts\rk-awr-checkpoint.ps1" -Force
+}
+if (Test-Path ".agents\skills\scripts\rk-awr-checkpoint.sh") {
+    Copy-Item -Path ".agents\skills\scripts\rk-awr-checkpoint.sh" -Destination "scripts\rk-awr-checkpoint.sh" -Force
+} elseif ($ScriptDir -and (Test-Path (Join-Path $ScriptDir "rk-awr-checkpoint.sh"))) {
+    Copy-Item -Path (Join-Path $ScriptDir "rk-awr-checkpoint.sh") -Destination "scripts\rk-awr-checkpoint.sh" -Force
+}
+
+# 7. 生成标准根入口 (AGENTS.md)
+if (-not (Test-Path "AGENTS.md")) {
+    Write-Host "📝 正在生成标准薄入口 (AGENTS.md)..." -ForegroundColor Green
     $agentsContent = @"
 # $ProjectName — 项目约定
 
 ## 项目身份
 - **类型**: 企业应用服务
-- **运行时**: OMP (Oh My Pi) + AWR (Agent Work Runtime ≥0.5.0)
 - **版本控制**: \`dev + release\` 分支流（PR/MR 审查）
 
 ## 规则与技能导入
@@ -135,15 +227,93 @@ if (-not (Test-Path ".omp\AGENTS.md")) {
 
 ## 文档与架构规约
 - **三级架构规范**：遵循 R&K Flow「项目 → Version → Spec」三级架构（详见 \`.agents/rules/spec-workflow.md\`）。
+  - 角色定义权威源：\`.agents/roles/\`
   - 版本空间：\`spec/versions/<version>/\`
   - 经验知识库：\`spec/context/experience/\` 与 \`spec/context/knowledge/\`
 - **阶段与提交门禁**：
   - \`spec → plan → 执行\`，每个阶段边界必须取得人的确认；\`git commit\`、\`git push\`、开 MR 一律先经人确认。
 "@
-    [System.IO.File]::WriteAllText((Join-Path $TargetDir ".omp\AGENTS.md"), $agentsContent, $Utf8NoBom)
+    [System.IO.File]::WriteAllText((Join-Path $TargetDir "AGENTS.md"), $agentsContent, $Utf8NoBom)
 }
 
-# 7. 搭建三级架构空间与经验知识库
+# 8. 按需生成单一运行时适配
+switch ($Runtime) {
+    "omp" {
+        Write-Host "⚙️ 正在装配 OMP 运行时专属适配 (.omp\agents\)..." -ForegroundColor Green
+        New-Item -ItemType Directory -Force -Path ".omp\agents" | Out-Null
+        foreach ($role in $Roles) {
+            $ompFile = Join-Path ".omp\agents" "$role.md"
+            if (-not (Test-Path $ompFile)) {
+                $ompContent = @"
+---
+name: $role
+description: R&K Flow $role 角色 OMP 适配
+thinkingLevel: high
+spawns: ""
+---
+
+You are $role in the R&K Flow Spec workflow.
+Read \`.agents/roles/$role.md\` and follow the referenced protocol.
+Return results to TeamLead only, with artifact paths and any requested downstream handoff.
+"@
+                [System.IO.File]::WriteAllText((Join-Path $TargetDir $ompFile), $ompContent, $Utf8NoBom)
+            }
+        }
+    }
+    "claude" {
+        Write-Host "⚙️ 正在装配 Claude Code 运行时专属适配 (.claude\)..." -ForegroundColor Green
+        New-Item -ItemType Directory -Force -Path ".claude\agents" | Out-Null
+        New-JunctionSafely -Path (Join-Path $TargetDir ".claude\skills") -Target $SkillsAbsPath
+        foreach ($role in $Roles) {
+            $claudeFile = Join-Path ".claude\agents" "$role.md"
+            if (-not (Test-Path $claudeFile)) {
+                $claudeContent = @"
+---
+name: $role
+description: R&K Flow $role 角色 Claude Code 适配
+---
+
+You are $role in the R&K Flow Spec workflow.
+First read \`.agents/roles/$role.md\` for your authoritative role definition and rules.
+"@
+                [System.IO.File]::WriteAllText((Join-Path $TargetDir $claudeFile), $claudeContent, $Utf8NoBom)
+            }
+        }
+    }
+    "codex" {
+        Write-Host "⚙️ 正在装配 Codex 运行时专属适配 (.codex\)..." -ForegroundColor Green
+        New-Item -ItemType Directory -Force -Path ".codex\agents" | Out-Null
+        New-JunctionSafely -Path (Join-Path $TargetDir ".codex\skills") -Target $SkillsAbsPath
+        if (-not (Test-Path ".codex\config.toml")) {
+            $codexConfig = @"
+[agents]
+max_threads = 7
+max_depth = 1
+"@
+            [System.IO.File]::WriteAllText((Join-Path $TargetDir ".codex\config.toml"), $codexConfig, $Utf8NoBom)
+        }
+        foreach ($role in $Roles) {
+            $codexName = $role -replace '-', '_'
+            $codexFile = Join-Path ".codex\agents" "$role.toml"
+            if (-not (Test-Path $codexFile)) {
+                $codexContent = @"
+name = "$codexName"
+description = "R&K Flow $role 角色 Codex 适配"
+developer_instructions = """
+You are $role in the R&K Flow Spec workflow.
+First read \`.agents/roles/$role.md\` for your authoritative role definition and rules.
+"""
+"@
+                [System.IO.File]::WriteAllText((Join-Path $TargetDir $codexFile), $codexContent, $Utf8NoBom)
+            }
+        }
+    }
+    default {
+        Write-Host "ℹ️ 运行模式保持纯中立 (none)，未生成任何特定客户端适配目录。" -ForegroundColor Gray
+    }
+}
+
+# 9. 搭建三级架构空间与经验知识库
 Write-Host "🏗️ 正在构建三级架构与经验库骨架 (spec\)..." -ForegroundColor Green
 New-Item -ItemType Directory -Force -Path "spec\versions" | Out-Null
 New-Item -ItemType Directory -Force -Path "spec\context\experience" | Out-Null
@@ -181,7 +351,7 @@ if (-not (Test-Path "spec\context\knowledge\index.md")) {
     [System.IO.File]::WriteAllText((Join-Path $TargetDir "spec\context\knowledge\index.md"), $knowIndex, $Utf8NoBom)
 }
 
-# 8. 基础目标与工作台账 (AWR 核心源)
+# 10. 基础目标与工作台账 (AWR 核心源)
 if (-not (Test-Path "GOALS.md")) {
     $goalsContent = @"
 # Project goal {#intake-goal status=active}
@@ -213,11 +383,11 @@ work_items:
     [System.IO.File]::WriteAllText((Join-Path $TargetDir "work-ledger.yaml"), $ledgerContent, $Utf8NoBom)
 }
 
-# 9. 配置与初始化 AWR 运行时
+# 11. 配置与初始化 AWR 运行时
 if ($HasAwr) {
     Write-Host "⚙️ 正在初始化 AWR 运行时状态机..." -ForegroundColor Green
     New-Item -ItemType Directory -Force -Path ".awr" | Out-Null
-    $tmpManifest = [System.IO.Path]::GetTempFileName()
+    $tmpManifest = [System.IO.Path]::GetTempFileName() + ".toml"
     $manifestContent = @"
 [project]
 name = "$ProjectName"
@@ -233,6 +403,7 @@ adapter = "markdown-heading-v1"
 [sources.options]
 status = "active"
 key_prefix = "goal"
+
 [[sources]]
 domain = "ledger"
 role = "primary"
@@ -251,37 +422,46 @@ scope = "project"
 value = "*"
 "@
     [System.IO.File]::WriteAllText($tmpManifest, $manifestContent, $Utf8NoBom)
-    try {
-        if (-not (Test-Path ".awr/project.toml")) {
-            $initOut = & awr init --project . --manifest $tmpManifest --accept 2>&1
+    if (-not (Test-Path ".awr/project.toml")) {
+        try {
+            $initOutput = & awr init --project . --manifest $tmpManifest --accept 2>&1
             if ($LASTEXITCODE -ne 0) {
-                Write-Host "❌ 错误: AWR 项目初始化失败！" -ForegroundColor Red
-                if ($initOut) { Write-Host "AWR 详情: $initOut" -ForegroundColor Yellow }
+                Write-Host "❌ 错误: AWR 项目初始化失败: $initOutput" -ForegroundColor Red
+                Remove-Item -Force $tmpManifest -ErrorAction SilentlyContinue
                 exit 1
             }
-        }
-        $reindexOut = & awr source reindex 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host "❌ 错误: AWR 源索引 (reindex) 失败！" -ForegroundColor Red
-            if ($reindexOut) { Write-Host "AWR 详情: $reindexOut" -ForegroundColor Yellow }
+        } catch {
+            Write-Host "❌ 错误: AWR 项目初始化异常: $_" -ForegroundColor Red
+            Remove-Item -Force $tmpManifest -ErrorAction SilentlyContinue
             exit 1
         }
-    } finally {
-        if (Test-Path $tmpManifest) { Remove-Item -Force $tmpManifest }
+    }
+    Remove-Item -Force $tmpManifest -ErrorAction SilentlyContinue
+    try {
+        $reindexOutput = & awr source reindex 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "❌ 错误: AWR 源索引 (reindex) 失败: $reindexOutput" -ForegroundColor Red
+            exit 1
+        }
+    } catch {
+        Write-Host "❌ 错误: AWR 源索引异常: $_" -ForegroundColor Red
+        exit 1
     }
 }
 
-# 10. 更新 .gitignore（幂等追加）
+# 12. 更新 .gitignore（幂等）
 Write-Host "🛡️ 正在更新 .gitignore 过滤规则..." -ForegroundColor Green
-$gitIgnorePath = Join-Path $TargetDir ".gitignore"
-if (-not (Test-Path $gitIgnorePath)) {
-    New-Item -ItemType File -Path $gitIgnorePath | Out-Null
+$gitignorePath = Join-Path $TargetDir ".gitignore"
+if (-not (Test-Path $gitignorePath)) {
+    New-Item -ItemType File -Path $gitignorePath | Out-Null
 }
 
 $ignoreEntries = @(
+    "",
     "# ==============================================================================",
     "# AI Coding Workflow 忽略规则",
     "# ==============================================================================",
+    "# AWR 本地运行时状态数据库",
     ".awr/state.db",
     ".awr/state.db-*",
     ".awr/artifacts/",
@@ -290,32 +470,40 @@ $ignoreEntries = @(
     ".awr/clients/",
     ".awr/executions/",
     ".awr-backups/",
+    "*.bak-*",
+    "",
+    "# Skills 单版本源与共享样式",
     ".agents/skills/",
     "html-report",
-    ".omp/skills"
+    "",
+    "# 本地 Agent 客户端私有适配（按需本地生成，不污染团队仓库）",
+    ".omp/",
+    ".claude/",
+    ".codex/"
 )
 
-$currentLines = @()
-if (Test-Path $gitIgnorePath) {
-    $content = Get-Content $gitIgnorePath -Encoding UTF8
-    if ($content) { $currentLines = @($content) }
+$currentContent = Get-Content -Path $gitignorePath -ErrorAction SilentlyContinue
+$newContent = [System.Collections.Generic.List[string]]::new()
+if ($currentContent) {
+    $newContent.AddRange($currentContent)
 }
-$newLines = New-Object 'System.Collections.Generic.List[string]'
-foreach ($line in $currentLines) { $newLines.Add($line) }
-foreach ($entry in $ignoreEntries) {
-    if (-not ($currentLines -contains $entry)) {
-        $newLines.Add($entry)
+
+if (-not ($newContent -contains "# AI Coding Workflow 忽略规则")) {
+    foreach ($entry in $ignoreEntries) {
+        $newContent.Add($entry)
     }
 }
 
-    [System.IO.File]::WriteAllLines($gitIgnorePath, $newLines, $Utf8NoBom)
+[System.IO.File]::WriteAllLines($gitignorePath, $newContent, $Utf8NoBom)
 
 Write-Host "=================================================================" -ForegroundColor Cyan
-Write-Host " 🎉 AI Coding 工作流初始化成功！(Windows 原生环境)" -ForegroundColor Green
+Write-Host " 🎉 AI Coding 工作流初始化成功！(CLI 中立架构)" -ForegroundColor Cyan
 Write-Host " 已就绪组件:"
-Write-Host "  - 规范库与联接点: .agents\skills\ -> .omp\skills (NTFS Junction)"
+Write-Host "  - 通用薄入口:     AGENTS.md"
 Write-Host "  - 企业治理规范:   .agents\rules\"
-Write-Host "  - 入口与路由定义: .omp\AGENTS.md"
+Write-Host "  - 中立角色权威源: .agents\roles\"
+Write-Host "  - 规范库依赖:     .agents\skills\"
 Write-Host "  - 三级架构空间:   spec\versions\ & spec\context\"
 Write-Host "  - AWR 目标与台账: GOALS.md & work-ledger.yaml"
+Write-Host "  - 客户端适配模式: $Runtime"
 Write-Host "=================================================================" -ForegroundColor Cyan

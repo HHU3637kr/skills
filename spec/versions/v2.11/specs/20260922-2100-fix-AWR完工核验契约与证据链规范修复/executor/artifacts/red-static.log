@@ -1,0 +1,9 @@
+=== 执行静态契约断言 ===
+✅ PASS: TC-STATIC-01: spec-test 必须包含 completion.report.v1 说明
+❌ FAIL: TC-STATIC-02: awr-integration.md 必须包含 work complete 协议 (未在 .agents/rules/awr-integration.md 找到正则模式 'work complete')
+❌ FAIL: TC-STATIC-03: awr-integration.md 必须包含 40 位完整 SHA 约束 (未在 .agents/rules/awr-integration.md 找到正则模式 '(40 ?位完整|40-char|full (git )?SHA|完整.{0,4}SHA)')
+❌ FAIL: TC-STATIC-04: tdd-discipline.md 必须包含空桩与杜绝全 SKIP 假红 (未在 spec-execute/references/tdd-discipline.md 找到正则模式 '空桩')
+✅ PASS: TC-STATIC-05: spec-end 必须包含 work complete 完工引导
+❌ FAIL: TC-STATIC-06: v2.11/plan.html 必须包含本 fix Spec 规划 (未在 spec/versions/v2.11/plan.html 找到正则模式 '20260922-2100')
+----------------------------------------
+断言失败总数: 4

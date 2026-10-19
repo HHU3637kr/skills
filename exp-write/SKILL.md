@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: exp-write
-description: 记忆写入 Skill，将重大经验写入 spec/context/experience/ 或知识记忆写入 spec/context/knowledge/，并更新对应索引（不写 MEMORY.md）。触发场景：exp-reflect 确认后、手动添加经验或知识。仅处理经验记忆和知识记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
+description: 记忆写入 Skill，将重大经验写入 spec/context/experience/ 或知识记忆写入 spec/context/knowledge/，并更新对应索引（不写 MEMORY.md）。触发场景：`/exp-write type=experience`、`/exp-write type=knowledge` 手动写入，exp-reflect 确认后落盘，或用户要求把内容已经确定的经验/知识写进记忆时使用，典型信号：'把这次 AWR 踩坑写进经验记忆''把架构调研整理成知识记忆''把 exp-reflect 确认过的草稿写入索引'。本 Skill 只执行写入；判断是否值得沉淀、归哪类记忆、去重与草稿生成由 exp-reflect 负责，需要先识别分类时用 exp-reflect。仅处理经验记忆和知识记忆，程序记忆使用 skill-creator，工具记忆直接编辑 Skill。
 allowed-tools: Read, Write, Edit, Glob
 ---
 

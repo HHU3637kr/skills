@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: exp-reflect
-description: 当任务完成、解决困难问题、用户要求总结经验/记录项目理解/更新项目规范，或 spec-end/spec-update 需要从当前 Spec 文档判断是否沉淀经验、知识、SOP、工具记忆、长期项目规范时使用。不要用于普通文档摘要、历史记忆检索或已明确内容的直接写入。
+description: 当任务完成、解决困难问题、用户要求总结经验/记录项目理解/更新项目规范，或 spec-end/spec-update 需要从当前 Spec 文档判断是否沉淀经验、知识、SOP、工具记忆、长期项目规范时使用。本 Skill 只做识别 + 分类 + 权重判断 + 草稿 + 用户确认，不落盘写入；内容已经明确、只需写入经验/知识文件并更新索引时直接用 exp-write；程序记忆（SOP）落盘成新 Skill 用 skill-creator。不要用于普通文档摘要、历史记忆检索或已明确内容的直接写入。
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

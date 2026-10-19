@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试计划 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="test-plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/13">
+<meta name="rk:tags"        content="spec,test-plan,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan" href="../writer/plan.html">
+<link rel="rk-exploration-report" href="../explorer/exploration-report.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>测试计划：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/13">#13</a></span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r2（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试策略结论</div>
+  <p>以 26 条中文请求的 gold 路由基准作主判据（RED 在 HEAD 描述上必须 ≥3 条错判，GREEN 在补丁工作树上必须 ≥25/26），辅以 3 条纯机械静态契约断言与 1 条改动面断言。判题只凭 description 文本（criteria 不给 rubric），是能证明「契约文本缺陷已闭合」的最严条件。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-tester</td><td>初版：26 条 gold 基准、判题配置、5 条用例与通过判据、证据落盘约定</td><td>—</td></tr>
+<tr><td>r2</td><td>2026-09-23</td><td>TeamLead</td><td>回填 PR URL 并递增修订号</td><td>PR 已创建，收尾按 html-report 契约回填 Git 元信息</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试对象与入口</h2>
+<ul>
+  <li><b>被测物</b>：8 个 <code>SKILL.md</code> 的 frontmatter <code>description</code>（<code>spec-update</code>、<code>html-report</code>、<code>exp-write</code>、<code>exp-reflect</code>、<code>spec-test</code>、<code>spec-review</code>、<code>spec-start</code>、<code>spec-debug</code>）。</li>
+  <li><b>基准 roster</b>：实验 A 的 22 个核心流程 skill（名单见下），保证与实验 A 同分布，使 11/14 与 18/26 两代数字可比。</li>
+  <li><b>入口命令</b>：<code>python3 tester/artifacts/test-logs/&lt;run-id&gt;/route_bench.py --source &lt;git-head|worktree&gt; --answers &lt;judge 输出 JSON&gt;</code>，脚本只做机械计分，不做判定。</li>
+</ul>
+
+<h3>1.1 判题配置（写死，保证可复现）</h3>
+<ul>
+  <li><b>state</b>：<code>用户请求：&lt;请求原文&gt;\n\n可用 Skill 清单：\n</code> + 每行 <code>- &lt;name&gt;: &lt;description&gt;</code>（22 行）。</li>
+  <li><b>question</b>：<code>route</code> = Choice，labels = 22 个 skill 名 + <code>none_of_these</code>；<code>criteria</code> 只给 label（值为 <code>None</code>），<b>不提供任何 rubric</b>。</li>
+  <li><b>基线来源</b>：RED 用 <code>git show HEAD:&lt;skill&gt;/SKILL.md</code> 的 description；GREEN 用工作树当前 description。</li>
+  <li><b>gold</b>：26 条全部写死在 <code>gold.json</code>，不允许边跑边标。</li>
+</ul>
+
+<h2>2. 26 条 gold 基准</h2>
+<table>
+  <thead><tr><th>id</th><th>请求</th><th>gold</th><th>探测意图</th></tr></thead>
+  <tbody>
+    <tr><td>r01</td><td>用 /spec-start 的完整流程做登录改造，从需求对齐跑到收尾</td><td>spec-start</td><td>正向</td></tr>
+    <tr><td>r02</td><td>改 writer/plan.html 漏的分页参数</td><td>spec-update</td><td>错判①（实验 A）</td></tr>
+    <tr><td>r03</td><td>项目第一次接入 R&amp;K Flow，帮我初始化 spec/ 目录和报告资产</td><td>spec-init</td><td>正向</td></tr>
+    <tr><td>r04</td><td>写一份 writer/plan.html，把分页查询的接口边界定清楚</td><td>spec-write</td><td>正向（与 r02 对照：新建 vs 修订）</td></tr>
+    <tr><td>r05</td><td>代码已经按 plan.html 实现完了，现在执行端到端测试并出 test-report.html</td><td>spec-test</td><td>正向</td></tr>
+    <tr><td>r06</td><td>线上分页接口偶发 500，帮我诊断并修复</td><td>spec-debug</td><td>错判④（扩展实测发现）</td></tr>
+    <tr><td>r07</td><td>这个 v2.11 要不要把缓存的 Spec 移出本期范围，重新排一下依赖</td><td>version-update</td><td>正向（version vs spec 分层）</td></tr>
+    <tr><td>r08</td><td>把 AWR 踩坑沉淀到记忆</td><td>exp-write</td><td>错判②（实验 A）</td></tr>
+    <tr><td>r09</td><td>这次改动要推到 release 分支上，先核对 tag 和镜像标签对不对</td><td>git-work</td><td>正向</td></tr>
+    <tr><td>r10</td><td>spec/versions 里以前有没有踩过分页的坑，帮我查一下</td><td>exp-search</td><td>正向（exp-* 三兄弟区分）</td></tr>
+    <tr><td>r11</td><td>需求还没想清楚，先帮我澄清一下到底要做到什么程度</td><td>intent-confirmation</td><td>正向</td></tr>
+    <tr><td>r12</td><td>实现看起来差不多做完了，帮我看看是不是严格按 Spec 执行的</td><td>spec-review</td><td>正向（与 r13 对照）</td></tr>
+    <tr><td>r13</td><td>核对 tester 用例是否真跑过</td><td>spec-test</td><td>错判③（实验 A）</td></tr>
+    <tr><td>r14</td><td>v2.11 已经发完线上，做版本复盘并归档</td><td>version-end</td><td>正向</td></tr>
+    <tr><td>r15</td><td>report.html 的样式表相对路径错了，离线双击打开掉样式，帮我修骨架和 meta</td><td>html-report</td><td>反向探测：必须仍归 html-report</td></tr>
+    <tr><td>r16</td><td>把 update-001.html 的修订历史表补一行，写清楚这次改了什么、为什么</td><td>spec-update</td><td>边界：修订历史属内容还是格式</td></tr>
+    <tr><td>r17</td><td>这条经验挺重要，直接写进 spec/context/experience/ 并更新索引</td><td>exp-write</td><td>反向探测：必须仍归 exp-write</td></tr>
+    <tr><td>r18</td><td>executor 说它单测全绿，帮我校验是不是真的跑过、证据是不是自动生成的</td><td>spec-test</td><td>边界：证据真假不归 review</td></tr>
+    <tr><td>r19</td><td>评估一下 tester 的用例质量，看断言有没有意义、是不是假绿</td><td>spec-test</td><td>边界：测试质量评估不归 review</td></tr>
+    <tr><td>r20</td><td>实现自称完成了，从 reviewer 视角核对是否严格按 plan.html 执行</td><td>spec-review</td><td>反向探测：必须仍归 spec-review</td></tr>
+    <tr><td>r21</td><td>report.html 的 meta 少了 rk:updated，反链也没补，帮我按契约补齐</td><td>html-report</td><td>反向探测：必须仍归 html-report</td></tr>
+    <tr><td>r22</td><td>给 update-002.html 补一行修订历史，把 D-004 的原因写进去</td><td>spec-update</td><td>边界：带决策编号的修订归属</td></tr>
+    <tr><td>r23</td><td>把这次 build 流程整理成一个可复用 SOP，做成 skill</td><td>exp-reflect</td><td>边界：SOP 识别归 reflect，落盘归 skill-creator（roster 外）</td></tr>
+    <tr><td>r24</td><td>knowledge/ 里以前有没有写过缓存架构的分析，帮我找一下</td><td>exp-search</td><td>反向探测：exp-search 不被 exp-write 吞</td></tr>
+    <tr><td>r25</td><td>帮我判断这段会话保持的坑到底值不值得记下来</td><td>exp-reflect</td><td>反向探测：识别分类仍归 reflect</td></tr>
+    <tr><td>r27</td><td>debugger 修完 bug，重新跑一轮测试确认不再复现</td><td>spec-test</td><td>正向：修复后重验归 tester</td></tr>
+  </tbody>
+</table>
+
+<h2>3. 用例与通过判据</h2>
+<table>
+  <thead><tr><th>用例</th><th>类型</th><th>操作</th><th>通过判据</th></tr></thead>
+  <tbody>
+    <tr><td>TC-01</td><td>行为基准 RED</td><td>HEAD 描述 + 26 条请求跑 judge</td><td>miss ≥3 且必含 r02/r08/r13 中至少 3 条（r06 允许计入）</td></tr>
+    <tr><td>TC-02</td><td>行为基准 GREEN</td><td>补丁工作树描述 + 同 26 条请求</td><td>≥25/26 正确；若 &lt;26，miss 项不得是 r02/r08/r13/r06</td></tr>
+    <tr><td>TC-03</td><td>静态契约（机械）</td><td>解析 8 个 frontmatter</td><td>YAML 可解析、<code>name</code> 与改前一致、<code>description</code> ≤1024 字符</td></tr>
+    <tr><td>TC-04</td><td>边界双向性（机械）</td><td>字符串断言</td><td>html-report↔spec-update、exp-reflect↔exp-write、spec-test↔spec-review、spec-start↔spec-debug 四组两侧都显式点名对侧 skill 名</td></tr>
+    <tr><td>TC-05</td><td>改动面（机械）</td><td><code>git diff --name-only HEAD</code></td><td>恰好 8 个 SKILL.md，不含 <code>.agents/rules/</code>、不含 roster 其余 14 个</td></tr>
+    <tr><td>TC-06</td><td>抖动复跑</td><td>GREEN 配置复跑一次</td><td>记录 flap 项；两轮合并后 4 个原错判全部闭合</td></tr>
+  </tbody>
+</table>
+
+<h2>4. 证据落盘约定</h2>
+<ul>
+  <li>Run ID：<code>20260923-route-bench</code>；目录 <code>tester/artifacts/test-logs/20260923-route-bench/</code>。</li>
+  <li><code>route_bench.py</code>：roster 构建 + 计分脚本（唯一可复跑入口，只做机械计分）。</li>
+  <li><code>states.json</code> / <code>gold.json</code>：基准输入与 gold（写死）。</li>
+  <li><code>answers-red.json</code> / <code>answers-green.json</code>：judge 原始输出（含 <code>probabilities</code> 与 <code>confidence</code>）。</li>
+  <li><code>red-route-bench.log</code> / <code>green-route-bench.log</code>：计分输出（含每条 miss 明细）。</li>
+  <li><code>static-contract.log</code>：TC-03/04/05 的机械断言输出。</li>
+  <li><code>completion-report.json</code>：<code>completion.report.v1</code> 机器核验报告（<code>criteria</code> 与台账 acceptance 原文逐字一致，<code>source_sha</code> 为 40 位完整哈希）。</li>
+  <li>日志一律由脚本执行时自动生成，禁止事后手写补齐。</li>
+</ul>
+
+<h2>5. 已知局限</h2>
+<ul>
+  <li>judge <code>confidence</code> 在该后端恒为 1.0，无法用置信度门控；故以「gold 全对 + 复跑」替代置信度阈值。</li>
+  <li>26 条语料全为中文，样本量有限；本基准用于证明契约缺陷闭合，不作为路由准确率的总体估计。</li>
+  <li>TC-01 的 RED 依赖 HEAD 描述，若实现阶段把补丁提交进 HEAD，则 RED 必须改用 <code>git show HEAD~1:</code> 或另取基线 ref。</li>
+</ul>
+
+<h2>6. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration-report">探索报告</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a>（待创建）</li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../writer/plan.html" data-rk-backlink="plan">设计方案</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

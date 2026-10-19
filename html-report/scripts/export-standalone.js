@@ -6,7 +6,9 @@
  *   node export-standalone.js <报告.html | 目录> [更多路径...] [--out <输出目录>] [--keep-nav]
  *
  * - 输入是目录时递归导出其中全部 *.html（跳过 exports/ 与 node_modules/）
- * - 默认输出到各报告所在目录下的 exports/，文件名不变；源报告只读，不被改动
+ * - 默认输出到「项目根/exports/」并保留报告相对项目根的路径；源报告只读，不被改动
+ *   （项目根 = 向上最近的含 .git 的目录，找不到则用当前目录）
+ * - 输出禁止落在 spec/versions/ 内：spec-end 机检会扫描 Spec 目录下全部 *.html，导出件会触发误报
  * - <link rel="stylesheet" href> → <style>；<script src> → <script> 并移到 </body> 前（保持 defer 语义）
  * - 本地 <img src> → data URI；http(s)/data: 引用原样保留
  * - 默认丢弃 rk-manifest.js：单文件里的导航树链接指向兄弟报告，上传后必然失效；--keep-nav 可保留
@@ -64,6 +66,13 @@ function readLocal(baseDir, ref) {
   return fs.existsSync(file) ? { file, buf: fs.readFileSync(file) } : null;
 }
 
+function findRoot(start) {
+  for (let d = start; ; d = path.dirname(d)) {
+    if (fs.existsSync(path.join(d, ".git"))) return d;
+    if (d === path.dirname(d)) return process.cwd();
+  }
+}
+
 function exportOne(htmlPath, opts) {
   const baseDir = path.dirname(htmlPath);
   const warn = [];
@@ -109,9 +118,15 @@ function exportOne(htmlPath, opts) {
 
   if (!nCss) warn.push("未发现可内联的本地样式表（源文件可能已是单文件，或引用路径有误）");
 
-  const outDir = opts.out ? path.resolve(opts.out) : path.join(baseDir, "exports");
-  fs.mkdirSync(outDir, { recursive: true });
-  const outFile = path.join(outDir, path.basename(htmlPath));
+  const root = findRoot(baseDir);
+  const outDir = opts.out ? path.resolve(opts.out) : path.join(root, "exports");
+  if (/[\\/]spec[\\/]versions[\\/]/i.test(outDir + path.sep)) {
+    throw new Error("输出目录不能在 spec/versions/ 内（会被 spec-end 报告契约机检扫到）: " + outDir);
+  }
+  let rel = path.relative(root, htmlPath);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) rel = path.basename(htmlPath);
+  const outFile = path.join(outDir, rel);
+  fs.mkdirSync(path.dirname(outFile), { recursive: true });
   fs.writeFileSync(outFile, html, "utf8");
   return { outFile, nCss, nJs, nImg, warn, bytes: Buffer.byteLength(html) };
 }

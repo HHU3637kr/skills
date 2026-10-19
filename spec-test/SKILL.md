@@ -1,10 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-test
-description: >
-  当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html、在实现完成后执行测试并产出 tester/test-report.html，
-  或在 spec-debugger 修复后重新验证时使用。若测试对象属于 Web 前端、端侧应用、API、CLI 等具体场景，
-  先选择对应 references 测试策略；不要用于普通代码实现或 bug 修复。
+description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html、在实现完成后执行测试并产出 tester/test-report.html，或在 spec-debugger 修复后重新验证时使用。若测试对象属于 Web 前端、端侧应用、API、CLI 等具体场景，先选择对应 references 测试策略。也用于核对用例与证据是否真跑过：校验测试是否在当前工作树实际运行、证据是否由测试运行自动生成（禁止事后手写补写）、识别假测试假绿与测试有效性、评估 spec-executor 的单元测试质量。不要用于普通代码实现、bug 修复，或审查实现是否符合 Spec（后者归 spec-review）。
 ---
 
 # Spec Test
@@ -546,13 +543,49 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 - 「状态」标记为 `done` 或 `blocked`（如仍有未解决问题）
 - 「产物」指向 `tester/test-report.html`
 - 「完成时间」 使用当前时间，「更新者」 写 `spec-tester`
-- **沉淀结构化测试证据到工作台账**：在对应工作台账（如 `work-ledger.yaml`）中，为当前 Spec 追加物理测试证据引用（Evidence Locator），禁止无证据报告自封完成：
-  ```yaml
-  evidence:
-    - locator: "spec/versions/<version>/specs/<spec-dir>/tester/test-report.html"
-      summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
-  ```
-  注：AWR 0.5.0 的 `yaml-ledger-v1` 适配器将 `evidence` 映射为源证据定位符（`locator` 与 `summary`）；执行完整机器核验时使用 `awr work prepare-completion --report <REPORT-PATH> --evidence-key <KEY> --source-sha <SHA> <SPEC-ID>`。
+- **沉淀结构化测试证据到工作台账与机器核验准备**：
+  1. **人工可读报告与台账定位符**：在对应工作台账（如 `work-ledger.yaml`）中，为当前 Spec 追加物理测试证据引用（Evidence Locator），指向 `tester/test-report.html`：
+     ```yaml
+     evidence:
+       - locator: "spec/versions/<version>/specs/<spec-dir>/tester/test-report.html"
+         summary: "全量测试通过：{通过用例数}/{总用例数}，退出码 0"
+     ```
+  2. **AWR 0.5.0 机器核验准备（双轨制）**：
+     `awr work prepare-completion` 强校验 `completion.report.v1` 机器 JSON 契约（**传 HTML 报告会被拒绝报错**；**传项目外路径会被拒绝**——`--report` 只接受项目根/`authorized_roots` 内路径，`/tmp` 会报 `RuleViolation` rc=1）。测试运行或自动化脚本必须在 `tester/artifacts/test-logs/<run-id>/` 同步自动派生 `completion-report.json`：
+     ```json
+     {
+       "version": 1,
+       "work_item": "<SPEC-ID>",
+       "source_sha": "<40位完整Git哈希>",
+       "command": "测试命令，如 bash tests/run.sh",
+       "scope": ["<SPEC-ID>"],
+       "verified_at": 1790000000000,
+       "checks": [
+         {
+           "name": "TC-001",
+           "passed": true,
+           "details": "断言详情",
+           "criteria": ["<必须与台账 acceptance 原文逐字一致（按 YAML 解析值比较，AWR 回写台账后的引号转义会使原始子串匹配假阴性）>"]
+         }
+       ]
+     }
+     ```
+     然后执行机器校验与证据元数据注册（`--source-sha` 必须传 40 位完整 SHA；证据草稿一律落 `<run-id>/evidence-draft.json`，**并发场景下禁止固定共享路径**）：
+     ```bash
+     # 1. 验证报告契约有效性（--report 必须为项目内路径）
+     PREP_OUT=$(awr work prepare-completion --report "tester/artifacts/test-logs/<run-id>/completion-report.json" --evidence-key "<SPEC-ID>/evidence/<KEY>" --source-sha <40-CHAR-SHA> <SPEC-ID> --json)
+
+     # 2. 注册证据元数据：prepare-completion --json 的顶层草稿键名是 evidence，
+     #    其中 branch 与 work 是只读回显字段，必须剔除后再传，否则报 unknown evidence input field
+     EVIDENCE_DRAFT=$(printf "%s" "$PREP_OUT" | python3 -c "import sys, json
+d = json.load(sys.stdin).get('evidence', {})
+d.pop('branch', None); d.pop('work', None)
+print(json.dumps(d))")
+     echo "$EVIDENCE_DRAFT" > "tester/artifacts/test-logs/<run-id>/evidence-draft.json"
+     REV=$(awr status --json | python3 -c "import sys,json;print(json.load(sys.stdin)['project_revision'])")
+     awr evidence add --input "tester/artifacts/test-logs/<run-id>/evidence-draft.json" --expected-revision "$REV"
+     ```
+     *重要原则*：`spec-tester` 阶段仅完成报告校验与证据注册，**严禁在测试阶段执行 `awr work complete`**。工作项必须保持 `in_progress` 状态，以便下游 `spec-reviewer` 与 `spec-ender` 能够合法通过检查点脚本接力会话。真正的机器完工与租约释放统一由收尾阶段的 `spec-ender` 执行。
 - 向 AWR 提交测试完成会话检查点：
   ```bash
   AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh

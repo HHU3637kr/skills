@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试计划 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:title"       content="测试计划">
+<meta name="rk:type"        content="test-plan">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:status"      content="未确认">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,test-plan,awr">
+<link rel="rk-plan"   href="../writer/plan.html">
+<link rel="rk-ledger" href="../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>测试计划：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">验收判定口径</div>
+  <p>全部测试分为静态规范断言与沙箱动态实测两部分：静态文档关键契约条目 100% 匹配；沙箱实测 prepare-completion、evidence add、work complete 与 session end 全流程退出码均为 0，且最终 awr doctor 达到 0 findings 无瑕通过。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-tester</td><td>初版测试计划制定</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 验收标准与测试用例</h2>
+
+<h3>1.1 静态契约与规范断言</h3>
+<table>
+  <thead><tr><th>用例编号</th><th>测试目标</th><th>验证方法</th><th>预期结果</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TC-STATIC-01</td>
+      <td>spec-test 契约纠正</td>
+      <td><code>grep -n "completion.report.v1" spec-test/SKILL.md</code></td>
+      <td>明确包含机器 JSON 要求与双轨制说明，杜绝 HTML 传参错误</td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-02</td>
+      <td>awr-integration 完工协议</td>
+      <td><code>grep -n "work complete" .agents/rules/awr-integration.md</code></td>
+      <td>完整呈现第 4.5 步完工机器核验协议与三字段 JSON 规范</td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-03</td>
+      <td>完整 40 位 SHA 强约束告诫</td>
+      <td><code>grep -nE "(40 ?位完整|40-char|full (git )?SHA|完整.{0,4}SHA)" .agents/rules/awr-integration.md</code></td>
+      <td>明确包含在 --source-sha/source_sha 语境下对 40 位完整哈希的强约束说明，杜绝匹配无关数字的假断言</td>
+    </tr>
+    <tr>
+      <td>TC-STATIC-04</td>
+      <td>tdd-discipline 真实断言要求</td>
+      <td><code>grep -n "空桩" spec-execute/references/tdd-discipline.md</code></td>
+      <td>包含杜绝仅缺失命令走全 SKIP 分支的纪律说明</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>1.2 沙箱动态全流程端到端实测</h3>
+<table>
+  <thead><tr><th>用例编号</th><th>测试场景</th><th>操作步骤</th><th>预期结果</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>TC-E2E-01</td>
+      <td>沙箱准备与报告生成</td>
+      <td>在 /tmp/awr-test-sandbox 构建工作项与测试输出，按规范派生 completion-report.json</td>
+      <td>生成的 JSON 满足 completion.report.v1 规范</td>
+    </tr>
+    <tr>
+      <td>TC-E2E-02</td>
+      <td>prepare-completion 核验</td>
+      <td>执行 <code>awr work prepare-completion --report &lt;JSON&gt; --evidence-key &lt;KEY&gt; --source-sha &lt;40-SHA&gt; &lt;WORK&gt;</code></td>
+      <td>退出码为 0，返回 <code>"stage": "report_validated"</code></td>
+    </tr>
+    <tr>
+      <td>TC-E2E-03</td>
+      <td>evidence add 登记</td>
+      <td>执行 <code>awr evidence add --input &lt;DRAFT-JSON&gt; --expected-revision &lt;REV&gt;</code></td>
+      <td>退出码为 0，成功注册 <code>verification_report</code> 证据</td>
+    </tr>
+    <tr>
+      <td>TC-E2E-04</td>
+      <td>work complete 机器核验</td>
+      <td>传入官方三字段 input JSON 执行 <code>awr work complete</code></td>
+      <td>退出码为 0，成功触发 <code>work.completed</code> 事件并自动注入台账 verification 块</td>
+    </tr>
+    <tr>
+      <td>TC-E2E-05</td>
+      <td>session end 释放租约与终态审查</td>
+      <td>执行 <code>awr session end --outcome ended</code>，并运行 <code>awr doctor</code></td>
+      <td>退出码为 0，<code>awr doctor</code> 返回 <b>0 findings</b></td>
+    </tr>
+    <tr>
+      <td>TC-E2E-06</td>
+      <td>v2.11 既有 Spec 联合重验</td>
+      <td>运行脚手架既有测试套件并检查 <code>scripts/init-ai-workflow.{sh,ps1}</code> 与 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code> 语法与断言兼容性</td>
+      <td>既有脚手架与检查点能力 100% 保持兼容，无破坏性回归</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>2. 审计与证据要求</h2>
+<ul>
+  <li>所有静态断言输出与沙箱动态运行日志必须统一自动写入 <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复/tester/artifacts/test-logs/</code>；</li>
+  <li>严禁手工捏造测试退出码与证据内容。</li>
+</ul>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="test-report.html" data-rk-backlink="test-report">测试报告</a>（待创建）</li>
+</ul>
+
+</body>
+</html>

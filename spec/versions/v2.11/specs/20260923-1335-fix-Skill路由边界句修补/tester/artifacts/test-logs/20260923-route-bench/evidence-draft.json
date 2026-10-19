@@ -1,0 +1,14 @@
+{
+ "command": "python3 tester/artifacts/test-logs/20260923-route-bench/route_bench.py --source worktree --answers tester/artifacts/test-logs/20260923-route-bench/answers-green-3.json",
+ "evidence_type": "verification_report",
+ "external_key": "WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench",
+ "level": "locally_verified",
+ "locator": "spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补/tester/artifacts/test-logs/20260923-route-bench/completion-report.json",
+ "scope": [
+  "WORK-f60583d5247c58735d9679a6a244961f"
+ ],
+ "sha256": "ed680bd3cd8d5aadde083dfaaef9b244109b9cf2322507595102bb3a708ff36a",
+ "source_sha": "a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e",
+ "summary": "Completion report for WORK-f60583d5247c58735d9679a6a244961f",
+ "verified_at": 1790143185126
+}

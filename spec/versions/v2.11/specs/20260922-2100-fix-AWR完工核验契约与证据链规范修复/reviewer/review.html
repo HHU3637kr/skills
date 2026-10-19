@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>审查报告 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:type"        content="review">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"        content="spec-reviewer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:title"       content="AWR完工核验契约与证据链规范修复-审查报告">
+<meta name="rk:category"    content="fix">
+<meta name="rk:status"      content="未确认">
+<meta name="rk:result"      content="通过">
+<meta name="rk:strictness"  content="严格">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="1">
+<meta name="rk:git-branch"  content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="">
+<meta name="rk:tags"        content="spec,review,awr">
+<link rel="rk-plan"    href="../writer/plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-ledger"  href="../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>审查报告：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> review</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-reviewer</span>
+    <span><b>分类</b> fix</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>审查结果</b> 通过</span>
+    <span><b>严格程度</b> 严格</span>
+    <span><b>审查对象</b> <code>writer/plan.html</code> + <code>executor/summary.html</code></span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">审查结论</div>
+  <p>严格模式审查通过：plan.html 规划的所有契约修正项（spec-test、spec-end、awr-integration.md、tdd-discipline.md、v2.11/plan.html）全部精准落地；静态硬断言 6/6 全绿；沙箱动态实测 0 findings；v2.11 既有 Spec 联合重测 81/81 通过无破坏性回归；无未授权改动与范围蔓延，可以归档。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-reviewer</td><td>初版一致性审查报告</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 审查摘要</h2>
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="v">5/5</div><div class="k">目标文件改动一致</div></div>
+  <div class="rk-kpi is-pass"><div class="v">0</div><div class="k">不符项 (0 Blocker / 0 Major)</div></div>
+  <div class="rk-kpi is-pass"><div class="v">0</div><div class="k">额外未定义实现</div></div>
+  <div class="rk-kpi is-pass"><div class="v">0</div><div class="k">AWR 结构缺口</div></div>
+</div>
+
+<h2>2. 详细核验结果</h2>
+
+<h3>2.1 与 plan.html 的一致性核对</h3>
+<table>
+  <thead><tr><th>规划目标</th><th>实现文件与位置</th><th>审查结论</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>prepare-completion 参数纠正与双轨制</td>
+      <td><span class="rk-ref">spec-test/SKILL.md:549-579</span></td>
+      <td>明确 completion.report.v1 JSON 结构与 40 位 SHA 约束，符合</td>
+    </tr>
+    <tr>
+      <td>awr-integration.md 补齐完工协议</td>
+      <td><span class="rk-ref">.agents/rules/awr-integration.md:103-145</span></td>
+      <td>完整增加 4.5 节，含三字段 input 规范与 CAS 重查要求，符合</td>
+    </tr>
+    <tr>
+      <td>spec-end 完工机器核验引导</td>
+      <td><span class="rk-ref">spec-end/SKILL.md:244-266</span></td>
+      <td>确立先 work complete 后 session end 原则，符合</td>
+    </tr>
+    <tr>
+      <td>tdd-discipline 真实断言纪律</td>
+      <td><span class="rk-ref">spec-execute/references/tdd-discipline.md:18</span></td>
+      <td>明确最小空桩与杜绝全 SKIP 假红，符合</td>
+    </tr>
+    <tr>
+      <td>v2.11 版本大盘同步</td>
+      <td><span class="rk-ref">spec/versions/v2.11/plan.html:12,48,75</span></td>
+      <td>修订号更新为 r3，新增 fix Spec 条目，符合</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>2.2 测试与回归有效性核查</h3>
+<ul>
+  <li><b>TDD 先行有效性</b>：<code>reproduce-red.sh</code> 确认在修复前有 4 项明确失败（退出码 1），修复后在当前工作树观察到 6/6 PASS（退出码 0），RED/GREEN 证据链完备；</li>
+  <li><b>沙箱端到端有效性</b>：全流程 5 步骤退出码均为 0，<code>awr doctor</code> 返回 0 findings；</li>
+  <li><b>联合重验有效性</b>：既有 4 个 Spec 覆盖的 9 个测试场景 81 个用例全部 PASS。</li>
+</ul>
+
+<h2>3. 归档判定</h2>
+<p>本 Spec 无任何阻塞性不符项或范围蔓延，同意进入阶段五收尾归档。</p>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../ender/end-report.html" data-rk-backlink="end-report">收尾报告</a>（待创建）</li>
+</ul>
+
+</body>
+</html>

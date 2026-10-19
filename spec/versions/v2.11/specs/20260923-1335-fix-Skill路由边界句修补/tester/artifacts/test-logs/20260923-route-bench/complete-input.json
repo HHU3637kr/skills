@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "source_sha": "a4b35af7c3ab3a2b6c743d43d44a2690cd2fba4e",
+  "acceptance": [
+    {
+      "criterion": "8 个 SKILL.md（spec-update / html-report / exp-write / exp-reflect / spec-test / spec-review / spec-start / spec-debug）的 description 补齐与对侧 skill 的显式职责边界句，frontmatter 可解析、name 不变、description 不超过 1024 字符",
+      "evidence": ["WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"]
+    },
+    {
+      "criterion": "同一 26 条中文请求路由基准中，4 个已知错判（改 writer/plan.html 漏的分页参数、线上分页接口偶发 500、把 AWR 踩坑沉淀到记忆、核对 tester 用例是否真跑过）在修补后全部闭合，GREEN 复跑零 flap；修补前同一基准 18/26 且 4 个已知错判全命中",
+      "evidence": ["WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"]
+    },
+    {
+      "criterion": "roster 其余 14 个 SKILL.md 与 .agents/rules/ 零改动",
+      "evidence": ["WORK-f60583d5247c58735d9679a6a244961f/evidence/route-bench"]
+    }
+  ]
+}

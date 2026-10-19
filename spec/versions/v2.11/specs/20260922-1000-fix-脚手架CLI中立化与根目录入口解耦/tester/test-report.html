@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>测试报告 - 脚手架 CLI 中立化：根目录 AGENTS.md、中立角色补全与消除冗余软链接</title>
+
+<meta name="rk:type"        content="test-report">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260922-1000-fix-脚手架CLI中立化与根目录入口解耦">
+<meta name="rk:role"        content="spec-tester">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-22">
+<meta name="rk:updated"     content="2026-09-22">
+<meta name="rk:revision"    content="7">
+<meta name="rk:git-branch"  content="fix/spec-20260922-cli-neutral-scaffold">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/10">
+<meta name="rk:tags"        content="spec,test-report,fix,cli-neutral,tdd,green">
+
+<link rel="rk-plan"      href="../writer/plan.html">
+<link rel="rk-test-plan" href="test-plan.html">
+<link rel="rk-summary"   href="../executor/summary.html">
+<link rel="rk-ledger"    href="../lead/team-context.md">
+<link rel="stylesheet"   href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<header class="rk-head">
+  <h1>测试报告：脚手架 CLI 中立化（根目录 AGENTS.md、中立角色补全与消除冗余软链接）</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> test-report</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>角色</b> spec-tester</span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/10">#10</a></span>
+    <span><b>分支</b> <code>fix/spec-20260922-cli-neutral-scaffold</code> ← <code>master</code></span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r7（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">测试结论：全部通过 (ALL PASS)</div>
+  <p>经 TDD 测试先行红灯复现、重构实测以及 P0/P1/P2 全链路防回归加固，脚手架脚本完全达成 CLI 中立性、生产回退健壮性与安全防护准则：默认纯中立执行时根目录严格生成 <code>AGENTS.md</code> 且无任何 <code>.omp/</code> 目录；目标工程具备从规范源完整复制的 <code>.agents/roles/</code> 7 大中立角色权威定义；在单脚本孤立执行模式（curl | bash 模拟）下严格验证角色骨架动态映射与原位归档；对既有非 Git 的 <code>.agents/skills</code> 普通目录增加 <code>.bak-时间戳</code> 自动备份防护，并在克隆失败时自动回滚还原既有数据（TC-09）；目标工程完整固化 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code> 彻底消除 RC=127；解除 OMP 冗余的 <code>.omp/skills</code> 软链接；Claude/Codex 运行时按需适配正确；有效修复 <code>create_symlink_or_junction</code> 对普通物理目录与普通文件的安全备份防护；强校验 <code>--runtime</code> 与 <code>--skills-repo-url</code> 参数（Fail-Closed 错误退出）；.gitignore 采用独有标题守卫防止条目丢失。全套测试覆盖所有执行退出码（RC=0/1 断言）与后续第 9-12 步完整性，全部 9 大场景 81 项断言 100% 绿灯通过。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-tester</td><td>完成 TDD 红绿测试执行并记录自动化运行证据</td><td>验证 CLI 中立化改造质量</td></tr>
+    <tr><td>r2</td><td>2026-09-22</td><td>spec-tester</td><td>补齐 TC-04 (Codex) 场景并对 7 个角色完整性（inputs/rules 字段）加固断言</td><td>确保实测完整覆盖主路径与各运行时</td></tr>
+    <tr><td>r3</td><td>2026-09-22</td><td>spec-tester</td><td>增加 TC-05 (预置真实目录安全防护与自动备份) 与 TC-06 (运行时参数强校验与等号语法)</td><td>修复 P0/P1 隐患并提升鲁棒性</td></tr>
+    <tr><td>r4</td><td>2026-09-22</td><td>spec-tester</td><td>补齐 RC=0 退出码断言、步骤 9-12 完整性检查、普通文件防破坏 (P0-3)、上游空分支兜底测试 (TC-07) 与 SCRIPT_DIR 检查点脚本存在性断言，总数升级至 67 项</td><td>彻底消除 fail-open 盲区并对齐生产回退路径</td></tr>
+    <tr><td>r5</td><td>2026-09-22</td><td>spec-tester</td><td>新增 TC-08 孤立单脚本执行测试，实测验证纯骨架兜底分支 (get_canonical_role_content)，断言总数升级至 73 项全绿</td><td>覆盖 curl | bash 边缘回退场景</td></tr>
+    <tr><td>r6</td><td>2026-09-22</td><td>spec-tester</td><td>新增 TC-09 (非 Git .agents/skills 普通目录自动备份防护)，断言总数升级至 77 项全绿</td><td>闭环 P0-1 非 Git skills 销毁风险</td></tr>
+    <tr><td>r7</td><td>2026-09-22</td><td>spec-tester</td><td>新增 TC-09.2 克隆失败自动回滚还原断言，断言总数升级至 81 项全绿</td><td>闭环克隆失败现场不退化保障</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 测试执行概览</h2>
+<table class="rk-verdict-table">
+  <tr><th>测试套件</th><td><code>tester/artifacts/test-logs/reproduce-red.sh</code></td></tr>
+  <tr><th>运行命令</th><td><code>bash reproduce-red.sh scripts/init-ai-workflow.sh</code></td></tr>
+  <tr><th>用例总数</th><td>9 个端到端组合场景，共 81 项原子断言</td></tr>
+  <tr><th>红灯阶段 (RED)</th><td>0/13 通过，13/13 失败（成功复现旧脚本偏置缺陷，退出码 1）</td></tr>
+  <tr><th>绿灯阶段 (GREEN)</th><td>81/81 通过，0 失败（全场景断言成功，退出码 0）</td></tr>
+  <tr><th>日志证据</th><td><code>artifacts/test-logs/red-test-run.log</code> 与 <code>green-test-run.log</code></td></tr>
+</table>
+
+<h2>2. 核心场景断言结果</h2>
+<table>
+  <thead>
+    <tr><th>场景编号</th><th>测试场景</th><th>断言项</th><th>实测结果</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td rowspan="7"><b>TC-01</b></td>
+      <td rowspan="7">默认纯中立执行 (无 --runtime)</td>
+      <td>脚手架执行必须成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>根目录必存在 <code>AGENTS.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>不得生成 <code>.omp/AGENTS.md</code> 与 <code>.omp/</code> 目录</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td><code>.agents/roles/</code> 存在且包含 7 个角色完整定义 (含 inputs/rules)</td>
+      <td><span class="rk-tag is-pass">PASS</span> (7/7 齐全完整)</td>
+    </tr>
+    <tr>
+      <td>步骤 9-11 空间生成 (spec 骨架、GOALS.md、work-ledger.yaml)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>步骤 12 <code>.gitignore</code> 包含 <code>.awr/state.db</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>固化 <code>scripts/rk-awr-checkpoint.sh</code> 脚本到位</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="4"><b>TC-02</b></td>
+      <td rowspan="4">OMP 按需适配 (--runtime omp)</td>
+      <td>脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>根目录必存在 <code>AGENTS.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>存在 <code>.omp/agents/</code> 且含 7 个角色定义</td>
+      <td><span class="rk-tag is-pass">PASS</span> (7/7 齐全)</td>
+    </tr>
+    <tr>
+      <td><b>不得</b>生成冗余 <code>.omp/skills</code> 软链接</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="4"><b>TC-03</b></td>
+      <td rowspan="4">Claude 按需适配 (--runtime claude)</td>
+      <td>脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>根目录必存在 <code>AGENTS.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>存在 <code>.claude/agents/</code> 且含 7 个角色定义</td>
+      <td><span class="rk-tag is-pass">PASS</span> (7/7 齐全)</td>
+    </tr>
+    <tr>
+      <td>存在 <code>.claude/skills</code> 软链接指向 <code>../.agents/skills</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="5"><b>TC-04</b></td>
+      <td rowspan="5">Codex 按需适配 (--runtime codex)</td>
+      <td>脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>根目录必存在 <code>AGENTS.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>存在 <code>.codex/agents/</code> 且含 7 个 .toml 角色定义</td>
+      <td><span class="rk-tag is-pass">PASS</span> (7/7 齐全)</td>
+    </tr>
+    <tr>
+      <td>存在 <code>.codex/config.toml</code> 且含 <code>[agents]</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>存在 <code>.codex/skills</code> 软链接指向 <code>../.agents/skills</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="5"><b>TC-05</b></td>
+      <td rowspan="5">预置普通目录与文件安全防护与备份 (P0-1/P0-3)</td>
+      <td>脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>预置真实目录自动备份保护 (.bak)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>预置普通文件自动备份保护 (.bak)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>正向 skills 软链接必须正确建立在目标位置</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>不得产生嵌套软链接 (如 skills/skills)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="4"><b>TC-06</b></td>
+      <td rowspan="4">运行时参数校验 (Fail-Closed)</td>
+      <td>传入无效运行时参数必须 exit != 0 强阻断</td>
+      <td><span class="rk-tag is-pass">PASS</span> (rc=1)</td>
+    </tr>
+    <tr>
+      <td>支持 <code>--runtime=omp</code> 等号语法传参</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>等号传参必须成功生成对应适配目录</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>缺少 <code>--skills-repo-url</code> 参数值必须 exit 1 阻断</td>
+      <td><span class="rk-tag is-pass">PASS</span> (rc=1)</td>
+    </tr>
+    <tr>
+      <td rowspan="6"><b>TC-07</b></td>
+      <td rowspan="6">缺少中立角色源时的兜底机制 (P0-1 回退)</td>
+      <td>假仓库场景下脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>自动触发兜底生成完整 <code>spec-executor.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>兜底 <code>spec-executor</code> 拥有正确 <code>required_skill: spec-execute</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>兜底角色定义包含完整 <code>inputs:</code> 与 <code>rules:</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>兜底 <code>spec-ender</code> 保持原位归档定义 (in-place)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>SCRIPT_DIR 回退提供 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code></td>
+      <td><span class="rk-tag is-pass">PASS</span> (消除 RC=127)</td>
+    </tr>
+    <tr>
+      <td rowspan="6"><b>TC-08</b></td>
+      <td rowspan="6">curl | bash 单脚本孤立执行与纯骨架兜底</td>
+      <td>孤立模式执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>孤立模式下必须生成 <code>spec-executor.md</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>孤立骨架 <code>spec-executor</code> 必须拥有正确的 <code>required_skill: spec-execute</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>孤立骨架 <code>spec-executor</code> 必须包含 <code>inputs:</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>孤立骨架 <code>spec-executor</code> 必须包含 <code>rules:</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>孤立骨架 <code>spec-ender</code> 必须声明 <code>in-place</code></td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td rowspan="8"><b>TC-09</b></td>
+      <td rowspan="8">非 Git .agents/skills 普通目录自动备份防护与失败回滚 (P0-1)</td>
+      <td>预置非 Git skills 目录时脚手架执行成功退出 (RC=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>预置非 Git skills 必须被自动备份保护 (.bak-时间戳)</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>子目录数据与自定义笔记在备份中完整保留无损</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>全新克隆的 skills 必须正常就位，不影响后续工作流</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>克隆失败时脚手架必须返回非零错误 (RC!=0)</td>
+      <td><span class="rk-tag is-pass">PASS</span> (rc=1)</td>
+    </tr>
+    <tr>
+      <td>克隆失败后原 my-notes.md 必须被自动回滚还原</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>克隆失败后原 sub/x.md 必须被自动回滚还原</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>还原后的自定义内容必须完全一致</td>
+      <td><span class="rk-tag is-pass">PASS</span></td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

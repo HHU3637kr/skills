@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: spec-update
-description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<spec-dir>/`）在当前工作分支内需要小迭代、补充需求、修正方案或优化实现，且原 Spec 目录已有 writer/plan.html + executor/summary.html 时使用。默认复用 writer/plan.html 记录的 git_branch，不新建分支。不要用于新功能从零设计、已合并/已关闭分支上的后续需求，或需要独立 PR/MR 的较大变更。
+description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<spec-dir>/`）在当前工作分支内需要小迭代、补充需求、修正方案或优化实现，且原 Spec 目录已有 writer/plan.html + executor/summary.html 时使用。典型信号：'改 writer/plan.html 里漏掉的分页参数''补一条原 Spec 没覆盖的需求''修 update 方案里写错的验收标准'、修订既有 writer/plan.html / executor/summary.html、给已有报告递增修订号并补修订历史行（5 列格式与 `<ins>/<del>` 标记规则由 html-report 定义，写什么内容、为什么归本 Skill）——只要动的是报告所承载的 Spec 内容，就走本 Skill；请求里出现 report/html 字样不改变归属。只关心报告骨架、样式表、修订标记或 meta/双链格式本身时改用 html-report。默认复用 writer/plan.html 记录的 git_branch，不新建分支。不要用于新功能从零设计、已合并/已关闭分支上的后续需求，或需要独立 PR/MR 的较大变更。
 ---
 # Spec Update
 

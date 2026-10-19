@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>审查报告 - Skill 路由边界句修补</title>
+
+<meta name="rk:type"        content="review">
+<meta name="rk:version"     content="v2.11">
+<meta name="rk:category"    content="fix">
+<meta name="rk:spec-dir"    content="spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补">
+<meta name="rk:role"        content="spec-reviewer">
+<meta name="rk:mode"        content="gated">
+<meta name="rk:created"     content="2026-09-23">
+<meta name="rk:updated"     content="2026-09-23">
+<meta name="rk:revision"    content="2">
+<meta name="rk:git-branch"  content="fix/spec-20260923-skill-routing-boundary">
+<meta name="rk:base-branch" content="master">
+<meta name="rk:pr-url"      content="https://github.com/HHU3637kr/skills/pull/13">
+<meta name="rk:tags"        content="spec,review,skill-routing">
+<link rel="rk-ledger" href="../lead/team-context.md">
+<link rel="rk-plan" href="../writer/plan.html">
+<link rel="rk-summary" href="../executor/summary.html">
+<link rel="rk-test-plan" href="../tester/test-plan.html">
+<link rel="rk-test-report" href="../tester/test-report.html">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>审查报告：Skill 路由边界句修补</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> review</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260923-1335-fix-Skill路由边界句修补</code></span>
+    <span><b>角色</b> spec-reviewer</span>
+    <span><b>分支</b> <code>fix/spec-20260923-skill-routing-boundary</code> ← <code>master</code></span>
+    <span><b>PR</b> <a href="https://github.com/HHU3637kr/skills/pull/13">#13</a></span>
+    <span><b>创建</b> 2026-09-23</span>
+    <span><b>修订</b> r2（2026-09-23）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">审查结论</div>
+  <p>实现与已确认 plan 一致：8 个 SKILL.md 的 description 均按变更集落地，边界双向性 15/15 通过，GREEN 4 轮 25/26 零 flap，4 个已知错判闭合；<b>发现 2 个 P1 偏差、1 个 P2 遗留</b>（均不阻断放行，需在收尾阶段处理或登记）。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-23</td><td>spec-reviewer</td><td>初版：完成度/一致性/额外实现/AWR 对齐四维核对，2 个 P1 与 1 个 P2 发现</td><td>—</td></tr>
+<tr><td>r2</td><td>2026-09-23</td><td>TeamLead</td><td>回填 PR URL 并递增修订号</td><td>PR 已创建，收尾按 html-report 契约回填 Git 元信息</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 完成度核对</h2>
+<table>
+  <thead><tr><th>plan 条目</th><th>实现</th><th>证据（file:line）</th><th>标记</th></tr></thead>
+  <tbody>
+    <tr><td>§3.1 spec-test 补证据核对触发面</td><td>已实现</td><td><code>spec-test/SKILL.md:4</code></td><td>✅</td></tr>
+    <tr><td>§3.2 spec-review 补对侧归属</td><td>已实现</td><td><code>spec-review/SKILL.md:4</code></td><td>✅</td></tr>
+    <tr><td>§3.3 html-report 重写为格式契约口径</td><td>已实现</td><td><code>html-report/SKILL.md:3-11</code>（原 7 行折叠块收敛为 6 行）</td><td>✅</td></tr>
+    <tr><td>§3.4 spec-update 补用户向触发词</td><td>已实现</td><td><code>spec-update/SKILL.md:4</code></td><td>✅</td></tr>
+    <tr><td>§3.5 exp-reflect / exp-write 切开落盘责任</td><td>已实现</td><td><code>exp-reflect/SKILL.md:4</code>、<code>exp-write/SKILL.md:4</code></td><td>✅</td></tr>
+    <tr><td>§3.6 spec-start 负面清单补 debug</td><td>已实现</td><td><code>spec-start/SKILL.md:4</code></td><td>✅</td></tr>
+    <tr><td>§3.7 spec-debug 补用户向触发词</td><td>已实现</td><td><code>spec-debug/SKILL.md:4-11</code></td><td>✅</td></tr>
+    <tr><td>§4 实现步骤 1 RED 先行</td><td>已执行</td><td><code>tester/artifacts/test-logs/20260923-route-bench/red-route-bench.log:1-32</code></td><td>✅</td></tr>
+    <tr><td>§4 步骤 5 改动面断言</td><td>已执行</td><td><code>tester/artifacts/test-logs/20260923-route-bench/static-contract.log:19-28</code></td><td>✅</td></tr>
+  </tbody>
+</table>
+
+<h2>2. 一致性核对</h2>
+<table>
+  <thead><tr><th>检查项</th><th>结果</th><th>证据</th></tr></thead>
+  <tbody>
+    <tr><td>8 个 frontmatter 可解析、name 未漂移</td><td>一致</td><td><code>static-contract.log:31-40</code>（8/8 len 210–536，name 等于目录名）</td></tr>
+    <tr><td>正文未被动</td><td>一致</td><td>补丁脚本内 <code>assert rest_unchanged</code>（<code>executor/artifacts/apply-description-patch.py:96-97</code>）</td></tr>
+    <tr><td>边界双向性（四组两侧点名对侧）</td><td>一致</td><td><code>static-contract.log:1-14</code>（15/15 True）</td></tr>
+    <tr><td>测试报告结论与 artifacts 实际输出一致</td><td>一致</td><td>test-report §5 六项 PASS 与 <code>red-route-bench.log</code>/<code>green-route-bench.log</code> 的 SCORE 行逐条对得上</td></tr>
+  </tbody>
+</table>
+
+<h2>3. 额外实现</h2>
+<table>
+  <thead><tr><th>额外内容</th><th>位置</th><th>评估</th></tr></thead>
+  <tbody>
+    <tr><td>exp-reflect 追加「程序记忆（SOP）落盘成新 Skill 用 skill-creator」</td><td><code>exp-reflect/SKILL.md:4</code></td><td>➕ 计划外但同向收敛（plan §3.5 只要求切开 exp-write 边界）；executor/summary.html §3 已如实登记为偏差</td></tr>
+    <tr><td>spec-test 追加「或审查实现是否符合 Spec（后者归 spec-review）」</td><td><code>spec-test/SKILL.md:4</code></td><td>➕ 计划 §3.1 未写，但 TC-04 要求双向点名，属测试驱动补全；已记 I-005</td></tr>
+    <tr><td>基准脚本与 11 份测试/实现 artifacts 落盘</td><td><code>tester/artifacts/test-logs/...</code>、<code>executor/artifacts/...</code></td><td>➕ 计划 §4 隐含要求，属于验证证据而非代码改动</td></tr>
+  </tbody>
+</table>
+
+<h2>4. AWR 状态一致性</h2>
+<table>
+  <thead><tr><th>检查项</th><th>结果</th></tr></thead>
+  <tbody>
+    <tr><td>工作项 <code>WORK-f60583d5247c58735d9679a6a244961f</code> 登记与 spec_dir 指向</td><td>🔍 一致（<code>spec/work-ledger.yaml:87-96</code>）</td></tr>
+    <tr><td>角色检查点链（TeamLead → explorer → writer → tester）</td><td>🔍 一致，4 次 checkpoint 均 RC=0，无 <code>--open-loop</code> 遗留</td></tr>
+    <tr><td>未关闭 open loop / 未登记为 AWR task 的报告批注</td><td>🔍 无（本轮报告无 <code>rk-note</code> 批注）</td></tr>
+  </tbody>
+</table>
+
+<h2>5. 发现与分级</h2>
+<table>
+  <thead><tr><th>编号</th><th>级别</th><th>问题</th><th>证据</th><th>处置要求</th></tr></thead>
+  <tbody>
+    <tr><td>R-01</td><td>P1</td><td>台账 acceptance 第 2 项写「26 条基准<b>全绿</b>」，而实测 25/26（r23 未闭合），文字与结果存在偏差</td><td><code>spec/work-ledger.yaml:92</code> vs <code>green-route-bench.log:4-8</code></td><td>收尾阶段改写为「26 条基准中 4 个已知错判全部闭合、GREEN 复跑零 flap；唯一未闭合项 r23 为 gold 可争议项」类可判据，避免 machine-completion 阶段逐字比对失败</td></tr>
+    <tr><td>R-02</td><td>P1</td><td>补丁脚本依赖 <code>git show HEAD:&lt;skill&gt;/SKILL.md</code> 作基线；一旦补丁先于测试提交进 HEAD，脚本断言失效，RED 也失去基线</td><td><code>executor/artifacts/apply-description-patch.py:83-88</code>；<code>test-plan.html</code> §5 已预警</td><td>提交顺序必须是「测试报告与 Review 先于 SKILL.md 补丁」，或给脚本加 <code>--baseline-ref</code> 参数。收尾阶段按前者执行</td></tr>
+    <tr><td>R-03</td><td>P2</td><td>r23 在 roster 外承接者（skill-creator）缺位时判 <code>none_of_these</code>，批内恒定、隔离下 2/4 命中，属残留不确定项</td><td><code>green-route-bench.log:16-27</code></td><td>登记为已知限制，不阻断；后续把 skill-creator 纳入 roster 再回归</td></tr>
+  </tbody>
+</table>
+
+<h2>6. 放行结论</h2>
+<ul>
+  <li><b>完成度</b>：plan §3 七条全部落地，§4 五步全部执行。</li>
+  <li><b>一致性</b>：8 个 frontmatter 与计划一致，正文零改动，边界双向 15/15。</li>
+  <li><b>额外实现</b>：3 项均为边界双向性/验证证据的合理补全，已在 summary.html §3 如实登记。</li>
+  <li><b>AWR 对齐</b>：台账登记、checkpoint 链、无 open-loop 遗留，均一致。</li>
+  <li><b>结论</b>：在 R-01、R-02 按要求处置后放行进入收尾；R-03 登记为已知限制。</li>
+</ul>
+
+<h2>7. 关联产物</h2>
+<ul class="rk-links">
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+  <li><a href="../writer/plan.html" data-rk-link="plan">设计方案</a></li>
+  <li><a href="../executor/summary.html" data-rk-link="summary">实现总结</a></li>
+  <li><a href="../tester/test-plan.html" data-rk-link="test-plan">测试计划</a></li>
+  <li><a href="../tester/test-report.html" data-rk-link="test-report">测试报告</a></li>
+</ul>
+<ul class="rk-backlinks">
+  <li><a href="../executor/summary.html" data-rk-backlink="summary">实现总结</a>（引用本报告）</li>
+  <li><a href="../tester/test-report.html" data-rk-backlink="test-report">测试报告</a>（引用本报告）</li>
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>设计方案 - AWR完工核验契约与证据链规范修复</title>
+
+<meta name="rk:title"          content="AWR完工核验契约与证据链规范修复">
+<meta name="rk:type"           content="plan">
+<meta name="rk:version"        content="v2.11">
+<meta name="rk:category"       content="fix">
+<meta name="rk:spec-dir"       content="spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复">
+<meta name="rk:role"           content="spec-writer">
+<meta name="rk:mode"           content="gated">
+<meta name="rk:status"         content="未确认">
+<meta name="rk:priority"       content="高">
+<meta name="rk:execution-mode" content="single-agent">
+<meta name="rk:created"        content="2026-09-22">
+<meta name="rk:updated"        content="2026-09-22">
+<meta name="rk:revision"       content="1">
+<meta name="rk:git-branch"     content="fix/spec-20260922-awr-completion-hardening">
+<meta name="rk:base-branch"    content="master">
+<meta name="rk:pr-url"         content="">
+<meta name="rk:tags"           content="spec,plan,awr">
+<link rel="rk-exploration" href="../explorer/exploration-report.html">
+<link rel="rk-test-plan"   href="../tester/test-plan.html">
+<link rel="rk-summary"     href="../executor/summary.html">
+<link rel="rk-ledger"      href="../lead/team-context.md">
+
+<link rel="stylesheet" href="../../../../../../html-report/assets/rk-report.css">
+<script defer src="../rk-manifest.js"></script>
+<script defer src="../../../../../../html-report/assets/rk-report.js"></script>
+</head>
+<body>
+
+<nav class="rk-nav"></nav>
+
+<header class="rk-head">
+  <h1>设计方案：AWR完工核验契约与证据链规范修复</h1>
+  <div class="rk-meta">
+    <span><b>类型</b> plan</span>
+    <span><b>版本</b> <code>v2.11</code></span>
+    <span><b>属性</b> <code>fix</code></span>
+    <span><b>Spec</b> <code>spec/versions/v2.11/specs/20260922-2100-fix-AWR完工核验契约与证据链规范修复</code></span>
+    <span><b>角色</b> spec-writer</span>
+    <span><b>状态</b> 未确认</span>
+    <span><b>优先级</b> 高</span>
+    <span><b>执行模式</b> single-agent</span>
+    <span><b>分支</b> <code>fix/spec-20260922-awr-completion-hardening</code> ← <code>master</code></span>
+    <span><b>PR</b> —</span>
+    <span><b>创建</b> 2026-09-22</span>
+    <span><b>修订</b> r1（2026-09-22）</span>
+  </div>
+</header>
+
+<nav class="rk-revbar"></nav>
+
+<section class="rk-verdict is-pass">
+  <div class="rk-verdict-label">设计结论</div>
+  <p>对齐 AWR 0.5.0 官方源码契约：在 spec-test 纠正 prepare-completion 的机器 JSON 要求；在 awr-integration.md 补齐从 evidence add 到 work complete 的官方核验协议；在 tdd-discipline 加固真实断言规范；同步修订 v2.11 版本大盘；在沙箱完成契约实测与 v2.11 既有 Spec 联合重测。</p>
+</section>
+
+<h2>修订历史</h2>
+<table class="rk-revs">
+  <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
+  <tbody>
+    <tr><td>r1</td><td>2026-09-22</td><td>spec-writer</td><td>初版设计方案</td><td>—</td></tr>
+  </tbody>
+</table>
+
+<h2>1. 概述</h2>
+
+<h3>1.1 背景</h3>
+<p>在沙箱实测与官方 <code>v0.5.0</code> 源码深度调研中，发现规范库存在核心契约脱节：<code>spec-test/SKILL.md</code> 误导用户将 HTML 报告传给 <code>prepare-completion</code> 导致 <code>InvalidInput</code>；<code>.agents/rules/awr-integration.md</code> 缺失了任务完工阶段真正的 <code>work complete</code> 机器核验协议与 40 位 SHA 约束，导致任务停留在声明完成态，AWR 报 <code>completion_not_checked</code> 缺口。</p>
+
+<h3>1.2 目标</h3>
+<ol>
+  <li>纠正 <code>spec-test/SKILL.md</code> 中 <code>prepare-completion</code> 参数与产物指引，确立 HTML 与 JSON 双轨制。</li>
+  <li>在 <code>.agents/rules/awr-integration.md</code> 中建立完整的 AWR 完工机器核验协议（evidence add → prepare-completion → work complete → session end）。</li>
+  <li>在 <code>spec-end/SKILL.md</code> 补充通过 <code>work complete</code> 闭环机器核验的操作指引。</li>
+  <li>在 <code>spec-execute/references/tdd-discipline.md</code> 补全 RED 阶段必须执行真实断言（避免仅依赖缺失命令导致全部走 SKIP 分支）的纪律要求。</li>
+  <li>按版本范围变更规约同步修订 <code>spec/versions/v2.11/plan.html</code> 版本大盘。</li>
+  <li>在 <code>/tmp</code> 隔离沙箱中执行契约端到端全流程验证与 v2.11 既有 Spec 联合回归重测。</li>
+</ol>
+
+<h3>1.3 范围</h3>
+<p><b>包含</b>：上述文档/规则的契约更新、v2.11 大盘同步、RED 测试先行脚本建设，以及在隔离沙箱中进行的全流程实测与联合回归。</p>
+<p><b>不包含</b>：修改 AWR 二进制代码；保持 <code>scripts/rk-awr-checkpoint.{sh,ps1}</code> 既有参数体系不变（当前会话与租约管理完全稳定，完工以直接调用 awr 命令闭环，避免引入计划外变更）。</p>
+
+<h2>2. 需求分析与设计方案</h2>
+
+<h3>2.1 数据结构与契约规范</h3>
+
+<h4>1. 机器完成报告结构（completion.report.v1）</h4>
+<pre><code>interface CompletionReportV1 {
+  version: 1;                     // 必须为整数 1
+  work_item: string;              // 目标工作项 ID，如 "SPEC-RKGREET-001"
+  source_sha: string;             // 40 位完整 Git commit SHA
+  command: string;                // 验证命令，如 "bash tests/rkgreet.test.sh"
+  scope: string[];                // 字符串数组，如 ["acceptance"]
+  verified_at: number;            // 毫秒时间戳整数
+  checks: Array<{
+    name: string;                 // 用例名称，如 "TC-001"
+    passed: boolean;              // 是否通过
+    details: string;              // 验证明细
+    criteria: string[];           // 必须与台账 acceptance 原文逐字一致
+  }>;
+}</code></pre>
+
+<h4>2. 完工输入映射结构（work complete --input）</h4>
+<pre><code>interface WorkCompleteInputV1 {
+  version: 1;                     // 必须为整数 1
+  source_sha: string;             // 40 位完整 Git commit SHA
+  acceptance: Array<{
+    criterion: string;            // 与台账 acceptance 原文逐字一致
+    evidence: string[];           // 绑定的证据 external_key，如 ["SPEC-ID/evidence/test-run-001"]
+  }>;
+}</code></pre>
+
+<h3>2.2 模块修改点与文件清单</h3>
+
+<table>
+  <thead><tr><th>文件</th><th>修改区块</th><th>修改要点</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><span class="rk-ref">spec-test/SKILL.md</span></td>
+      <td>阶段二 步骤 7</td>
+      <td>明确 <code>prepare-completion</code> 的 <code>--report</code> 必须传 <code>completion.report.v1</code> 机器 JSON，列出 7 个必填字段；说明 HTML 测试报告用于人工审查与台账 <code>locator</code>，两者双轨并存；提示 <code>--source-sha</code> 必须为 40 位。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">.agents/rules/awr-integration.md</span></td>
+      <td>第三节 生命周期协议</td>
+      <td>在第 4 步（交接）与第 5 步（释放）之间正式插入「4.5 完工核验与证据上链」，列出 <code>evidence add</code>、<code>prepare-completion</code>、<code>work complete</code> 的完整标准命令与三字段 JSON 规范，说明 <code>work complete</code> 会自动向台账注入 verification 块。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">spec-end/SKILL.md</span></td>
+      <td>步骤 7</td>
+      <td>增加对 <code>work complete</code> 机器核验的引导，说明先完工、台账自动更新后再通过 <code>--end</code> 释放租约。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">spec-execute/references/tdd-discipline.md</span></td>
+      <td>RED：三个确认</td>
+      <td>在三个确认后增加第 4 条「真实断言覆盖」：被测命令在断言前若完全缺失导致测试套件全走 SKIP，不能视为有效 RED；应先建立最小空桩（stub）使断言真实执行并产生 <code>FAIL</code>。</td>
+    </tr>
+    <tr>
+      <td><span class="rk-ref">spec/versions/v2.11/plan.html</span></td>
+      <td>修订历史与大盘表格</td>
+      <td>递增修订号为 r2，追加当前 fix Spec 规划条目。</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>3. 执行模式</h2>
+<p><b>执行模式</b>：<code>single-agent</code>（由 spec-executor 串行实施文档修改，并在沙箱完成自动化测试验证）。</p>
+
+<h2>4. 实现步骤与每任务验证命令</h2>
+
+<ol>
+  <li>
+    <b>任务 0：测试先行（TDD RED 阶段）</b><br>
+    编写静态契约断言脚本并在修复前运行，观察其在当前工作树因缺少新契约而产生明确的失败退出码（RED 证据保存至 <code>executor/artifacts/red-static.log</code>）。
+  </li>
+  <li>
+    <b>任务 1：更新 spec-test/SKILL.md 与 spec-end/SKILL.md</b><br>
+    验证命令：<code>grep -n "completion.report.v1" spec-test/SKILL.md && grep -n "work complete" spec-end/SKILL.md</code>。
+  </li>
+  <li>
+    <b>任务 2：更新 .agents/rules/awr-integration.md 与 tdd-discipline.md</b><br>
+    验证命令：<code>grep -nE "(40 ?位完整|40-char|full (git )?SHA|完整.{0,4}SHA)" .agents/rules/awr-integration.md && grep -n "空桩" spec-execute/references/tdd-discipline.md</code>。
+  </li>
+  <li>
+    <b>任务 3：同步修订 spec/versions/v2.11/plan.html</b><br>
+    递增版本大盘修订号为 r2，追加 <code>20260922-2100-fix-AWR完工核验契约与证据链规范修复</code> 条目，验证命令：<code>grep -n "20260922-2100" spec/versions/v2.11/plan.html</code>。
+  </li>
+  <li>
+    <b>任务 4：在 /tmp 隔离沙箱执行契约全流程回归与 v2.11 联合重测</b><br>
+    验证命令：重演 AWR 完工命令链路且 <code>awr doctor</code> 0 findings；联合运行脚手架既有测试套件确保 100% 兼容通过。
+  </li>
+</ol>
+
+<h2>5. 风险与依赖</h2>
+<table>
+  <thead><tr><th>风险</th><th>影响</th><th>概率</th><th>缓解措施</th></tr></thead>
+  <tbody>
+    <tr><td>规则修改触及永远门禁</td><td>高</td><td>低</td><td>用户已在交互式 ask 中明确授权放行修改。</td></tr>
+    <tr><td>acceptance 原文换行或空格不一致导致 criteria 不匹配</td><td>中</td><td>中</td><td>在文档中明确提醒 criteria 必须从 <code>work-ledger.yaml</code> 原文复制或通过脚本读取。</td></tr>
+  </tbody>
+</table>
+
+<h2>关联产物</h2>
+<h3>本报告引用</h3>
+<ul class="rk-links">
+  <li><a href="../explorer/exploration-report.html" data-rk-link="exploration">探索报告</a></li>
+  <li><a href="../lead/team-context.md" data-rk-link="ledger">运行账本</a></li>
+</ul>
+<h3>引用本报告</h3>
+<ul class="rk-backlinks">
+  <li><a href="../tester/test-plan.html" data-rk-backlink="test-plan">测试计划</a></li>
+  <li><a href="../executor/summary.html" data-rk-backlink="summary">实现总结</a>（待创建）</li>
+</ul>
+
+</body>
+</html>

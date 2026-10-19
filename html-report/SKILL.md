@@ -1,11 +1,6 @@
 ---
 name: html-report
-description: >
-  当需要产出或修改 R&K Flow 的 Spec 报告（exploration-report / plan / test-plan /
-  test-report / summary / debug / review / update / end-report）时使用。
-  定义 HTML 报告的固定结构、固定样式和可追溯修订标记规范。
-  典型信号：要写某个 Spec 阶段的报告、要修订已有报告、要让用户看清两版之间改了什么。
-  不要用于记忆库文件（`spec/context/**/*.md`，保持 Markdown 供 `exp-search` 检索）。
+description: 当需要产出或修改 R&K Flow 的 Spec 报告（exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report）的格式时使用。定义 HTML 报告的固定结构、固定样式和可追溯修订标记规范。典型信号：要写某个 Spec 阶段的报告骨架、要修订已有报告、要让用户看清两版之间改了什么、或要核对修订号/修订历史/meta/双向关联/样式表是否符合契约。本 Skill 只规定'报告长什么样'，不决定'报告里写什么'：补漏需求参数、改方案、调整验收标准、修结论、补修订历史内容分别属于 spec-update / spec-write / spec-execute 等角色 Skill，它们只在需要遵守格式契约时读本 Skill。请求里出现 report/plan/update 等文件名不构成本 Skill 的触发条件。不要用于记忆库文件（`spec/context/**/*.md`，保持 Markdown 供 `exp-search` 检索）。
 ---
 
 # HTML Report
@@ -154,7 +149,7 @@ node html-report/scripts/export-standalone.js <报告.html | Spec 目录> [--out
 
 | 项 | 行为 |
 |----|------|
-| 输出 | 默认写到报告同级 `exports/`，文件名不变；源报告只读不改 |
+| 输出 | 默认写到**项目根 `exports/`**（保留报告相对项目根的路径）；源报告只读不改。禁止输出到 `spec/versions/` 内——`spec-end` 机检会扫描 Spec 目录下全部 `*.html`，导出件（含内联 `<style>`）会被判违规 |
 | 内联 | `rk-report.css` → `<style>`；`rk-report.js` → `<script>`（置于 `</body>` 前）；本地图片 → data URI |
 | 导航树 | 默认丢弃 `rk-manifest.js`（导航链接指向兄弟报告，上传后必失效）；`--keep-nav` 可保留 |
 | 目录输入 | 递归导出其中全部 `*.html`，跳过 `exports/` |
@@ -425,3 +420,7 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 - 新增报告后忘记更新 `rk-manifest.js` → 导航树里看不到新文件（由 TeamLead 统一更新）
 - 把源报告单独上传在线文档 → 丢样式，先跑 `scripts/export-standalone.js` 再上传 `exports/` 里的文件
 - 用 `fetch` 探测同级报告是否存在 → `file://` 下必然失败，只能读 `window.RK_SPEC_TREE`
+- `rk-report.js` 排在 `rk-manifest.js` 之前 → 两者 defer 按文档序执行，反序时导航树渲染为空（深度失效：正文正常、左侧全白）
+- 漏写 `rk:version` / `rk:category`（Spec 级报告二者必填）→ 元数据检索与版本归属缺失
+- 漏掉「引用本报告」（`rk-backlinks`）节 → 反向发现能力丢失，双向关联只剩单向
+- 用行内 `style="` 或 `<style>` 块调色 → 违反固定样式约定，且 spec-end 机检会拦截
