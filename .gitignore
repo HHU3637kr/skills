@@ -63,3 +63,6 @@ lark-*/
 
 # CodeGraph index
 .codegraph/
+
+# R&K 报告导出产物（html-report/scripts/export-standalone.js 生成，可重新生成）
+exports/

@@ -138,6 +138,25 @@ R&K Flow 的**报告类产物统一用 HTML 承载**，不使用 Obsidian 及其
 
 务必保证在目标层级下 `file://` 本地直接打开报告时样式与脚本正常加载。
 
+## 导出单文件（上传在线文档用）
+
+报告靠相对路径引用样式与脚本，单独上传到在线文档（云盘预览、飞书等）会丢样式。
+**Agent 写报告时照常引用 `rk-report.css`，不要为此内联样式**；需要外发时跑导出脚本：
+
+```bash
+node html-report/scripts/export-standalone.js <报告.html | Spec 目录> [--out <目录>] [--keep-nav]
+```
+
+| 项 | 行为 |
+|----|------|
+| 输出 | 默认写到**项目根 `exports/`**（保留报告相对项目根的路径）；源报告只读不改。禁止输出到 `spec/versions/` 内——`spec-end` 机检会扫描 Spec 目录下全部 `*.html`，导出件（含内联 `<style>`）会被判违规 |
+| 内联 | `rk-report.css` → `<style>`；`rk-report.js` → `<script>`（置于 `</body>` 前）；本地图片 → data URI |
+| 导航树 | 默认丢弃 `rk-manifest.js`（导航链接指向兄弟报告，上传后必失效）；`--keep-nav` 可保留 |
+| 目录输入 | 递归导出其中全部 `*.html`，跳过 `exports/` |
+
+`exports/` 是派生产物，随时可重新生成，不手改、不进修订标记流程。
+预览器若不执行脚本，修订三视图与批注抽屉不可用，但样式与 `ins`/`del` 高亮（纯 CSS）仍在。
+
 ## 导航树（左侧文件树）
 
 报告左侧渲染一列本 Spec 内的文档导航，可在同一 Spec 的各角色报告之间直接跳转。
@@ -399,6 +418,7 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 - 其它相对路径层数算错 → `file://` 打开丢样式
 - 用 `<b>`/`<i>` 假冒修订标记 → 必须用 `ins`/`del` 语义标签
 - 新增报告后忘记更新 `rk-manifest.js` → 导航树里看不到新文件（由 TeamLead 统一更新）
+- 把源报告单独上传在线文档 → 丢样式，先跑 `scripts/export-standalone.js` 再上传 `exports/` 里的文件
 - 用 `fetch` 探测同级报告是否存在 → `file://` 下必然失败，只能读 `window.RK_SPEC_TREE`
 - `rk-report.js` 排在 `rk-manifest.js` 之前 → 两者 defer 按文档序执行，反序时导航树渲染为空（深度失效：正文正常、左侧全白）
 - 漏写 `rk:version` / `rk:category`（Spec 级报告二者必填）→ 元数据检索与版本归属缺失
