@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: intent-confirmation
 description: >
   当用户的请求在执行前需要澄清目标、边界或实现思路时使用：需求抽象、涉及架构

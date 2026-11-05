@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: spec-execute
 description: >
   严格按 writer/plan.html 执行新功能开发。由角色 spec-executor 调用。

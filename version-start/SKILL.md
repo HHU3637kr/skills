@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: version-start
 description: >
   当项目需要规划或启动一个新的产品版本里程碑（如 v1.6、v2.0），明确版本目标、需求范围、

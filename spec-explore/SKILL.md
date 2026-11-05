@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: spec-explore
 description: >
   Spec 创建前的信息收集与探索。由角色 spec-explorer 调用。

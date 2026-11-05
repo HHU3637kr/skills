@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: spec-write
 description: >
   撰写代码实现计划（writer/plan.html）。由角色 spec-writer 调用。

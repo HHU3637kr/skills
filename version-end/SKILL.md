@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: version-end
 description: >
   当一个 Version 已经完成线上发布与业务交付确认，需要进入最终收尾与归档时使用。

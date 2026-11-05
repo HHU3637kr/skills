@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: spec-swarm
 description: >
   当用户要求以「Agent 主控 + 全程 spawn 子 Agent」的方式启动 R&K Flow 开发流程时使用：

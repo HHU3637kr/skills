@@ -1,5 +1,5 @@
 ---
-disable-model-invocation: true
+disable-model-invocation: false
 name: version-update
 description: >
   当一个处于「规划中」或「执行中」的 Version 发生需求范围变更（新增 Spec、移出/延期 Spec、
