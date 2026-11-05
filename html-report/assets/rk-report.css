@@ -1,246 +1,247 @@
 /* R&K Flow HTML Report - 固定样式（唯一样式源）
  * 所有 Spec 报告通过 <link> 引用本文件，改这里即全部报告统一改版。
  * 修订语义：ins=新增 del=删除 data-rev=修订序号
- * 视觉：终端风（zinc 底 + emerald 强调 + 等宽），取自 personal-web 设计系统
+ * 视觉：浅色文档卡风——浅灰页面 + 单张白色圆角卡片、系统无衬线、1px 细边框；
+ *       颜色只表达语义（蓝=信息/主行为、绿=通过、琥珀=警告、红=风险）。
  */
 
 :root {
-  /* zinc / emerald 取自 Tailwind 调色板，与 personal-web 一致 */
-  --fg: #d4d4d8;          /* zinc-300 正文 */
-  --fg-strong: #f4f4f5;   /* zinc-100 强调 */
-  --fg-dim: #71717a;      /* zinc-500 次要 */
-  --fg-faint: #52525b;    /* zinc-600 更弱 */
-  --bg: #09090b;          /* zinc-950 页底 */
-  --bg-soft: #18181b;     /* zinc-900 卡片/侧栏 */
-  --bg-black: #000000;    /* 代码块 */
-  --line: #27272a;        /* zinc-800 描边 */
-  --line-soft: #3f3f46;   /* zinc-700 */
-  --accent: #34d399;      /* emerald-400 */
-  --accent-dim: #10b981;  /* emerald-500 */
-  --ins: #34d399;
-  --ins-bg: rgba(16, 185, 129, .10);
-  --del: #f87171;
-  --del-bg: rgba(248, 113, 113, .10);
-  --warn: #fbbf24;
-  --warn-bg: rgba(251, 191, 36, .10);
-  --key: #c084fc;
-  --key-bg: rgba(192, 132, 252, .10);
-  --code: #fde047;        /* yellow-300 行内 code */
-  --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, "Microsoft YaHei Mono", monospace;
+  --ink: #1f2328;         /* 正文墨色 */
+  --muted: #656d76;       /* 次要文字（白底 5.4:1） */
+  --line: #d0d7de;        /* 描边 */
+  --bg: #ffffff;          /* 卡片 / 正文底 */
+  --soft: #f6f8fa;        /* 表头、指标卡、行内代码 */
+  --page: #f3f4f6;        /* 页面底 */
+  --track: #eef1f4;       /* 进度槽 */
+  --slate: #94a3b8;       /* 失活 / 历史 */
+  --blue: #2563eb;      --blue-bg: #eff6ff;  --blue-line: #dbeafe;
+  --green: #059669;     --green-ink: #067647; --green-bg: #ecfdf3; --green-line: #abefc6;
+  --amber: #d97706;     --amber-ink: #b45309; --amber-bg: #fffbeb; --amber-line: #fde68a;
+  --red: #dc2626;       --red-ink: #b42318;   --red-bg: #fef2f2;   --red-line: #ffccc7;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "Cascadia Code", Consolas, monospace;
+
+  /* 旧变量名映射（rk-report.js 与历史规则仍在引用），值全部为浅色 */
+  --fg: var(--ink);
+  --fg-strong: var(--ink);
+  --fg-dim: var(--muted);
+  --fg-faint: var(--muted);
+  --fg-muted: var(--muted);
+  --bg-soft: var(--soft);
+  --bg-black: var(--soft);
+  --bg-faint: var(--soft);
+  --line-soft: var(--line);
+  --line-strong: #8c959f;
+  --accent: var(--blue);
+  --accent-dim: var(--blue);
+  --ins: var(--green-ink);
+  --ins-bg: var(--green-bg);
+  --del: var(--red-ink);
+  --del-bg: #fff1f0;
+  --warn: var(--amber-ink);
+  --warn-bg: var(--amber-bg);
+  --key: var(--blue);
+  --key-bg: var(--blue-bg);
+  --code: var(--ink);
 }
 
 * { box-sizing: border-box; }
 
+html { background: var(--page); }
+
+/* 报告 DOM 没有外层容器，body 本身就是那张居中白卡 */
 body {
-  margin: 0 auto;
-  padding: 32px 28px 96px;
-  max-width: 980px;
-  /* 终端风：全站等宽 */
-  font: 15px/1.75 var(--mono);
-  color: var(--fg);
+  --card: 1180px;         /* 白卡最大宽度；宽屏批注 gutter 打开时加宽 */
+  position: relative;     /* 宽屏批注 gutter（absolute）以白卡为定位基准 */
+  max-width: var(--card);
+  margin: 24px auto;
+  padding: 28px 32px 36px;
+  font: 15px/1.65 var(--sans);
+  color: var(--ink);
   background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
 }
 
-::selection { background: rgba(16, 185, 129, .30); color: #a7f3d0; }
+p { margin: 0 0 12px; }
+
+::selection { background: rgba(37, 99, 235, .18); }
 
 /* ---------- 报告头 ---------- */
 
 .rk-head {
   border-bottom: 1px solid var(--line);
   padding-bottom: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .rk-head h1 {
-  margin: 0 0 12px;
+  margin: 0 0 6px;
   font-size: 26px;
   line-height: 1.35;
   font-weight: 700;
-  color: var(--fg-strong);
-  letter-spacing: -.01em;
-}
-
-/* 标题前缀 $ ，呼应终端提示符 */
-.rk-head h1::before {
-  content: "$ ";
-  color: var(--accent);
-  font-weight: 400;
+  color: var(--ink);
 }
 
 .rk-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 4px 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 2px 20px;
   font-size: 12px;
-  color: var(--fg-dim);
+  color: var(--muted);
 }
 
-.rk-meta b {
-  color: var(--fg-faint);
-  font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-}
-.rk-meta code { font-size: 12px; color: var(--fg); }
+.rk-meta b { color: var(--ink); font-weight: 600; margin-right: 4px; }
+.rk-meta code { font-size: 12px; }
 
 /* ---------- 结论块：最突出 ---------- */
 
 .rk-verdict {
-  border: 1px solid rgba(16, 185, 129, .30);
-  border-left: 2px solid var(--accent);
-  border-radius: 4px;
-  background: rgba(16, 185, 129, .06);
-  padding: 16px 20px;
-  margin: 24px 0;
+  border: 1px solid var(--blue-line);
+  border-left: 4px solid var(--blue);
+  border-radius: 0 8px 8px 0;
+  background: var(--blue-bg);
+  padding: 12px 14px;
+  margin: 16px 0;
+  font-size: 14px;
 }
 
 .rk-verdict > .rk-verdict-label {
   font-size: 12px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 700;
-  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--blue);
+  margin-bottom: 4px;
 }
 
 .rk-verdict > p:last-child { margin-bottom: 0; }
-.rk-verdict.is-pass { border-color: var(--ins); }
-.rk-verdict.is-pass > .rk-verdict-label { color: var(--ins); }
-.rk-verdict.is-fail { border-color: var(--del); }
-.rk-verdict.is-fail > .rk-verdict-label { color: var(--del); }
+.rk-verdict.is-pass { border-color: var(--green-line); border-left-color: var(--green); background: var(--green-bg); }
+.rk-verdict.is-pass > .rk-verdict-label { color: var(--green-ink); }
+.rk-verdict.is-warn { border-color: var(--amber-line); border-left-color: var(--amber); background: var(--amber-bg); }
+.rk-verdict.is-warn > .rk-verdict-label { color: var(--amber-ink); }
+.rk-verdict.is-fail { border-color: var(--red-line); border-left-color: var(--red); background: var(--red-bg); }
+.rk-verdict.is-fail > .rk-verdict-label { color: var(--red-ink); }
 
-/* ---------- 指标卡 ---------- */
+/* ---------- 指标卡：小标签 → 数值 → 小注释 ---------- */
 
 .rk-kpis {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
-  margin: 20px 0;
+  margin: 16px 0;
 }
 
 .rk-kpi {
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 12px 14px;
-  background: var(--bg-black);
+  border-radius: 10px;
+  padding: 14px;
+  background: var(--soft);
 }
 
-.rk-kpi .v { font-size: 22px; font-weight: 700; line-height: 1.2; color: var(--fg-strong); }
-.rk-kpi .k { font-size: 11px; color: var(--fg-dim); text-transform: uppercase; letter-spacing: .06em; }
-.rk-kpi.is-pass .v { color: var(--ins); }
-.rk-kpi.is-fail .v { color: var(--del); }
+.rk-kpi .k { order: -1; font-size: 12px; color: var(--muted); }
+.rk-kpi .v { font-size: 20px; font-weight: 700; line-height: 1.3; color: var(--ink); font-variant-numeric: tabular-nums; }
+.rk-kpi .n, .rk-kpi small { font-size: 12px; color: var(--muted); }
+.rk-kpi.is-pass .v { color: var(--green-ink); }
+.rk-kpi.is-fail .v { color: var(--red-ink); }
 
 /* ---------- Callout ---------- */
 
 .rk-cal {
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--line-soft);
-  border-radius: 4px;
-  background: var(--bg-soft);
-  padding: 12px 16px;
+  border-left: 4px solid var(--line);
+  border-radius: 0 8px 8px 0;
+  background: var(--soft);
+  padding: 12px 14px;
   margin: 16px 0;
+  font-size: 14px;
 }
 
-.rk-cal > .t { font-weight: 700; margin-bottom: 4px; color: var(--fg-strong); }
+.rk-cal > .t { font-weight: 600; margin-bottom: 4px; color: var(--ink); }
 .rk-cal > :last-child { margin-bottom: 0; }
-.rk-cal.key  { border-left-color: var(--key);  background: var(--key-bg); }
-.rk-cal.key  > .t { color: var(--key); }
-.rk-cal.warn { border-left-color: var(--warn); background: var(--warn-bg); }
-.rk-cal.warn > .t { color: var(--warn); }
-.rk-cal.risk { border-left-color: var(--del);  background: var(--del-bg); }
-.rk-cal.risk > .t { color: var(--del); }
-.rk-cal.ok   { border-left-color: var(--ins);  background: var(--ins-bg); }
-.rk-cal.ok   > .t { color: var(--ins); }
+.rk-cal.key  { border-left-color: var(--blue);  background: var(--blue-bg); }
+.rk-cal.key  > .t { color: var(--blue); }
+.rk-cal.ok   { border-left-color: var(--green); background: var(--green-bg); }
+.rk-cal.ok   > .t { color: var(--green-ink); }
+.rk-cal.warn { border-left-color: var(--amber); background: var(--amber-bg); }
+.rk-cal.warn > .t { color: var(--amber-ink); }
+.rk-cal.risk { border-left-color: var(--red);   background: var(--red-bg); }
+.rk-cal.risk > .t { color: var(--red-ink); }
 
 /* ---------- 用户批注（人写，Agent 读） ---------- */
 
-/* 与 Agent 自己的 callout 明确区分：橙色 + 左侧粗条 + 「批注」角标。
+/* 待处理批注：白底卡 + 琥珀左边（待定语义）+「批注」文字标签；
    批注是短期沟通载体，Agent 重写报告时会被覆盖，不做长期保留。 */
 .rk-note {
   position: relative;
-  border: 1px dashed #fb923c;          /* orange-400 */
-  border-left: 4px solid #fb923c;
-  border-radius: 4px;
-  background: rgba(251, 146, 60, .08);
-  padding: 12px 16px 12px 18px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--amber);
+  border-radius: 10px;
+  background: var(--bg);
+  padding: 12px 14px;
   margin: 16px 0;
-  color: var(--fg);
+  color: var(--ink);
+  font-size: 14px;
 }
 
 .rk-note::before {
   content: "批注";
-  position: absolute;
-  top: -9px;
-  left: 12px;
-  padding: 0 6px;
-  background: var(--bg);
-  color: #fb923c;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .08em;
+  display: inline-block;
+  margin-bottom: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--amber-line);
+  background: var(--amber-bg);
+  color: var(--amber-ink);
+  font-size: 11px;
+  font-weight: 600;
 }
 
 .rk-note > :last-child { margin-bottom: 0; }
 
-/* 图 1 同款：已闭环决策 Callout 块（紫色科技边框 + 双标签 + 完整批注原文与解决说明） */
+/* 已闭环批注：徽标条 + 引用原文框 + 处理说明 */
 .rk-note.is-done {
-  position: relative;
-  border: 1px solid #7c3aed;
-  border-left: 4px solid #a855f7;
-  border-radius: 6px;
-  background: rgba(124, 58, 237, 0.07);
-  padding: 14px 18px;
-  margin: 20px 0;
-  color: var(--fg);
+  border-color: var(--line);
+  border-left-color: var(--green);
+  background: var(--green-bg);
+  margin: 16px 0;
 }
-.rk-note.is-done::before {
-  display: none; /* 采用内部自包含标签栏，废弃简陋伪元素 */
-}
+.rk-note.is-done::before { content: none; }
 .rk-note-badge-bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 6px;
+  margin-bottom: 10px;
 }
-.rk-note-badge-main {
-  background: #a855f7;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
+.rk-note-badge-main,
 .rk-note-badge-status {
-  background: rgba(255, 255, 255, 0.08);
-  color: #c084fc;
   font-size: 11px;
-  font-family: var(--mono);
-  padding: 2px 8px;
-  border-radius: 4px;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid;
 }
+.rk-note-badge-main { color: var(--blue); background: var(--blue-bg); border-color: var(--blue-line); }
+.rk-note-badge-status { color: var(--green-ink); background: var(--bg); border-color: var(--green-line); }
 .rk-note-quote-box {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
-  color: #d1d5db;
-  font-style: italic;
-  margin-bottom: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.25);
-  border-radius: 4px;
-  border-left: 2px solid #a855f7;
+  background: var(--soft);
+  border-left: 3px solid var(--line);
+  border-radius: 6px;
 }
 .rk-note-body {
-  font-size: 13.5px;
+  font-size: 14px;
   line-height: 1.65;
-  color: var(--fg);
+  color: var(--ink);
 }
-.rk-note-body b {
-  color: #e9d5ff;
-}
+.rk-note-body b { color: var(--ink); }
+
 /* 行内批注：附在任意元素上，用于「这一句不对」这种细粒度意见 */
 [data-rk-note] {
-  border-bottom: 2px dotted #fb923c;
+  border-bottom: 2px dotted var(--amber);
   cursor: help;
 }
 
@@ -248,59 +249,61 @@ body {
   content: "批";
   vertical-align: super;
   margin-left: 2px;
-  color: #fb923c;
-  font-size: 9px;
-  font-weight: 700;
+  color: var(--amber-ink);
+  font-size: 10px;
+  font-weight: 600;
 }
 
 /* ---------- 飞书式现代外挂评审批注系统 ---------- */
 
-/* 划词微型悬浮药丸按钮 */
+/* 划词悬浮按钮：白底细边小胶囊 */
 .rk-anno-tip-btn {
   position: absolute;
   z-index: 9999;
-  background: #ea580c;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 12px;
-  font-weight: 600;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px 12px;
+  font: 600 12px/1.6 var(--sans);
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(0,0,0,.35);
-  transition: transform .12s, background .12s;
+  box-shadow: 0 1px 3px rgba(31, 35, 40, .08);
+  transition: border-color .12s, color .12s;
 }
-.rk-anno-tip-btn:hover { background: #c2410c; transform: scale(1.06); }
-/* 正文划词轻量标注高亮（严格遵循 R&K 自身变量规范） */
+.rk-anno-tip-btn:hover { border-color: var(--blue); color: var(--blue); }
+/* 正文划词高亮：琥珀 = 待处理批注 */
 ::highlight(rk-anno) {
-  background-color: rgba(251, 146, 60, 0.22);
-  text-decoration: underline wavy #ea580c 1.5px;
+  background-color: rgba(217, 119, 6, .16);
+  text-decoration: underline var(--amber) 1.5px;
 }
 ::highlight(rk-anno-locate) {
-  background-color: rgba(234, 88, 12, 0.35);
-  text-decoration: underline wavy #ea580c 2px;
+  background-color: rgba(37, 99, 235, .18);
+  text-decoration: underline var(--blue) 2px;
 }
 
-/* 右侧批注外挂容器（严格遵循 R&K 暖灰/深色主题 CSS 变量） */
+/* 右侧批注抽屉（窄屏覆盖层；宽屏见下方 gutter 模式） */
 .rk-anno-drawer {
   position: fixed;
   top: 0;
   right: 0;
   bottom: 0;
   width: 380px;
-  background: var(--bg-soft);
+  max-width: 100vw;
+  background: var(--bg);
   border-left: 1px solid var(--line);
-  box-shadow: -8px 0 24px rgba(0,0,0,.25);
+  box-shadow: 0 0 0 100vmax rgba(31, 35, 40, 0);
   z-index: 10000;
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform .25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow .25s;
+  font-family: var(--sans);
 }
-.rk-anno-drawer.is-open { transform: translateX(0); }
+/* 遮罩用超大 box-shadow 实现，不新增 DOM */
+.rk-anno-drawer.is-open { transform: translateX(0); box-shadow: 0 0 0 100vmax rgba(31, 35, 40, .25); }
 @media (min-width: 1440px) {
-  /* 宽屏：评论是正文右侧 gutter，不是覆盖页面的全高抽屉 */
-  body.has-anno-gutter { padding-right: 390px; }
+  /* 宽屏：评论是白卡内右侧 gutter；卡片同步加宽，正文宽度不被挤窄 */
+  body.has-anno-gutter { padding-right: 390px; --card: 1570px; }
   body.has-anno-gutter .rk-anno-drawer {
     position: absolute;
     top: 0;
@@ -324,6 +327,7 @@ body {
     position: relative;
     overflow: visible;
     padding: 0 14px;
+    background: transparent;
     display: block;
   }
   body.has-anno-gutter .rk-anno-cards-container {
@@ -336,7 +340,7 @@ body {
 }
 
 .rk-anno-drawer-head {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-bottom: 1px solid var(--line);
   display: flex;
   justify-content: space-between;
@@ -345,8 +349,8 @@ body {
 }
 .rk-anno-drawer-title {
   font-size: 14px;
-  font-weight: 700;
-  color: var(--fg);
+  font-weight: 600;
+  color: var(--ink);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -354,34 +358,35 @@ body {
 .rk-anno-drawer-close {
   background: transparent;
   border: none;
-  color: var(--fg-muted);
+  color: var(--muted);
   font-size: 18px;
   cursor: pointer;
   padding: 4px;
 }
-.rk-anno-drawer-close:hover { color: var(--fg); }
+.rk-anno-drawer-close:hover { color: var(--ink); }
 
 /* 抽屉内卡片滚动区 */
 .rk-anno-drawer-body {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 18px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  background: var(--soft);
 }
 
 /* 新增输入区（顶部常驻或选词触发） */
 .rk-anno-composer {
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 12px;
 }
 .rk-anno-composer-quote {
   font-size: 12px;
-  color: var(--fg-dim);
-  border-left: 2px solid #fb923c;
+  color: var(--muted);
+  border-left: 3px solid var(--amber);
   padding-left: 8px;
   margin-bottom: 8px;
   line-height: 1.4;
@@ -393,7 +398,7 @@ body {
   height: 64px;
   background: transparent;
   border: none;
-  color: var(--fg);
+  color: var(--ink);
   font-size: 13px;
   font-family: inherit;
   resize: none;
@@ -406,16 +411,19 @@ body {
   gap: 8px;
   margin-top: 6px;
 }
-.rk-anno-composer-submit {
-  background: #ea580c;
+/* 主动作按钮（提交 / 保存 / 发送）：蓝色实心 */
+.rk-anno-composer-submit,
+.rk-anno-btn-sm.rk-anno-composer-submit {
+  background: var(--blue);
   color: #fff;
-  border: none;
-  border-radius: 4px;
-  padding: 4px 12px;
+  border: 1px solid var(--blue);
+  border-radius: 6px;
+  padding: 3px 12px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
 }
+.rk-anno-btn-sm.rk-anno-composer-submit:hover { background: #1d4ed8; color: #fff; border-color: #1d4ed8; }
 .rk-anno-card {
   transition: opacity .16s, box-shadow .16s, transform .16s;
 }
@@ -427,25 +435,26 @@ body {
 }
 .rk-anno-card.is-active {
   z-index: 2;
-  box-shadow: 0 4px 16px rgba(0,0,0,.22);
+  border-color: var(--blue);
 }
 .rk-anno-card:not(.is-active) .rk-anno-reply-form {
   display: none !important;
 }
+/* 次要按钮：浅灰幽灵按钮 */
 .rk-anno-btn-sm {
-  background: transparent;
+  background: var(--bg);
   border: 1px solid var(--line);
-  color: var(--fg-dim);
-  border-radius: 4px;
-  padding: 2px 8px;
-  font-size: 11.5px;
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 12px;
   cursor: pointer;
 }
 .rk-anno-reply-meta {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
-  color: var(--fg-faint);
+  color: var(--muted);
   font-size: 11px;
 }
 .rk-anno-reply-input {
@@ -453,32 +462,30 @@ body {
   max-height: 220px;
   overflow-y: auto;
   padding: 9px 10px;
-  background: var(--bg-soft);
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 6px;
   line-height: 1.5;
 }
 .rk-anno-btn-sm:hover {
-  color: var(--fg);
-  border-color: var(--fg-dim);
+  color: var(--ink);
+  background: var(--soft);
 }
-/* 单条批注卡片（对齐截图 1/2/3 交互结构，严格保持 R&K 暖灰工程质感） */
+/* 单条批注卡片：白底细边对话卡 */
 .rk-anno-card {
   background: var(--bg);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 12px 14px;
+  border-radius: 10px;
+  padding: 12px;
   font-size: 13px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.08);
   transition: border-color .15s, box-shadow .15s;
 }
 .rk-anno-card:hover {
-  border-color: var(--line-strong, #ea580c);
-  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, .08);
 }
 .rk-anno-card.is-resolved {
-  opacity: .55;
-  background: var(--bg-faint);
+  opacity: .6;
+  background: var(--soft);
   border-color: var(--line);
 }
 
@@ -494,12 +501,12 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--bg-soft);
+  background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 999px;
   padding: 2px 10px;
-  font-size: 11.5px;
-  color: var(--fg-muted);
+  font-size: 12px;
+  color: var(--muted);
   max-width: 220px;
   overflow: hidden;
   white-space: nowrap;
@@ -507,14 +514,14 @@ body {
   cursor: pointer;
 }
 .rk-anno-card-quote-pill:hover {
-  color: #ea580c;
-  border-color: #ea580c;
+  color: var(--blue);
+  border-color: var(--blue);
 }
 .rk-anno-card-quote-pill-bar {
   display: inline-block;
   width: 2px;
   height: 10px;
-  background: #ea580c;
+  background: var(--amber);
   border-radius: 1px;
 }
 
@@ -527,16 +534,16 @@ body {
 .rk-anno-icon-btn {
   background: transparent;
   border: none;
-  color: var(--fg-dim);
+  color: var(--muted);
   cursor: pointer;
   padding: 3px 5px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 13px;
   line-height: 1;
 }
 .rk-anno-icon-btn:hover {
-  background: var(--bg-soft);
-  color: var(--fg);
+  background: var(--soft);
+  color: var(--ink);
 }
 
 /* 2. 用户信息与发表时间行 */
@@ -550,10 +557,11 @@ body {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #ea580c;
-  color: #fff;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  color: var(--ink);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -561,25 +569,25 @@ body {
 .rk-anno-username {
   font-size: 12px;
   font-weight: 600;
-  color: var(--fg);
+  color: var(--ink);
 }
 .rk-anno-time {
   font-size: 11px;
-  color: var(--fg-faint);
+  color: var(--muted);
 }
 
 /* 3. 评论意见主体 */
 .rk-anno-card-content {
-  color: var(--fg);
-  line-height: 1.55;
+  color: var(--ink);
+  line-height: 1.6;
   font-size: 13px;
   margin: 6px 0 10px;
   word-break: break-word;
 }
 
-/* 4. 底部回复框（对齐截图 1/2 的回复框交互） */
+/* 4. 底部回复框 */
 .rk-anno-reply-box {
-  background: var(--bg-soft);
+  background: var(--soft);
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 6px 10px;
@@ -587,12 +595,12 @@ body {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  color: var(--fg-faint);
+  color: var(--muted);
   cursor: pointer;
 }
 .rk-anno-reply-box:hover {
-  border-color: var(--line-strong, #ea580c);
-  color: var(--fg-muted);
+  border-color: var(--line-strong);
+  color: var(--ink);
 }
 
 /* 5. 飞书实拍图 2 同款下拉菜单（编辑/删除/复制） */
@@ -604,7 +612,7 @@ body {
   background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 6px;
-  box-shadow: 0 4px 16px rgba(0,0,0,.2);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, .08);
   z-index: 10001;
   min-width: 100px;
   padding: 4px 0;
@@ -614,18 +622,18 @@ body {
 .rk-anno-dropdown-item {
   padding: 6px 14px;
   font-size: 12px;
-  color: var(--fg);
+  color: var(--ink);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 .rk-anno-dropdown-item:hover {
-  background: var(--bg-soft);
-  color: #ea580c;
+  background: var(--soft);
+  color: var(--blue);
 }
 .rk-anno-dropdown-item.is-danger:hover {
-  color: #ef4444;
+  color: var(--red-ink);
 }
 /* 右侧批注列表的坐标容器；宽屏绝对定位时保持稳定高度 */
 .rk-anno-cards-container {
@@ -638,30 +646,20 @@ body {
 
 /* 批注抽屉底栏 */
 .rk-anno-drawer-foot {
-  padding: 14px 18px;
+  padding: 12px 16px;
   border-top: 1px solid var(--line);
   background: var(--bg);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-/* 宽屏锚点卡片的坐标容器；窄屏恢复正常流式抽屉 */
-.rk-anno-cards-container {
-  position: relative;
-  min-height: 0;
-}
-/* 绝对定位只在宽屏启用，避免破坏窄屏 flex 抽屉 */
-@media (min-width: 1440px) {
-  .rk-anno-cards-container {
-    display: block;
-  }
-}
+/* 「复制未处理批注」是主动作：蓝色实心 */
 .rk-anno-batch-btn {
-  background: #ea580c;
+  background: var(--blue);
   color: #fff;
-  border: none;
+  border: 1px solid var(--blue);
   border-radius: 6px;
-  padding: 8px 14px;
+  padding: 7px 14px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -670,32 +668,31 @@ body {
   align-items: center;
   gap: 6px;
 }
-.rk-anno-batch-btn:hover { background: #c2410c; }
+.rk-anno-batch-btn:hover { background: #1d4ed8; border-color: #1d4ed8; }
 
-/* 屏幕右侧浮动触发胶囊（收起时可见） */
+/* 屏幕右下浮动胶囊（抽屉收起时可见）：白底细边 */
 .rk-anno-toggle-pill {
   position: fixed;
   right: 20px;
   bottom: 24px;
   z-index: 9998;
-  background: #ea580c;
-  color: #fff;
-  border: none;
-  border-radius: 20px;
-  padding: 7px 16px;
-  font-size: 13px;
-  font-weight: 600;
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: 600 12px/1.5 var(--sans);
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,.35);
+  box-shadow: 0 1px 3px rgba(31, 35, 40, .08);
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.rk-anno-toggle-pill:hover { background: #c2410c; transform: scale(1.03); }
+.rk-anno-toggle-pill:hover { border-color: var(--blue); color: var(--blue); }
 
 .rk-anno-fixed-badge {
   font-size: 11px;
-  color: var(--fg-faint);
+  color: var(--muted);
   padding: 2px 6px;
   font-family: var(--mono);
 }
@@ -703,74 +700,57 @@ body {
 
 h2 {
   font-size: 19px;
-  margin: 36px 0 12px;
+  line-height: 1.4;
+  margin: 30px 0 12px;
   padding-bottom: 6px;
   border-bottom: 1px solid var(--line);
-  color: var(--accent);
+  color: var(--ink);
   font-weight: 700;
-}
-
-/* # 前缀：终端风标题标记 */
-h2::before {
-  content: "# ";
-  color: var(--fg-faint);
-  font-weight: 400;
 }
 
 h3 {
-  font-size: 16px;
-  margin: 24px 0 8px;
-  color: var(--fg-strong);
+  font-size: 15px;
+  margin: 20px 0 6px;
+  color: var(--ink);
   font-weight: 700;
-}
-
-h3::before {
-  content: "## ";
-  color: var(--fg-faint);
-  font-weight: 400;
 }
 
 table {
   border-collapse: collapse;
   width: 100%;
-  margin: 16px 0;
+  margin: 4px 0 16px;
   font-size: 13px;
 }
 
 th, td {
   border: 1px solid var(--line);
-  padding: 8px 10px;
+  padding: 7px 9px;
   text-align: left;
   vertical-align: top;
 }
 
-th {
-  background: rgba(16, 185, 129, .06);
-  font-weight: 700;
-  color: var(--fg-strong);
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: .04em;
-}
+th { background: var(--soft); font-weight: 600; color: var(--ink); white-space: nowrap; }
+td:first-child { white-space: nowrap; font-weight: 600; }
 
-tbody tr:hover { background: rgba(255, 255, 255, .02); }
+/* 数值列：td/th 加 class="num" 即右对齐等宽数字 */
+td.num, th.num, .rk-num { text-align: right; font-variant-numeric: tabular-nums; }
 
 code {
   font-family: var(--mono);
-  font-size: 12px;
-  color: var(--code);
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 3px;
+  font-size: .92em;
+  color: var(--ink);
+  background: var(--soft);
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
   padding: 1px 5px;
 }
 
 pre {
-  background: var(--bg-black);
+  background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 14px 16px;
-  overflow-x: auto;
+  border-radius: 8px;
+  padding: 12px 14px;
+  overflow: auto;
 }
 
 pre code {
@@ -778,123 +758,160 @@ pre code {
   border: 0;
   padding: 0;
   font-size: 12.5px;
-  color: #6ee7b7;   /* emerald-300：代码块用绿，行内用黄 */
 }
 
-mark, .rk-hl { background: var(--warn-bg); color: var(--warn); padding: 0 3px; border-radius: 2px; }
+mark, .rk-hl { background: var(--amber-bg); color: var(--amber-ink); padding: 0 3px; border-radius: 3px; }
 
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-strong { color: var(--fg-strong); font-weight: 700; }
+strong, b { color: var(--ink); font-weight: 600; }
 
 blockquote {
-  border-left: 2px solid var(--accent);
-  padding-left: 16px;
-  margin: 20px 0;
-  color: var(--fg-dim);
-  font-style: italic;
+  border-left: 4px solid var(--line);
+  padding: 2px 0 2px 14px;
+  margin: 16px 0;
+  color: var(--muted);
 }
 
-hr { border: 0; border-top: 1px solid var(--line); margin: 32px 0; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 30px 0; }
 
-/* 列表用 › 标记，替代圆点 */
-ul { list-style: none; padding-left: 0; }
+ul, ol { padding-left: 22px; margin: 0 0 12px; }
+li { margin: 2px 0; }
+li::marker { color: var(--muted); }
 
-ul > li {
-  position: relative;
-  padding-left: 18px;
+.rk-ref { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+/* 页脚说明 */
+.note, .rk-foot {
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  margin-top: 24px;
 }
 
-ul > li::before {
-  content: "\203A";
-  position: absolute;
-  left: 4px;
-  color: var(--accent-dim);
+/* 状态标签：四套语义色固定不混用 */
+.rk-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--muted);
+  white-space: nowrap;
 }
-
-ol { padding-left: 22px; }
-ol > li::marker { color: var(--accent-dim); }
-
-.rk-ref { font-family: var(--mono); font-size: 12px; color: var(--fg-dim); }
+.rk-tag.is-pass { color: var(--green-ink); background: var(--green-bg); border-color: var(--green-line); }
+.rk-tag.is-warn { color: var(--amber-ink); background: var(--amber-bg); border-color: var(--amber-line); }
+.rk-tag.is-fail { color: var(--red-ink);   background: var(--red-bg);   border-color: var(--red-line); }
+.rk-tag.is-info { color: var(--blue);      background: var(--blue-bg);  border-color: var(--blue-line); }
 
 /* ---------- 修订：核心可追溯样式 ---------- */
 
+/* 三视图切换：浅色分段控件（吸顶） */
 .rk-revbar {
   position: sticky;
-  top: 0;
+  top: 8px;
   z-index: 10;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  background: var(--bg);
-  border-bottom: 1px solid var(--line);
-  padding: 10px 0;
-  margin-bottom: 20px;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 3px;
+  margin: 0 0 20px;
   font-size: 12px;
 }
 
-.rk-revbar .lbl { color: var(--fg-dim); margin-right: 4px; }
+.rk-revbar .lbl { color: var(--muted); padding: 0 8px 0 10px; }
 
 .rk-revbar button {
   font: inherit;
   cursor: pointer;
-  border: 1px solid var(--line);
-  background: var(--bg-soft);
-  color: var(--fg-dim);
-  border-radius: 4px;
-  padding: 4px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 3px 12px;
   transition: color .15s, border-color .15s, background .15s;
 }
 
-.rk-revbar button:hover {
-  color: var(--accent);
-  border-color: rgba(16, 185, 129, .40);
-}
+.rk-revbar button:hover { color: var(--ink); }
 
 .rk-revbar button[aria-pressed="true"] {
-  background: rgba(16, 185, 129, .10);
-  color: var(--accent);
-  border-color: rgba(16, 185, 129, .40);
+  background: var(--bg);
+  color: var(--ink);
+  border-color: var(--line);
+  font-weight: 600;
 }
 
 table.rk-revs { font-size: 12px; }
 table.rk-revs td:first-child, table.rk-revs th:first-child { width: 64px; white-space: nowrap; }
+table.rk-revs td:nth-child(2), table.rk-revs td:nth-child(3) { white-space: nowrap; }
+
+/* 批注 gutter 空状态 */
+.rk-anno-empty {
+  padding: 12px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.rk-anno-empty-hint { display: block; margin-top: 4px; font-size: 12px; font-weight: 400; color: var(--muted); }
 
 /* 修订标记本体 */
 
-ins.rk-ins, .rk-added {
+ins.rk-ins {
   background: var(--ins-bg);
   color: var(--ins);
-  text-decoration: none;
-  border-bottom: 2px solid var(--ins);
+  text-decoration: underline;
+  text-decoration-color: var(--green-line);
+  text-underline-offset: 3px;
 }
 
-del.rk-del, .rk-removed {
+del.rk-del {
   background: var(--del-bg);
   color: var(--del);
   text-decoration: line-through;
 }
 
+/* 块级新增/删除：只留左 2px 边，不铺底色——块内再有 ins/del 时不会叠两层底 */
 .rk-added, .rk-removed {
   display: block;
-  border-radius: 4px;
-  padding: 8px 12px;
+  padding: 2px 0 2px 12px;
   margin: 10px 0;
-  border-left: 5px solid currentColor;
+  border-left: 2px solid var(--green);
+}
+.rk-removed {
+  border-left-color: var(--red);
+  color: var(--del);
+  text-decoration: line-through;
 }
 
-/* 修订角标：显示 rN */
+/* 修订角标 rN：无边框浅底小 pill */
 ins.rk-ins::after, del.rk-del::after,
 .rk-added::after, .rk-removed::after {
   content: "r" attr(data-rev);
-  font-family: var(--mono);
-  font-size: 10px;
-  vertical-align: super;
-  margin-left: 3px;
-  opacity: .75;
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font: 600 10px/1.6 var(--mono);
+  vertical-align: 1px;
+  text-decoration: none;
+  background: var(--green-bg);
+  color: var(--green-ink);
 }
+del.rk-del::after, .rk-removed::after { background: #fff1f0; color: var(--del); }
 
 /* 表格整行新增/删除：块级样式（display:block + padding/margin）本为 <p>/<div> 设计，
    会破坏 <tr> 的 table-row 布局。恢复表格行，高亮落到单元格背景，
@@ -929,12 +946,12 @@ tr.rk-removed::after { content: none; }
 .rk-kpis.rk-removed::after { content: none; }
 
 /* Callout 被标记「新增/删除」：类型色/背景由 .rk-cal.key|warn|risk|ok 的类型规则决定
-   （specificity 更高，天然保留），这里只恢复 callout 自身的 padding/margin/边框宽度 */
+   （specificity 更高，天然保留），这里只恢复 callout 自身的 padding/margin/4px 左边 */
 .rk-cal.rk-added,
 .rk-cal.rk-removed {
-  padding: 12px 16px;
+  padding: 12px 14px;
   margin: 16px 0;
-  border-left-width: 2px;
+  border-left-width: 4px;
 }
 
 /* 关联产物列表项被标记「新增/删除」：保持列表布局（→/← 箭头 + [type] 角标），
@@ -982,14 +999,6 @@ body.rk-view-clean .rk-added {
 body.rk-view-clean ins.rk-ins::after,
 body.rk-view-clean .rk-added::after { content: none; }
 
-/* ---------- 打印 ---------- */
-
-@media print {
-  .rk-revbar { display: none; }
-  body { max-width: none; padding: 0; }
-  ins.rk-ins, .rk-added { border-bottom: 1px solid #000; }
-}
-
 /* ---------- 关联产物：双向链接（等价双链） ---------- */
 
 ul.rk-links, ul.rk-backlinks {
@@ -1008,8 +1017,8 @@ ul.rk-links li::before {
   content: "\2192";
   position: absolute;
   left: 2px;
-  color: var(--accent);
-  font-weight: 700;
+  color: var(--blue);
+  font-weight: 600;
 }
 
 /* 反向：← 引用本报告 */
@@ -1017,8 +1026,8 @@ ul.rk-backlinks li::before {
   content: "\2190";
   position: absolute;
   left: 2px;
-  color: var(--key);
-  font-weight: 700;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 /* 关联类型角标，取自 data-rk-link / data-rk-backlink */
@@ -1026,7 +1035,7 @@ ul.rk-links a[data-rk-link]::after,
 ul.rk-backlinks a[data-rk-backlink]::after {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--fg-dim);
+  color: var(--muted);
   margin-left: 6px;
 }
 
@@ -1036,213 +1045,252 @@ ul.rk-backlinks a[data-rk-backlink]::after { content: "[" attr(data-rk-backlink)
 
 /* ---------- 导航树：本 Spec 文档（渐进增强） ---------- */
 
+/* 宽屏（正文卡左侧留白 ≥ 230px）固定在卡片左侧；更窄时退化为卡片顶部的横向清单，不遮挡正文 */
 .rk-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  width: 200px;
-  overflow-y: auto;
-  padding: 24px 14px 32px;
-  border-right: 1px solid var(--line);
-  background: var(--bg-black);
-  font-size: 12px;
+  margin: 0 0 20px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
   line-height: 1.6;
 }
 
 /* manifest 缺失时脚本不渲染任何子节点，导航区整体消失 */
 .rk-nav:empty { display: none; }
 
-/* ---------- 导航品牌区：R&K Flow ---------- */
+.rk-nav-brand { display: block; margin-bottom: 8px; text-decoration: none; }
+.rk-nav-brand .n { font-size: 14px; font-weight: 700; color: var(--ink); }
+.rk-nav-brand .n em { font-style: normal; color: var(--blue); }
+.rk-nav-brand .s { margin-left: 8px; font-size: 12px; color: var(--muted); }
 
-.rk-nav-brand {
-  display: block;
-  padding-bottom: 14px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--line);
-  text-decoration: none;
-}
+.rk-nav-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
 
-.rk-nav-brand .n {
-  display: block;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -.01em;
-  color: var(--fg-strong);
-  line-height: 1.2;
-}
-
-/* R&K 的 & 用强调色 */
-.rk-nav-brand .n em {
-  font-style: normal;
-  color: var(--accent-dim);
-}
-
-.rk-nav-brand .s {
-  display: block;
-  margin-top: 4px;
-  font-size: 10px;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-}
-
-.rk-nav-title {
-  font-size: 10px;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-  font-weight: 400;
-  margin-bottom: 10px;
-}
-
-.rk-nav ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* 导航列表不继承正文的 › 标记 */
-.rk-nav ul > li { padding-left: 0; }
-.rk-nav ul > li::before { content: none; }
-
-.rk-nav-group + .rk-nav-group { margin-top: 12px; }
-
-.rk-nav-role {
-  display: block;
-  font-size: 11px;
-  color: var(--fg-faint);
-  margin-bottom: 3px;
-}
-
-.rk-nav-group > ul {
-  padding-left: 10px;
-  border-left: 1px solid var(--line);
-}
+.rk-nav ul { list-style: none; margin: 0; padding: 0; }
+.rk-nav li { margin: 0; }
+.rk-nav-tree { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.rk-nav-role { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
 
 .rk-nav a {
   display: block;
-  padding: 2px 6px;
-  border-radius: 3px;
-  color: var(--fg-dim);
-  text-decoration: none;
-  transition: color .15s, background .15s;
-}
-
-.rk-nav a:hover {
-  background: rgba(255, 255, 255, .04);
-  color: var(--fg);
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: var(--ink);
   text-decoration: none;
 }
-
+.rk-nav a:hover { background: var(--soft); text-decoration: none; }
 .rk-nav a.is-current {
-  background: rgba(16, 185, 129, .10);
-  color: var(--accent);
-  font-weight: 700;
-  box-shadow: inset 2px 0 0 var(--accent);
+  background: var(--blue-bg);
+  color: var(--blue);
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--blue);
 }
 
-/* ---------- 右侧章节导航 ---------- */
-
-.rk-toc {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 180px;
-  overflow-y: auto;
-  padding: 24px 14px 32px;
-  border-left: 1px solid var(--line);
-  background: var(--bg-black);
-  font-size: 11px;
-  line-height: 1.5;
+/* 卡片左侧留白够放 200px 导航时才固定在左侧（宽屏批注 gutter 常开，卡片为 1570px） */
+@media (min-width: 2040px) {
+  .rk-nav {
+    position: fixed;
+    top: 24px;
+    left: calc((100% - var(--card)) / 2 - 220px);
+    width: 200px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .rk-nav-tree { display: block; }
+  .rk-nav-group + .rk-nav-group { margin-top: 12px; }
+  .rk-nav-brand { padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
+  .rk-nav-brand .s { display: block; margin: 2px 0 0; }
 }
 
-/* 页面无 h2 时隐藏 */
+/* ---------- 页内目录（报告放 <nav class="rk-toc"></nav> 时渲染） ---------- */
+
+.rk-toc { display: none; font-size: 12px; line-height: 1.5; }
 .rk-toc:empty { display: none; }
-
-.rk-toc-title {
-  font-size: 10px;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--fg-faint);
-  font-weight: 400;
-  margin-bottom: 12px;
-}
-
-.rk-toc ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  /* 左侧竖线，激活项用 border-left 覆盖（同 personal-web） */
-  border-left: 1px solid var(--line);
-}
-
-.rk-toc ul > li { padding-left: 0; }
-.rk-toc ul > li::before { content: none; }
-
+.rk-toc-title { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+.rk-toc ul { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+.rk-toc li { margin: 0; }
 .rk-toc a {
   display: block;
   padding: 3px 8px 3px 10px;
-  color: var(--fg-faint);
-  text-decoration: none;
-  border-left: 2px solid transparent;
   margin-left: -1px;
-  transition: color .15s;
+  border-left: 2px solid transparent;
+  color: var(--muted);
+  text-decoration: none;
 }
+.rk-toc a:hover { color: var(--ink); text-decoration: none; }
+.rk-toc a.is-current { color: var(--ink); border-left-color: var(--blue); font-weight: 600; }
 
-.rk-toc a:hover { color: var(--fg-dim); text-decoration: none; }
-
-.rk-toc a.is-current {
-  color: var(--accent);
-  border-left-color: var(--accent);
-  font-weight: 700;
-}
-
-/* h2 锚点（用于 scrollIntoView） */
-[id] { scroll-margin-top: 20px; }
-
-/* 正文居中后右侧余量不足 180px：先收右侧章节导航 */
-@media (max-width: 1580px) {
-  .rk-toc { display: none; }
-}
-
-/* 左侧余量不足 200px：退化为正文上方的横向清单，避免压住内容 */
-@media (max-width: 1380px) {
-  .rk-nav {
-    position: static;
-    width: auto;
-    padding: 0 0 16px;
-    margin: 0 0 24px;
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-    background: none;
+@media (min-width: 2040px) {
+  .rk-toc:not(:empty) {
+    display: block;
+    position: fixed;
+    top: 24px;
+    right: calc((100% - var(--card)) / 2 - 200px);
+    width: 180px;
+    max-height: calc(100vh - 48px);
+    overflow-y: auto;
   }
-
-  /* 横排时品牌区不再需要独立分隔线 */
-  .rk-nav-brand { border-bottom: 0; padding-bottom: 0; margin-bottom: 10px; }
-  .rk-nav-tree { display: flex; flex-wrap: wrap; gap: 4px 24px; }
-  .rk-nav-group + .rk-nav-group { margin-top: 0; }
-  .rk-nav-group > ul { border-left: 0; padding-left: 0; }
 }
 
-/* 窄屏：导航收起，正文优先 */
-@media (max-width: 900px) {
-  .rk-nav { display: none; }
+/* h2 锚点（用于 scrollIntoView），让出吸顶修订栏的高度 */
+[id] { scroll-margin-top: 56px; }
+
+/* ---------- 图：让结论先于文字被看见（纯 HTML/CSS，离线、无脚本也可渲染） ---------- */
+
+/* 图容器：内联 SVG、截图或下面的柱状 / 流程组件，均可配图注 */
+figure.rk-fig, figure.rk-chart {
+  margin: 16px 0;
+  padding: 14px 16px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+/* SVG 没写 width 时按 100% 撑满，文字会随之放大；上限 760px 保持 12px 字号量级 */
+figure.rk-fig > svg { display: block; width: 100%; max-width: 760px; height: auto; margin: 0 auto; }
+figure.rk-fig > img { display: block; max-width: 100%; height: auto; margin: 0 auto; }
+figure.rk-fig figcaption, figure.rk-chart figcaption {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  font-size: 11px;
+  color: var(--muted);
 }
 
-/* 打印：暗底转白底，省墨且可读 */
+/* 内联 SVG 配色：用 class 而非 fill/stroke 写死颜色，同义同色
+   c-blue 信息 / c-green 通过 / c-amber 警告 / c-red 风险 / c-muted 失活；axis 坐标轴、grid 网格线、lbl 刻度文字 */
+.rk-fig svg { font-family: var(--sans); font-size: 12px; }
+.rk-fig svg text { fill: var(--ink); stroke: none; }
+.rk-fig svg .lbl { fill: var(--muted); font-size: 11px; }
+.rk-fig svg .axis { stroke: var(--line); fill: none; }
+.rk-fig svg .grid { stroke: var(--track); fill: none; }
+.rk-fig svg .node { fill: var(--bg); stroke: var(--line); }
+.rk-fig svg .edge { stroke: var(--slate); fill: none; }
+.rk-fig svg .c-blue  { fill: var(--blue-bg);  stroke: var(--blue); }
+.rk-fig svg .c-green { fill: var(--green-bg); stroke: var(--green); }
+.rk-fig svg .c-amber { fill: var(--amber-bg); stroke: var(--amber); }
+.rk-fig svg .c-red   { fill: var(--red-bg);   stroke: var(--red); }
+.rk-fig svg .c-muted { fill: var(--soft);     stroke: var(--slate); }
+.rk-fig svg .solid.c-blue  { fill: var(--blue); }
+.rk-fig svg .solid.c-green { fill: var(--green); }
+.rk-fig svg .solid.c-amber { fill: var(--amber); }
+.rk-fig svg .solid.c-red   { fill: var(--red); }
+.rk-fig svg .solid.c-muted { fill: var(--slate); }
+
+/* 柱状条：<div class="rk-bar"><span class="k">标签</span><meter min="0" max="100" value="72"></meter><span class="v">72%</span></div>
+   用原生 <meter> 承载数值，不需要行内 style 写宽度 */
+.rk-bar {
+  display: grid;
+  grid-template-columns: minmax(96px, 200px) 1fr 72px;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 0;
+}
+.rk-bar .k { font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
+.rk-bar .v { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.rk-bar meter, .rk-barcell meter {
+  width: 100%;
+  height: 14px;
+  border: 0;
+  border-radius: 7px;
+  background: var(--track);
+  -webkit-appearance: none;
+  appearance: none;
+  --bar: var(--blue);
+}
+.rk-bar meter.is-pass, .rk-barcell meter.is-pass { --bar: var(--green); }
+.rk-bar meter.is-warn, .rk-barcell meter.is-warn { --bar: var(--amber); }
+.rk-bar meter.is-fail, .rk-barcell meter.is-fail { --bar: var(--red); }
+.rk-bar meter.is-muted, .rk-barcell meter.is-muted { --bar: var(--slate); }
+meter::-webkit-meter-bar { background: var(--track); border: 0; border-radius: 7px; height: 14px; }
+meter::-webkit-meter-optimum-value,
+meter::-webkit-meter-suboptimum-value,
+meter::-webkit-meter-even-less-good-value { background: var(--bar, var(--blue)); border-radius: 7px; }
+meter::-moz-meter-bar { background: var(--bar, var(--blue)); border-radius: 7px; }
+/* 表格单元格里的迷你条：<td class="rk-barcell"><meter …></meter> 72%</td> */
+.rk-barcell { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rk-barcell meter { width: 96px; height: 10px; margin-right: 8px; vertical-align: middle; }
+.rk-barcell meter::-webkit-meter-bar { height: 10px; }
+
+/* 流程 / 批次 / 阶段：<ol class="rk-flow"><li class="is-done"><b>标题</b><span>说明</span></li>…</ol>
+   状态：is-done 已完成（绿）、is-current 进行中（蓝）、is-blocked 受阻（红）、默认未开始（灰） */
+ol.rk-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  list-style: none;
+  margin: 16px 0;
+  padding: 0;
+  counter-reset: rk-flow;
+}
+ol.rk-flow > li {
+  position: relative;
+  flex: 1 1 150px;
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--slate);
+  border-radius: 8px;
+  background: var(--soft);
+  font-size: 13px;
+  counter-increment: rk-flow;
+}
+ol.rk-flow > li::before {
+  content: counter(rk-flow);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  font: 600 11px/1 var(--sans);
+  color: var(--muted);
+}
+ol.rk-flow > li + li::after {
+  content: "\2192";
+  position: absolute;
+  left: -20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--slate);
+}
+ol.rk-flow > li > b { font-weight: 600; }
+ol.rk-flow > li > span { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+ol.rk-flow > li.is-done { border-top-color: var(--green); }
+ol.rk-flow > li.is-current { border-top-color: var(--blue); background: var(--blue-bg); }
+ol.rk-flow > li.is-blocked { border-top-color: var(--red); background: var(--red-bg); }
+ol.rk-flow > li.is-done::before { content: "\2713"; color: var(--green-ink); border-color: var(--green-line); }
+
+/* ---------- 响应式 ---------- */
+
+@media (max-width: 800px) {
+  body { margin: 0; padding: 16px; border-radius: 10px; font-size: 14px; }
+  .rk-meta { grid-template-columns: 1fr; }
+  .rk-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* 宽表在容器内横滚：表格自身作为滚动块，不改 DOM */
+  table { display: block; overflow-x: auto; }
+  td:first-child { white-space: normal; }
+  .rk-bar { grid-template-columns: 1fr 56px; }
+  .rk-bar .k { grid-column: 1 / -1; }
+  ol.rk-flow { flex-direction: column; }
+  ol.rk-flow > li + li::after { content: "\2193"; left: 50%; top: -17px; transform: translateX(-50%); }
+  .rk-revbar { border-radius: 10px; }
+}
+
+/* ---------- 打印 ---------- */
+
 @media print {
-  :root {
-    --fg: #1c2024; --fg-strong: #000; --fg-dim: #5b6570; --fg-faint: #767e88;
-    --bg: #fff; --bg-soft: #f6f8fa; --bg-black: #fff;
-    --line: #d8dee4; --line-soft: #b9c0c8;
-    --accent: #0b62d0; --accent-dim: #0b62d0; --code: #8a6d00;
-  }
-  .rk-nav, .rk-toc, .rk-revbar { display: none; }
-  body { max-width: none; padding: 0; }
-  ins.rk-ins, .rk-added { border-bottom: 1px solid #000; }
-  /* 批注在打印件上保留：评审常打印后逐条过 */
-  .rk-note { border-color: #b45309; background: #fffbeb; }
-  .rk-note::before { background: #fff; color: #b45309; }
+  html { background: #fff; }
+  body { max-width: none; margin: 0; padding: 0; border: 0; border-radius: 0; }
+  .rk-nav, .rk-toc, .rk-revbar,
+  .rk-anno-tip-btn, .rk-anno-drawer, .rk-anno-toggle-pill { display: none !important; }
+  body.has-anno-gutter { padding-right: 0; }
+  * { box-shadow: none !important; }
+  table { display: table; }
+  tr, .rk-kpi, .rk-cal, .rk-verdict, .rk-note, figure, ol.rk-flow > li, pre { break-inside: avoid; }
+  h2, h3 { break-after: avoid; }
+  a { color: inherit; }
 }

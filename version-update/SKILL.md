@@ -48,8 +48,12 @@ description: >
 ### 步骤 3：修订版本规划报告 `plan.html`
 
 按照 `html-report` 的可追溯修订规范：
-- 修订号 `+1`，并在修订历史表追加一行（写明改动内容及原因）。
-- 正文通过 `<del class="rk-del">` 和 `<ins class="rk-ins">` 标明增删内容。
+- 修订号 `+1`（报告头「修订」与 `<meta name="rk:revision">` 同步），并在**原有**修订历史表 `table.rk-revs` 的 `tbody` 末尾追加一行（写明改动内容及原因）；不新建修订表，不把修订行写进正文其它表格。
+- 正文通过 `<del class="rk-del" data-rev="N">` 和 `<ins class="rk-ins" data-rev="N">` 标明增删内容，`data-rev` 只写纯数字。
+- 修订后运行结构机检，退出码 0 才能进入步骤 4：
+  ```bash
+  node .agents/skills/html-report/scripts/check-report.js "spec/versions/<version>/plan.html"
+  ```
 
 ### 步骤 4：Git 提交文档更新
 

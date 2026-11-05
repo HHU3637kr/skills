@@ -308,8 +308,13 @@ PYEOF
   then
       exit 1
   fi
+  # 修订结构机检：修订表唯一且连续、各表列数一致、data-rev 纯数字、SVG 不写死颜色、项目资产与 Skill 源一致
+  if ! node .agents/skills/html-report/scripts/check-report.js "<SPEC-DIR>"; then
+      echo "❌ 门禁阻断: 报告修订结构机检未通过，拒绝归档！"
+      exit 1
+  fi
   ```
-- **Windows 原生 PowerShell 环境**：**ps1 对等实现待补**（本机无 pwsh 不可实测；补齐前由 spec-ender 用 python3 完成等价机检——检项与 bash 分支一致：rk:* 必填 meta 含 rk:version/rk:category、rk-verdict/meta/revs/links/backlinks 区块、assets 相对深度、manifest 先于 rk-report.js、零行内样式（剔除代码引用后判断）、证据三要素——并在 `end-report.html` 注明实测过程与结论）。
+- **Windows 原生 PowerShell 环境**：**ps1 对等实现待补**（本机无 pwsh 不可实测；补齐前由 spec-ender 用 python3 完成等价机检——检项与 bash 分支一致：rk:* 必填 meta 含 rk:version/rk:category、rk-verdict/meta/revs/links/backlinks 区块、assets 相对深度、manifest 先于 rk-report.js、零行内样式（剔除代码引用后判断）、证据三要素——并在 `end-report.html` 注明实测过程与结论）。修订结构机检是 Node 脚本，PowerShell 下同样直接运行 `node .agents/skills/html-report/scripts/check-report.js "<SPEC-DIR>"`。
 
 `gated` 模式下向用户确认：
 

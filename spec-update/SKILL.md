@@ -100,7 +100,7 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 8. **按方案实现更新**：严格遵循方案，不修改方案之外的代码
 9. **编写/更新测试**：新增测试 + 修改测试 + 回归测试
 10. **运行测试验证**：全部通过才能继续
-11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；并继承 update 报告的 Git 元信息，同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链
+11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；并继承 update 报告的 Git 元信息，同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链。本步修订或新建的每份报告都要过结构机检（退出码 0）：`node .agents/skills/html-report/scripts/check-report.js <SPEC-DIR>`
 12. **使用 spec-review 审查**：生成 `reviewer/update-xxx-review.html`；审查报告产出后，回到 `update-xxx.html` / `update-xxx-summary.html` 的 `rk-backlinks` 把「审查报告」反链补齐（原先标注「待创建」的条目同步去掉标注）
 13. **等待用户确认审查报告**：使用当前运行环境的确认方式（节点 2）
 14. **经验与规范收尾**：调用 `/exp-reflect`，并审查是否需要维护 AGENTS.md / .agents/rules/

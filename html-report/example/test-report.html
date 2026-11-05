@@ -58,6 +58,37 @@
   <div class="rk-kpi"><div class="v">96%</div><div class="k">覆盖率</div></div>
 </div>
 
+<h2>测试进度与覆盖</h2>
+<ol class="rk-flow">
+  <li class="is-done"><b>单元测试</b><span>38 / 38 通过</span></li>
+  <li class="is-done"><b>集成测试</b><span>4 / 4 通过</span></li>
+  <li class="is-done"><b>并发复验</b><span>debug-001-fix 后 200 次无覆盖</span></li>
+  <li class="is-current"><b>审查</b><span>等待 spec-reviewer</span></li>
+</ol>
+
+<figure class="rk-chart">
+  <div class="rk-bar"><span class="k">src/auth/token.ts</span><meter class="is-pass" min="0" max="100" value="99"></meter><span class="v">99%</span></div>
+  <div class="rk-bar"><span class="k">src/auth/session.ts</span><meter class="is-pass" min="0" max="100" value="97"></meter><span class="v">97%</span></div>
+  <div class="rk-bar"><span class="k">src/auth/errors.ts</span><meter class="is-warn" min="0" max="100" value="81"></meter><span class="v">81%</span></div>
+  <figcaption>行覆盖率，来源：tester/artifacts/test-logs/coverage.txt；errors.ts 缺口在错误分支</figcaption>
+</figure>
+
+<figure class="rk-fig">
+  <svg viewBox="0 0 560 90" role="img" aria-label="登录请求链路：浏览器到认证服务到会话存储">
+    <rect class="node" x="1" y="20" width="140" height="50" rx="8"/>
+    <text x="71" y="50" text-anchor="middle">浏览器</text>
+    <path class="edge" d="M141 45 H209"/>
+    <text class="lbl" x="175" y="38" text-anchor="middle">POST /login</text>
+    <rect class="c-blue" x="209" y="20" width="140" height="50" rx="8"/>
+    <text x="279" y="50" text-anchor="middle">认证服务</text>
+    <path class="edge" d="M349 45 H417"/>
+    <text class="lbl" x="383" y="38" text-anchor="middle">乐观锁写入</text>
+    <rect class="c-green" x="417" y="20" width="140" height="50" rx="8"/>
+    <text x="487" y="50" text-anchor="middle">会话存储</text>
+  </svg>
+  <figcaption>图 1：T-043 修复点在「认证服务 → 会话存储」这一跳</figcaption>
+</figure>
+
 <h2>用例结果</h2>
 <table>
   <thead><tr><th>ID</th><th>场景</th><th>结果</th></tr></thead>

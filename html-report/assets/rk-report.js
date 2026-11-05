@@ -15,17 +15,24 @@
     );
   }
 
+  // data-rev 契约是纯数字；兼容历史写法 "r2"：取其中数字并回写，
+  // 否则 parseInt("r2") 为 NaN（最新修订识别失效），CSS 角标还会渲染成 "rr2"
+  function revOf(el) {
+    var m = /\d+/.exec(el.getAttribute("data-rev") || "");
+    return m ? parseInt(m[0], 10) : 0;
+  }
+
   // 标出最新修订号，供 .is-latest 样式使用
   function tagLatest() {
     var all = marks();
     var max = 0;
     all.forEach(function (el) {
-      var r = parseInt(el.getAttribute("data-rev") || "0", 10);
+      var r = revOf(el);
+      if (r > 0 && el.getAttribute("data-rev") !== String(r)) el.setAttribute("data-rev", String(r));
       if (r > max) max = r;
     });
     all.forEach(function (el) {
-      var r = parseInt(el.getAttribute("data-rev") || "0", 10);
-      el.classList.toggle("is-latest", r === max && max > 0);
+      el.classList.toggle("is-latest", revOf(el) === max && max > 0);
     });
     return max;
   }
@@ -449,7 +456,7 @@
     function submitComposer() {
       var val = composerInput.value.trim();
       if (!val) {
-        composerInput.style.borderColor = "#ef4444";
+        composerInput.style.borderColor = "var(--red)";
         composerInput.focus();
         setTimeout(function () { composerInput.style.borderColor = ""; }, 1600);
         return;
@@ -750,7 +757,7 @@
           function saveEdit() {
             var val = editInput.value.trim();
             if (!val) {
-              editInput.style.borderColor = "#ef4444";
+              editInput.style.borderColor = "var(--red)";
               editInput.focus();
               setTimeout(function () { editInput.style.borderColor = ""; }, 1600);
               return;

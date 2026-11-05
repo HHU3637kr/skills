@@ -407,15 +407,25 @@ R&K Flow 的报告类产物统一用 HTML 承载，样式与脚本集中在**单
 ls .agents/skills/html-report/assets/
 ```
 
-如果存在（步骤 4.2 clone 后即自带），说明契约与资产已就位，报告直接引用该目录即可，本步骤到此结束。
+如果存在（步骤 4.2 clone 后即自带），说明契约与资产已就位；若项目根已按 README 把 `html-report` 链接到 `.agents/skills/html-report`，本步骤到此结束，否则继续建立链接。
 
-如果项目希望资产独立于 skills 目录（例如报告需要脱离 skills 单独分发），把两个文件复制到项目根的 `html-report/assets/`：
+报告统一引用项目根的 `html-report/assets/`。该目录**必须链接**到 Skill 源，不能复制——复制件不会随 Skill 更新，样式修复（如修订表格行布局）在项目里不生效，历史报告整片错版：
 
 ```bash
-mkdir -p "html-report/assets"
-cp .agents/skills/html-report/assets/rk-report.css html-report/assets/
-cp .agents/skills/html-report/assets/rk-report.js  html-report/assets/
+# Linux / macOS / Git Bash
+mkdir -p html-report
+ln -sfn "$(pwd)/.agents/skills/html-report/assets" html-report/assets
 ```
+
+```powershell
+# Windows（免提权 NTFS Junction）
+New-Item -ItemType Directory -Force html-report | Out-Null
+New-Item -ItemType Junction -Path html-report\assets -Target (Resolve-Path .agents\skills\html-report\assets)
+```
+
+如果报告确需脱离 skills 单独分发，用 `node .agents/skills/html-report/scripts/export-standalone.js` 导出内联单文件，不要手工复制资产。
+
+验证：`node .agents/skills/html-report/scripts/check-report.js spec/` 不报「与源文件内容不一致」。
 
 报告从 `spec/versions/<version>/specs/<spec-dir>/<role>/` 引用样式表的相对路径按层级计算（Spec 角色报告为 6 层）：
 

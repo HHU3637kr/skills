@@ -279,9 +279,20 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 **铁律：修改报告时永不静默改写。原文保留并标记，新内容标记新增。**
 
 每轮修改：
-1. 修订号 `+1`（r1 → r2），更新报告头 `修订` 字段
-2. 在「修订历史」表**追加一行**，写清改了什么、为什么
+1. 修订号 `+1`（r1 → r2），同步更新报告头 `修订` 字段与 `<meta name="rk:revision">`
+2. 在**原有**「修订历史」表 `table.rk-revs > tbody` 的**末尾追加一行**，写清改了什么、为什么
 3. 正文用语义标签标记，每个标记都带 `data-rev="{本轮修订号}"`
+4. 改完跑 `node html-report/scripts/check-report.js <报告.html>`，退出码 0 才算本轮修订完成
+
+**修订结构硬规则**（多轮修订最容易写坏的地方，机检逐条拦截）：
+
+| 规则 | 正确 | 错误 |
+|------|------|------|
+| `data-rev` 只写纯数字 | `data-rev="3"` | `data-rev="r3"`（角标会渲染成 `rr3`，「仅最新修订」识别失效） |
+| 全文只有一张修订历史表 | 新行追加到第一张 `rk-revs` 的 `tbody` 末尾 | 每轮新建一张 `<table class="rk-revs">` |
+| 修订行只进修订历史表 | 按「修订」列定位到 `rk-revs` 表再追加 | 按最后一个 `</tbody>` 文本定位，追加进正文里的其它表 |
+| 修订号连续 | r1、r2、r3… 按时间顺序，末行 = `rk:revision` | 跳号、倒序、末行与 meta 不一致 |
+| 每张表列数一致 | 每行单元格数（含 `colspan`）= 表头列数 | 5 列的修订行出现在 2 列的表里 |
 
 ### 行内修订
 
@@ -351,29 +362,84 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 ## 突出重点的组件
 
 ```html
-<!-- 结论块：is-pass 绿 / is-fail 红 / 默认蓝 -->
+<!-- 结论块：默认蓝 / is-pass 绿 / is-warn 琥珀 / is-fail 红 -->
 <section class="rk-verdict is-pass">
   <div class="rk-verdict-label">测试结论</div>
   <p>42 项用例全部通过。</p>
 </section>
 
-<!-- 指标卡 -->
+<!-- 指标卡：k 小标签 → v 数值 → n 小注释（k 写在 v 前后均可，样式固定把标签排在上面） -->
 <div class="rk-kpis">
   <div class="rk-kpi is-pass"><div class="v">42</div><div class="k">通过</div></div>
-  <div class="rk-kpi is-fail"><div class="v">1</div><div class="k">失败</div></div>
+  <div class="rk-kpi is-fail"><div class="v">1</div><div class="k">失败</div><div class="n">T-043</div></div>
 </div>
 
 <!-- Callout：key 关键决策 / warn 注意 / risk 风险 / ok 通过 -->
 <div class="rk-cal key"><div class="t">关键决策</div><p>选 A 方案，因为 B 会引入循环依赖。</p></div>
 <div class="rk-cal risk"><div class="t">风险</div><p>并发写入未加锁。</p></div>
 
+<!-- 状态标签：is-pass / is-warn / is-fail / is-info，语义固定不混用 -->
+<span class="rk-tag is-pass">PASS</span>
+
+<!-- 数值列右对齐 -->
+<td class="num">1,284</td>
+
 <!-- 代码位置引用 -->
 <span class="rk-ref">src/auth/token.ts:88</span>
 ```
 
+## 用图说话
+
+全文字报告读起来累。**能用图表达的结构先给图，文字只补图里没有的东西**：
+
+| 内容 | 首选形式 |
+|------|----------|
+| 数字对比（通过率、耗时、覆盖率、各 Spec 进度） | `rk-bar` 柱状条，或表格里的 `rk-barcell` 迷你条 |
+| 先后顺序（阶段、批次、发布步骤、依赖链） | `rk-flow` 流程条 |
+| 关键数字一眼看全 | `rk-kpis` 指标卡 |
+| 架构、调用关系、数据流、状态机等二维结构 | `figure.rk-fig` 内联 SVG |
+| 并列条目的多维对比 | 表格 |
+
+约束：图只用下面的组件和 class 上色，**不写行内 `style=`、不写 SVG 的 `fill="#…"`**（机检拦截，且主题无法统一）；不引外部图片、CDN 与图表库，`file://` 离线可读。每张图配 `figcaption` 说明数据来源或读法。
+
+```html
+<!-- 柱状条：数值放在原生 <meter>，不需要行内宽度；is-pass/is-warn/is-fail/is-muted 换语义色 -->
+<figure class="rk-chart">
+  <div class="rk-bar"><span class="k">单元测试</span><meter class="is-pass" min="0" max="100" value="96"></meter><span class="v">96%</span></div>
+  <div class="rk-bar"><span class="k">集成测试</span><meter class="is-warn" min="0" max="100" value="71"></meter><span class="v">71%</span></div>
+  <figcaption>来源：tester/artifacts/test-logs/coverage.txt</figcaption>
+</figure>
+
+<!-- 表格内迷你条 -->
+<td class="rk-barcell"><meter min="0" max="12" value="7"></meter>7 / 12</td>
+
+<!-- 流程条：is-done 已完成 / is-current 进行中 / is-blocked 受阻 / 默认未开始 -->
+<ol class="rk-flow">
+  <li class="is-done"><b>探索</b><span>exploration-report</span></li>
+  <li class="is-current"><b>方案</b><span>plan r3 评审中</span></li>
+  <li><b>实现</b><span>待开始</span></li>
+</ol>
+
+<!-- 内联 SVG：用 class 上色。node 节点 / edge 连线 / axis 坐标轴 / grid 网格 / lbl 次要文字；
+     c-blue|c-green|c-amber|c-red|c-muted 浅底+语义描边，加 solid 为实心填充 -->
+<figure class="rk-fig">
+  <svg viewBox="0 0 420 70" role="img" aria-label="请求经网关到服务">
+    <rect class="node" x="1" y="15" width="110" height="40" rx="8"/>
+    <text x="56" y="40" text-anchor="middle">浏览器</text>
+    <path class="edge" d="M111 35 H155"/>
+    <rect class="c-blue" x="155" y="15" width="110" height="40" rx="8"/>
+    <text x="210" y="40" text-anchor="middle">网关</text>
+    <path class="edge" d="M265 35 H309"/>
+    <rect class="c-green" x="309" y="15" width="110" height="40" rx="8"/>
+    <text x="364" y="40" text-anchor="middle">服务</text>
+  </svg>
+  <figcaption>图 1：请求链路</figcaption>
+</figure>
+```
+
 ## 用户批注（人写，Agent 读）
 
-用户可以直接在报告 HTML 里写批注，表达评审意见。这是**人写给 Agent** 的通道，与 Agent 自己的 `rk-cal` 区分开（橙色虚线框 + 「批注」角标）。
+用户可以直接在报告 HTML 里写批注，表达评审意见。这是**人写给 Agent** 的通道，与 Agent 自己的 `rk-cal` 区分开（白底卡 + 琥珀左边 + 「批注」标签；闭环后为绿色左边）。
 ```html
 <!-- 块级未处理批注：人写，整段意见 -->
 <div class="rk-note">这个方案没考虑离线场景，补一下。</div>
@@ -424,3 +490,25 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 - 漏写 `rk:version` / `rk:category`（Spec 级报告二者必填）→ 元数据检索与版本归属缺失
 - 漏掉「引用本报告」（`rk-backlinks`）节 → 反向发现能力丢失，双向关联只剩单向
 - 用行内 `style="` 或 `<style>` 块调色 → 违反固定样式约定，且 spec-end 机检会拦截
+- 每轮新建一张修订历史表、把修订行追加到正文最后一张表 → 修订表被拆散，正文表格出现 5 列的「幽灵行」（v2.1 plan.html 实例）
+- `data-rev` 写成 `"r3"` → 角标显示 `rr3`，「仅最新修订」视图认不出最新一轮
+- 把 `rk-report.css`/`.js` 复制进项目后不再同步 → 新样式规则（如 `tr.rk-added` 保持表格行布局）不生效，旧报告整片错版。项目内资产必须是指向 Skill 源的 Junction/软链；`check-report.js` 会比对内容
+
+## 结构机检
+
+```bash
+node html-report/scripts/check-report.js <报告.html | 目录> [更多路径...]
+```
+
+零依赖（Node ≥ 14），退出码 0 通过、1 有违规、2 参数错误。账本 `team-context.*` 自动跳过。检查项：
+
+| 检查 | 拦截的问题 |
+|------|-----------|
+| `table.rk-revs` 恰好一张 | 每轮新建修订表 |
+| 修订行 r1 起连续，末行 = `rk:revision` | 跳号、倒序、meta 未同步 |
+| 每张表每行列数 = 表头列数 | 修订行被追加进正文表格 |
+| `data-rev` 纯数字且 ≤ `rk:revision` | `"r3"` 写法、修订号写超 |
+| SVG 不写死 `fill`/`stroke` 颜色 | 图表不跟随统一配色 |
+| 引用的 `rk-report.css/js` 与 Skill 源文件一致 | 项目内资产副本过期 |
+
+写完或修订任何报告后都要跑；`version-update`、`spec-update`、`spec-end` 把它列为验证步骤。
