@@ -107,6 +107,8 @@ bug 修复仍由 spec-debugger 负责。
 - frontmatter 语义双轨保留：`<head>` 内 `<meta name="rk:*">` + `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像，两处字段一致
 - 继承 `writer/plan.html` 的 `rk:git-branch` / `rk:base-branch`，`rk:pr-url` 在 PR 创建前留空
 - 修订遵循 `data-rev` 规范：修订号 +1、修订历史表追加一行、正文用 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` / `<p class="rk-added|rk-removed" data-rev="N">` 标记，永不静默改写
+- **必需图**（机检强制）：summary 至少包含指标卡（`rk-kpis`：任务完成数）或流程条（`rk-flow`：任务完成进度）之一；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ### 步骤 8：通知 TeamLead 并等待用户确认
 

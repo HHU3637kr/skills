@@ -127,6 +127,10 @@ spec-tester 发现 bug
 
 代码位置一律用 `<span class="rk-ref">src/x.ts:88</span>`。
 
+**必需图**（机检强制）：debug 至少包含结构图（`rk-fig`，画故障链路，故障点用 `c-red`）或流程条（`rk-flow`，画复现时序）之一；debug-fix 至少包含结构图、流程条或指标卡（`rk-kpis`：复验结果）之一，画修复前后对比或复验结果。图放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`。
+
+写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成。
+
 ### 步骤 6：通知 TeamLead 等待用户确认诊断
 
 先更新当前 Spec 的 `lead/team-context.md` 共享区：

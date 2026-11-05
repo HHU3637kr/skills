@@ -13,6 +13,9 @@
  *   5. 内联 SVG 不写死 fill/stroke 颜色（用 rk-report.css 的 c-* / node / edge 等 class）
  *   6. 报告引用的 rk-report.css / rk-report.js 与本 Skill 的 assets 源文件内容一致
  *      ——项目内的复制件过期时，新样式规则（如 tr.rk-added）不生效
+ *   7. 少字多图：按 rk:type 必须包含对应的图（见 REQUIRED_FIGURES），每 800 字正文至少一张图，
+ *      单段 <p>/<li> 不超过 150 字。只检查新报告：<meta name="rk:created"> 早于 FIGURE_RULE_SINCE 的历史报告豁免，
+ *      或用 --no-figures 跳过
  * 账本（team-context.*）豁免修订标记，跳过检查；templates/ 里的模板按落点写相对路径，不在原地检查。
  *
  * 零依赖，仅需 Node >= 14。
@@ -24,6 +27,41 @@ const path = require("path");
 
 const SKIP_DIRS = new Set(["exports", "node_modules", ".git", "templates"]);
 const SOURCE_ASSETS = path.resolve(__dirname, "..", "assets");
+
+// ---------- 少字多图 ----------
+// 规则生效日：此前创建的报告不追溯（rk:created 早于该日期视为历史报告）
+const FIGURE_RULE_SINCE = "2026-11-05";
+const MAX_CHARS_PER_FIGURE = 800; // 正文每 800 字至少一张图
+const MAX_PARAGRAPH_CHARS = 150;  // 单段 <p>/<li> 上限
+
+// 图组件识别：名字 → 在去注释后的 HTML 里出现即算有
+const FIGURE_KINDS = {
+  kpis: /class="[^"]*\brk-kpis\b/,
+  flow: /<ol\b[^>]*class="[^"]*\brk-flow\b/,
+  chart: /class="[^"]*\brk-bar\b/,
+  barcell: /class="[^"]*\brk-barcell\b/,
+  fig: /<figure\b[^>]*class="[^"]*\brk-fig\b[\s\S]*?<(?:svg|img)\b/,
+};
+const FIGURE_COUNT_RE = /class="[^"]*\b(?:rk-kpis|rk-flow|rk-chart|rk-fig)\b|<td\b[^>]*class="[^"]*\brk-barcell\b/g;
+
+// 每类报告的必需图：外层数组之间是「且」，内层数组之间是「或」
+const REQUIRED_FIGURES = {
+  "exploration-report": [["fig"]],
+  plan: [["fig"], ["flow"]],
+  "test-plan": [["kpis", "chart", "flow"]],
+  "test-report": [["kpis"], ["chart", "barcell"]],
+  summary: [["kpis", "flow"]],
+  debug: [["fig", "flow"]],
+  "debug-fix": [["fig", "flow", "kpis"]],
+  review: [["kpis"]],
+  update: [["fig", "flow"]],
+  "update-summary": [["kpis", "flow"]],
+  "end-report": [["flow"]],
+  "version-plan": [["flow"], ["kpis"]],
+  "release-report": [["kpis"]],
+  "version-end-report": [["kpis"], ["chart", "barcell"]],
+};
+const KIND_LABEL = { kpis: "rk-kpis 指标卡", flow: "rk-flow 流程条", chart: "rk-bar 柱状条", barcell: "rk-barcell 迷你条", fig: "figure.rk-fig 结构图（SVG/图片）" };
 
 function collectHtml(p, acc) {
   const st = fs.statSync(p);
@@ -171,7 +209,83 @@ function checkAssets(t, file, report) {
   }
 }
 
-function checkFile(file) {
+function metaOf(t, name) {
+  const m = new RegExp(`<meta\\s+name=["']rk:${name}["']\\s+content=["']([^"']*)["']`, "i").exec(t);
+  return m ? m[1] : null;
+}
+
+// 可见字符数（不含空白与标签）
+function visibleChars(html) {
+  return html.replace(/<[^>]+>/g, "").replace(/\s+/g, "").length;
+}
+
+// 把匹配到的块替换为等长空白，保持行号与偏移不变
+function blank(text, re) {
+  return text.replace(re, (m) => m.replace(/[^\n]/g, " "));
+}
+
+// 按标签配对删除整个元素（处理 <div class="rk-kpis"> 里嵌套的 div）
+function blankElements(text, tag, classRe) {
+  const open = new RegExp(`<${tag}\\b[^>]*class="[^"]*${classRe}[^"]*"[^>]*>`, "gi");
+  const any = new RegExp(`<(/?)${tag}\\b[^>]*>`, "gi");
+  let out = text;
+  let m;
+  while ((m = open.exec(out))) {
+    any.lastIndex = m.index;
+    let depth = 0, end = -1, x;
+    while ((x = any.exec(out))) {
+      depth += x[1] ? -1 : 1;
+      if (depth === 0) { end = x.index + x[0].length; break; }
+    }
+    if (end < 0) break;
+    out = out.slice(0, m.index) + out.slice(m.index, end).replace(/[^\n]/g, " ") + out.slice(end);
+    open.lastIndex = end;
+  }
+  return out;
+}
+
+function checkFigures(t, report) {
+  const type = metaOf(t, "type");
+  const created = metaOf(t, "created");
+  if (!type || !REQUIRED_FIGURES[type]) return;
+  if (!created || created.slice(0, 10) < FIGURE_RULE_SINCE) return;
+
+  const bodyStart = Math.max(0, t.search(/<body\b/i));
+  const body = " ".repeat(bodyStart) + t.slice(bodyStart); // 与 t 同偏移
+
+  // 1) 必需图
+  const has = Object.fromEntries(Object.entries(FIGURE_KINDS).map(([k, re]) => [k, re.test(body)]));
+  for (const anyOf of REQUIRED_FIGURES[type]) {
+    if (!anyOf.some((k) => has[k])) {
+      report(1, `少字多图：${type} 必须包含 ${anyOf.map((k) => KIND_LABEL[k]).join(" 或 ")}（画法见 html-report/references/figures.md）`);
+    }
+  }
+
+  // 2) 图文比：只算叙述文字，不算表格、代码、图本身、修订历史与关联产物
+  let prose = blank(body, /<(table|pre|code|script|svg|figure|nav|header)\b[\s\S]*?<\/\1>/gi);
+  prose = blank(prose, /<ul\b[^>]*class="[^"]*\brk-(?:back)?links\b[\s\S]*?<\/ul>/gi);
+  prose = blank(prose, /<ol\b[^>]*class="[^"]*\brk-flow\b[\s\S]*?<\/ol>/gi);
+  prose = blankElements(prose, "div", "\\brk-kpis\\b");
+  const chars = visibleChars(prose);
+  const figures = (body.match(FIGURE_COUNT_RE) || []).length;
+  const need = Math.ceil(chars / MAX_CHARS_PER_FIGURE);
+  if (figures < need) {
+    report(1, `少字多图：正文约 ${chars} 字只有 ${figures} 张图，按每 ${MAX_CHARS_PER_FIGURE} 字一张至少需要 ${need} 张——把数字、顺序、结构改成图，或删去图已表达的文字`);
+  }
+
+  // 3) 单段长度
+  const paraRe = /<(p|li)\b[^>]*>([\s\S]*?)<\/\1>/gi;
+  let m;
+  while ((m = paraRe.exec(prose))) {
+    const n = visibleChars(m[2]);
+    if (n > MAX_PARAGRAPH_CHARS) {
+      const head = m[2].replace(/<[^>]+>/g, "").replace(/\s+/g, "").slice(0, 16);
+      report(lineOf(t, m.index), `少字多图：段落 ${n} 字超过 ${MAX_PARAGRAPH_CHARS} 字（「${head}…」）——拆成要点、表格或图`);
+    }
+  }
+}
+
+function checkFile(file, opts) {
   const raw = fs.readFileSync(file, "utf8");
   // 不引用 rk-report.css 的 HTML（原型、eli5 演示、第三方页面）不是 R&K 报告，跳过
   if (!/rk-report\.css/.test(raw)) return null;
@@ -187,13 +301,16 @@ function checkFile(file) {
   checkDataRev(t, metaRev, report);
   checkSvgColors(t, report);
   checkAssets(t, file, report);
+  if (opts.figures) checkFigures(t, report);
   return problems;
 }
 
 function main() {
-  const inputs = process.argv.slice(2);
-  if (!inputs.length || inputs.includes("-h") || inputs.includes("--help")) {
-    console.log("用法: node check-report.js <报告.html | 目录> [更多路径...]");
+  const args = process.argv.slice(2);
+  const opts = { figures: !args.includes("--no-figures") };
+  const inputs = args.filter((a) => !a.startsWith("--"));
+  if (!inputs.length || args.includes("-h") || args.includes("--help")) {
+    console.log("用法: node check-report.js <报告.html | 目录> [更多路径...] [--no-figures]");
     process.exit(inputs.length ? 0 : 2);
   }
   const files = [];
@@ -202,7 +319,7 @@ function main() {
     console.error("❌ 未找到任何报告 HTML");
     process.exit(2);
   }
-  const results = files.map(checkFile).filter((r) => r !== null);
+  const results = files.map((f) => checkFile(f, opts)).filter((r) => r !== null);
   if (!results.length) {
     console.error("❌ 未找到任何引用 rk-report.css 的报告 HTML");
     process.exit(2);

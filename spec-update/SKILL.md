@@ -75,6 +75,8 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 - 原 frontmatter 字段必须双轨保留：`<head>` 里逐字段写 `<meta name="rk:type|spec-dir|role|mode|update-number|status|update-type|created|updated|revision|git-branch|base-branch|pr-url|tags">`，文档关联写 `<link rel="rk-plan|rk-summary|rk-update|rk-update-summary|rk-review|rk-ledger" href="...">`；`.rk-meta` 镜像同样字段（含基准分支与 PR）
 - 原双链必须保留双向：末尾「关联产物」拆成「本报告引用」（`<ul class="rk-links">` + `data-rk-link`）与「引用本报告」（`<ul class="rk-backlinks">` + `data-rk-backlink`）两个 `h3`；谁新建关联谁补对侧反链，对侧报告未产出时在 `rk-links` 标注（待创建）
 - 修订历史表固定 5 列（修订/日期/修改人/改了什么/原因），不新增列；「原因」列源于实质取舍时引用账本「决策记录」的决策编号（如 `按 D-003（多实例部署需共享缓存）`），纯笔误/措辞/补充直接写清原因，不编造编号；决策过程正文只留在 `lead/team-context.md` 的「决策记录」，不复制进报告
+- **必需图**（机检强制）：update 至少包含结构图（`rk-fig`，画变更前后结构）或流程条（`rk-flow`，画变更步骤）之一；update-summary 至少包含指标卡（`rk-kpis`：完成项与回归结果）或流程条（`rk-flow`）之一。图放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ## 工作流程
 
@@ -100,7 +102,7 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 8. **按方案实现更新**：严格遵循方案，不修改方案之外的代码
 9. **编写/更新测试**：新增测试 + 修改测试 + 回归测试
 10. **运行测试验证**：全部通过才能继续
-11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；并继承 update 报告的 Git 元信息，同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链。本步修订或新建的每份报告都要过结构机检（退出码 0）：`node .agents/skills/html-report/scripts/check-report.js <SPEC-DIR>`
+11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；并继承 update 报告的 Git 元信息，同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链。本步修订或新建的每份报告都要过结构机检（退出码 0）：`node .agents/skills/html-report/scripts/check-report.js <SPEC-DIR>`；其中 update 报告至少含结构图或流程条、update-summary 至少含指标卡或流程条（放在结论块之后），正文每 800 字至少一张图
 12. **使用 spec-review 审查**：生成 `reviewer/update-xxx-review.html`；审查报告产出后，回到 `update-xxx.html` / `update-xxx-summary.html` 的 `rk-backlinks` 把「审查报告」反链补齐（原先标注「待创建」的条目同步去掉标注）
 13. **等待用户确认审查报告**：使用当前运行环境的确认方式（节点 2）
 14. **经验与规范收尾**：调用 `/exp-reflect`，并审查是否需要维护 AGENTS.md / .agents/rules/

@@ -111,6 +111,22 @@
   &lt;p&gt;根因是 {一句话根因}，位于 &lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;，修复方案见第 4 节。&lt;/p&gt;
 &lt;/section&gt;
 
+&lt;figure class="rk-fig"&gt;
+  &lt;svg viewBox="0 0 560 120" role="img" aria-label="{一句话说明：故障链路，标出故障点}"&gt;
+    &lt;defs&gt;&lt;marker id="ah1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"&gt;&lt;path class="arrow" d="M0 0 L8 4 L0 8 z"/&gt;&lt;/marker&gt;&lt;/defs&gt;
+    &lt;rect class="node" x="10" y="34" width="140" height="44" rx="8"/&gt;
+    &lt;text x="80" y="60" text-anchor="middle"&gt;{上游模块}&lt;/text&gt;
+    &lt;path class="edge" d="M150 56 H208" marker-end="url(#ah1)"/&gt;
+    &lt;rect class="c-red" x="210" y="34" width="140" height="44" rx="8"/&gt;
+    &lt;text x="280" y="60" text-anchor="middle"&gt;{故障点}&lt;/text&gt;
+    &lt;path class="edge" d="M350 56 H408" marker-end="url(#ah1)"/&gt;
+    &lt;rect class="c-muted" x="410" y="34" width="140" height="44" rx="8"/&gt;
+    &lt;text x="480" y="60" text-anchor="middle"&gt;{受影响的下游}&lt;/text&gt;
+    &lt;text class="lbl" x="280" y="105" text-anchor="middle"&gt;{故障传播一句话}&lt;/text&gt;
+  &lt;/svg&gt;
+  &lt;figcaption&gt;{图 1：故障链路读法——c-red 为故障点，c-muted 为被波及的下游}&lt;/figcaption&gt;
+&lt;/figure&gt;
+
 &lt;h2&gt;修订历史&lt;/h2&gt;
 &lt;table class="rk-revs"&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;修订&lt;/th&gt;&lt;th&gt;日期&lt;/th&gt;&lt;th&gt;修改人&lt;/th&gt;&lt;th&gt;改了什么&lt;/th&gt;&lt;th&gt;原因&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
@@ -253,6 +269,30 @@
   &lt;p&gt;{一句话：改了什么、原问题是否已无法复现}。是否修复成功由 spec-tester 重新验证判定，本文档不自行判定；
   复验通过后按修订规范把结论块改为 &lt;code&gt;is-pass&lt;/code&gt; 并留下修订痕迹。&lt;/p&gt;
 &lt;/section&gt;
+
+&lt;figure class="rk-fig"&gt;
+  &lt;svg viewBox="0 0 560 120" role="img" aria-label="{一句话说明：修复前后对比}"&gt;
+    &lt;defs&gt;&lt;marker id="ah1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"&gt;&lt;path class="arrow" d="M0 0 L8 4 L0 8 z"/&gt;&lt;/marker&gt;&lt;/defs&gt;
+    &lt;rect class="c-red" x="10" y="14" width="150" height="40" rx="8"/&gt;
+    &lt;text x="85" y="39" text-anchor="middle"&gt;{修复前：故障行为}&lt;/text&gt;
+    &lt;path class="edge" d="M160 34 H208" marker-end="url(#ah1)"/&gt;
+    &lt;rect class="c-blue" x="210" y="14" width="150" height="40" rx="8"/&gt;
+    &lt;text x="285" y="39" text-anchor="middle"&gt;{改动点}&lt;/text&gt;
+    &lt;rect class="c-muted" x="10" y="70" width="150" height="40" rx="8"/&gt;
+    &lt;text x="85" y="95" text-anchor="middle"&gt;{修复前：影响范围}&lt;/text&gt;
+    &lt;path class="edge" d="M160 90 H208" marker-end="url(#ah1)"/&gt;
+    &lt;rect class="c-green" x="210" y="70" width="150" height="40" rx="8"/&gt;
+    &lt;text x="285" y="95" text-anchor="middle"&gt;{修复后：正常行为}&lt;/text&gt;
+    &lt;text class="lbl" x="480" y="60" text-anchor="middle"&gt;{一句话结论}&lt;/text&gt;
+  &lt;/svg&gt;
+  &lt;figcaption&gt;{图 1：修复前后对比——c-red 故障、c-blue 改动点、c-green 正常、c-muted 历史}&lt;/figcaption&gt;
+&lt;/figure&gt;
+
+&lt;div class="rk-kpis"&gt;
+  &lt;div class="rk-kpi is-pass"&gt;&lt;div class="k"&gt;复验用例&lt;/div&gt;&lt;div class="v"&gt;{N}/{N}&lt;/div&gt;&lt;div class="n"&gt;{通过数}&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="k"&gt;修复轮次&lt;/div&gt;&lt;div class="v"&gt;{N}/{N}&lt;/div&gt;&lt;div class="n"&gt;{已用/预算}&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="rk-kpi"&gt;&lt;div class="k"&gt;改动文件&lt;/div&gt;&lt;div class="v"&gt;{N}&lt;/div&gt;&lt;div class="n"&gt;{其中新增 N}&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;
 
 &lt;h2&gt;修订历史&lt;/h2&gt;
 &lt;table class="rk-revs"&gt;

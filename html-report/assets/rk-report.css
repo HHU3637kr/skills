@@ -1166,6 +1166,8 @@ figure.rk-fig figcaption, figure.rk-chart figcaption {
 .rk-fig svg .grid { stroke: var(--track); fill: none; }
 .rk-fig svg .node { fill: var(--bg); stroke: var(--line); }
 .rk-fig svg .edge { stroke: var(--slate); fill: none; }
+.rk-fig svg .edge.dash { stroke-dasharray: 4 3; }
+.rk-fig svg .arrow { fill: var(--slate); stroke: none; }
 .rk-fig svg .c-blue  { fill: var(--blue-bg);  stroke: var(--blue); }
 .rk-fig svg .c-green { fill: var(--green-bg); stroke: var(--green); }
 .rk-fig svg .c-amber { fill: var(--amber-bg); stroke: var(--amber); }

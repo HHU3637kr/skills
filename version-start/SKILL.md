@@ -92,6 +92,10 @@ base_branch: dev
 
 在 `spec/versions/<version>/plan.html` 生成版本规划大盘报告。必须使用 [html-report/templates/version-plan-template.html](../../html-report/templates/version-plan-template.html) 骨架，遵循 `html-report` 规范，声明 `rk:version="<version>"`、`rk:type="version-plan"`、`rk:role="TeamLead"`、`rk:base-branch="dev"`，引用 assets 必须为 3 层相对路径（`../../../html-report/assets/`），展示版本大盘。
 
+**必需图**（机检强制）：version-plan 必须同时有流程条（`rk-flow`：批次 / 里程碑）与指标卡（`rk-kpis`：Spec 数按 feat/tech/debt/fix 分类）；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`。
+
+写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成。
+
 ### 步骤 5：Git 提交初始版本规划
 
 在当前工作分支（默认开发集成线 `dev`）提交初始版本规划文档：

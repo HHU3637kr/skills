@@ -142,6 +142,8 @@ description: >
 - ✅ 使用 html-report 的 `rk-cal` / `rk-verdict` 组件突出重点，修订遵循 `data-rev` 规范
 - ✅ 原 frontmatter 字段双轨保留（`<meta name="rk:*">` + `.rk-meta`），关联产物双向（`rk-links` + `rk-backlinks`）
 - ✅ 确认 `writer/plan.html` 的 `rk:git-branch` 与当前分支一致
+- ✅ **必需图**（机检强制）：plan 至少包含结构图（`rk-fig`，内联 SVG，画方案结构或数据流）与流程条（`rk-flow`，画实施顺序）各一；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- ✅ 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ## 后续流程
 

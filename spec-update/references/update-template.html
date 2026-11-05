@@ -70,6 +70,24 @@
   <p>{一句话说清本次更新要做什么、为什么必须做、边界在哪里}</p>
 </section>
 
+<figure class="rk-fig">
+  <svg viewBox="0 0 560 120" role="img" aria-label="{一句话说明：变更前后的结构差异}">
+    <defs><marker id="ah1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0 0 L8 4 L0 8 z"/></marker></defs>
+    <rect class="c-muted" x="10" y="14" width="150" height="40" rx="8"/>
+    <text x="85" y="39" text-anchor="middle">{变更前：模块}</text>
+    <rect class="c-muted" x="410" y="14" width="140" height="40" rx="8"/>
+    <text x="480" y="39" text-anchor="middle">{变更前：下游}</text>
+    <path class="edge" d="M160 34 H208" marker-end="url(#ah1)"/>
+    <rect class="c-blue" x="210" y="14" width="150" height="40" rx="8"/>
+    <text x="285" y="39" text-anchor="middle">{本次改动}</text>
+    <path class="edge" d="M360 34 H408" marker-end="url(#ah1)"/>
+    <rect class="c-green" x="210" y="70" width="150" height="40" rx="8"/>
+    <text x="285" y="95" text-anchor="middle">{变更后：新行为}</text>
+    <text class="lbl" x="480" y="95" text-anchor="middle">{不变的部分}</text>
+  </svg>
+  <figcaption>{图 1：变更前后结构——c-muted 为不变部分，c-blue 为本次改动，c-green 为改动后的新行为}</figcaption>
+</figure>
+
 <h2>修订历史</h2>
 <table class="rk-revs">
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>

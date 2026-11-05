@@ -93,6 +93,8 @@ AWR 状态机与结构一致性检查：
 - 关联 `writer/plan.html`、`executor/summary.html` 用相对链接，分「本报告引用」（`rk-links`）与「引用本报告」（`rk-backlinks`）两向；指向运行账本写 `../lead/team-context.md` 或 `../lead/team-context.html`（按账本实际格式）
 - frontmatter 语义双轨保留：`<head>` 内 `<meta name="rk:*">` + `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像，两处字段一致，`git_branch` / `base_branch` / `pr_url` 不可丢
 - 修订遵循 `data-rev` 规范：修订号 +1、修订历史表追加一行、正文用 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` / `<p class="rk-added|rk-removed" data-rev="N">` 标记，永不静默改写
+- **必需图**（机检强制）：review 至少包含指标卡（`rk-kpis`：通过 / 不符 / 风险项计数）；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ### 步骤 7：确认响应处理
 

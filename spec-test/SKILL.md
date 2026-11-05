@@ -109,6 +109,9 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 
 撰写前先读 `html-report` skill（骨架、frontmatter 双轨等价字段、双向关联、修订标记与 Decision Log 联动规范）。在当前 Spec 目录下创建 `tester/test-plan.html`：
 
+- **必需图**（机检强制）：test-plan 至少包含指标卡（`rk-kpis`）、柱状条（`rk-chart`）、流程条（`rk-flow`）三者之一，画用例按类型 / 优先级的分布，或测试阶段；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
+
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -167,6 +170,13 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
   <div class="rk-verdict-label">验收判定口径</div>
   <p>{一句话说清本 Spec 什么条件算通过、什么条件算不通过}</p>
 </section>
+
+<div class="rk-kpis">
+  <div class="rk-kpi"><div class="k">{P0 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
+  <div class="rk-kpi"><div class="k">{P1 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
+  <div class="rk-kpi"><div class="k">{P2 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
+  <div class="rk-kpi"><div class="k">{自动化覆盖}</div><div class="v">{N}%</div><div class="n">{可自动执行的用例占比}</div></div>
+</div>
 
 <!-- 修订历史固定 5 列。「原因」列源于实质取舍时引用账本 Decision Log 编号（如：按 D-003 ⋯⋯）；
      纯笔误/措辞/补充直接写清，不要编造决策编号。决策过程正文留在账本，不复制进报告。 -->
@@ -359,6 +369,9 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 在当前 Spec 目录下创建 `tester/test-report.html`。测试报告最需要重点突出，结论用 `rk-verdict is-pass|is-fail`，通过/失败/覆盖率用 `rk-kpis` 指标卡：
 
+- **必需图**（机检强制）：test-report 必须同时有指标卡（`rk-kpis`：通过 / 失败 / 跳过 / 覆盖率）与柱状条（`rk-chart`：按模块或类型的通过率、覆盖率）或表格内迷你条（`rk-barcell`）之一；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
+
 ```html
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -421,6 +434,20 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
   <p>{一句话结论：X 项用例全部通过 / 仍有 X 项失败及影响范围}</p>
 </section>
 
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="k">通过</div><div class="v">{N}</div><div class="n">{占比}</div></div>
+  <div class="rk-kpi is-fail"><div class="k">失败</div><div class="v">{N}</div><div class="n">{占比}</div></div>
+  <div class="rk-kpi"><div class="k">跳过</div><div class="v">{N}</div><div class="n">{原因}</div></div>
+  <div class="rk-kpi"><div class="k">覆盖率</div><div class="v">{N}%</div><div class="n">{口径：行/分支}</div></div>
+</div>
+
+<figure class="rk-chart">
+  <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-pass" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-warn" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-fail" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <figcaption>{图 1：按模块或类型的通过率——is-pass 达标，is-warn 待补测，is-fail 未达标}</figcaption>
+</figure>
+
 <!-- 修订历史固定 5 列。「原因」列源于实质取舍时引用账本 Decision Log 编号（如：按 D-003 ⋯⋯）；
      纯笔误/措辞/补充直接写清，不要编造决策编号。决策过程正文留在账本，不复制进报告。 -->
 <h2>修订历史</h2>
@@ -437,13 +464,7 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 ```html
 <h2>测试概况</h2>
-<div class="rk-kpis">
-  <div class="rk-kpi is-pass"><div class="v">{X}</div><div class="k">通过</div></div>
-  <div class="rk-kpi is-fail"><div class="v">{X}</div><div class="k">失败</div></div>
-  <div class="rk-kpi"><div class="v">{X}</div><div class="k">用例总数</div></div>
-  <div class="rk-kpi"><div class="v">{X}%</div><div class="k">覆盖率</div></div>
-</div>
-<p>失败中已修复：{X}</p>
+<p>用例总数 {X}，失败中已修复 {X}；通过/失败/跳过/覆盖率见上方指标卡，按模块通过率见柱状条。</p>
 
 <h2>用例结果</h2>
 <table>
@@ -634,6 +655,7 @@ print(json.dumps(d))")
 9. 已通知 TeamLead
 10. 最终测试结论基于本轮在当前工作树上的实际运行，未引用上一轮结果或 `spec-executor` 的自测结论
 11. 已按模式完成确认：`gated` 得到用户放行；`autopilot` 已由 `spec-reviewer` 产出 `reviewer/review.html`
+12. 报告结论块之后已有必需图（`rk-kpis` + `rk-chart` 或 `rk-barcell`），且已按「结构机检」运行 `check-report.js` 退出码为 0
 
 ### 常见陷阱
 - 直接修复 bug 或绕过 TeamLead 联系 spec-debugger（破坏协作闭环）

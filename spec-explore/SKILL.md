@@ -84,6 +84,8 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 - 每条已知风险用 `rk-cal risk` 单独成块，不要埋在正文段落里；关键取舍用 `rk-cal key`，需 spec-tester 重点覆盖的边界用 `rk-cal warn`
 - 代码位置用 `<span class="rk-ref">path:line</span>`
 - 关联产物双向：`rk-links` 写本报告引用的经验/知识与账本，`rk-backlinks` 写引用本报告的 plan / test-plan（尚未产出时在 `rk-links` 标注（待创建），产出后补齐反链）
+- **必需图**（机检强制）：探索报告至少包含 1 张结构图（`rk-fig`，内联 SVG），画现状结构或调用链，用 `c-blue` 标出要改的位置、`c-red` 标出风险点；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 - 修订历史表保持 5 列（修订/日期/修改人/改了什么/原因），不新增列；「原因」列源于实质取舍时引用账本「决策记录」的决策编号（如 `按 D-002（…）`），纯笔误/措辞/补充说明直接写清，不编造编号；决策过程正文留在 `lead/team-context.md` 的「决策记录」，不复制进报告
 
 ```html
@@ -138,6 +140,23 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
   <div class="rk-verdict-label">探索结论</div>
   <p>{一句话：探索到什么程度、下游能否直接开工、最大的不确定性是什么}</p>
 </section>
+
+<figure class="rk-fig">
+  <svg viewBox="0 0 560 120" role="img" aria-label="{一句话说明：现状结构或调用链，标出要改的位置与风险点}">
+    <defs><marker id="ah1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0 0 L8 4 L0 8 z"/></marker></defs>
+    <rect class="node" x="10" y="34" width="140" height="44" rx="8"/>
+    <text x="80" y="60" text-anchor="middle">{现状模块 A}</text>
+    <path class="edge" d="M150 56 H208" marker-end="url(#ah1)"/>
+    <rect class="c-blue" x="210" y="34" width="140" height="44" rx="8"/>
+    <text x="280" y="60" text-anchor="middle">{要改的位置}</text>
+    <path class="edge" d="M350 56 H408" marker-end="url(#ah1)"/>
+    <rect class="node" x="410" y="34" width="140" height="44" rx="8"/>
+    <text x="480" y="60" text-anchor="middle">{下游模块 B}</text>
+    <rect class="c-red" x="210" y="88" width="140" height="26" rx="6"/>
+    <text class="lbl" x="280" y="105" text-anchor="middle">{风险点}</text>
+  </svg>
+  <figcaption>{图 1：现状调用链读法——c-blue 为本次要改的位置，c-red 为风险点}</figcaption>
+</figure>
 
 <h2>修订历史</h2>
 <table class="rk-revs">

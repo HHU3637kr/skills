@@ -122,6 +122,8 @@ exp-reflect 会根据经验的重要性分流：
 
 - `<head>` 写全 `rk:*` meta（`rk:type=end-report`、`rk:spec-dir`、`rk:role=spec-ender`、`rk:created`、`rk:updated`、`rk:revision`、`rk:mode`、`rk:git-branch`、`rk:base-branch`、`rk:pr-url`、`rk:tags`），并用 `<link rel="rk-plan|rk-summary|rk-test-report|rk-review|rk-ledger" href="...">` 声明关联；`.rk-meta` 人可读镜像同样字段（含运行模式、基准分支与 PR）
 - `rk-verdict`（`is-pass` / `is-fail`）一句话给出本次 Spec 的完成结论
+- **必需图**（机检强制）：end-report 至少包含流程条（`rk-flow`，画各阶段完成情况：探索 → 设计 → 实现 → 测试 → 审查 → 收尾）；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 - 「修订历史」表固定 5 列（修订/日期/修改人/改了什么/原因），不新增列；后续补 PR URL 等修改时修订号 +1、追加修订历史行、正文用 `data-rev` 标记，不静默改写；「原因」列源于实质取舍时引用账本「决策记录」的决策编号（如 `按 D-003（…）`），纯笔误/措辞/补充直接写清，不编造编号
 - 正文章节：完成状态、本轮全量测试的命令与退出码（新鲜验证证据）、已扫描的角色产物路径、经验沉淀结果或无需沉淀的说明、规范维护结果或无需维护的说明、归档/提交/推送/PR 的确认状态（写明按哪种模式放行）、待用户处理的永远门禁项（合并/默认分支改动；force push 仅收尾 amend 场景豁免）
 - 关键决策用 `rk-cal key` 小结（取自账本「决策记录」，只写结论与一句话理由并标注 `D-xxx`，决策过程正文不复制进报告），遗留风险用 `rk-cal risk`，需后续观察项用 `rk-cal warn`

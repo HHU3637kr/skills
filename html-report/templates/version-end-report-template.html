@@ -39,6 +39,20 @@
   <p>{一句话阐述该版本实际交付成果、关键亮点与交付周期}</p>
 </section>
 
+<div class="rk-kpis">
+  <div class="rk-kpi is-pass"><div class="k">已交付</div><div class="v">{N}</div><div class="n">规划 {N}</div></div>
+  <div class="rk-kpi"><div class="k">延期</div><div class="v">{N}</div><div class="n">{顺延原因一句话}</div></div>
+  <div class="rk-kpi is-fail"><div class="k">遗留</div><div class="v">{N}</div><div class="n">P0/P1 {N}</div></div>
+</div>
+
+<figure class="rk-chart">
+  <div class="rk-bar"><span class="k">feat</span><meter class="is-pass" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <div class="rk-bar"><span class="k">tech</span><meter class="is-pass" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <div class="rk-bar"><span class="k">debt</span><meter class="is-warn" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <div class="rk-bar"><span class="k">fix</span><meter class="is-pass" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
+  <figcaption>{图 1：四类属性目标达成率——is-pass 达成，is-warn 部分达成，is-fail 未达成}</figcaption>
+</figure>
+
 <h2>修订历史</h2>
 <table class="rk-revs">
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
