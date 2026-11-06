@@ -288,6 +288,7 @@
   &lt;figcaption&gt;{图 1：修复前后对比——c-red 故障、c-blue 改动点、c-green 正常、c-muted 历史}&lt;/figcaption&gt;
 &lt;/figure&gt;
 
+&lt;!-- 以下数字只填实际复验结果；未复验时写 0/N 或删除指标卡，保留中性结论与「待 spec-tester 复验」。 --&gt;
 &lt;div class="rk-kpis"&gt;
   &lt;div class="rk-kpi is-pass"&gt;&lt;div class="k"&gt;复验用例&lt;/div&gt;&lt;div class="v"&gt;{N}/{N}&lt;/div&gt;&lt;div class="n"&gt;{通过数}&lt;/div&gt;&lt;/div&gt;
   &lt;div class="rk-kpi"&gt;&lt;div class="k"&gt;修复轮次&lt;/div&gt;&lt;div class="v"&gt;{N}/{N}&lt;/div&gt;&lt;div class="n"&gt;{已用/预算}&lt;/div&gt;&lt;/div&gt;
@@ -415,6 +416,9 @@
     <code>&lt;p class="rk-removed|rk-added" data-rev="N"&gt;</code> 标记整段增删。详见 <code>html-report</code> skill。</li>
   <li>修订历史保持 5 列不变。源于实质取舍的修订，「原因」列引用账本 Decision Log 编号（如 <code>按 D-004（改走最小补丁）</code>）；
     纯笔误、措辞、补充说明直接写清原因，不编造决策编号；决策过程正文留在账本，不复制进报告。</li>
+  <li>图表分工：链路上游/故障点/下游用 <code>rk-fig</code>；复现顺序用 <code>rk-flow</code>；复现步骤、根因实验（命令 + 退出码 + 关键输出）、修改文件与风险用表格。纯配置或单行缺陷可只用 <code>rk-flow</code> 并注明上下游未变，不硬画链路图。</li>
+  <li>修复总结的指标卡只填实际跑过的复验数据；未复验时保留中性结论与「待 spec-tester 复验」，不得预填通过数或把结论块设为 <code>is-pass</code>。</li>
+  <li>开发者审核关注点：根因是否有单一可证伪假设与实际实验输出、复现步骤能否重放、修复是否最小且未越界改 plan、debug-fix 是否把复验判定留给 spec-tester。</li>
   <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN；编号递增时同步替换文件名与全部链接（<code>debug-002.html</code> / <code>debug-002-fix.html</code>）。</li>
 </ul>
 

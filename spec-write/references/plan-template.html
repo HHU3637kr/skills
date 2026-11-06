@@ -83,10 +83,23 @@
 </figure>
 
 <ol class="rk-flow">
-  <li class="is-done"><b>{阶段 1}</b><span>{一句话状态}</span></li>
-  <li class="is-current"><b>{阶段 2}</b><span>{一句话状态}</span></li>
-  <li><b>{阶段 3}</b><span>{一句话状态}</span></li>
+  <li><b>{阶段 1}</b><span>{计划交付物及状态}</span></li>
+  <li><b>{阶段 2}</b><span>{计划交付物及状态}</span></li>
+  <li><b>{阶段 3}</b><span>{计划交付物及状态}</span></li>
 </ol>
+
+<p><b>范围：</b>本次做 {交付范围}；不做 {非目标及去向}。图 1 的节点关联下方文件清单与风险编号。</p>
+<p><b>依赖说明：</b>{图中哪些箭头是技术依赖，哪些仅为交付顺序；各阶段可观察交付物}。</p>
+<div class="rk-cal warn"><div class="t">待决 / 阻塞</div><p>{编号、影响、责任人；没有则写无}</p></div>
+<h3>开发者审核入口</h3>
+<table>
+  <thead><tr><th>审核项</th><th>结论</th><th>依据 / 阻塞项</th></tr></thead>
+  <tbody>
+    <tr><td>方向与范围</td><td>{通过 / 不通过}</td><td>{需求与范围依据}</td></tr>
+    <tr><td>关键流程与安全边界</td><td>{通过 / 不通过}</td><td>{流程、风险编号}</td></tr>
+    <tr><td>接口、数据、文件、验证命令</td><td>{齐全 / 缺失}</td><td>{对应章节或缺项}</td></tr>
+  </tbody>
+</table>
 
 <!-- 修订历史固定 5 列。「原因」列源于实质取舍时引用账本 Decision Log 编号（如：按 D-003 ⋯⋯）；
      纯笔误/措辞/补充直接写清，不要编造决策编号。决策过程正文留在 lead/team-context.md，不复制进报告。 -->
@@ -95,7 +108,6 @@
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
   <tbody>
     <tr><td>r1</td><td>YYYY-MM-DD</td><td>spec-writer</td><td>初版</td><td>—</td></tr>
-    <tr><td>r2</td><td>YYYY-MM-DD</td><td>spec-writer</td><td>{改了哪一段/哪个字段}</td><td>{按 D-003（多实例部署需共享缓存）}</td></tr>
   </tbody>
 </table>
 
@@ -134,8 +146,12 @@
 
 <h2>3. 设计方案</h2>
 
-<h3>3.1 架构设计</h3>
-<p>{整体结构、模块边界、数据流}</p>
+<h3>3.1 架构与关键场景</h3>
+<p>结构及改动边界见首屏全景图。复杂分支或跨模块交互在此补主路径及失败路径流程图；简单情形写明不适用及理由。</p>
+<table>
+  <thead><tr><th>条件 / 场景</th><th>行为与责任层</th><th>异常 / 拒绝处理</th><th>关联任务或风险</th></tr></thead>
+  <tbody><tr><td>{输入与前置条件}</td><td>{处理结果及责任模块}</td><td>{失败、拒绝或恢复}</td><td>{T / R 编号}</td></tr></tbody>
+</table>
 
 <h3>3.2 数据模型</h3>
 <pre><code>{模型定义}</code></pre>
@@ -151,11 +167,11 @@
 <div class="rk-cal key"><div class="t">重要</div><p>该字段只描述实现阶段由 spec-executor 执行代码修改的模式，不表示整个 Spec 工作流没有项目级角色协作。项目级角色由 spec-init 初始化，spec-start 负责加载和唤起。v2.0 固定为 <code>single-agent</code>。</p></div>
 
 <h2>5. 实现步骤</h2>
-<ol>
-  <li>{阶段 1：基础实现}</li>
-  <li>{阶段 2：功能完善}</li>
-  <li>{阶段 3：联调与自检}</li>
-</ol>
+<p>实施顺序见首屏流程图；每个任务均保留具体修改与可执行验证。</p>
+<table>
+  <thead><tr><th>任务</th><th>文件 / 函数与改动</th><th>依赖与交付</th><th>验证命令</th><th>预期观察</th></tr></thead>
+  <tbody><tr><td>{T-01}</td><td>{路径、函数、具体改动}</td><td>{技术依赖或排期顺序、可观察交付物}</td><td><code>{仓库可执行命令}</code></td><td>{退出码、断言或输出}</td></tr></tbody>
+</table>
 
 <h2>6. 验收关注点</h2>
 <ul>

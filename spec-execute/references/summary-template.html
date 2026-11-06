@@ -58,6 +58,13 @@
 </section>
 
 <ol class="rk-flow">
+  <!-- 首屏：结论块之后优先给出任务进度。实现步骤少于 2 项或不便排序时，改用指标卡：
+  <div class="rk-kpis">
+    <div class="rk-kpi is-pass"><div class="v">{N}</div><div class="k">已实现功能</div></div>
+    <div class="rk-kpi"><div class="v">{N}</div><div class="k">未实现功能</div><div class="n">{原因短句}</div></div>
+    <div class="rk-kpi"><div class="v">{N}</div><div class="k">变更文件</div></div>
+  </div>
+  单文件小改动可只用指标卡并注明「结构未变」；不要在无真实结构变化时补 rk-fig。 -->
   <li class="is-done"><b>{任务 1}</b><span>{实现要点一句话}</span></li>
   <li class="is-done"><b>{任务 2}</b><span>{实现要点一句话}</span></li>
   <li class="is-current"><b>{任务 3}</b><span>{剩余工作一句话}</span></li>
@@ -91,6 +98,8 @@
 
 <h2>3. 自检结果</h2>
 <div class="rk-kpis">
+  <!-- 三个数必须与「完成的功能」「变更的文件」表逐行对得上；未实现数为 0 才可全绿，
+       未实际执行的检查不得计入通过。 -->
   <div class="rk-kpi"><div class="v">{N}</div><div class="k">变更文件</div></div>
   <div class="rk-kpi is-pass"><div class="v">{N}</div><div class="k">已实现功能</div></div>
   <div class="rk-kpi"><div class="v">{N}</div><div class="k">未实现功能</div></div>

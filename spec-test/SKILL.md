@@ -109,8 +109,17 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 
 撰写前先读 `html-report` skill（骨架、frontmatter 双轨等价字段、双向关联、修订标记与 Decision Log 联动规范）。在当前 Spec 目录下创建 `tester/test-plan.html`：
 
-- **必需图**（机检强制）：test-plan 至少包含指标卡（`rk-kpis`）、柱状条（`rk-chart`）、流程条（`rk-flow`）三者之一，画用例按类型 / 优先级的分布，或测试阶段；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
-- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
+- **首屏决策结构**：`rk-verdict` 一句话写清通过与不通过的条件，紧跟适用的计划分布图或阶段流程。指标卡仅放已有的计划口径数字，如用例数或优先级分布；不得把覆盖率、通过率、失败数等尚未运行的结果冒充实测。
+- **图按内容选型**（机检要求 kpis / chart / flow 三者之一，是下限而非目标）：
+  - 关系与追溯链（需求 → 验收标准 → 用例 → 证据）用 `figure.rk-fig` 内联 SVG，断链处用 `c-red` 标出；
+  - 先后顺序（准入 → 冒烟 → 边界 → 证据 → 判定）或测试阶段用 `rk-flow`；
+  - 用例按类型/优先级/模块的**计划分布**用 `rk-kpis` 或 `rk-chart`；
+  - 枚举与精确契约（输入、预期、边界、证据路径、准入条件）用表格或 `<pre><code>`，不要画成图。
+- **何时不画图**：内容只是并列枚举、精确字段或长证据清单时，画图只会丢信息——用表格。没有真实关系、对比或顺序时宁可不画；**不得为凑图文比新增无信息量的图，也不得为了图面简洁裁剪用例、边界或证据**。
+- **篇幅**：单个段落建议只表达一个要点；证据与长清单可用表格、`<pre><code>` 或证据目录清单承载，不截断证据。图文比及段落长度不设机检硬限制。
+- **写清四件事**：需求→用例→证据的追溯矩阵、测试环境与数据、边界与异常矩阵、准入条件与未验证风险。无法验证的项必须显式登记为未验证风险，不得默认通过。
+- **开发者审核关注点**：单独成节，按实际适用范围列判定口径、数据可复现性、边界可注入性及日志/trace 证据；未确认项记录影响并按既有门禁处理。
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成；机检不通过时补结构或拆表格，不删证据。
 
 ```html
 <!DOCTYPE html>
@@ -168,15 +177,44 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 
 <section class="rk-verdict">
   <div class="rk-verdict-label">验收判定口径</div>
-  <p>{一句话说清本 Spec 什么条件算通过、什么条件算不通过}</p>
+  <p>{一句话：P0 是否必须全过、允许带风险放行的类型、什么情况直接判不通过；只写判定条件，不写运行结果}</p>
 </section>
 
+<!-- 指标卡只放计划口径的数字：尚无运行结果，不得填写覆盖率或通过率 -->
 <div class="rk-kpis">
-  <div class="rk-kpi"><div class="k">{P0 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
-  <div class="rk-kpi"><div class="k">{P1 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
-  <div class="rk-kpi"><div class="k">{P2 用例}</div><div class="v">{N}</div><div class="n">{数量或占比}</div></div>
-  <div class="rk-kpi"><div class="k">{自动化覆盖}</div><div class="v">{N}%</div><div class="n">{可自动执行的用例占比}</div></div>
+  <div class="rk-kpi"><div class="k">计划用例</div><div class="v">{N}</div><div class="n">P0 {n} / P1 {n} / P2 {n}</div></div>
+  <div class="rk-kpi"><div class="k">待验证需求</div><div class="v">{N}</div><div class="n">均有对应用例</div></div>
+  <div class="rk-kpi"><div class="k">可自动化</div><div class="v">{N}</div><div class="n">计划数，非实测覆盖</div></div>
+  <div class="rk-kpi"><div class="k">环境/数据缺口</div><div class="v">{N}</div><div class="n">见「准入条件」</div></div>
 </div>
+
+<!-- 追溯链：每条需求都要能走完这条链；断链用 c-red 标出，计入未覆盖 -->
+<figure class="rk-fig">
+  <svg viewBox="0 0 620 90" role="img" aria-label="需求经验收标准、用例、运行到证据的追溯链">
+    <defs><marker id="tp1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"><path class="arrow" d="M0 0 L8 4 L0 8 z"/></marker></defs>
+    <rect class="c-blue" x="1" y="20" width="140" height="50" rx="8"/>
+    <text x="71" y="50" text-anchor="middle">需求 / 验收标准</text>
+    <path class="edge" d="M141 45 H187" marker-end="url(#tp1)"/>
+    <rect class="node" x="189" y="20" width="120" height="50" rx="8"/>
+    <text x="249" y="50" text-anchor="middle">用例 TC / US</text>
+    <path class="edge" d="M309 45 H355" marker-end="url(#tp1)"/>
+    <rect class="node" x="357" y="20" width="110" height="50" rx="8"/>
+    <text x="412" y="50" text-anchor="middle">本轮运行</text>
+    <path class="edge" d="M467 45 H513" marker-end="url(#tp1)"/>
+    <rect class="node" x="515" y="20" width="104" height="50" rx="8"/>
+    <text x="567" y="50" text-anchor="middle">证据</text>
+  </svg>
+  <figcaption>图 1：需求 → 用例 → 运行 → 证据；缺任一环即计为未覆盖，不得默认通过。</figcaption>
+</figure>
+
+<!-- 阶段门禁顺序。计划阶段全部为未开始，不要标成已完成 -->
+<ol class="rk-flow">
+  <li><b>准入</b><span>环境与数据就绪</span></li>
+  <li><b>冒烟</b><span>P0 主路径</span></li>
+  <li><b>边界</b><span>异常 / 并发 / 权限</span></li>
+  <li><b>证据</b><span>日志 / trace / 截图</span></li>
+  <li><b>判定</b><span>对照验收口径</span></li>
+</ol>
 
 <!-- 修订历史固定 5 列。「原因」列源于实质取舍时引用账本 Decision Log 编号（如：按 D-003 ⋯⋯）；
      纯笔误/措辞/补充直接写清，不要编造决策编号。决策过程正文留在账本，不复制进报告。 -->
@@ -185,7 +223,6 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
   <tbody>
     <tr><td>r1</td><td>YYYY-MM-DD</td><td>spec-tester</td><td>初版</td><td>—</td></tr>
-    <tr><td>r2</td><td>YYYY-MM-DD</td><td>spec-tester</td><td>{补 TC-0XX 并发用例}</td><td>{按 D-003（多实例部署需共享缓存）}</td></tr>
   </tbody>
 </table>
 ```
@@ -194,13 +231,29 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 
 ```html
 <h2>验收标准</h2>
-<p>{通过/不通过的判定标准，要具体可衡量}</p>
+<p>{判定规则：P0 是否全过、P1/P2 的容错范围、未执行如何计数；只写条件，不写结果}</p>
+<table>
+  <thead><tr><th>标准编号</th><th>关联需求</th><th>通过条件（可判定）</th><th>不通过条件</th><th>证据类型</th></tr></thead>
+  <tbody>
+    <tr><td>AC-001</td><td>{需求编号 / 验收条目}</td><td>{可观察、可量化的结果}</td><td>{明确的反例、阈值或异常表现}</td><td>{日志 / trace / 截图 / 断言输出}</td></tr>
+  </tbody>
+</table>
+<div class="rk-cal key"><div class="t">计划口径</div><p>覆盖率、通过率等实测数字只写在 <code>tester/test-report.html</code>；本报告不得预先填写或估算。</p></div>
+
+<h2>需求 → 用例 → 证据追溯</h2>
+<p>每条需求必须能沿「验收标准 → 用例 → 运行 → 证据」走通；断链或只有用例没有证据的条目计为未覆盖。</p>
+<table>
+  <thead><tr><th>需求/验收条目</th><th>验收标准</th><th>用例</th><th>执行方式</th><th>证据类型与路径</th><th>覆盖状态</th></tr></thead>
+  <tbody>
+    <tr><td>{需求编号}</td><td>AC-001</td><td>TC-001</td><td>自动 / 手工</td><td><code>tester/artifacts/test-logs/&lt;run-id&gt;/...</code></td><td>已覆盖 / 部分 / 未覆盖</td></tr>
+  </tbody>
+</table>
 
 <h2>测试用例</h2>
 <table>
-  <thead><tr><th>用例编号</th><th>描述</th><th>输入</th><th>预期输出</th><th>边界条件</th></tr></thead>
+  <thead><tr><th>用例编号</th><th>优先级</th><th>描述</th><th>输入/前置</th><th>预期输出</th><th>边界条件</th><th>关联需求</th></tr></thead>
   <tbody>
-    <tr><td>TC-001</td><td>{描述}</td><td>{输入}</td><td>{预期}</td><td>{边界}</td></tr>
+    <tr><td>TC-001</td><td>P0</td><td>{描述}</td><td>{输入与前置状态}</td><td>{可判定的预期}</td><td>{空值 / 极值 / 并发 / 权限}</td><td>{AC-001}</td></tr>
   </tbody>
 </table>
 
@@ -212,11 +265,39 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
   </tbody>
 </table>
 
+<h2>边界与异常矩阵</h2>
+<p>逐维度列出必须覆盖的边界与异常；没有对应用例的格子就是覆盖缺口，需登记到未验证风险。</p>
+<table>
+  <thead><tr><th>维度</th><th>边界/异常</th><th>用例</th><th>预期行为</th><th>判定依据</th></tr></thead>
+  <tbody>
+    <tr><td>空值 / 极值</td><td>{空输入、最大长度、超大数值}</td><td>TC-XXX</td><td>{降级、拒绝或报错}</td><td>{状态码 / 提示 / 日志}</td></tr>
+    <tr><td>并发 / 重复提交</td><td>{多实例、重试、竞争}</td><td>TC-XXX</td><td>{幂等或明确冲突}</td><td>{数据库状态 / trace}</td></tr>
+    <tr><td>权限 / 未授权</td><td>{越权、过期凭证、只读角色}</td><td>TC-XXX</td><td>{拒绝且不泄露数据}</td><td>{审计日志 / 响应}</td></tr>
+    <tr><td>外部依赖失败</td><td>{超时、错误码、断网}</td><td>TC-XXX</td><td>{重试、降级或回滚}</td><td>{错误日志 / 任务记录}</td></tr>
+  </tbody>
+</table>
+
+<h2>开发者审核关注点</h2>
+<p>按实际适用范围逐条检查；未确认项记录影响并按既有门禁处理。</p>
+<table>
+  <thead><tr><th>关注点</th><th>为什么要确认</th><th>审核方式</th><th>确认结果</th></tr></thead>
+  <tbody>
+    <tr><td>P0 判定口径</td><td>口径模糊时无法判定失败</td><td>对照 <code>writer/plan.html</code> 验收条目</td><td>待确认 / 已确认</td></tr>
+    <tr><td>测试数据可复现性</td><td>数据不可复现则证据不可审计</td><td>按本计划构造一次</td><td>待确认 / 已确认</td></tr>
+    <tr><td>边界可注入性</td><td>无法制造并发/超时会导致用例阻塞</td><td>检查配置开关或依赖桩</td><td>待确认 / 已确认</td></tr>
+    <tr><td>日志与 trace 埋点</td><td>无观测点则关键路径无法证明</td><td>列出日志点、字段与 trace id 来源</td><td>待确认 / 已确认</td></tr>
+  </tbody>
+</table>
+
 <h2>覆盖率要求</h2>
-<ul>
-  <li>代码覆盖率：&gt; 80%</li>
-  <li>功能覆盖率：{具体要求}</li>
-</ul>
+<p>只定义口径、阈值与测量方式；实测值与缺口写进测试报告。</p>
+<table>
+  <thead><tr><th>对象</th><th>口径</th><th>目标</th><th>测量方式</th><th>不达标时的处理</th></tr></thead>
+  <tbody>
+    <tr><td>代码</td><td>行 / 分支</td><td>&gt; 80%</td><td>{coverage 工具与命令}</td><td>{补用例或登记覆盖缺口}</td></tr>
+    <tr><td>功能</td><td>验收条目</td><td>{N}/{N} 条有对应用例</td><td>核对追溯矩阵</td><td>未覆盖需求不得判定通过</td></tr>
+  </tbody>
+</table>
 
 <h2>日志与审计要求</h2>
 
@@ -235,7 +316,40 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 <div class="rk-cal warn"><div class="t">脱敏</div><p>不得保存 token、密码、密钥、完整手机号、身份证号或真实用户隐私。</p></div>
 
 <h2>测试环境要求</h2>
-<p>{依赖、配置、数据准备}</p>
+<p>覆盖依赖、配置与测试数据准备；每项给出就绪状态与补齐方式。</p>
+<table>
+  <thead><tr><th>项</th><th>要求</th><th>就绪状态</th><th>缺口与补齐方式</th></tr></thead>
+  <tbody>
+    <tr><td>运行时与依赖版本</td><td>{语言/框架/数据库版本、锁文件}</td><td>就绪 / 待补</td><td>{具体动作与 owner}</td></tr>
+    <tr><td>配置与环境变量</td><td>{必需配置项，不含真实密钥}</td><td>就绪 / 待补</td><td>{...}</td></tr>
+    <tr><td>测试数据</td><td>{构造方式、量级、脱敏规则、清理方式}</td><td>就绪 / 待补</td><td>{...}</td></tr>
+    <tr><td>外部依赖 / 桩</td><td>{真实依赖或 mock/fixture 的口径}</td><td>就绪 / 待补</td><td>{...}</td></tr>
+    <tr><td>账号与权限</td><td>{所需角色，脱敏记录方式}</td><td>就绪 / 待补</td><td>{...}</td></tr>
+    <tr><td>证据采集能力</td><td>{console/network/trace/日志按 run-id 导出}</td><td>就绪 / 待补</td><td>{先修采集，不得手写替代}</td></tr>
+  </tbody>
+</table>
+
+<h2>准入条件</h2>
+<p>全部满足才开跑；未满足时标阻塞并交回 TeamLead，不得先跑再补条件。</p>
+<table>
+  <thead><tr><th>条件</th><th>判定方式</th><th>未满足时</th></tr></thead>
+  <tbody>
+    <tr><td>基线 commit 可构建、可启动</td><td><code>{构建/启动命令}</code> 退出码 0</td><td>阻塞，不开始执行</td></tr>
+    <tr><td>环境与测试数据就绪</td><td>冒烟用例通过</td><td>标记阻塞并升级</td></tr>
+    <tr><td>日志 / trace 采集可用</td><td>{探针或 run-id 过滤验证}</td><td>先修采集，不得用手写证据替代</td></tr>
+    <tr><td>关键路径埋点已就位</td><td>{抽查一条状态流转日志}</td><td>与 <code>spec-executor</code> 对齐后再开跑</td></tr>
+  </tbody>
+</table>
+
+<h2>未验证风险</h2>
+<p>本轮计划无法验证的项必须显式登记；未验证不等于通过。</p>
+<table>
+  <thead><tr><th>风险</th><th>为何本轮无法验证</th><th>影响</th><th>缓解 / 替代证据</th><th>责任人</th></tr></thead>
+  <tbody>
+    <tr><td>{真机 / 生产规模 / 特定依赖}</td><td>{环境、权限或数据限制}</td><td>{可能漏掉的问题}</td><td>{后续补测或其他证据}</td><td>{角色}</td></tr>
+  </tbody>
+</table>
+<div class="rk-cal risk"><div class="t">未验证 ≠ 通过</div><p>执行阶段无法验证的项，在测试报告中标为「阻塞」或「未执行」，不得计入通过。</p></div>
 
 <!-- 关联产物：双向。谁新建关联谁负责补对侧反链 -->
 <h2>关联产物</h2>
@@ -286,6 +400,11 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 ### 步骤 2：执行测试用例
 
 按 `tester/test-plan.html` 的用例逐一执行，记录结果。
+
+- 先核对「准入条件」，未满足项标阻塞并交回 TeamLead，不先跑再补条件。
+- 每条用例记录本轮实际状态：通过 / 失败 / 跳过 / 阻塞 / 未执行 / 已执行但证据不足；不能沿用上一轮或实现者自测。
+- 记录每条用例与本轮证据的对应关系（文件路径或 trace id）；没有证据的用例不得标通过。
+- 通过 / 失败 / 跳过 / 阻塞 / 未执行 / 已执行但证据不足六类互斥，合计等于报告统计范围内的计划用例总数；新增或调整的用例另列并说明。
 
 每次测试运行先在当前 Spec 目录下创建 tester 审计日志目录：
 
@@ -367,10 +486,30 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 ### 步骤 5：产出 tester/test-report.html
 
-在当前 Spec 目录下创建 `tester/test-report.html`。测试报告最需要重点突出，结论用 `rk-verdict is-pass|is-fail`，通过/失败/覆盖率用 `rk-kpis` 指标卡：
+在当前 Spec 目录下创建 `tester/test-report.html`。结论用 `rk-verdict is-pass|is-fail`，首屏区分通过、失败、跳过、阻塞、未执行与已执行但证据不足：
 
-- **必需图**（机检强制）：test-report 必须同时有指标卡（`rk-kpis`：通过 / 失败 / 跳过 / 覆盖率）与柱状条（`rk-chart`：按模块或类型的通过率、覆盖率）或表格内迷你条（`rk-barcell`）之一；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
-- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
+- **首屏决策结构**：一句话给出结论与放行建议；状态分开计数，覆盖率写清行/分支口径与来源；未测量就写「未测量」而非 0%。状态互斥，合计等于报告统计范围内的计划用例总数；新增或调整的用例另列并说明。
+- **结论只认本轮运行证据**：每个「通过」必须能指到本轮 `run-id` 下由测试运行自动生成的证据。已执行但证据不足的用例保留实际执行事实并单列，不计入通过；引用上一轮结果或 `spec-executor` 自测结论都不算通过。
+- **状态定义**：
+
+  | 状态 | 含义 | 必须能指到 |
+  |------|------|------------|
+  | 通过 | 本轮执行，断言全部满足 | 输出 / 日志 / trace / 截图 |
+  | 失败 | 本轮执行，至少一条断言不满足 | 失败输出、堆栈、截图 |
+  | 跳过 | 本轮按规则不执行（不适用、已被其他用例覆盖） | 跳过依据与批准规则 |
+  | 阻塞 | 环境、依赖或缺陷导致无法执行 | 阻塞项、owner、关联问题 |
+  | 未执行 | 计划内但本轮没有运行 | 原因与补跑计划 |
+  | 已执行但证据不足 | 本轮已运行，但证据缺失或不可复核 | 已观察事实、证据缺口及补验计划 |
+
+- **图按内容选型**（机检要求 kpis 加 chart/barcell/flow 之一，是下限而非目标）：
+  - 有可比较的实测数据时，按模块/类型的通过率或覆盖率用 `rk-chart`，或表内 `rk-barcell`；
+  - 没有可比较实测数据（如全部阻塞、仅状态流转）时，用 `rk-flow` 画本轮真实执行状态（未开始 → 冒烟 → 边界 → 证据 → 判定），不得编造比率；
+  - 失败用例所在调用链用 `figure.rk-fig`，故障点用 `c-red`，证据缺口用 `c-amber`；
+  - 枚举与精确契约（用例结果、状态定义、证据路径）用表格，不要画图。
+- **何时不画图**：没有真实运行数据就不画数据图；并列枚举、逐条证据清单用表格或 `<pre><code>`。**不得为凑图文比编造数值或画占位柱状条，也不得为了图面简洁删掉失败/阻塞证据**。
+- **篇幅**：按语义拆分长段落；长输出、堆栈、日志片段可放进 `<pre><code>` 或证据表格，保留必要内容。图文比及段落长度不设机检硬限制，不得编造数值补图或删失败证据。
+- **开发者审核关注点**：单独成节，标出哪些失败/阻塞/未执行影响放行、哪些覆盖缺口需开发者确认接受、哪些证据缺失导致结论不可复核。
+- 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成；机检不通过时补结构或拆表格，不删证据、不改状态口径。
 
 ```html
 <!DOCTYPE html>
@@ -428,25 +567,53 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 <nav class="rk-revbar"></nav>
 
-<!-- 测试结论：通过用 is-pass，不通过用 is-fail -->
-<section class="rk-verdict is-pass">
+<!-- 测试结论：通过用 is-pass，不通过用 is-fail；结论必须与本轮 run-id 的证据一致 -->
+<section class="rk-verdict">
   <div class="rk-verdict-label">测试结论</div>
-  <p>{一句话结论：X 项用例全部通过 / 仍有 X 项失败及影响范围}</p>
+  <p>{一句话：本轮 {run-id} 的状态统计、证据缺口、是否建议放行及影响范围}</p>
 </section>
 
+<!-- 六类状态互斥；覆盖率必须是本轮实测值与口径，未测量时写「未测量」 -->
 <div class="rk-kpis">
-  <div class="rk-kpi is-pass"><div class="k">通过</div><div class="v">{N}</div><div class="n">{占比}</div></div>
-  <div class="rk-kpi is-fail"><div class="k">失败</div><div class="v">{N}</div><div class="n">{占比}</div></div>
-  <div class="rk-kpi"><div class="k">跳过</div><div class="v">{N}</div><div class="n">{原因}</div></div>
-  <div class="rk-kpi"><div class="k">覆盖率</div><div class="v">{N}%</div><div class="n">{口径：行/分支}</div></div>
+  <div class="rk-kpi is-pass"><div class="k">通过</div><div class="v">{N}</div><div class="n">断言全部满足</div></div>
+  <div class="rk-kpi is-fail"><div class="k">失败</div><div class="v">{N}</div><div class="n">{最差模块或用例}</div></div>
+  <div class="rk-kpi"><div class="k">跳过</div><div class="v">{N}</div><div class="n">不适用或按规则放弃</div></div>
+  <div class="rk-kpi"><div class="k">阻塞</div><div class="v">{N}</div><div class="n">环境/依赖/缺陷</div></div>
+  <div class="rk-kpi"><div class="k">未执行</div><div class="v">{N}</div><div class="n">计划内未运行</div></div>
+  <div class="rk-kpi"><div class="k">已执行但证据不足</div><div class="v">{N}</div><div class="n">{缺口及补验}</div></div>
+  <div class="rk-kpi"><div class="k">覆盖率</div><div class="v">{N}%</div><div class="n">{行/分支，来源}</div></div>
 </div>
 
+<!-- 状态口径表：先定义再统计，避免把未执行算进通过 -->
+<table>
+  <thead><tr><th>状态</th><th>定义</th><th>必须能指到的证据</th></tr></thead>
+  <tbody>
+    <tr><td><span class="rk-tag is-pass">通过</span></td><td>本轮执行，断言全部满足</td><td>run-id 下的输出 / 日志 / trace / 截图</td></tr>
+    <tr><td><span class="rk-tag is-fail">失败</span></td><td>本轮执行，至少一条断言不满足</td><td>失败输出、堆栈、截图</td></tr>
+    <tr><td><span class="rk-tag">跳过</span></td><td>本轮按规则不执行（不适用、已被其他用例覆盖）</td><td>跳过依据与批准规则</td></tr>
+    <tr><td><span class="rk-tag is-warn">阻塞</span></td><td>环境、依赖或缺陷导致无法执行</td><td>阻塞项、owner、关联问题</td></tr>
+    <tr><td><span class="rk-tag is-info">未执行</span></td><td>计划内但本轮没有运行，无结果</td><td>原因与补跑计划</td></tr>
+    <tr><td>已执行但证据不足</td><td>本轮已运行，但证据缺失或不可复核</td><td>已观察事实、证据缺口及补验计划</td></tr>
+  </tbody>
+</table>
+
+<!-- 有真实可比较数据时才用柱状条；全部阻塞/未执行时改用 rk-flow 画执行状态，不得编造比率 -->
 <figure class="rk-chart">
   <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-pass" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
   <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-warn" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
   <div class="rk-bar"><span class="k">{模块或类型}</span><meter class="is-fail" min="0" max="100" value="{N}"></meter><span class="v">{N}%</span></div>
-  <figcaption>{图 1：按模块或类型的通过率——is-pass 达标，is-warn 待补测，is-fail 未达标}</figcaption>
+  <figcaption>图 1：按模块或类型的实测通过率——数值取自本轮 run-id；is-pass 达标，is-warn 待补测，is-fail 未达标</figcaption>
 </figure>
+
+<!-- 无可比较数据时用流程条替代柱状条（机检允许 chart / barcell / flow 之一）：
+<ol class="rk-flow">
+  <li class="is-done"><b>冒烟</b><span>{N} 项已执行</span></li>
+  <li class="is-blocked"><b>边界</b><span>环境未就绪</span></li>
+  <li><b>权限</b><span>未执行</span></li>
+  <li><b>证据</b><span>待补齐</span></li>
+</ol>
+-->
+
 
 <!-- 修订历史固定 5 列。「原因」列源于实质取舍时引用账本 Decision Log 编号（如：按 D-003 ⋯⋯）；
      纯笔误/措辞/补充直接写清，不要编造决策编号。决策过程正文留在账本，不复制进报告。 -->
@@ -455,7 +622,6 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
   <thead><tr><th>修订</th><th>日期</th><th>修改人</th><th>改了什么</th><th>原因</th></tr></thead>
   <tbody>
     <tr><td>r1</td><td>YYYY-MM-DD</td><td>spec-tester</td><td>初版</td><td>—</td></tr>
-    <tr><td>r2</td><td>YYYY-MM-DD</td><td>spec-tester</td><td>{TC-0XX 由失败改为通过，更新结论}</td><td>{debug-001-fix 修复后复验}</td></tr>
   </tbody>
 </table>
 ```
@@ -464,14 +630,38 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 ```html
 <h2>测试概况</h2>
-<p>用例总数 {X}，失败中已修复 {X}；通过/失败/跳过/覆盖率见上方指标卡，按模块通过率见柱状条。</p>
+<p>计划用例 {N} 项，本轮 run-id 执行 {N} 项；各状态互斥，合计等于本报告统计范围内的计划总数。新增或调整用例另列；执行口径、覆盖率来源与缺口见下方证据表。</p>
 
 <h2>用例结果</h2>
+<p>逐条记录本轮执行事实与证据；已执行但证据不足时单列缺口，不能计入通过。</p>
 <table>
-  <thead><tr><th>用例编号</th><th>场景</th><th>结果</th></tr></thead>
+  <thead><tr><th>用例编号</th><th>关联需求</th><th>场景</th><th>状态</th><th>本轮证据</th><th>备注</th></tr></thead>
   <tbody>
-    <tr><td>TC-001</td><td>{场景}</td><td>通过</td></tr>
-    <tr><td>TC-0XX</td><td>{场景}</td><td><del class="rk-del" data-rev="2">失败</del><ins class="rk-ins" data-rev="2">通过</ins></td></tr>
+    <tr><td>TC-001</td><td>{AC-001}</td><td>{场景}</td><td><span class="rk-tag is-pass">通过</span></td><td><code>tester/artifacts/test-logs/&lt;run-id&gt;/...</code></td><td>—</td></tr>
+    <tr><td>TC-002</td><td>{AC-002}</td><td>{场景}</td><td><span class="rk-tag is-fail">失败</span></td><td><code>.../failures/TC-002.log</code></td><td>{断言与现象}</td></tr>
+    <tr><td>TC-003</td><td>{AC-003}</td><td>{场景}</td><td><span class="rk-tag">跳过</span></td><td>—</td><td>{跳过依据}</td></tr>
+    <tr><td>TC-004</td><td>{AC-004}</td><td>{场景}</td><td><span class="rk-tag is-warn">阻塞</span></td><td><code>.../blocked.md</code></td><td>{阻塞项与 owner}</td></tr>
+    <tr><td>TC-005</td><td>{AC-005}</td><td>{场景}</td><td><span class="rk-tag is-info">未执行</span></td><td>—</td><td>{原因与补跑计划}</td></tr>
+    <tr><td>TC-006</td><td>{AC-006}</td><td>{场景}</td><td>已执行但证据不足</td><td>缺失</td><td>{实际观察、缺口及补验}</td></tr>
+    <tr><td>TC-0XX</td><td>{AC-00X}</td><td>{场景}</td><td><del class="rk-del" data-rev="2">失败</del><ins class="rk-ins" data-rev="2">通过</ins></td><td><code>.../rerun-002/...</code></td><td>{debug-001-fix 复验}</td></tr>
+  </tbody>
+</table>
+
+<h2>放行判定</h2>
+<p>逐条对照测试计划的验收标准给出结果；缺证据的标准不得判通过。</p>
+<table>
+  <thead><tr><th>验收标准</th><th>结果</th><th>支撑用例</th><th>未通过原因 / 风险</th></tr></thead>
+  <tbody>
+    <tr><td>AC-001</td><td>满足 / 不满足 / 未验证</td><td>TC-001</td><td>{...}</td></tr>
+  </tbody>
+</table>
+
+<h2>阻塞与未执行清单</h2>
+<table>
+  <thead><tr><th>用例/需求</th><th>状态</th><th>原因</th><th>已尝试</th><th>下一步 / owner</th></tr></thead>
+  <tbody>
+    <tr><td>TC-004</td><td>阻塞</td><td>{环境/依赖/缺陷}</td><td>{复现步骤与日志路径}</td><td>{补齐条件或升级}</td></tr>
+    <tr><td>TC-005</td><td>未执行</td><td>{本轮未运行的原因}</td><td>—</td><td>{补跑时间与责任人}</td></tr>
   </tbody>
 </table>
 
@@ -487,20 +677,38 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 <h2>日志与审计证据</h2>
 
 <h3>测试运行</h3>
-<ul>
-  <li>Run ID：YYYYMMDD-HHMM-run-XXX</li>
-  <li>审计日志目录：<code>tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/</code>（原始格式）</li>
-  <li>测试账号/角色：{脱敏后的账号或角色}</li>
-  <li>设备/浏览器/App 版本：{端侧测试必填}</li>
-</ul>
+<table>
+  <thead><tr><th>项</th><th>值</th></tr></thead>
+  <tbody>
+    <tr><td>Run ID</td><td>YYYYMMDD-HHMM-run-XXX</td></tr>
+    <tr><td>源码基线</td><td><code>{40 位 commit SHA}</code>（当前工作树，含未提交变更：{是/否}）</td></tr>
+    <tr><td>执行命令</td><td><code>{测试命令}</code>，退出码 {N}</td></tr>
+    <tr><td>开始 / 结束</td><td>{YYYY-MM-DD HH:MM} / {YYYY-MM-DD HH:MM}</td></tr>
+    <tr><td>审计日志目录</td><td><code>tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/</code>（原始格式）</td></tr>
+    <tr><td>测试账号/角色</td><td>{脱敏后的账号或角色}</td></tr>
+    <tr><td>设备/浏览器/App 版本</td><td>{端侧测试必填}</td></tr>
+  </tbody>
+</table>
+
+<h3>证据清单</h3>
+<p>只登记由测试运行自动生成的文件；缺失的证据写缺口与影响，不补写。</p>
+<table>
+  <thead><tr><th>证据文件</th><th>生成方式</th><th>覆盖用例</th><th>完整性</th></tr></thead>
+  <tbody>
+    <tr><td><code>.../audit.log</code></td><td>{脚本 / 日志导出命令}</td><td>TC-001…</td><td>完整 / 截断 / 缺失</td></tr>
+    <tr><td><code>.../coverage.txt</code></td><td>{coverage 命令}</td><td>—</td><td>完整</td></tr>
+    <tr><td><code>.../completion-report.json</code></td><td>{测试脚本派生}</td><td>全部</td><td>完整</td></tr>
+  </tbody>
+</table>
 
 <h3>关键路径日志验证</h3>
 <table>
   <thead><tr><th>关键路径</th><th>关联用例</th><th>证据类型</th><th>证据位置/trace id</th><th>结果</th></tr></thead>
   <tbody>
-    <tr><td>{状态流转/权限边界/数据写入等}</td><td>TC-XXX</td><td>日志/trace/事件/截图</td><td><code>tester/artifacts/test-logs/...</code> 或 trace id</td><td>通过/失败</td></tr>
+    <tr><td>{状态流转/权限边界/数据写入等}</td><td>TC-XXX</td><td>日志/trace/事件/截图</td><td><code>tester/artifacts/test-logs/...</code> 或 trace id</td><td>通过 / 失败 / 未验证</td></tr>
   </tbody>
 </table>
+<p>结果标「未验证」时，必须写明缺的是埋点、采集能力还是运行机会，并在「阻塞与未执行清单」留对应行。</p>
 
 <h3>端侧审计留存</h3>
 <ul>
@@ -513,9 +721,21 @@ tester/artifacts/test-logs/YYYYMMDD-HHMM-run-XXX/
 
 <h2>发现的 Bug（如有）</h2>
 <ul>
-  <li><a href="../debugger/debug-001.html" data-rk-link="debug">{Bug 标题}</a> — 已修复并复验通过</li>
+  <li><a href="../debugger/debug-001.html" data-rk-link="debug">{Bug 标题}</a> — {状态：已修复并复验 / 待修复 / 已接受风险}，{关联用例与证据}</li>
 </ul>
 <div class="rk-cal warn"><div class="t">注意</div><p>{遗留问题、覆盖率缺口、未能自动采集的证据及其风险}</p></div>
+
+<h2>开发者审核关注点</h2>
+<p>给 <code>spec-executor</code> / <code>spec-reviewer</code> 复核；每项都要能落到上面的用例行或证据文件。</p>
+<table>
+  <thead><tr><th>关注点</th><th>为什么要关注</th><th>对应用例/证据</th><th>需开发者确认</th></tr></thead>
+  <tbody>
+    <tr><td>{失败用例}</td><td>直接影响放行</td><td>TC-002 / <code>.../failures/TC-002.log</code></td><td>{是否已修复或接受风险}</td></tr>
+    <tr><td>{阻塞与未执行}</td><td>结论覆盖不全</td><td>TC-004、TC-005</td><td>{是否补环境或延后验证}</td></tr>
+    <tr><td>{覆盖率缺口}</td><td>关键分支可能未被验证</td><td><code>.../coverage.txt</code></td><td>{是否补测}</td></tr>
+    <tr><td>{证据缺失或截断}</td><td>结论不可复核</td><td>{证据清单中的缺口行}</td><td>{是否重新采集}</td></tr>
+  </tbody>
+</table>
 
 <!-- 关联产物：双向。谁新建关联谁负责补对侧反链 -->
 <h2>关联产物</h2>
@@ -640,26 +860,34 @@ print(json.dumps(d))")
 阶段一完成后确认：
 1. `tester/test-plan.html` 已在正确路径创建，浏览器能打开且样式生效
 2. 已与 spec-writer 讨论并对齐接口边界
-3. 已更新 `lead/team-context.md` 的「任务进度」中测试计划任务行
-4. 已通知 TeamLead
+3. 首屏已给出验收判定口径与计划口径指标卡，**未出现覆盖率/通过率等运行结果**
+4. 需求→用例→证据追溯、环境与数据、边界矩阵、准入条件、未验证风险、开发者审核关注点齐全，且图表按内容选型而非凑数
+5. 已更新 `lead/team-context.md` 的「任务进度」中测试计划任务行
+6. 已通知 TeamLead
 
 阶段二完成后确认：
-1. `tester/test-report.html` 已创建，包含所有测试结果，结论用 `rk-verdict is-pass|is-fail`、概况用 `rk-kpis`
-2. 所有发现的 bug 都已由 spec-debugger 修复并重新验证
-3. 关键路径日志验证已记录到 `tester/test-report.html`
-4. 端侧测试审计日志已保存到当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`（原始格式）
-5. 已完成脱敏检查，未保存 token、密码、密钥或真实用户隐私
-6. 已完成测试策略沉淀判断；如需新增或更新策略，已获得用户确认并维护 `references/` 和策略表
-7. 已更新 `lead/team-context.md` 的「任务进度」和必要的「问题闭环记录」
-8. `rk-meta` 与 `<meta name="rk:*">` 字段一致、`rk-links` 有对应反链登记、报告内无 `<style>` 与行内 `style=`
-9. 已通知 TeamLead
-10. 最终测试结论基于本轮在当前工作树上的实际运行，未引用上一轮结果或 `spec-executor` 的自测结论
-11. 已按模式完成确认：`gated` 得到用户放行；`autopilot` 已由 `spec-reviewer` 产出 `reviewer/review.html`
-12. 报告结论块之后已有必需图（`rk-kpis` + `rk-chart` 或 `rk-barcell`），且已按「结构机检」运行 `check-report.js` 退出码为 0
+1. `tester/test-report.html` 已创建，结论用 `rk-verdict is-pass|is-fail`，首屏状态按统计范围分开计数
+2. 每个「通过」都能指到本轮 `run-id` 下自动生成的证据；已执行但证据不足的用例保留执行事实并单列
+3. 所有发现的 bug 都已由 spec-debugger 修复并重新验证
+4. 关键路径日志验证、证据清单与阻塞/未执行清单已记录到 `tester/test-report.html`
+5. 端侧测试审计日志已保存到当前 Spec 目录的 `tester/artifacts/test-logs/<run-id>/`（原始格式）
+6. 已完成脱敏检查，未保存 token、密码、密钥或真实用户隐私
+7. 已完成测试策略沉淀判断；如需新增或更新策略，已获得用户确认并维护 `references/` 和策略表
+8. 已更新 `lead/team-context.md` 的「任务进度」和必要的「问题闭环记录」
+9. `rk-meta` 与 `<meta name="rk:*">` 字段一致、`rk-links` 有对应反链登记、报告内无 `<style>` 与行内 `style=`
+10. 已通知 TeamLead
+11. 最终测试结论基于本轮在当前工作树上的实际运行，未引用上一轮结果或 `spec-executor` 的自测结论
+12. 已按模式完成确认：`gated` 得到用户放行；`autopilot` 已由 `spec-reviewer` 产出 `reviewer/review.html`
+13. 结论块之后已有 `rk-kpis` 和 chart / barcell / flow 之一；图有真实数据或真实状态支撑，未画占位比率；已按「结构机检」运行 `check-report.js` 退出码为 0
 
 ### 常见陷阱
 - 直接修复 bug 或绕过 TeamLead 联系 spec-debugger（破坏协作闭环）
 - `tester/test-plan.html` 验收标准不够具体（无法判断通过/失败）
+- 测试计划预填覆盖率、通过率等尚未运行的结果，或把「计划可自动化数」写成「实测覆盖」
+- 测试计划只列用例，没有需求→用例→证据追溯、准入条件或未验证风险，执行时才发现环境不可用
+- 测试报告把未执行、阻塞、跳过混进「通过」，或引用上一轮结果充数
+- 测试报告只有总数没有证据路径，失败/阻塞无法复核
+- 为了满足图文比编造柱状条数值；或为了图面简洁删掉失败日志与边界证据
 - 忘记在 `tester/test-report.html` 中引用 debug 文档
 - 端侧测试只看界面结果，没有保存 console/network/截图等审计证据
 - 关键路径没有日志或 trace id，导致失败后无法复盘

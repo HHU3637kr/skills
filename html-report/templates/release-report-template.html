@@ -35,15 +35,17 @@
 
 <nav class="rk-revbar"></nav>
 
-<section class="rk-verdict is-pass">
+<section class="rk-verdict">
   <div class="rk-verdict-label">发版结论</div>
-  <p>{一句话阐明版本验收结论、构建镜像标签与生产发布状态}</p>
+  <p>{一句话阐明版本验收结论、构建镜像标签与生产发布状态；确认验收通过后才加 is-pass}</p>
 </section>
 
 <div class="rk-kpis">
+  <!-- 三个数字必须来自本轮 release/<version> 分支的实际测试输出与合并记录；
+       未运行回归时写「未执行」及原因，不得预填通过数、失败数或退出码 0。 -->
   <div class="rk-kpi"><div class="k">纳入 Spec</div><div class="v">{N}</div><div class="n">feat {N} / tech {N} / debt {N} / fix {N}</div></div>
-  <div class="rk-kpi is-pass"><div class="k">回归通过</div><div class="v">{N}</div><div class="n">退出码 0</div></div>
-  <div class="rk-kpi is-fail"><div class="k">回归失败</div><div class="v">{N}</div><div class="n">{失败项处理状态}</div></div>
+  <div class="rk-kpi"><div class="k">回归通过</div><div class="v">{N}</div><div class="n">退出码 {N}</div></div>
+  <div class="rk-kpi"><div class="k">回归失败</div><div class="v">{N}</div><div class="n">{失败项处理状态，无则写 0}</div></div>
 </div>
 
 <h2>修订历史</h2>
@@ -58,21 +60,23 @@
 <table>
   <thead><tr><th>分类</th><th>Spec 目录</th><th>责任人</th><th>PR/MR 状态</th><th>验收结果</th></tr></thead>
   <tbody>
-    <tr><td>feat</td><td><code>spec/versions/{version}/specs/{spec-dir}</code></td><td>-</td><td>已合并</td><td>通过</td></tr>
+    <tr><td>feat</td><td><code>spec/versions/{version}/specs/{spec-dir}</code></td><td>-</td><td>{PR/MR 状态}</td><td>{验收结果}</td></tr>
   </tbody>
 </table>
 
 <h2>2. 全量回归测试与质量证据</h2>
 <div class="rk-cal key">
   <div class="t">全量测试命令与退出码</div>
-  <p>执行命令：<code>{测试命令}</code><br>测试结果：全部通过（退出码 0），测试日志见 <code>{日志路径或 artifacts 目录}</code></p>
+  <p>执行命令：<code>{测试命令}</code><br>测试结果：{通过数} 通过 / {失败数} 失败（退出码 {N}），日志见 <code>{日志路径或 artifacts 目录}</code></p>
 </div>
+<!-- 结果行只能转录实际输出；未执行时写「未执行」并说明原因，不得填「全部通过」。
+     需要画发版顺序时，在本节后加 rk-flow（冻结 → 全量回归 → 合并主干 → 打 Tag），节点状态与证据一致，未完成的不标完成。 -->
 
 <h2>3. 构建产物与部署镜像</h2>
 <table>
   <thead><tr><th>服务/组件</th><th>构建提交 SHA</th><th>镜像标签 (IMAGE_TAG)</th><th>制品校验</th></tr></thead>
   <tbody>
-    <tr><td>主服务</td><td><code>{commit-sha}</code></td><td><code>{tag}</code></td><td>一致</td></tr>
+    <tr><td>主服务</td><td><code>{commit-sha}</code></td><td><code>{tag}</code></td><td>{校验结果，如镜像摘要与提交一致}</td></tr>
   </tbody>
 </table>
 

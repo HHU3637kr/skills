@@ -390,20 +390,16 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 
 ## 用图说话（强制）
 
-报告要**少写字、多画图**。先决定画什么图，再写字；文字只补图里表达不了的原因、限制和下一步。以下三条由 `check-report.js` 强制检查，适用于 `rk:created` 在 2026-11-05 及之后的报告：
+报告以读者的判断为中心：关系、流程优先用图，枚举和精确契约用表格或代码；结论、原因、限制与证据用简短文字。保留必要细节，避免将信息拆成无意义的图或为了字数删去证据。
 
-| 规则 | 要求 |
-|------|------|
-| 必需图 | 每类报告必须包含指定的图，放在结论块之后（见下表） |
-| 图文比 | 正文每 800 字至少 1 张图（表格、代码、修订历史、关联产物不计字数） |
-| 单段长度 | 单个 `<p>` / `<li>` 不超过 150 字 |
+下表的必需图由 `check-report.js` 检查，适用于 `rk:created` 在 2026-11-05 及之后的报告；放在结论块之后。图文比例和段落长度不作机检门槛：段落建议一段一个点，过长时优先拆分，不按字数强制配图。
 
 | 报告 | 必需图 |
 |------|--------|
 | exploration-report | fig + flow |
 | plan | fig + flow |
 | test-plan | kpis 或 chart 或 flow |
-| test-report | kpis + (chart 或 barcell) |
+| test-report | kpis + (chart 或 barcell 或 flow) |
 | summary | kpis 或 flow |
 | debug | fig 或 flow |
 | debug-fix | fig 或 flow 或 kpis |
@@ -413,7 +409,7 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 | end-report | flow |
 | version-plan | flow + kpis |
 | release-report | kpis |
-| version-end-report | kpis + (chart 或 barcell) |
+| version-end-report | kpis + (chart 或 barcell 或 flow) |
 
 **画什么、怎么画、怎么写短**：见 [`references/figures.md`](references/figures.md)，内容包括每类报告的画图内容、信息与图的对照、SVG 画法与常用布局、改写示例和自查清单。写报告前先读它。
 
@@ -535,8 +531,8 @@ node html-report/scripts/check-report.js <报告.html | 目录> [更多路径...
 | `data-rev` 纯数字且 ≤ `rk:revision` | `"r3"` 写法、修订号写超 |
 | SVG 不写死 `fill`/`stroke` 颜色 | 图表不跟随统一配色 |
 | 引用的 `rk-report.css/js` 与 Skill 源文件一致 | 项目内资产副本过期 |
-| 按 `rk:type` 包含必需图；每 800 字至少一张图；单段 ≤ 150 字 | 全文字报告（见「用图说话」） |
+| 按 `rk:type` 包含必需图 | 缺少该类报告的基本可视化（见「用图说话」） |
 
-少字多图三项只检查 `rk:created` ≥ 2026-11-05 的报告，历史报告不追溯。`--no-figures` 只用于排查结构问题时临时跳过，不能用来放行新报告。
+必需图检查只适用于 `rk:created` ≥ 2026-11-05 的报告，历史报告不追溯。`--no-figures` 只用于排查结构问题时临时跳过，不能用来放行新报告。机检只识别图组件，不判断信息真假或图是否有用，作者和审核者须人工检查。
 
 写完或修订任何报告后都要跑；各角色 Skill 的报告要求、`version-update`、`spec-update`、`spec-end` 都把它列为验证步骤。

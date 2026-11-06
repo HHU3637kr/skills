@@ -93,7 +93,10 @@ AWR 状态机与结构一致性检查：
 - 关联 `writer/plan.html`、`executor/summary.html` 用相对链接，分「本报告引用」（`rk-links`）与「引用本报告」（`rk-backlinks`）两向；指向运行账本写 `../lead/team-context.md` 或 `../lead/team-context.html`（按账本实际格式）
 - frontmatter 语义双轨保留：`<head>` 内 `<meta name="rk:*">` + `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像，两处字段一致，`git_branch` / `base_branch` / `pr_url` 不可丢
 - 修订遵循 `data-rev` 规范：修订号 +1、修订历史表追加一行、正文用 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` / `<p class="rk-added|rk-removed" data-rev="N">` 标记，永不静默改写
-- **必需图**（机检强制）：review 至少包含指标卡（`rk-kpis`：通过 / 不符 / 风险项计数）；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`
+- **首屏与图**（机检强制最低图种）：结论块一句话给出审查结果（通过 / 需修复 / 严重不符，与 `rk:result` 一致）；紧跟指标卡（`rk-kpis`：通过 / 不符 / 风险项计数），放在结论块之后、第一个正文章节结束之前。
+- **图与表分工**：计数用 kpis；多个任务做横向符合度对比时可用表格内迷你条（`rk-barcell`）或柱状条（`rk-chart`）。功能、数据模型、API、测试检查与问题清单必须用表格承载 Spec 位置、代码位置和证据，不用图替代证据。小 Spec 可只有 kpis，未发现的类别在表中写「（无）」，不删检查项；不符合项用 `is-fail`/`is-warn`，不得把未检查项计入通过。
+- **开发者审核关注点**：每个不符项是否同时给出 Spec 位置、代码位置与可复核的事实；`blocker` / `major` / `minor` 定级依据；测试结论是否有 tester 证据支持（本角色不重做 Test Quality）；额外实现与范围外发现是否单列；AWR 结构缺口是否登记。
+- **篇幅**：按内容选择图，不按字数凑图；单段聚焦一个判断，建议 150 字以内便于扫读。差异说明、证据路径用表格或代码保留，不因篇幅删减。画法见 `html-report/references/figures.md`
 - 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ### 步骤 7：确认响应处理

@@ -92,7 +92,13 @@ base_branch: dev
 
 在 `spec/versions/<version>/plan.html` 生成版本规划大盘报告。必须使用 [html-report/templates/version-plan-template.html](../../html-report/templates/version-plan-template.html) 骨架，遵循 `html-report` 规范，声明 `rk:version="<version>"`、`rk:type="version-plan"`、`rk:role="TeamLead"`、`rk:base-branch="dev"`，引用 assets 必须为 3 层相对路径（`../../../html-report/assets/`），展示版本大盘。
 
-**必需图**（机检强制）：version-plan 必须同时有流程条（`rk-flow`：批次 / 里程碑）与指标卡（`rk-kpis`：Spec 数按 feat/tech/debt/fix 分类）；放在结论块之后、第一个正文章节结束之前。正文每 800 字至少配一张图，单段（`<p>` / `<li>`）不超过 150 字。能用图表达的数字、顺序、结构先画图，文字只补图里没有的原因、限制和下一步。画法见 `html-report/references/figures.md`。
+**首屏与图**（机检强制最低图种）：结论块一句话说明版本核心价值与交付目标；紧随流程条（`rk-flow`：批次 / 里程碑时间轴）与指标卡（`rk-kpis`：Spec 数按 feat / tech / debt / fix 分类）。两者必须同时存在，放在结论块之后、第一个正文章节结束之前。
+
+**图与表分工**：批次与里程碑用 flow；四类数量用 kpis；跨 Spec 依赖复杂时可加 `rk-fig` 依赖关系图。Spec 清单（四类平权）、依赖前置、范围变更记录、验收标准用表格，不用图替代明细。只有单个批次时保留一个真实节点并写明原因，不虚构里程碑；未排期 Spec 不计入「已排期」数字。
+
+**开发者审核关注点**：四类属性是否真实反映范围而非平均分配；跨 Spec 依赖是否构成关键路径、外部依赖有无负责人；冻结/发布日期与批次是否可执行；每条 Spec 的目标是否可验收；范围变更是否记录动因与审批人。
+
+**篇幅**：按内容选择图，不按字数凑图；单段聚焦一个判断，建议 150 字以内便于扫读。完整 Spec 清单与依赖明细用表格保留，不因篇幅删减。画法见 `html-report/references/figures.md`。
 
 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成。
 

@@ -446,6 +446,8 @@
   <li>结论块 <code>rk-verdict is-pass|is-fail</code> 与 <code>rk:result</code> 保持一致，一句话说清能否归档。</li>
   <li>每个检查项必须同时给出 Spec 位置与代码位置，代码位置一律 <code>&lt;span class="rk-ref"&gt;src/x.ts:88&lt;/span&gt;</code>。</li>
   <li>问题按高/中/低优先级分类，写进问题清单表；发现需升级的问题时同步登记运行账本「问题闭环记录」。</li>
+  <li>首屏指标卡计数必须等于下方各检查表行数之和；多个任务需要横向比较符合度时，可在表格内用 <code>rk-barcell</code>（如「符合项 / 检查项」），不要另造一张无来源的图。未检查的类别在表中写「（无）」并保留检查项，不计入通过。</li>
+  <li>开发者审核关注点：每个不符项是否给出 Spec 位置、代码位置与可复核事实；定级是否按 rubric；测试结论是否有 tester 证据支持；额外实现与范围外发现是否单列。</li>
   <li>双向关联：本报告 <code>rk-links</code> 加一条时，对侧报告 <code>rk-backlinks</code> 补一条；对侧尚未产出先标注「（待创建）」，等产出后补齐。</li>
   <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN；更新审查编号递增时同步替换文件名与全部链接。</li>
 </ul>

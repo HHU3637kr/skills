@@ -34,14 +34,16 @@
 
 <nav class="rk-revbar"></nav>
 
-<section class="rk-verdict is-pass">
+<section class="rk-verdict">
   <div class="rk-verdict-label">版本里程碑目标</div>
-  <p>{一句话阐述该版本的核心价值与交付目标}</p>
+  <p>{一句话阐述该版本的核心价值与交付目标；规划阶段不要标 is-pass，避免把目标当成已达成}</p>
 </section>
 
 <ol class="rk-flow">
-  <li class="is-done"><b>{批次 1 / 里程碑}</b><span>{目标一句话}（{YYYY-MM}）</span></li>
-  <li class="is-current"><b>{批次 2 / 里程碑}</b><span>{目标一句话}（{YYYY-MM}）</span></li>
+  <!-- 节点 class 按实际进度选择：is-done 已完成 / is-current 进行中 / 默认或 is-muted 未开始。
+       规划阶段通常只有第一批为 is-current；单批次时保留一个真实节点并写明原因。 -->
+  <li class="is-current"><b>{批次 1 / 里程碑}</b><span>{目标一句话}（{YYYY-MM}）</span></li>
+  <li><b>{批次 2 / 里程碑}</b><span>{目标一句话}（{YYYY-MM}）</span></li>
   <li><b>{批次 3 / 里程碑}</b><span>{目标一句话}（{YYYY-MM}）</span></li>
 </ol>
 
@@ -49,8 +51,10 @@
   <div class="rk-kpi"><div class="k">feat</div><div class="v">{N}</div><div class="n">业务功能</div></div>
   <div class="rk-kpi"><div class="k">tech</div><div class="v">{N}</div><div class="n">技术底座与 AI 基建</div></div>
   <div class="rk-kpi"><div class="k">debt</div><div class="v">{N}</div><div class="n">技术债与重构治理</div></div>
-  <div class="rk-kpi"><div class="k">fix</div><div class="v">{N}</div><div class="n">缺陷修复</div></div>
+  <div class="rk-kpi"><div class="v">{N}</div><div class="k">fix</div><div class="n">缺陷修复</div></div>
 </div>
+<!-- 四类数字之和必须等于 version-context.md 的规划 Spec 总数，且与第 1 节四张表行数一致。
+     跨 Spec 依赖复杂时在第 2 节加 figure.rk-fig 依赖图；依赖简单则用表格说明，不硬画图。 -->
 
 <h2>修订历史</h2>
 <table class="rk-revs">
