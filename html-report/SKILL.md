@@ -400,7 +400,7 @@ Obsidian 双链的价值不只是跳转，而是**反向可发现**（打开 pla
 
 | 报告 | 必需图 |
 |------|--------|
-| exploration-report | fig |
+| exploration-report | fig + flow |
 | plan | fig + flow |
 | test-plan | kpis 或 chart 或 flow |
 | test-report | kpis + (chart 或 barcell) |

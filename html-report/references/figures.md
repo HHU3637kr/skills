@@ -22,7 +22,7 @@
 
 | 报告 | 必需图 | 画的内容 | 常加 |
 |------|--------|----------|------|
-| exploration-report | fig | 现状模块和调用链。要改的位置用 `c-blue`，风险点用 `c-red` | kpis：涉及文件数、风险数 |
+| exploration-report | fig + flow | fig：现状模块与调用链，改动用 `c-blue`、风险点用 `c-red`；flow：问题状态（每个 Q 一个节点，已决 / 部分 / 待决） | kpis：证据项、风险数、待决数、可开工 |
 | plan | fig + flow | fig：方案结构或数据流，新增部分用 `c-blue`；flow：实施顺序 | 改动前后对比两张 fig |
 | test-plan | kpis 或 chart 或 flow | 用例按优先级或类型的分布，或测试阶段 | barcell：各模块用例数 |
 | test-report | kpis + (chart 或 barcell) | kpis：通过 / 失败 / 跳过 / 覆盖率；chart：按模块的通过率或覆盖率 | fig：失败用例所在链路 |

@@ -46,7 +46,7 @@ const FIGURE_COUNT_RE = /class="[^"]*\b(?:rk-kpis|rk-flow|rk-chart|rk-fig)\b|<td
 
 // 每类报告的必需图：外层数组之间是「且」，内层数组之间是「或」
 const REQUIRED_FIGURES = {
-  "exploration-report": [["fig"]],
+  "exploration-report": [["fig"], ["flow"]],
   plan: [["fig"], ["flow"]],
   "test-plan": [["kpis", "chart", "flow"]],
   "test-report": [["kpis"], ["chart", "barcell"]],
