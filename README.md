@@ -1283,6 +1283,7 @@ created: YYYY-MM-DD
 
 - [Claude Code Documentation](https://claude.ai/code)
 - [Skills CLI & Ecosystem](https://skills.sh/)
+- [agent-qa](https://github.com/vostride/agent-qa) - vostride 的应用回归测试工具，具备先进的 memidex 记忆引擎与自我改进能力，可用于测试阶段的验证与运行证据审查。
 
 ## 维护说明
 
