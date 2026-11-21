@@ -351,9 +351,8 @@ R&K Flow 把 GitHub Flow 作为 Spec 生命周期的一部分，而不是最后�
 | 时机 | Git 动作 | 记录位置 |
 |------|----------|----------|
 | `spec-start` | 从 `main` 创建 Spec 工作分支 | `lead/team-context.md` 的 `git_branch` / `base_branch` |
-| `spec-update` | 复用并校验当前 Spec 工作分支 | 读取 `lead/team-context.md`，更新 `updater/update-xxx.html` |
-| `spec-end` | 归档后提交、推送、创建 PR | `lead/team-context.md` 的 `pr_url` |
-| update 收尾 | 提交、推送当前 Spec 分支；必要时创建/更新 PR，不归档 | `lead/team-context.md` 的 `pr_url` |
+| `spec-update` | 复用并校验当前 Spec 工作分支（不做独立收尾） | 读取 `lead/team-context.md`，更新 `updater/update-xxx.html` |
+| `spec-end` | 统一收尾（含完整 Spec 与 `spec-update` 迭代）：经验/规范/本体同步、提交、推送、创建或更新 PR | `lead/team-context.md` 的 `pr_url` |
 
 分支命名使用 `<type>/spec-<YYYYMMDD-HHMM>-<ascii-slug>`，例如 `feat/spec-20260109-1430-evaluator-agent`。多个 Spec 并发开发时使用 `git worktree`，每个 Spec 独占工作目录和分支。
 
@@ -397,15 +396,15 @@ R&K Flow 明确区分**角色**（Who）和 **Skill**（How）。角色是 Agent
 |-------|---------|------|----------|
 | `spec-init` | TeamLead | Git 仓库检查 + 完整项目骨架搭建（AGENTS.md + rules + skills + roles + spec/ + HTML 报告资产） | 新项目首次使用，一次性 |
 | `spec-start` | TeamLead | 创建 Spec 工作分支、角色目录和 `lead/team-context.md`，加载 7 个项目级角色 | 每次开始新开发任务 |
-| `spec-swarm` | TeamLead | 执行形态启动器：前置校验 + 写入 `execution: swarm` + 声明编排硬约束，随后委派 `spec-start` | 要求全程 spawn 子 Agent 执行、主控只做编排时 |
-| `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索） | Spec 创建前的背景调研 |
-| `spec-write` | spec-writer | 撰写 `writer/plan.html`（纯代码实现计划，不含测试） | 创建新功能 Spec |
-| `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.html` + 执行测试产出 `tester/test-report.html` | 测试计划和测试执行 |
-| `spec-execute` | spec-executor | 严格按 `writer/plan.html` 实现代码，产出 `executor/summary.html` | 新功能开发 |
-| `spec-debug` | spec-debugger | 诊断并修复 bug，产出 debug 文档 | 测试发现问题时 |
-| `spec-review` | spec-reviewer | 审查实现情况，产出 `reviewer/review.html` | `gated` 可选；`autopilot` **强制**——自动驾驶下它是唯一独立视角 |
-| `spec-end` | spec-ender | 多角色讨论 + 经验沉淀 + 规范维护 + 归档 + 推送 PR，产出 `ender/end-report.html` | 开发周期收尾 |
-| `spec-update` | — | 在当前 Spec 分支内执行小更新，产出 `updater/update-xxx.html` 与 `updater/update-xxx-summary.html` | 修改同一活跃 Spec 的既有功能（不归档） |
+| `spec-swarm` | TeamLead | 执行形态启动器：前置校验 + 写入 `execution: swarm` + 声明编排硬约束（同轮续接、跨轮默认 Fresh Subagent 防长上下文污染），随后委派 `spec-start` | 要求全程 spawn 子 Agent 执行、主控只做编排时 |
+| `spec-explore` | spec-explorer | Spec 前置信息收集（经验检索 + 代码探索；遇到静态读代码无法拍板的技术/性能分叉时，支持仓库外临时低成本实证原型） | Spec 创建前的背景调研 |
+| `spec-write` | spec-writer | 撰写 `writer/plan.html`（纯代码实现计划，有状态/并发/权限场景声明核心不变量 `INV`，技术分叉优先引用实测原型） | 创建新功能 Spec |
+| `spec-test` | spec-tester | 按场景策略撰写 `tester/test-plan.html` + 执行测试产出 `tester/test-report.html`（支持项目级用户视角 `feature-map.md` 共享词汇表与复杂 UI 可选属性探索测试） | 测试计划和测试执行 |
+| `spec-execute` | spec-executor | 严格按 `writer/plan.html` 实现代码，产出 `executor/summary.html`（遵循 TDD 与批量改动造杠杆脚本/codemod，不在业务代码堆砌过程性注释） | 新功能开发 |
+| `spec-debug` | spec-debugger | 诊断并修复 bug，启用项目本体时按 OB-RCA 子图溯源与评估爆炸半径，并引入连续两次同前提失败「攻击前提」证伪协议 | 测试发现问题时 |
+| `spec-review` | spec-reviewer | 验证产物优先审查（截图/录屏/命令摘要 + 用户视角 SVG 状态机与核心不变量 + 只读实测反例探针与 `[INFERENCE]` 标示 + 注释白名单与可选多模型异构面板） | `gated` 可选；`autopilot` **强制**——自动驾驶下它是唯一独立视角 |
+| `spec-end` | spec-ender | 统一收尾出口：多角色讨论 + 经验沉淀 + 规范与项目本体维护 + 归档(或阶段提交) + 推送 PR | 开发周期收尾及 `spec-update` 审查后统一收尾 |
+| `spec-update` | — | 在当前 Spec 分支内执行小更新，产出 `updater/update-xxx.html` 与 `updater/update-xxx-summary.html`（不设独立收尾，交 `spec-end`） | 修改同一活跃 Spec 的既有功能 |
 
 #### 新功能开发流程（5 阶段）
 
@@ -444,8 +443,8 @@ GitHub Flow 准备
 
 阶段五：收尾
   TeamLead → spec-ender 开始
-  spec-ender → ender/end-report.html + 多角色讨论 + exp-reflect → 规范维护审查 → 用户确认归档
-  spec-ender → git-work 提交 + 推送 + 创建 PR
+  spec-ender → ender/end-report.html + 多角色讨论 + exp-reflect → 规范与项目本体维护审查 → 用户确认收尾方式
+  spec-ender → git-work 提交 + 推送 + 创建/更新 PR
   spec-ender → 通知 TeamLead，Teams 进入待机
 
 此外用户可在任意时刻主动调用 spec-review 进行详细审查
@@ -495,15 +494,13 @@ spec-update 创建 updater/update-xxx.html（放在原 Spec 的 updater/ 目录�
     ↓
 spec-update 执行更新
     ↓
-spec-update 创建 updater/update-xxx-summary.html
+spec-update 创建 updater/update-xxx-summary.html（登记待汇总的规范与本体变更线索）
     ↓
 spec-review 创建 reviewer/update-xxx-review.html + 用户确认
     ↓
-exp-reflect 经验反思 + 规范维护审查
+审查通过 → 交回 TeamLead（继续下一轮 spec-update，或启动 spec-end 执行统一收尾）
     ↓
-git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
-    ↓
-完成（不归档，保留在原目录）
+spec-end（统一收尾：exp-reflect + 规范与项目本体增量同步 + 提交推送/PR + 可选原位归档或保持活跃态）
 
 此外用户可在任意时刻主动调用 spec-review 进行详细审查
 ```
@@ -513,14 +510,15 @@ git-work 提交 + 推送当前 Spec 分支；必要时创建/更新 PR
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `exp-search` | 记忆检索 | 检索五层记忆（经验+知识+SOP+工具记忆+Auto Memory 只读） |
-| `exp-reflect` | 记忆反思 | 分析 Spec 文档提取经验、知识、SOP、工具记忆、项目规范/规则，按类型分流 |
+| `exp-reflect` | 记忆反思与升阶 | 分析 Spec 与版本复盘记录，按信任金字塔优先建议确定性结构固化（架构/类型/Lint/机检脚本），再分流至本体与文本记忆 |
 | `exp-write` | 记忆写入 | 将经验写入 experience/ 或知识写入 knowledge/，更新索引 |
 
-### 3. 报告与呈现 Skills
+### 3. 报告、呈现与领域本体 Skills
 
 | Skill | 功能 | 在 Spec 流程中的作用 |
 |-------|------|---------------------|
 | `html-report` | HTML 报告契约：固定骨架与样式、重点突出组件、可追溯修订标记、双向关联 | 所有报告类产物的格式基础 |
+| `project-ontology` | 项目内视角领域本体（`ontology.json` v1.0 唯一真源 + 离线 HTML 视图 + 8 类强语义边 + 外部边界 + 置信状态 + 第三层 `experience_refs` 挂接 + 子图/现象/影响反查与机检工具链） | 建图、OB-RCA 根因定位、探索与更正影响面分析、`spec-end` 增量同步 |
 
 ### 4. 辅助 Skills
 
@@ -569,13 +567,16 @@ spec/
 │   │       ├── 20260908-1400-feat-报告导出/
 │   │       └── 20260909-1000-tech-ASR优化/
 │   └── v1.7/
-└── context/                   # 项目级长期记忆（跨全部版本共享）
+└── context/                   # 项目级长期记忆与本体（跨全部版本共享）
     ├── experience/            # 经验记忆存储（显式层）
     │   ├── index.md           # 经验索引
     │   └── exp-xxx-标题.md    # 经验详情
-    └── knowledge/             # 知识记忆存储（显式层）
-        ├── index.md           # 知识索引
-        └── know-xxx-标题.md   # 知识详情
+    ├── knowledge/             # 知识记忆存储（显式层）
+    │   ├── index.md           # 知识索引
+    │   └── know-xxx-标题.md   # 知识详情
+    └── ontology/              # 可选项目本体（由 project-ontology 按需生成）
+        ├── ontology.json      # 唯一结构化真源（模块/字段血缘/INV/关系边）
+        └── index.html         # 脚本渲染的单文件离线 HTML 视图
 
 运行时原生记忆                 # Auto Memory（自动层，由当前 CLI 管理）
     └── 具体位置由 Claude Code / Codex / OMP 等运行环境决定
@@ -1169,7 +1170,8 @@ created: YYYY-MM-DD
 | 项目名称/一句话身份、核心技术栈摘要、AGENTS 路由或 import 变化 | `AGENTS.md` |
 | 启动/部署方式、开发流程细则、长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范、产品/前端偏好 | `.agents/rules/*.md` |
 | 可复用操作流程（部署、发布、迁移等） | `.agents/skills/sop-xxx/SKILL.md` |
-| 项目架构、数据流、模块理解 | `spec/context/knowledge/` |
+| 模块边界、跨模块契约字段、数据血缘、业务口径/阈值、核心不变量 `INV`、降级/共享状态 | `spec/context/ontology/ontology.json` + `index.html` |
+| 项目架构叙事、技术调研 | `spec/context/knowledge/` |
 | 困境-策略、踩坑经验 | `spec/context/experience/` |
 
 原则：`AGENTS.md` 只写入口清单和身份摘要，不承载长篇规范；长期规则和项目偏好优先更新已有 rules 文件，必要时再创建新规则文件；规范文件每次会话都会加载，必须短、明确、可执行。
@@ -1250,10 +1252,11 @@ created: YYYY-MM-DD
 /spec-write       # 撰写设计方案
 /spec-test        # 撰写测试计划 / 执行测试
 /spec-execute     # 执行新功能开发
-/spec-debug       # 诊断并修复问题
-/spec-end         # 收尾（经验沉淀 + 归档 + 推送 PR）
-/spec-update      # 在当前 Spec 分支内执行小更新
+/spec-debug       # 诊断并修复问题（支持 OB-RCA 本体溯源）
+/spec-end         # 统一收尾（经验沉淀 + 规范与本体维护 + 归档或阶段提交 + 推送 PR）
+/spec-update      # 在当前 Spec 分支内执行小更新（审查后交 spec-end 统一收尾）
 /spec-review      # 审查实现情况
+/project-ontology # 构建、查询或增量同步项目本体图谱
 
 /exp-search       # 检索历史经验
 /exp-reflect      # 反思并沉淀经验
@@ -1303,13 +1306,42 @@ created: YYYY-MM-DD
 
 ---
 
-**版本**: 2.10.1
-**最后更新**: 2026-11-10
+**版本**: 2.11.0
+**最后更新**: 2026-11-21
 **维护者**: 项目团队
 
 ---
 
 ## 更新日志
+
+### v2.11.0 (2026-11-21)
+
+> 受「基于本体的根因分析」与「验证产物优先」工程实践启发，这一版重点解决项目变大后的三个实际痛点：**Agent 跨模块容易搞混业务口径和隐藏依赖**、**人工 Review 容易退化成逐行翻代码**，以及 **踩过的坑越写越长却还是反复犯**。
+
+#### v2.10.1 → v2.11.0 核心变化
+
+| 方面 | v2.10.1 | v2.11.0 |
+|---|---|---|
+| 项目理解与排障 | 主要靠全仓搜索和零散经验文档，跨模块依赖和历史坑容易漏看 | 新增「项目领域本体」，把模块边界、关键指标口径、上下游关系和历史踩坑串成一张轻量图谱，排障时直接从报错现象定位根因和影响范围 |
+| 审查与验收体验 | 审查报告偏重文字清单和代码对照，复杂交互和状态变化不易一眼看清 | 改为「验证产物优先」：先看截图、录屏和实跑结果，再按需下钻代码；涉及状态流转或权限切换时自动画出用户视角状态图，把非法跳转和死状态标红 |
+| 经验沉淀 | 踩坑多以文字追加到规则或经验文档，规则越堆越长但执行容易打折 | 经验复盘按优先级升阶：同类问题优先建议沉淀成架构约束、类型检查或自动脚本，确实无法机械化的才写进文档规则，并增加版本级高频问题复盘 |
+| 多轮排障与协作 | 多轮调试容易沿用同一上下文被旧假设带偏，排障卡住时容易反复打补丁 | 跨轮次默认启用干净子 Agent 重新审视落盘报告；同一思路连续修两次仍失败时强制先验证前提是否错了；高风险改动支持多模型独立挑刺 |
+| 代码卫生与改动效率 | 过程性注释容易残留在业务代码里，大范围修改常靠手工逐个文件改 | 清理“借口注释”并按白名单审查异常忽略标记；不确定技术方案时允许先做仓库外最小验证原型；批量迁移任务优先写可复跑脚本执行 |
+
+#### 1. 让 Agent 真正“懂项目”：项目领域本体与根因定位
+- **一张轻量的项目“活地图”**：通过新增的 `project-ontology`，用一份结构化文件和自动生成的离线 HTML 页面，记录项目最关键的骨架——内外部模块边界、跨模块字段与业务口径（如空值语义、状态归属、易混淆概念）、核心规则以及上下游回填、降级、共享状态等隐性关联。
+- **排障直达根因与影响面**：`spec-debug` 排查前会先比对代码近期变更，直接从报错现象查出相关上下游链条、关联的历史踩坑经验（写明何时适用、何时不适用）以及改完后需要回归的下游范围，不再一上来盲目全仓搜索。
+- **可纠错、防过期**：发现旧口径或历史假设有误时，支持标记为已撤回并说明原因，改动前可一键反查所有受波及的模块与测试入口；需求收尾时由 `spec-end` 按需同步更新，没有契约变化则零成本跳过。（技术细节见 `project-ontology/SKILL.md`）
+
+#### 2. 让 Review 少翻代码、多看证据：验证产物优先与状态机审查
+- **先看证据再看代码**：`spec-review` 报告首屏直接展示验证产物总览——前端改动优先看截图和录屏，后端和命令行优先看实跑命令和输出摘要，减少人工逐行对代码的精力消耗。
+- **用实测说话，不空口拦阻**：审查角色在不改业务代码的前提下，可以直接运行只读探针复现疑似缺陷；没有实际验证过的静态猜测必须显式标出，不能仅凭推测直接打回。
+- **复杂状态一眼看清**：设计阶段先写清核心业务规则，测试阶段可维护一份人机共享的“用户视角功能地图”，审查阶段从真实代码反向画出用户视角状态机图，直接暴露遗漏的异常回退、死状态和最短触发路径。
+
+#### 3. 让工作流越用越稳：经验升阶与工程纪律
+- **好经验优先“长进工程里”**：`exp-reflect`、`spec-end` 和 `version-end` 复盘时，不再动辄往规则文件堆长篇提醒，而是优先把反复踩的坑固化成目录边界、类型约束、Lint 或自动化检查，让系统自己防呆。
+- **打破思维定势与长上下文污染**：同轮未完成的任务继续衔接，但进入下一轮调试或独立审查时默认开干净的子 Agent，靠落盘报告和最新代码差异重建认知；连续两次基于同一前提修复失败时，必须停下补丁，先做最小实验检验前提本身。
+- **更干净的代码与更高的改动杠杆**：不再要求在业务代码注释里硬写流程路径，审查时重点揪出掩盖根因的“借口注释”；遇到纸面拿不准的技术分叉可先在仓库外做小原型跑数据，大批量同类迁移优先写脚本统一处理。
 
 ### v2.10.1（相对 v2.10.0）
 

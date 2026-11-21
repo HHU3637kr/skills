@@ -23,7 +23,7 @@ description: >
 | 项 | 本 Skill 的约定 |
 | 输入 | 已确认的 `writer/plan.html`、AWR 准备上下文（`awr work prepare <SPEC-ID> --response-view summary`）、`exp-search` 检索结果、TeamLead 提供的 Git 元数据 |
 | 权限 | 按 plan 实现代码 + 写该代码的单元/聚焦测试 + 写 `executor/summary.html` 与 `executor/artifacts/` + 提交 AWR 会话检查点；不写集成/端到端测试、不出最终测试结论、不修已交付功能的 bug、不归档、不提交或推送 |
-| 验证 | 只实现 plan 中明确定义的功能，使用 plan 的类名/方法名/数据结构，代码注释引用 plan 章节。**每个实现单元必须先有失败的测试**；声明完成前必须在当前工作树上跑一次测试并观察输出，证据落 `executor/artifacts/` |
+| 验证 | 只实现 plan 中明确定义的功能，使用 plan 的类名/方法名/数据结构；溯源优先通过 Git commit 与 `executor/summary.html` 的 `rk-ref` 承载，不写过程性 Spec 路径注释或变通辩护注释，严禁以 `eslint-disable`/`@ts-ignore` 掩盖缺陷。**每个实现单元必须先有失败的测试**；声明完成前必须在当前工作树上跑一次测试并观察输出，证据落 `executor/artifacts/` |
 | 停止 | plan 定义的实现步骤全部完成、测试全绿、且 summary 通过确认即停止，不"优化"、不加 plan 未定义的功能 |
 | 升级 | plan 不完整（缺接口签名/数据结构/文件清单/验证命令任一项）、前置阶段未完成、或实现中发现 plan 设计有误时，停止实现并交回 TeamLead 由用户决策 |
 | 参考 | 任务涉及代码改动 → 开工前必读 `references/tdd-discipline.md` |
@@ -35,6 +35,7 @@ description: >
 3. **证据不可手写**：`executor/artifacts/` 下的测试输出必须由测试运行本身产出，Agent 不得手写、补写或回填。`summary.html` 引用的命令与退出码必须与证据文件一致
 4. **确认方式随模式**：`gated` 模式下完成 `executor/summary.html` 后必须用当前运行环境的确认方式向用户确认；`autopilot` 模式下由「本轮新鲜验证 + `executor/artifacts/` 自动产出的证据」替代该确认，两者缺一不可放行
 5. **交接清晰**：实现完成后只交接给 TeamLead，不执行集成测试、不归档、不提交或推送
+6. **批量改动造杠杆（Build the Lever）**：面对涉及多文件机械修改的 `debt` / 迁移 / 契约对齐类 Spec（如全仓 API 替换、跨模块结构迁移），优先编写一次性可复跑脚本、codemod 或校验器完成变更与自检，并将脚本与运行输出落入 `executor/artifacts/` 供 `spec-reviewer` 复跑核验，而不是手工逐个文件编辑
 
 ### 版本变更
 
@@ -91,7 +92,8 @@ bug 修复仍由 spec-debugger 负责。
 
 按任务清单顺序逐个实现，严格遵循 `writer/plan.html` 的设计：
 - 使用 `writer/plan.html` 中定义的类名、方法名、数据结构
-- 在代码注释中引用 `writer/plan.html` 路径和章节
+- 溯源交给 Git commit 与 `executor/summary.html` 的 `rk-ref`，不在业务代码里堆砌过程性路径注释或辩护型注释（仅保留符合 `review-rubric` 白名单的注释）
+- 若任务属于批量迁移、全仓替换或跨文件契约校验，优先写出可复跑脚本/codemod 统一执行与自检，并把脚本路径与运行输出记录进 `executor/artifacts/` 与 `summary.html`
 
 ### 步骤 7：创建 executor/summary.html
 

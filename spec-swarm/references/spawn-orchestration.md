@@ -57,7 +57,14 @@ OMP 16.4+ batch schema：
 | `parked` | 空闲超时释放，发消息即复活且上下文完整 | `hub-send` |
 | `aborted` | 被取消或硬中断，终态不可复活 | `respawn+rebuild` |
 
-只有 `aborted` 才允许重新 spawn。其余三态重新 spawn 都会产生影子角色。
+只有 `aborted` 才允许重新 spawn。其余三态同轮活跃期间重新 spawn 都会产生影子角色。
+
+### 同轮续接 vs 跨轮 Fresh Subagent 边界
+
+| 场景 | 策略 | 账本 handle 记账 |
+|---|---|---|
+| 同一轮次内的追问、补充验证、未提交工作树或存活调试进程 | **续接同一实例**（`hub send`） | 维持原角色 id（如 `spec-debugger`） |
+| 跨轮修复（第 2+ 轮 `spec-debug`）或独立审查/复审（每轮 `spec-review`） | **默认新开干净实例**（Fresh Subagent），只传原始目标 + 落盘 HTML 路径 + 最新 diff/失败日志 | 旧 handle 标 `retired`，新实例带轮次标识登记（如 `spec-debugger#r2`、`spec-reviewer#r2`） |
 
 ## 门禁代问
 

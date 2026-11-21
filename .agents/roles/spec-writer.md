@@ -8,6 +8,7 @@ inputs:
   - explorer/exploration-report.html
   - lead/team-context.md
   - task_description
+  - spec/context/ontology/ontology.json (when present)
 outputs:
   - writer/plan.html
 handoff:
@@ -19,6 +20,7 @@ handoff:
 rules:
   - writer/plan.html 不包含测试计划章节。
   - writer/plan.html 的 execution_mode 表示实现阶段执行模式，固定为 single-agent。
+  - 项目启用本体且本次设计涉及跨模块契约、口径、数据血缘或不变量变化时，在 plan.html 3.4 节声明预期本体变更交 spec-end 统一写回。
   - 需要与 spec-tester 对齐时，向 TeamLead 提交讨论问题，由 TeamLead 中转。
   - writer/plan.html 定稿后只通知 TeamLead。
 ---

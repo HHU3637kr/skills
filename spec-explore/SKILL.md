@@ -17,8 +17,8 @@ description: >
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | TeamLead 的任务描述与探索范围、`exp-search` 检索结果、项目代码、外部库/文档 |
-| 权限 | 只读探索（Read/Glob/Grep）+ 探索新内容后调用 exp-reflect 沉淀知识；不改业务代码、不写 plan、不建测试 |
+| 输入 | TeamLead 的任务描述与探索范围、`exp-search` 检索结果、项目本体 `spec/context/ontology/ontology.json`（如存在）、项目代码、外部库/文档 |
+| 权限 | 只读探索（Read/Glob/Grep）+ 探索新内容后调用 exp-reflect 沉淀知识；遇到静态读代码无法拍板的技术/性能分叉时，允许在**仓库外临时目录**（如 `$TMPDIR/rk-proto-{slug}/`）运行一次性可抛弃原型并清理，绝不改动业务代码树、不写 plan、不建测试 |
 | 验证 | `explorer/exploration-report.html` 含历史经验、项目现状、外部知识、对下游的建议与已知风险 |
 | 停止 | 报告四个章节齐备且足以让 spec-writer/spec-tester 开工即停止，不为"探索更全"无限扩大范围 |
 | 升级 | 探索发现需求本身存在矛盾、范围远超任务、或触及权限/安全/数据风险时，停止探索并交回 TeamLead 由用户决策 |
@@ -60,6 +60,17 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 
 以任务关键词检索，阅读相关经验，记录可参考的历史解决方案。
 
+### 步骤 2.5：项目本体子图预查（如存在 `spec/context/ontology/ontology.json`）
+
+若项目已启用本体（以 `spec/context/ontology/ontology.json` 文件存在为准），在深读代码前先查询任务关联模块的上下游子图与新鲜度：
+```bash
+node .agents/skills/project-ontology/scripts/query-ontology.js \
+  spec/context/ontology/ontology.json \
+  --target "<任务核心模块/概念/字段>" --direction both --depth 2 --freshness --repo .
+```
+- 将命中的上游依赖、下游爆炸半径、核心不变量 `INV-xxx` 与已知差异 `known_diff` 写入 `exploration-report.html` 的改动点清单与风险表；
+- 若发现本体与源码存在漂移，仅在探索报告中标注漂移点提醒下游注意，**不越权直接修改 `ontology.json`**（待实现完成后由 `spec-end` 统一写回）。
+
 ### 步骤 3：探索项目现状
 
 根据任务需要，探索相关代码：
@@ -74,6 +85,13 @@ awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary
 探索外部代码库（如 AgentScope、第三方库）或技术文档。
 
 **探索完成后触发 exp-reflect**：探索外部资源后，调用 exp-reflect 将关键发现沉淀为知识记忆（记忆文件保持 `.md`）。
+
+### 步骤 4.5：低成本实证原型（可选，遇到架构/性能分叉时）
+
+当发现仅靠静态读代码或文档无法拍板的技术选型、性能边界或 API 兼容性分叉时：
+1. 在**仓库外临时目录**（如系统临时目录 `$TMPDIR/rk-proto-{slug}/`，严禁写入项目工作区或提交 Git）构建 1–2 个最小可抛弃原型实跑对比；
+2. 将命令、退出码与实测数据写入 `explorer/exploration-report.html` 的 E 类度量表供下游选型；
+3. 取证结束后立即清理临时目录。
 
 ### 步骤 5：产出 explorer/exploration-report.html
 

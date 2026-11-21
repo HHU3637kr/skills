@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<!-- 由 project-ontology/scripts/render-ontology.js 从 ontology.json 自动生成，请勿直接手工改 HTML -->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="po:schema-version" content="1.0">
+<meta name="po:verified-commit" content="6dfc23d">
+<meta name="po:source-sha256" content="e7f3c676d95c02b7">
+<title>TeachingAnalyzer 智能教研分析系统（本体示例） 项目本体与全链路总览</title>
+<style>
+/*
+ * 项目本体总览报告样式（project-ontology skill，通用）
+ * ─────────────────────────────────────────────────────
+ * 用途：由 render-ontology.js 从 spec/context/ontology/ontology.json 生成离线单文件 HTML。
+ * 用法：脚本自动将本文件内联进 <style>，不要在生成后的 index.html 中手工改样式。
+ *
+ * 结构契约（HTML 必须按此骨架组织，样式才生效）：
+ *   header.site        → 页眉（渐变蓝底，含标题 + 副标题版本行）
+ *   nav.tabs button    → tab 栏，.active 为当前页；JS 同步 location.hash
+ *   section.tab-page   → 每模块/专题一页，.active 显示
+ *   .flow/.fnode/.farrow → 纯 CSS 流程框图（不用图片）
+ *   .badge code|llm|mix  → 产出方式徽标（CODE/LLM/CODE+LLM）
+ *   .todo              → 「待填充细节」占位块，填充后必须删除
+ *   tr.gx-row + tr.gx-detail(hidden) → 表格行内折叠明细（点行展开）
+ *     4 列明细表：名称（字段）| 需求/产品对应名 | 产出 | 依赖与口径
+ *     3 列明细表（中间产物）：字段 | 产出 | 说明
+ *     列宽按列数自动分配（:nth-last-child），列头文本可自定
+ *   .kpi-grid/.inv-tag/.rel-chip/.layer-root/.layer-boundary/.diff-warn/.anchor-list → 本体扩展组件
+ */
+
+:root {
+  --bg: #f6f7f9;
+  --panel: #ffffff;
+  --ink: #1f2430;
+  --ink-2: #5b6472;
+  --line: #e3e7ee;
+  --brand: #2563eb;
+  --brand-weak: #eff4ff;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --code-bg: #f1f3f7;
+  --radius: 10px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 15px;
+  line-height: 1.75;
+}
+code {
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 5px;
+  font-family: Consolas, "JetBrains Mono", monospace;
+  font-size: 0.88em;
+}
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── 顶部 ─────────────────────────────────────────── */
+header.site {
+  background: linear-gradient(135deg, #1e3a8a, #2563eb);
+  color: #fff;
+  padding: 26px 32px 18px;
+}
+header.site h1 { margin: 0 0 4px; font-size: 22px; font-weight: 650; }
+header.site p { margin: 0; opacity: .85; font-size: 13.5px; }
+
+/* ── Tab 栏 ───────────────────────────────────────── */
+nav.tabs {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--line);
+  padding: 0 24px;
+  box-shadow: 0 2px 8px rgba(30, 40, 70, .06);
+}
+nav.tabs button {
+  appearance: none;
+  border: none;
+  background: transparent;
+  padding: 13px 16px 11px;
+  font-size: 14.5px;
+  font-family: inherit;
+  color: var(--ink-2);
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+}
+nav.tabs button:hover { color: var(--brand); background: var(--brand-weak); }
+nav.tabs button.active {
+  color: var(--brand);
+  font-weight: 650;
+  border-bottom-color: var(--brand);
+}
+
+/* ── 内容区 ───────────────────────────────────────── */
+main { max-width: 1080px; margin: 0 auto; padding: 26px 28px 80px; }
+section.tab-page { display: none; }
+section.tab-page.active { display: block; }
+
+h2 { font-size: 19px; margin: 30px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+h2:first-child { margin-top: 6px; }
+h3 { font-size: 16px; margin: 22px 0 8px; }
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin: 14px 0;
+}
+
+table { border-collapse: collapse; width: 100%; margin: 12px 0; background: var(--panel); font-size: 14px; }
+th, td { border: 1px solid var(--line); padding: 8px 12px; text-align: left; vertical-align: top; }
+th { background: #f0f3f8; font-weight: 650; white-space: nowrap; }
+tr:nth-child(even) td { background: #fafbfd; }
+
+/* 流程框图（纯 CSS） */
+.flow { display: flex; flex-direction: column; gap: 0; margin: 18px 0; }
+.flow-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+.fnode {
+  background: var(--panel);
+  border: 1.5px solid #b9c6e0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  min-width: 150px;
+  flex: 1;
+  font-size: 13.5px;
+  box-shadow: 0 1px 3px rgba(30,40,70,.05);
+}
+.fnode b { display: block; font-size: 14px; margin-bottom: 2px; color: #1e3a8a; }
+.fnode.dim { border-style: dashed; opacity: .85; }
+.fnode.hl { border-color: var(--brand); background: var(--brand-weak); }
+.farrow {
+  text-align: center;
+  color: var(--ink-2);
+  font-size: 18px;
+  line-height: 1.2;
+  padding: 2px 0;
+}
+.farrow small { font-size: 12px; display: block; color: var(--ink-2); }
+
+/* 徽标与占位 */
+.badge {
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 20px;
+  padding: 1px 10px;
+  margin-left: 6px;
+  vertical-align: 2px;
+}
+.badge.code { background: #e7f6ec; color: var(--ok); border: 1px solid #bfe6cd; }
+.badge.llm { background: #fdf1e3; color: var(--warn); border: 1px solid #f3ddc0; }
+.badge.mix { background: #eef2ff; color: #4f46e5; border: 1px solid #d6ddfa; }
+.badge.ext { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+
+.todo {
+  border: 1.5px dashed #cbd3e0;
+  border-radius: var(--radius);
+  background: #fbfcfe;
+  color: var(--ink-2);
+  padding: 14px 18px;
+  margin: 14px 0;
+  font-size: 14px;
+}
+.todo::before { content: "待填充细节"; display: block; font-weight: 650; color: var(--warn); margin-bottom: 6px; font-size: 13px; }
+.todo ul { margin: 4px 0 2px 18px; padding: 0; }
+
+.hint { color: var(--ink-2); font-size: 13.5px; }
+ul.tight { margin: 8px 0; padding-left: 22px; }
+ul.tight li { margin: 4px 0; }
+
+/* 正文长串兜底：CJK 能自然断行，但白名单/路径这类连续 ASCII 串（如
+   `a/b/c/d…` 200+ 字符）不断行，会撑穿容器导致整页横向滚动。
+   overflow-wrap 只在「一行放不下」时才断，不影响正常文本。 */
+.card, .card p, .card li, .fnode, td, .hint { overflow-wrap: anywhere; }
+
+/* 表格行内折叠明细 */
+tr.gx-row { cursor: pointer; }
+tr.gx-row > td:first-child::before {
+  content: "▸";
+  color: var(--brand);
+  font-size: 12px;
+  display: inline-block;
+  margin-right: 7px;
+  transition: transform .15s;
+}
+tr.gx-row.open > td:first-child::before { transform: rotate(90deg); }
+tr.gx-row:hover td { background: var(--brand-weak) !important; }
+tr.gx-detail > td {
+  background: #fbfcfe !important;
+  padding: 4px 14px 14px 26px;
+  border-top: none;
+}
+tr.gx-detail table {
+  font-size: 13px;
+  margin: 10px 0 2px;
+  table-layout: fixed;   /* 固定布局：列宽由表头定，长内容换行不撑爆 */
+  width: 100%;
+}
+tr.gx-detail table td { background: var(--panel) !important; }
+/* 4 列明细表（指标|产品指标|产出|口径）的列宽 */
+tr.gx-detail th:first-child:nth-last-child(4) { width: 24%; }
+tr.gx-detail th:nth-child(2):nth-last-child(3) { width: 21%; }
+tr.gx-detail th:nth-child(3):nth-last-child(2) { width: 9%; }
+/* 3 列明细表（Wave 0 中间产物：字段|产出|说明）的列宽 */
+tr.gx-detail th:first-child:nth-last-child(3) { width: 22%; }
+tr.gx-detail th:nth-child(2):nth-last-child(2) { width: 10%; }
+tr.gx-detail table td:first-child {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  white-space: normal;
+  word-break: break-all;   /* 长字段名允许任意断行 */
+}
+tr.gx-detail .badge { white-space: nowrap; }
+tr.gx-detail .hint { margin: 8px 0 0; }
+.prd { display: block; font-size: 12px; color: var(--ink-2); font-family: "Segoe UI", "Microsoft YaHei", sans-serif; white-space: normal; }
+td .prd-name { font-weight: 650; font-family: "Segoe UI", "Microsoft YaHei", sans-serif; font-size: 13px; white-space: normal; }
+
+@media (max-width: 760px) {
+  .flow-row { flex-direction: column; }
+  main { padding: 18px 14px 60px; }
+  nav.tabs { padding: 0 8px; overflow-x: auto; flex-wrap: nowrap; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ── 本体扩展样式（统计卡 / 不变量 / 关系边 / 差异提示 / 代码锚点） ─── */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+.kpi-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 15px;
+}
+.kpi-card .k { font-size: 12.5px; color: var(--ink-2); }
+.kpi-card .v { font-size: 22px; font-weight: 700; line-height: 1.25; margin: 4px 0 2px; color: var(--ink); }
+.kpi-card .n { font-size: 12px; color: var(--ink-2); }
+.kpi-card.warn { border-color: #f3ddc0; background: #fffbf5; }
+.kpi-card.warn .v { color: var(--warn); }
+.kpi-card.danger { border-color: #fecaca; background: #fef2f2; }
+.kpi-card.danger .v { color: #dc2626; }
+
+.inv-tag {
+  display: inline-block;
+  font-family: Consolas, "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  margin: 2px 4px 2px 0;
+  white-space: nowrap;
+}
+
+.rel-chip {
+  display: inline-block;
+  font-family: Consolas, "JetBrains Mono", monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  margin: 2px 4px 2px 0;
+  white-space: nowrap;
+}
+.rel-produces      { background: #e7f6ec; color: #15803d; border-color: #bfe6cd; }
+.rel-consumes      { background: #eff4ff; color: #1d4ed8; border-color: #c7d9fd; }
+.rel-depends_on    { background: #f1f5f9; color: #334155; border-color: #cbd5e1; }
+.rel-backfills_from{ background: #f5f3ff; color: #6d28d9; border-color: #ddd6fe; }
+.rel-fallback_to   { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+.rel-shared_state  { background: #fef2f2; color: #b91c1c; border-color: #fecaca; }
+.rel-propagates_to { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+.rel-maps_to       { background: #f0f9ff; color: #0369a1; border-color: #bae6fd; }
+
+.layer-root, .layer-boundary {
+  display: inline-block;
+  font-size: 11.5px;
+  font-weight: 650;
+  padding: 1px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.layer-root     { background: #e7f6ec; color: #15803d; border: 1px solid #bfe6cd; }
+.layer-boundary { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+
+.diff-warn {
+  margin-top: 6px;
+  padding: 5px 9px;
+  border-left: 3px solid var(--warn);
+  background: #fffbeb;
+  border-radius: 4px;
+  font-size: 12.5px;
+  color: #92400e;
+  overflow-wrap: anywhere;
+}
+
+.risk-banner {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 14px;
+}
+
+.anchor-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.anchor-list code {
+  font-size: 11.5px;
+  word-break: break-all;
+}
+.meta-sub { margin-top: 6px; font-size: 12.5px; color: var(--ink-2); }
+
+.status-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: middle;
+  border: 1px solid transparent;
+}
+.st-inferred { background: #fef9c3; color: #a16207; border-color: #fde68a; }
+.st-retracted { background: #fee2e2; color: #b91c1c; border-color: #fecaca; text-decoration: line-through; }
+
+.sem-meta {
+  margin-top: 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #f8fafc;
+  border: 1px solid var(--line-soft, #e5e7eb);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.sem-row { margin-top: 3px; }
+.sem-row:first-child { margin-top: 0; }
+.exp-cond {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  overflow-wrap: anywhere;
+}
+
+</style>
+</head>
+<body>
+
+<header class="site">
+  <h1>TeachingAnalyzer 智能教研分析系统（本体示例） 项目本体与全链路总览</h1>
+  <p>从课堂音视频转写、多维结构化抽取到教学质量综合评分与离线报告导出的全链路管线 · 按功能模块划分 · 更新于 2026-11-21 09:30（代码 6dfc23d · 示例基线：对齐综合评分权重与降级路径口径 · 已同步 PR/MR !12/!14）</p>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button data-tab="overview" class="active">总览</button>
+  <button data-tab="mod-ext-asr">外部云端 ASR 服务</button>
+  <button data-tab="mod-ingest">输入接入与预处理</button>
+  <button data-tab="mod-scoring">多维教学评分核心</button>
+  <button data-tab="mod-export">报告输出与看板</button>
+  <button data-tab="ontology">本体关系与不变量</button>
+</nav>
+
+<main>
+
+<section class="tab-page active" id="tab-overview">
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="k">模块数</div><div class="v">4</div><div class="n">单元 6 个</div></div>
+    <div class="kpi-card"><div class="k">契约字段</div><div class="v">7</div><div class="n">跨模块接口/指标</div></div>
+    <div class="kpi-card"><div class="k">核心不变量</div><div class="v">2</div><div class="n">INV 约束守卫</div></div>
+    <div class="kpi-card warn"><div class="k">关系边</div><div class="v">10</div><div class="n">降级路径 1 条</div></div>
+    <div class="kpi-card danger"><div class="k">共享状态边</div><div class="v">1</div><div class="n">⚠ Phase 4.5 高优排查点</div></div>
+    <div class="kpi-card"><div class="k">关联历史经验</div><div class="v">2</div><div class="n">第三层故障索引</div></div>
+  </div>
+
+  <h2>项目定位</h2>
+  <div class="card">
+    <p><b>TeachingAnalyzer 智能教研分析系统（本体示例）</b>：从课堂音视频转写、多维结构化抽取到教学质量综合评分与离线报告导出的全链路管线</p>
+    <ul class="tight">
+      <li>上游依赖 ASR 转写产物（transcript_segments），下游统一消费标准化评分快照</li>
+      <li>核心评分采用「规则确定性分 + LLM 语义分」混合加权，并在超时时降级回纯规则分</li>
+      <li>部分缓存键历史遗留全局可变上下文，修改评分权重时必须同步回归导出看板</li>
+    </ul>
+  </div>
+
+  <h2>全景数据流</h2>
+  <div class="flow">
+    <div class="flow-row">
+      <div class="fnode"><b>音视频接入与 ASR</b>生成分段文本 transcript_segments</div>
+      <div class="fnode hl"><b>综合评分管线</b>规则分 + LLM 语义分混合计算</div>
+      <div class="fnode dim"><b>共享评分上下文缓存</b>旁路可变状态（Phase 4.5 关注）</div>
+    </div>
+    <div class="farrow">↓<small>输出标准化评估结果 score_total 与分项指标</small></div>
+    <div class="flow-row">
+      <div class="fnode"><b>报告渲染与看板</b>展示综合教学质量分与离线 PDF/HTML</div>
+    </div>
+  </div>
+
+  <h2>模块导航</h2>
+  <table>
+    <thead><tr><th>模块</th><th>覆盖目录</th><th>入口锚点</th><th>职责</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>外部云端 ASR 服务</b> <span class="badge ext">EXTERNAL</span><div class="meta-sub"><code>mod-ext-asr</code></div></td>
+        <td>外部系统边界</td>
+        <td><div class="anchor-list"><code>https://asr.vendor.example/v2/transcribe</code></div></td>
+        <td>第三方语音转写网关（外部系统边界，静音音频返回空数组且不纳入本地 Git 漂移校验）</td>
+      </tr>
+      <tr>
+        <td><b>输入接入与预处理</b><div class="meta-sub"><code>mod-ingest</code></div></td>
+        <td><code>src/ingest/</code> <code>src/asr/</code></td>
+        <td><div class="anchor-list"><code>src/ingest/pipeline.ts#ingestAudio</code></div></td>
+        <td>负责接收课程音频、调用 ASR 转写并产出标准化分段中间产物</td>
+      </tr>
+      <tr>
+        <td><b>多维教学评分核心</b><div class="meta-sub"><code>mod-scoring</code></div></td>
+        <td><code>src/scoring/</code> <code>src/llm/</code></td>
+        <td><div class="anchor-list"><code>src/scoring/engine.ts#evaluateLesson</code></div></td>
+        <td>消费 transcript_segments 计算规则分与 LLM 语义分，并合成为综合评分</td>
+      </tr>
+      <tr>
+        <td><b>报告输出与看板</b><div class="meta-sub"><code>mod-export</code></div></td>
+        <td><code>src/export/</code> <code>src/dashboard/</code></td>
+        <td><div class="anchor-list"><code>src/export/reportBuilder.ts#buildReport</code></div></td>
+        <td>将综合评分与维度明细渲染为前端看板与可离线下载的 HTML/PDF 报告</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="tab-page" id="tab-mod-ext-asr">
+  <h2>外部云端 ASR 服务 <span class="badge ext">EXTERNAL</span>（外部系统边界）</h2>
+
+  <div class="card">
+    <p>第三方语音转写网关（外部系统边界，静音音频返回空数组且不纳入本地 Git 漂移校验）</p>
+    <div class="anchor-list"><code>https://asr.vendor.example/v2/transcribe</code></div>
+  </div>
+
+  <h3>职责与契约明细</h3>
+  <table>
+    <thead><tr><th>单元</th><th>产出方式</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr class="gx-row">
+        <td><b>第三方转写回调接口</b><div class="meta-sub"><code>unit-ext-asr-api</code></div></td>
+        <td><span class="badge code">CODE</span></td>
+        <td>异步返回原始 utterances 数组与毫秒级时间戳<div class="anchor-list"><code>src/ingest/asrClient.ts#fetchRawTranscript</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>产出</th><th>说明、锚点与关系</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>raw_utterances<div class="meta-sub">field-ext-asr-raw</div></td>
+              <td><span class="badge code">CODE</span></td>
+              <td><div>第三方云端识别原始句段数组；纯静音或未检出人声时返回 [] 而非 HTTP 错误码</div>
+<div class="sem-meta">
+<div class="sem-row"><b>空值/默认语义：</b>静音或无人声时外部服务返回空数组 []，需由接入边界拦截，不可视作有效 0 句段继续算分</div>
+</div>
+<div><span class="rel-chip rel-maps_to" title="第三方 ASR 原始 utterances 映射并规范化为内部 transcript_segments（含毫秒转秒与说话人标准化）">→ maps_to: transcript_segments (field-transcript-segments)</span></div>
+<div class="anchor-list"><code>src/ingest/asrClient.ts#parseAsrPayload</code></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><div class="anchor-list"><code>src/ingest/asrClient.ts#fetchRawTranscript</code></div></div>
+      </td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="tab-page" id="tab-mod-ingest">
+  <h2>输入接入与预处理（<code>src/ingest/</code> <code>src/asr/</code>）</h2>
+
+  <div class="card">
+    <p>负责接收课程音频、调用 ASR 转写并产出标准化分段中间产物</p>
+    <div class="anchor-list"><code>src/ingest/pipeline.ts#ingestAudio</code></div>
+  </div>
+
+  <h3>职责与契约明细</h3>
+  <table>
+    <thead><tr><th>单元</th><th>产出方式</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr class="gx-row">
+        <td><b>ASR 分段标准化单元</b><div class="meta-sub"><code>unit-asr-segmenter</code></div></td>
+        <td><span class="badge code">CODE</span></td>
+        <td>清洗时间戳与说话人标签，生成 transcript_segments 供下游分析<div class="anchor-list"><code>src/asr/segmenter.ts#normalizeSegments</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>产出</th><th>说明、锚点与关系</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>transcript_segments<div class="meta-sub">field-transcript-segments</div></td>
+              <td><span class="badge code">CODE</span></td>
+              <td><div>按时间轴升序归并相邻同说话人句段；依赖原始 ASR JSON 与说话人映射表</div>
+<div class="sem-meta">
+<div class="sem-row"><b>状态作用域：</b>单节课时预处理产物（lesson_id 绑定）；生成后冻结为只读分段快照</div>
+<div class="sem-row"><b>空值/默认语义：</b>禁止产出空数组 [] 或 null；当上游 raw_utterances 为空时在边界抛 EmptyAudioError，防下游触发除零</div>
+<div class="sem-row"><b>易混淆区分：</b><code>raw_utterances</code>（raw_utterances 是外部 ASR 原始返回（静音可为空数组），transcript_segments 已做说话人归并及边界非空校验）</div>
+</div>
+<div><span class="inv-tag">INV-002</span></div>
+<div><span class="rel-chip rel-maps_to" title="第三方 ASR 原始 utterances 映射并规范化为内部 transcript_segments（含毫秒转秒与说话人标准化）">← maps_to: raw_utterances (field-ext-asr-raw)</span><span class="rel-chip rel-produces" title="ASR 预处理阶段输出标准化分段列表">← produces: ASR 分段标准化单元 (unit-asr-segmenter)</span><span class="rel-chip rel-consumes" title="LLM Prompt 依赖分段后的说话人对话文本">← consumes: LLM 语义维度评估 (unit-llm-eval)</span></div>
+<div class="anchor-list"><code>src/asr/segmenter.ts#buildSegments</code></div></td>
+            </tr>
+            <tr>
+              <td>teacher_talk_ratio<div class="meta-sub">field-teacher-talk-ratio</div></td>
+              <td><span class="badge code">CODE</span></td>
+              <td><div>sum(speaker=teacher duration) / total_duration；分母为 0 时边界抛 ValidationError</div>
+<div><span class="rel-chip rel-backfills_from" title="当当前课时未显式传入互动统计时，从 ASR teacher_talk_ratio 回填基线参数">← backfills_from: rule_score (field-rule-score)</span><span class="rel-chip rel-depends_on" title="历史误认为 score_total 直接消费 teacher_talk_ratio 参与总分加权">← depends_on: score_total (field-score-total)</span></div>
+<div class="anchor-list"><code>src/asr/metrics.ts#calcTalkRatio</code></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><span class="inv-tag">INV-002</span><span class="rel-chip rel-produces" title="ASR 预处理阶段输出标准化分段列表">→ produces: transcript_segments (field-transcript-segments)</span><div class="anchor-list"><code>src/asr/segmenter.ts#normalizeSegments</code></div></div>
+        <p class="hint">当说话人识别缺失时允许字段 speaker_role 为 unknown，不得静默丢弃整句</p>
+      </td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="tab-page" id="tab-mod-scoring">
+  <h2>多维教学评分核心（<code>src/scoring/</code> <code>src/llm/</code>）</h2>
+
+  <div class="card">
+    <p>消费 transcript_segments 计算规则分与 LLM 语义分，并合成为综合评分</p>
+    <div class="anchor-list"><code>src/scoring/engine.ts#evaluateLesson</code></div>
+  </div>
+
+  <h3>职责与契约明细</h3>
+  <table>
+    <thead><tr><th>单元</th><th>产出方式</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr class="gx-row">
+        <td><b>LLM 语义维度评估</b><div class="meta-sub"><code>unit-llm-eval</code></div></td>
+        <td><span class="badge llm">LLM</span></td>
+        <td>基于课堂互动话术提取启发式提问得分 llm_score<div class="anchor-list"><code>src/llm/evaluator.ts#evaluateSemantics</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>需求/产品对应名</th><th>产出</th><th>依赖、不变量与口径</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>llm_score<div class="meta-sub">field-llm-score</div></td>
+              <td><span class="prd-name">课堂启发度（AI 评估）</span><span class="prd">详情页 -&gt; 维度拆解卡片</span></td>
+              <td><span class="badge llm">LLM</span></td>
+              <td><div>LLM 输出 0~100 分值；超时(&gt;15s)或解析失败时触发降级路径</div>
+<div><span class="rel-chip rel-fallback_to" title="LLM 超时(&gt;15s)或 JSON 解析失败时静默降级为纯 rule_score；若未透出降级标记会掩盖模型故障">→ fallback_to: rule_score (field-rule-score)</span><span class="rel-chip rel-depends_on" title="非降级路径下占 40% 权重">← depends_on: score_total (field-score-total)</span></div>
+<div class="anchor-list"><code>src/llm/evaluator.ts#parseLlmScore</code></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><span class="rel-chip rel-consumes" title="LLM Prompt 依赖分段后的说话人对话文本">→ consumes: transcript_segments (field-transcript-segments)</span><span class="rel-chip rel-shared_state" title="历史模块级单例 scoreCache 被重试逻辑与聚合器共同读写，并发跑多课时易串台污染">← shared_state: 综合评分聚合器 (unit-aggregator)</span><div class="anchor-list"><code>src/llm/evaluator.ts#evaluateSemantics</code></div></div>
+      </td></tr>
+      <tr class="gx-row">
+        <td><b>规则确定性评分</b><div class="meta-sub"><code>unit-rule-eval</code></div></td>
+        <td><span class="badge code">CODE</span></td>
+        <td>根据教师发言占比与互动频次计算稳定规则基线分 rule_score<div class="anchor-list"><code>src/scoring/rules.ts#computeRuleScore</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>需求/产品对应名</th><th>产出</th><th>依赖、不变量与口径</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>rule_score<div class="meta-sub">field-rule-score</div></td>
+              <td><span class="prd-name">基础结构规范分</span><span class="prd">详情页 -&gt; 规则基线栏</span></td>
+              <td><span class="badge code">CODE</span></td>
+              <td><div>clamp(100 - abs(teacher_talk_ratio - 0.65) * 120, 0, 100)；若 talk_ratio 缺失则回填上一讲默认值</div>
+<div><span class="rel-chip rel-fallback_to" title="LLM 超时(&gt;15s)或 JSON 解析失败时静默降级为纯 rule_score；若未透出降级标记会掩盖模型故障">← fallback_to: llm_score (field-llm-score)</span><span class="rel-chip rel-backfills_from" title="当当前课时未显式传入互动统计时，从 ASR teacher_talk_ratio 回填基线参数">→ backfills_from: teacher_talk_ratio (field-teacher-talk-ratio)</span><span class="rel-chip rel-depends_on" title="常规占 60% 权重，降级占 100% 权重">← depends_on: score_total (field-score-total)</span></div>
+<div class="anchor-list"><code>src/scoring/rules.ts#calcRuleBaseline</code></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><div class="anchor-list"><code>src/scoring/rules.ts#computeRuleScore</code></div></div>
+      </td></tr>
+      <tr class="gx-row">
+        <td><b>综合评分聚合器</b><div class="meta-sub"><code>unit-aggregator</code></div></td>
+        <td><span class="badge mix">CODE+LLM</span></td>
+        <td>融合 rule_score 与 llm_score 生成对外展示总分 score_total<div class="anchor-list"><code>src/scoring/aggregator.ts#aggregateScore</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>需求/产品对应名</th><th>产出</th><th>依赖、不变量与口径</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>score_total<div class="meta-sub">field-score-total</div></td>
+              <td><span class="prd-name">综合教学质量分</span><span class="prd">总览页顶部核心评分卡 &amp; 教研看板列表</span></td>
+              <td><span class="badge mix">CODE+LLM</span></td>
+              <td><div>0.6 * rule_score + 0.4 * llm_score；当 llm_score 降级缺失时取 1.0 * rule_score</div>
+<div class="sem-meta">
+<div class="sem-row"><b>状态作用域：</b>课时任务终态评分（lesson_id 作用域）；须隔离异步重试期 scoreCache 防并发串台污染</div>
+<div class="sem-row"><b>空值/默认语义：</b>对外输出禁止为 null 或 NaN；llm_score 缺失时回退 1.0 * rule_score，而非把缺失项当 0 加权</div>
+<div class="sem-row"><b>易混淆区分：</b><code>rule_score</code>（rule_score 是仅基于说话占比与互动频次的规则基线分，score_total 为加权或降级后的最终总分）</div>
+</div>
+<div><span class="inv-tag">INV-001</span></div>
+<div><span class="rel-chip rel-depends_on" title="非降级路径下占 40% 权重">→ depends_on: llm_score (field-llm-score)</span><span class="rel-chip rel-depends_on" title="常规占 60% 权重，降级占 100% 权重">→ depends_on: rule_score (field-rule-score)</span><span class="rel-chip rel-propagates_to" title="score_total 的口径漂移或 NaN 会直接传播为看板评级错误">→ propagates_to: grade_badge (field-grade-badge)</span><span class="rel-chip rel-depends_on" title="历史误认为 score_total 直接消费 teacher_talk_ratio 参与总分加权">→ depends_on: teacher_talk_ratio (field-teacher-talk-ratio)</span></div>
+<div class="anchor-list"><code>src/scoring/aggregator.ts#calcScoreTotal</code></div>
+<div class="diff-warn"><b>实现与文档差异：</b>PRD v1.2 原定权重为 0.5/0.5，MR !12 已调整为 0.6/0.4，需求文档尚未同步</div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><span class="rel-chip rel-shared_state" title="历史模块级单例 scoreCache 被重试逻辑与聚合器共同读写，并发跑多课时易串台污染">→ shared_state: LLM 语义维度评估 (unit-llm-eval)</span><div class="anchor-list"><code>src/scoring/aggregator.ts#aggregateScore</code></div></div>
+        <p class="hint">重点警戒：当前聚合器与异步重试器共用模块级可变缓存 scoreCache</p>
+      </td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="tab-page" id="tab-mod-export">
+  <h2>报告输出与看板（<code>src/export/</code> <code>src/dashboard/</code>）</h2>
+
+  <div class="card">
+    <p>将综合评分与维度明细渲染为前端看板与可离线下载的 HTML/PDF 报告</p>
+    <div class="anchor-list"><code>src/export/reportBuilder.ts#buildReport</code></div>
+  </div>
+
+  <h3>职责与契约明细</h3>
+  <table>
+    <thead><tr><th>单元</th><th>产出方式</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr class="gx-row">
+        <td><b>教研看板总览视图</b><div class="meta-sub"><code>unit-dashboard-view</code></div></td>
+        <td><span class="badge code">CODE</span></td>
+        <td>聚合多节课 score_total 并渲染校级/年级趋势图<div class="anchor-list"><code>src/dashboard/overviewView.ts#renderOverview</code></div></td>
+      </tr>
+      <tr class="gx-detail" hidden><td colspan="3">
+        <table>
+          <thead><tr><th>字段</th><th>需求/产品对应名</th><th>产出</th><th>依赖、不变量与口径</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>grade_badge<div class="meta-sub">field-grade-badge</div></td>
+              <td><span class="prd-name">教学评级徽章（S/A/B/C）</span><span class="prd">教研看板列表 &amp; 报告页眉</span></td>
+              <td><span class="badge code">CODE</span></td>
+              <td><div>score_total &gt;= 90 -&gt; S, &gt;= 75 -&gt; A, &gt;= 60 -&gt; B, 其余 C；若 score_total 为 null 将直接异常或误判为 C</div>
+<div><span class="inv-tag">INV-001</span></div>
+<div><span class="rel-chip rel-propagates_to" title="score_total 的口径漂移或 NaN 会直接传播为看板评级错误">← propagates_to: score_total (field-score-total)</span></div>
+<div class="anchor-list"><code>src/dashboard/overviewView.ts#mapGradeBadge</code></div></td>
+            </tr>
+          </tbody>
+        </table>
+        <div><div class="anchor-list"><code>src/dashboard/overviewView.ts#renderOverview</code></div></div>
+      </td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="tab-page" id="tab-ontology">
+  <h2>本体关系与不变量总览</h2>
+  <div class="risk-banner">
+    <b>根因高危热点提示：</b>当前本体共登记 <code>1</code> 条隐式共享状态边（<code>shared_state</code>，命中即触发 Phase 4.5 架构警惕）与 <code>1</code> 条降级边（<code>fallback_to</code>，排查需核对是否悄悄吞掉上游错误）。
+  </div>
+
+  <h3>核心不变量（Invariants）</h3>
+  <table>
+    <thead><tr><th>编号</th><th>规则声明</th><th>守卫节点</th><th>强制层级</th><th>违背现象</th><th>验证方式</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="inv-tag">INV-001</span></td>
+        <td>score_total 在报告终态生成前必须为 [0, 100] 有限数值，不得为 null 或 NaN<div class="meta-sub">适用前提：lesson 任务进入 completed 终态或写入报告快照前</div></td>
+        <td><code>score_total (field-score-total)</code></td>
+        <td><span class="layer-root">根因层 (root)</span></td>
+        <td>教研看板 grade_badge 误判为最低档或前端渲染抛出 NaN</td>
+        <td>tests/scoring/aggregator.test.ts</td>
+      </tr>
+      <tr>
+        <td><span class="inv-tag">INV-002</span></td>
+        <td>transcript_segments 在空音频或非法输入时必须在接入边界快速失败并显式报错，禁止生成空分段继续流转<div class="meta-sub">适用前提：音视频预处理接入边界开启校验时</div></td>
+        <td><code>ASR 分段标准化单元 (unit-asr-segmenter)</code></td>
+        <td><span class="layer-boundary">边界层 (boundary)</span></td>
+        <td>空分段进入规则评分触发除零或静默产出假 0 分</td>
+        <td>tests/asr/segmenter.test.ts</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>因果与依赖关系边（Relations）</h3>
+  <table>
+    <thead><tr><th>源节点 (from)</th><th>关系类型</th><th>目标节点 (to)</th><th>条件与根因语义说明</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>raw_utterances (field-ext-asr-raw)</code></td>
+        <td><span class="rel-chip rel-maps_to">maps_to</span></td>
+        <td><code>transcript_segments (field-transcript-segments)</code></td>
+        <td>第三方 ASR 原始 utterances 映射并规范化为内部 transcript_segments（含毫秒转秒与说话人标准化）</td>
+      </tr>
+      <tr>
+        <td><code>ASR 分段标准化单元 (unit-asr-segmenter)</code></td>
+        <td><span class="rel-chip rel-produces">produces</span></td>
+        <td><code>transcript_segments (field-transcript-segments)</code></td>
+        <td>ASR 预处理阶段输出标准化分段列表</td>
+      </tr>
+      <tr>
+        <td><code>LLM 语义维度评估 (unit-llm-eval)</code></td>
+        <td><span class="rel-chip rel-consumes">consumes</span></td>
+        <td><code>transcript_segments (field-transcript-segments)</code></td>
+        <td>LLM Prompt 依赖分段后的说话人对话文本</td>
+      </tr>
+      <tr>
+        <td><code>llm_score (field-llm-score)</code></td>
+        <td><span class="rel-chip rel-fallback_to">fallback_to</span></td>
+        <td><code>rule_score (field-rule-score)</code></td>
+        <td>LLM 超时(&gt;15s)或 JSON 解析失败时静默降级为纯 rule_score；若未透出降级标记会掩盖模型故障</td>
+      </tr>
+      <tr>
+        <td><code>rule_score (field-rule-score)</code></td>
+        <td><span class="rel-chip rel-backfills_from">backfills_from</span></td>
+        <td><code>teacher_talk_ratio (field-teacher-talk-ratio)</code></td>
+        <td>当当前课时未显式传入互动统计时，从 ASR teacher_talk_ratio 回填基线参数</td>
+      </tr>
+      <tr>
+        <td><code>score_total (field-score-total)</code></td>
+        <td><span class="rel-chip rel-depends_on">depends_on</span></td>
+        <td><code>llm_score (field-llm-score)</code></td>
+        <td>非降级路径下占 40% 权重</td>
+      </tr>
+      <tr>
+        <td><code>score_total (field-score-total)</code></td>
+        <td><span class="rel-chip rel-depends_on">depends_on</span></td>
+        <td><code>rule_score (field-rule-score)</code></td>
+        <td>常规占 60% 权重，降级占 100% 权重</td>
+      </tr>
+      <tr>
+        <td><code>综合评分聚合器 (unit-aggregator)</code></td>
+        <td><span class="rel-chip rel-shared_state">shared_state</span></td>
+        <td><code>LLM 语义维度评估 (unit-llm-eval)</code></td>
+        <td>历史模块级单例 scoreCache 被重试逻辑与聚合器共同读写，并发跑多课时易串台污染</td>
+      </tr>
+      <tr>
+        <td><code>score_total (field-score-total)</code></td>
+        <td><span class="rel-chip rel-propagates_to">propagates_to</span></td>
+        <td><code>grade_badge (field-grade-badge)</code></td>
+        <td>score_total 的口径漂移或 NaN 会直接传播为看板评级错误</td>
+      </tr>
+      <tr>
+        <td><code>score_total (field-score-total)</code></td>
+        <td><span class="rel-chip rel-depends_on">depends_on</span> <span class="status-tag st-retracted">retracted</span></td>
+        <td><code>teacher_talk_ratio (field-teacher-talk-ratio)</code></td>
+        <td>历史误认为 score_total 直接消费 teacher_talk_ratio 参与总分加权<div class="diff-warn"><b>撤回原因：</b>已在 v1.0 核实中证伪：score_total 仅通过 rule_score 间接依赖 teacher_talk_ratio，避免排查权重问题时错改接入层口径</div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>关联历史经验（第三层，experience_refs）</h3>
+  <table>
+    <thead><tr><th>编号</th><th>风险摘要与故障位点</th><th>关联节点</th><th>适用 / 不适用条件</th><th>经验文档</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><span class="inv-tag">EXP-001</span></td>
+        <td>静音长音频时外部 ASR 返回 []，若接入边界放行空分段会导致下游计算说话人占比除零或产出假 0 分<div class="meta-sub">症状 <code>field-teacher-talk-ratio</code> → 根因 <code>field-ext-asr-raw</code> → 收敛 <code>unit-asr-segmenter</code></div></td>
+        <td><code>field-ext-asr-raw</code> <code>field-transcript-segments</code> <code>unit-asr-segmenter</code> <code>field-teacher-talk-ratio</code></td>
+        <td><div class="exp-cond"><div><b>适用：</b>录音全程静音或 VAD 静音切片后 raw_utterances.length === 0</div><div><b>不适用：</b>外部 ASR 直接返回 5xx 超时或网络断连（该分支会直接抛出接口异常，不进入分段）</div></div></td>
+        <td><code>spec/context/experience/exp-001-silent-audio-divide-by-zero.md</code></td>
+      </tr>
+      <tr>
+        <td><span class="inv-tag">EXP-002</span></td>
+        <td>并发评测多节课时，模块级单例 scoreCache 未按 lesson_id 隔离读写，导致 score_total 串台污染<div class="meta-sub">症状 <code>field-score-total</code> → 根因 <code>unit-aggregator</code> → 收敛 <code>unit-aggregator</code></div></td>
+        <td><code>unit-aggregator</code> <code>unit-llm-eval</code> <code>field-score-total</code></td>
+        <td><div class="exp-cond"><div><b>适用：</b>批量任务并行调度且异步重试逻辑读写共享 scoreCache</div><div><b>不适用：</b>单课时串行调试或关闭全局缓存在内存隔离模式运行</div></div></td>
+        <td><code>spec/context/experience/exp-002-score-cache-cross-lesson.md</code></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+</main>
+
+<script>
+/*
+ * 项目本体总览报告交互（project-ontology skill，通用）
+ * ─────────────────────────────────────────────────────
+ * 与 ontology.css 配套，缺本文件则 tab 切换与折叠行全部失效。
+ * 用法：由 render-ontology.js 内联进报告底部 </body> 前的 <script>（保持单文件离线可开）。
+ *
+ * 两件事：
+ *   ① tab 切换 + URL hash / popstate 同步（刷新/分享/后退停在正确页面）
+ *   ② 表格行内折叠：点 tr.gx-row 展开紧随其后的 tr.gx-detail
+ */
+(function () {
+  var tabs = document.querySelectorAll("nav.tabs button");
+  var pages = document.querySelectorAll("section.tab-page");
+
+  function activate(name, push) {
+    tabs.forEach(function (b) { b.classList.toggle("active", b.dataset.tab === name); });
+    pages.forEach(function (p) { p.classList.toggle("active", p.id === "tab-" + name); });
+    // pushState 而非 replaceState：让浏览器后退键能回到上一个 tab
+    if (push && location.hash !== "#" + name) history.pushState(null, "", "#" + name);
+    window.scrollTo(0, 0);
+  }
+
+  tabs.forEach(function (b) {
+    b.addEventListener("click", function () { activate(b.dataset.tab, true); });
+  });
+
+  // 深链接 + 前进/后退：首次加载读 hash，之后监听 hashchange
+  // （只在启动时读一次会导致改 hash / 按后退键内容不跟着切）
+  function syncFromHash(push) {
+    var name = location.hash.replace("#", "");
+    // 空 hash（后退到「未带 hash」的历史条目）回到第一个 tab，而不是停在原页不动
+    if (!name && tabs.length) { activate(tabs[0].dataset.tab, false); return; }
+    if (name && document.getElementById("tab-" + name)) activate(name, push);
+  }
+  syncFromHash(false);
+  window.addEventListener("hashchange", function () { syncFromHash(false); });
+  // 后退/前进到「无 hash」的条目时不会触发 hashchange（只触发 popstate），
+  // 缺这一行会导致点了 tab 再按后退，URL 回去了而内容没回去。
+  window.addEventListener("popstate", function () { syncFromHash(false); });
+
+  // 表格行内折叠：点击 .gx-row 展开/收起紧随其后的 .gx-detail 行
+  document.querySelectorAll("tr.gx-row").forEach(function (row) {
+    row.addEventListener("click", function () {
+      var detail = row.nextElementSibling;
+      if (!detail || !detail.classList.contains("gx-detail")) return;
+      var opened = !detail.hidden;
+      detail.hidden = opened;
+      row.classList.toggle("open", !opened);
+    });
+  });
+})();
+
+</script>
+
+</body>
+</html>

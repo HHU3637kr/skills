@@ -22,7 +22,7 @@
 | summary | kpis 或 flow | 任务完成数，或任务进度 | fig：最终落地结构 |
 | debug | fig 或 flow | 故障链路，故障点用 `c-red`；或复现时序 | kpis：影响范围 |
 | debug-fix | fig 或 flow 或 kpis | 修复前后对比，或复验结果 | — |
-| review | kpis | 通过 / 不符 / 风险项计数 | barcell：每个任务的符合度 |
+| review | kpis | 通过 / 不符 / 风险项计数 | fig：用户视角状态机（有状态流转时）或关键验证截图（UI 变更时）；barcell：每个任务的符合度 |
 | update | fig 或 flow | 变更前后结构，或变更步骤 | — |
 | update-summary | kpis 或 flow | 完成项与回归结果 | — |
 | end-report | flow | 各阶段完成情况 | kpis：测试数、PR 状态 |

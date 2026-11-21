@@ -2,9 +2,10 @@
 disable-model-invocation: false
 name: spec-end
 description: >
-  当一个完整 Spec 的计划、实现、测试阶段都已完成，且角色 spec-ender 进入阶段五收尾时使用：
-  收集角色经验、触发 exp-reflect、审查项目规范、询问归档，并完成提交、推送、创建 PR。
-  不要用于功能实现中途、测试未完成时，或 spec-update 的小迭代收尾。
+  统一收尾总出口（同时承接完整 Spec 阶段五收尾与 spec-update 小迭代通过审查后的统一收尾），由角色 spec-ender 调用：
+  收集角色经验、触发 exp-reflect、审查项目规范与项目本体（spec/context/ontology/）并同步写回、生成 ender/end-report.html、
+  执行门禁与机检、按用户选择执行原位归档或仅阶段性提交推送、创建/更新 PR。
+  不要用于功能实现中途或测试/审查未完成时。
 ---
 
 # Spec End
@@ -15,20 +16,20 @@ description: >
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | 当前 Spec 全部角色产物、`lead/team-context.md`（含 Git 元数据）、TeamLead 转回的各角色经验素材 |
-| 权限 | 写 `ender/end-report.html`、调用 exp-reflect 分流、归档目录、git commit/push/创建 PR（`autopilot` 下可自主执行这些可逆动作）；维护 AGENTS.md/rules 属永远门禁，任何模式下都必须先经用户确认；合并、改动远程默认分支不在本 Skill 权限内；force push **仅豁免**收尾时对自己刚推送的 Spec 分支做 amend（`git commit --amend` + `git push --force-with-lease`，让 PR URL 等收尾写回并入同一次提交），其余 force push 不在权限内 |
-| 验证 | 各阶段已完成、经验已分流沉淀、规范审查有结论；归档前必须在当前工作树上跑一次全量测试并观察输出（新鲜验证，引用历史测试结论、「刚才是绿的」都不算）；合并完成后必须在**合并结果**上再跑一次全量测试——合并可能引入语义冲突，两个分支各自绿不代表合并后绿；归档前当前分支等于 `git_branch`，且不等于远程默认分支（用 `git symbolic-ref refs/remotes/origin/HEAD` 读出，不假定分支名） |
-| 停止 | 收尾确认方式随模式（见核心原则 4）；两项永远门禁——合并分支、直接改动远程默认分支——任何模式下都必须停下等用户，`autopilot` 遇到时就地降级为门禁模式；丢弃改动、删除分支必须拿到用户键入的精确确认词才执行；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支 `--amend` + `--force-with-lease`），其余 force push 仍是门禁并需精确确认词；用户选"暂不归档"则只产出报告即停止 |
-| 升级 | 阶段未真正完成、全量测试未绿、规范变更影响面大、或 Git 状态异常（分支不符、在远程默认分支上提交）时，停止并交回用户决策 |
+| 输入 | 当前 Spec 全部角色产物（含 `updater/update-xxx*.html` / `debugger/debug-*.html`）、`lead/team-context.md`（含 Git 元数据）、TeamLead 转回的各角色经验素材、项目本体 `spec/context/ontology/ontology.json`（如存在） |
+| 权限 | 写 `ender/end-report.html`、调用 `exp-reflect` 分流、增量更新 `spec/context/ontology/ontology.json` 并重新渲染 `index.html`、按选择原位归档（或保留活跃态仅阶段收尾）、git commit/push/创建或更新 PR（`autopilot` 下可自主执行这些可逆动作）；维护 AGENTS.md/rules 属永远门禁，任何模式下都必须先经用户确认；合并、改动远程默认分支不在本 Skill 权限内；force push **仅豁免**收尾时对自己刚推送的 Spec 分支做 amend（`git commit --amend` + `git push --force-with-lease`，让 PR URL 等收尾写回并入同一次提交），其余 force push 不在权限内 |
+| 验证 | 各阶段或本轮 update 已完成且审查通过、经验已分流沉淀、规范与本体审查有结论；若项目存在 `spec/context/ontology/ontology.json` 须通过 `check-ontology.js` 机检；归档/提交前必须在当前工作树上跑一次全量测试并观察输出（新鲜验证，引用历史测试结论、「刚才是绿的」都不算）；合并完成后必须在**合并结果**上再跑一次全量测试——合并可能引入语义冲突，两个分支各自绿不代表合并后绿；当前分支等于 `git_branch`，且不等于远程默认分支（用 `git symbolic-ref refs/remotes/origin/HEAD` 读出，不假定分支名） |
+| 停止 | 收尾确认方式随模式（见核心原则 4）；两项永远门禁——合并分支、直接改动远程默认分支——任何模式下都必须停下等用户，`autopilot` 遇到时就地降级为门禁模式；丢弃改动、删除分支必须拿到用户键入的精确确认词才执行；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支 `--amend` + `--force-with-lease`），其余 force push 仍是门禁并需精确确认词；用户选"暂不归档与提交"则只产出报告即停止 |
+| 升级 | 阶段/审查未真正完成、全量测试未绿、规范或本体变更影响面大（含口径冲突）、或 Git 状态异常（分支不符、在远程默认分支上提交）时，停止并交回用户决策 |
 
 ## 核心原则
 
 1. **多角色视角**：通过 TeamLead 收集各角色视角的经验素材，不只是 spec-ender 的独角戏
 2. **分流沉淀**：调用 exp-reflect 按权重分流（重大经验 → exp-write，轻量 → Auto Memory）
-3. **规范维护审查**：判断本次 Spec 是否产生需要长期遵守的项目规范，必要时更新 AGENTS.md 或 .agents/rules/
-4. **确认方式随模式**：`gated` 模式下归档、提交、推送、创建 PR 前都必须用当前运行环境的确认方式询问用户；`autopilot` 模式下可自主 push 工作分支并创建 PR（两者可逆，且 PR 本身就是给人审的入口），但合并分支、直接改动远程默认分支这两项是永远门禁，任何模式下都必须停下等人；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支做 `git commit --amend` + `git push --force-with-lease`，这是让收尾只提交一次的既定动作），其余 force push 仍是门禁
-5. **GitHub Flow 收尾**：先跑全量测试，绿了之后才出收尾菜单——测试还红着的时候不要问用户「要不要归档」；放行后调用 git-work 提交、推送当前 Spec 分支并创建 PR
-6. **报告用 HTML，记忆用 Markdown**：`ender/end-report.html` 遵循 html-report 契约（`rk:*` meta + `.rk-meta` 双轨元信息、`rk-links` / `rk-backlinks` 双向关联、`data-rev` 修订标记）；`spec/context/experience/*.md`、`knowledge/*.md` 保持 Markdown 不变；账本 `.md` / `.html` 皆可
+3. **规范与本体维护审查**：判断本次 Spec / `spec-update` 是否产生长期项目规范、或改变了项目本体的模块边界/契约/口径/不变量/依赖边，必要时更新 `AGENTS.md` / `.agents/rules/` 与 `spec/context/ontology/ontology.json`（及渲染 `index.html`）
+4. **确认方式随模式**：`gated` 模式下归档/阶段性提交、推送、创建或更新 PR 前都必须用当前运行环境的确认方式询问用户；`autopilot` 模式下可自主 push 工作分支并创建/更新 PR（两者可逆，且 PR 本身就是给人审的入口），但合并分支、直接改动远程默认分支这两项是永远门禁，任何模式下都必须停下等人；force push 仅收尾 amend 场景豁免（对刚推送的 Spec 分支做 `git commit --amend` + `git push --force-with-lease`，这是让收尾只提交一次的既定动作），其余 force push 仍是门禁
+5. **GitHub Flow 统一收尾**：`spec-update` 不设独立收尾，全部交由本 Skill 统一处理。先跑全量测试，绿了之后才出收尾菜单——测试还红着的时候不要问用户「要不要归档或提交」；放行后调用 git-work 提交、推送当前 Spec 分支并创建/更新 PR（由 `spec-update` 触发且后续仍需在同分支继续小迭代时，可选择「仅统一收尾提交推送，保留活跃 Spec 不归档」）
+6. **格式边界清晰**：`ender/end-report.html` 遵循 html-report 契约（`rk:*` meta + `.rk-meta` 双轨元信息、`rk-links` / `rk-backlinks` 双向关联、`data-rev` 修订标记）；`spec/context/experience/*.md`、`knowledge/*.md` 保持 Markdown 不变；`spec/context/ontology/ontology.json` 为结构化 JSON 真源并渲染同目录 `index.html`；账本 `.md` / `.html` 皆可
 
 ## 工作流程
 
@@ -95,26 +96,41 @@ exp-reflect 会根据经验的重要性分流：
 - 轻量知识（小技巧、上下文记忆）→ Auto Memory
 - 项目规范、项目偏好或规则变化 → 建议更新 `AGENTS.md` / `.agents/rules/`（这些文件保持 Markdown）
 
-### 步骤 5：项目规范维护审查
+### 步骤 5：项目规范与项目本体维护审查
 
-归档前轻量审查本次 Spec 是否产生长期规则或长期项目偏好。`AGENTS.md` 保持入口清单定位；只在命中明确、长期有效的变化时更新，不为了“有动作”而改规范。
+归档/收尾前轻量审查本次 Spec（含 `updater/` 与 `debugger/` 线索）是否产生长期规则、项目偏好或项目本体变更。`AGENTS.md` 保持入口清单定位；只在命中明确、长期有效的变化时更新，不为了“有动作”而改规范或本体。
 
 | 发现内容 | 维护位置 |
 |----------|----------|
+| 可机械校验的反复失误 / 架构边界违规 | 确定性结构约束（类型 / Lint / CI / 类似 check-report.js 的机检脚本；优先评估落地或登记 tech/debt 待办，不堆纯文本规则） |
 | 项目名称/一句话身份、核心技术栈摘要、AGENTS 路由或 import 变化 | `AGENTS.md` |
 | 启动/部署方式、开发流程细则、长期编码约定、安全规则、日志/审计要求、测试约束、目录/命名规范、产品/前端偏好 | `.agents/rules/*.md` |
 | 可复用操作流程（部署、发布、迁移等） | `.agents/skills/sop-xxx/SKILL.md` |
-| 项目架构、数据流、模块理解 | `spec/context/knowledge/`（保持 `.md`，被 exp-search 检索） |
+| 模块边界、跨模块契约字段、数据血缘、业务口径/阈值、核心不变量 `INV`、降级/回填路径、隐式共享状态 `shared_state` | `spec/context/ontology/ontology.json` + 自动渲染 `index.html`（由 `project-ontology` 维护） |
+| 项目架构叙事、技术调研结论 | `spec/context/knowledge/`（保持 `.md`，被 exp-search 检索） |
 | 困境-策略、踩坑经验 | `spec/context/experience/`（保持 `.md`，被 exp-search 检索） |
 
-审查问题：
+规范审查问题：
+- 本次暴露的反复失误或高危缺陷，能否优先通过架构边界、类型系统、Lint 或机检脚本固化，而不是只在 `.agents/rules/` 增加一条文字规则？
 - 本次是否形成了以后都要遵守的编码/安全/测试/日志/审计规则？
 - 本次是否改变了项目身份摘要、AGENTS 入口路由、目录结构、模块边界、启动或部署方式？
 - 本次是否形成了长期产品体验、前端样式或协作偏好，需要写入 `.agents/rules/project-preferences.md` 或相关 rules？
 - 本次是否暴露了反复出现的问题，需要写入 rules 防止复发？
 - 本次是否形成了可机械复用的 SOP，应创建或更新 Skill？
 
-如需更新，先向用户说明将修改哪些规范文件，得到确认后再编辑。
+如需更新 `AGENTS.md` / `.agents/rules/`，先向用户说明将修改哪些规范文件，得到确认后再编辑（永远门禁）。
+
+#### 项目本体增量同步判定（4 步收敛）
+
+1. **检查是否启用**：仅当 `spec/context/ontology/ontology.json` 文件存在时执行；不存在则跳过，记为「未启用项目本体」。
+2. **汇总变更线索**：收集 `writer/plan.html` 3.4 节「预期本体变更」、`updater/update-xxx*.html`、 `debugger/debug-xxx-fix.html` 第 6 节「本体同步检查」，并对照业务代码 diff（`query-ontology.js --freshness`）。
+3. **无变更 0 成本跳过**：若未触及模块边界、跨模块契约字段、数据血缘、业务口径/阈值、核心不变量、降级路径或隐式共享状态，在 `end-report.html` 记为「本体无变更」并跳过，不强制改文件。
+4. **命中变更则增量同步并渲染**：按 `project-ontology` 场景二更新 `ontology.json` 对应节点/边/不变量；若涉及将新增重大故障经验挂接至 `experience_refs[]` 则一并写入指针索引；若需更正或撤回既有口径、`INV` 或关系边，先运行 `query-ontology.js --impact-of <id>` 核对下游受波及项。将 `version.last_verified_commit` 刷新为当前工作树最新非纯文档提交 SHA（或基线业务提交），然后运行：
+   ```bash
+   node .agents/skills/project-ontology/scripts/render-ontology.js spec/context/ontology/ontology.json
+   node .agents/skills/project-ontology/scripts/check-ontology.js spec/context/ontology/ontology.json --strict
+   ```
+   变更随本次 Spec 分支一并提交进入 PR/MR。
 
 ### 步骤 6：创建 ender/end-report.html 并按模式确认归档创建 PR
 
@@ -321,23 +337,36 @@ PYEOF
   ```
 - **Windows 原生 PowerShell 环境**：**ps1 对等实现待补**（本机无 pwsh 不可实测；补齐前由 spec-ender 用 python3 完成等价机检——检项与 bash 分支一致：rk:* 必填 meta 含 rk:version/rk:category、rk-verdict/meta/revs/links/backlinks 区块、assets 相对深度、manifest 先于 rk-report.js、零行内样式（剔除代码引用后判断）、证据三要素——并在 `end-report.html` 注明实测过程与结论）。修订结构机检是 Node 脚本，PowerShell 下同样直接运行 `node .agents/skills/html-report/scripts/check-report.js "<SPEC-DIR>"`。
 
+**项目本体一致性机检（启用本体时为硬门禁）**：
+若项目存在 `spec/context/ontology/ontology.json`，放行前必须通过结构、悬空边与 HTML 指纹同步校验（Linux/macOS/PowerShell 统一命令）：
+```bash
+node .agents/skills/project-ontology/scripts/check-ontology.js spec/context/ontology/ontology.json
+```
+（若本次完成了全量建图或终态收尾，追加 `--strict` 确认无残留 `todos` 与占位 SHA。）
+
 `gated` 模式下向用户确认：
 
 ```text
-确认目标：所有阶段已完成，全量测试本轮已在当前工作树上跑过且全绿，经验沉淀与规范审查也已完成。是否确认本 Spec 原位归档，并提交、推送当前分支、创建向目标分支（dev）的 PR/MR？
+确认目标：所有阶段或本轮 update 已完成，全量测试本轮已在当前工作树上跑过且全绿，经验沉淀与规范/本体审查也已完成。请选择收尾方式：
 
 选项：
-- 确认原位归档并创建 PR/MR
-- 暂不归档
+- 确认原位归档并提交/推送/创建（或更新）PR/MR
+- 仅统一收尾提交推送（保留活跃 Spec 以便后续 spec-update）
+- 暂不归档与提交
 ```
 
-`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到原位归档状态更新、commit、push 工作分支、创建 PR/MR、以及收尾 amend（`--amend` + `--force-with-lease` 并入 PR/MR URL），触及合并、改动远程默认分支、或非 amend 的 force push 时立即降级为门禁模式等待用户。
+`autopilot` 模式下，由「本轮全量测试的新鲜验证输出 + `ender/end-report.html` 的 `rk-verdict` 完成结论」替代该确认，两者缺一不可放行；自门禁通过的范围只到原位归档状态更新（或活跃态阶段提交）、commit、push 工作分支、创建/更新 PR/MR、以及收尾 amend（`--amend` + `--force-with-lease` 并入 PR/MR URL），触及合并、改动远程默认分支、或非 amend 的 force push 时立即降级为门禁模式等待用户。
 
-### 步骤 7：原位归档（`gated` 用户确认后，`autopilot` 自门禁通过后）
+### 步骤 7：原位归档或阶段性统一收尾（`gated` 用户确认后，`autopilot` 自门禁通过后）
 
-用户选择"确认原位归档并创建 PR/MR"（`autopilot` 下为自门禁通过）：
+- **路径 A：用户选择「确认原位归档并提交/推送/创建（或更新）PR/MR」**（`autopilot` 完整 Spec 默认走路径 A）：
+  执行下方全部 1~5 步（含原位归档与 AWR `work complete` 终态关闭）。
+- **路径 B：经 `spec-update` 统一收尾且用户选择「仅统一收尾提交推送（保留活跃 Spec 以便后续 spec-update）」**：
+  跳过第 1 步中的「原位归档状态更新与 `awr work complete`」（保持 Spec 活跃、可继续被 `spec-update` 认领），仅释放当前 `spec-ender` 会话租约（`rk-awr-checkpoint.sh --end` 或 `awr session end --outcome ended`），然后直接执行第 2~5 步完成经验/规范/本体的统一提交推送与 PR 创建/更新（及 `pr_url` amend 写回 `plan.html` / `summary.html` / `updater/update-xxx*.html` / `end-report.html`）。
+- **路径 C：用户选择「暂不归档与提交」**：
+  跳过归档与提交步骤，直接执行步骤 8。
 
-1. **AWR 机器完工核验与原位归档更新**：
+1. **AWR 机器完工核验与原位归档更新（仅路径 A）**：
    保留当前 Spec 在所属 Version 的原物理目录（`spec/versions/<version>/specs/<spec-dir>/`），禁止移出目录。
    在 `lead/team-context.md` 中将 `status` 更新为 `archived`，并在所属版本的 `spec/versions/<version>/version-context.md` Spec 清单中将本 Spec 标记为 `done`。
    
@@ -380,7 +409,7 @@ PYEOF
    - commit
    - push
    - 创建面向 `dev` 的 PR/MR（平台中立）或输出 compare URL
-3. 如果获得 PR/MR URL，写回归档后 `lead/team-context.md` 的 `pr_url` 字段，以及 `ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
+3. 如果获得 PR/MR URL，写回 `lead/team-context.md` 的 `pr_url` 字段、`ender/end-report.html` 的 `<meta name="rk:pr-url">` 与 `.rk-meta` PR 两处（以及本次活跃或已更新的 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx*.html`，按修订规范修订号 +1、追加修订历史行），然后**并入同一次提交**，不产生第二次提交：
 
    ```bash
    git add "<spec-docs>"
@@ -391,9 +420,6 @@ PYEOF
    `--force-with-lease` 只覆盖自己刚推送的 Spec 分支，若远程分支被他人改动会拒绝，不会误覆盖。
 4. 合并由用户执行或明确放行；一旦发生合并，必须在合并结果上重跑全量测试并观察输出，绿了才算收尾完成
 5. 全过程中若出现需要丢弃改动（`git checkout --` / `reset --hard` / `stash drop`）、删除分支的情形，必须停下并要求用户键入精确确认词（如 `discard` / `delete-branch`）；第 3 步的 amend + force-with-lease 是用户确认过的收尾既定动作，无需逐次确认；其它任何 force push（不是 amend 自己刚推的 Spec 分支）仍是门禁，必须停下并要求精确确认词 `force-push`；「差不多同意」「你看着办」「随你」不构成授权，`autopilot` 模式同样不豁免
-
-用户选择"暂不归档"：
-- 跳过归档步骤，直接执行步骤 8
 
 ### 步骤 8：通知 TeamLead 完成
 
@@ -411,15 +437,15 @@ PYEOF
 ## 与其他角色的协作
 
 ```
-[所有其他阶段完成]
+[所有其他阶段或 spec-update 审查完成]
 TeamLead → spec-ender 开始
 spec-ender → 向 TeamLead 请求各角色经验素材
 TeamLead → 恢复/转询各角色 → 回复经验素材
 spec-ender → 汇总 + 调用 exp-reflect → 沉淀经验
-spec-ender → 规范维护审查 → 必要时更新 AGENTS.md / .agents/rules/
+spec-ender → 规范与项目本体维护审查 → 必要时更新 AGENTS.md / .agents/rules/ 及 spec/context/ontology/（render + check）
 spec-ender → ender/end-report.html
-spec-ender → 全量测试绿 → 按模式确认归档（`gated` 问用户 / `autopilot` 凭新鲜验证自门禁）
-[如归档] spec-ender → 移动目录 → git-work 提交 + 推送 + 创建 PR
+spec-ender → 全量测试绿 + 本体机检通过 → 按模式确认（归档提交PR / 仅阶段提交推送 / 暂不提交）
+[路径 A/B] spec-ender → 原位归档(仅路径A) / 保留活跃(路径B) → git-work 提交 + 推送 + 创建/更新 PR
 spec-ender → 通知 TeamLead 完成
 TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 ```
@@ -429,11 +455,11 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 完成收尾后确认：
 1. 已通过 TeamLead 收集所有相关角色素材，或在角色线程不可恢复时基于 Spec 文档补足
 2. 已调用 exp-reflect 完成分流沉淀
-3. 已完成项目规范维护审查；如需更新，已获得用户确认并完成修改
+3. 已完成项目规范与项目本体维护审查；规范更新已获用户确认，启用本体时已完成增量写回、`render-ontology.js` 渲染与 `check-ontology.js` 机检
 4. 已在当前工作树上跑过全量测试并观察输出，绿了之后才出的收尾菜单
-5. 已按模式完成归档确认（`gated` 用户确认 / `autopilot` 新鲜验证 + `rk-verdict`）
-6. 如归档：已完成原位归档（保留原物理目录，禁止移出目录）+ 已调用 git-work 提交、推送、创建 PR；合并、改动远程默认分支均留给用户；force push 仅以收尾 amend 形式用于并入 PR URL
-7. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.html`（含 `rk:pr-url` meta 与 `.rk-meta` 镜像，且留下修订痕迹），并通过 amend + force-with-lease 并入同一次提交（收尾历史只有一次提交）
+5. 已按模式完成收尾确认（`gated` 用户确认 / `autopilot` 新鲜验证 + `rk-verdict`）
+6. 如路径 A（归档）：已完成原位归档（保留原物理目录，禁止移出目录）+ 已调用 git-work 提交、推送、创建/更新 PR；如路径 B（`spec-update` 阶段提交）：已保留 Spec 活跃态并释放当前会话租约、完成提交推送与 PR 更新；合并、改动远程默认分支均留给用户；force push 仅以收尾 amend 形式用于并入 PR URL
+7. 如有 PR URL：已写回 `lead/team-context.md` 和 `ender/end-report.html`（及本次交付的 `plan`/`summary`/`updater` 报告，含 `rk:pr-url` meta 与 `.rk-meta` 镜像，且留下修订痕迹），并通过 amend + force-with-lease 并入同一次提交（收尾历史只有一次提交）
 8. 如已发生合并：已在合并结果上重跑全量测试并观察输出
 9. 已更新 `lead/team-context.md` 的「任务进度」中自己的收尾任务行
 10. 已通知 TeamLead
@@ -443,15 +469,16 @@ TeamLead → 通知用户整个流程完成，本次 Spec 团队实例结束
 - 把详细规范或一次性实现细节写进 AGENTS.md，导致入口文件膨胀
 - 把一次性实现细节写进 rules，导致长期规范失真
 - 本次形成了长期安全/日志/测试约束，却忘记更新 .agents/rules/
+- 启用项目本体且改变了契约/口径/不变量，或有 `plan.html`/`debug-xxx-fix.html`/`update-xxx*.html` 待写回线索，却忘记同步 `ontology.json` 或只改 JSON 忘了重新渲染 `index.html`
 - 在远程默认分支上直接提交 Spec 成果，或把默认分支名写死成固定值（应读 `git symbolic-ref refs/remotes/origin/HEAD`）
-- 全量测试还红着就出收尾菜单问用户要不要归档
+- 全量测试还红着就出收尾菜单问用户要不要归档或提交
 - 合并后不在合并结果上重跑全量测试，拿合并前两边各自的绿当结论
 - 把「你看着办」当成丢弃改动、删分支或 force push（非收尾 amend 场景）的授权（必须拿到精确确认词）
 - `autopilot` 模式下自行合并分支或改动远程默认分支（永远门禁，必须降级等人）
 - 创建 PR 前没有确认当前分支与 `lead/team-context.md` 的 `git_branch` 一致
-- `gated` 模式下未询问用户就直接归档；或 `autopilot` 模式下拿不出本轮全量测试输出就自门禁放行
+- `gated` 模式下未询问用户就直接归档或提交；或 `autopilot` 模式下拿不出本轮全量测试输出就自门禁放行
 - 沉淀完成后忘记通知 TeamLead
 - 归档后没检查报告里 `html-report/assets/` 的相对层级，`file://` 打开丢样式
-- 补 PR URL 时直接改写 `end-report.html` 却不递增修订号、不追加修订历史行
+- 补 PR URL 时直接改写报告却不递增修订号、不追加修订历史行
 - 只更新 `.rk-meta` 却漏了 `<head>` 的 `rk:*` meta（或反之），元信息双轨不完整
-- 把经验/知识记忆改成 HTML（必须保持 Markdown 供 `exp-search` 检索；账本不受此限）
+- 把 `spec/context/experience|knowledge/*.md` 记忆改成 HTML（必须保持 Markdown 供 `exp-search` 检索；`spec/context/ontology/` 为 JSON 真源 + 自动渲染 HTML，账本不受此限）

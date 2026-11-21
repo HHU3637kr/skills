@@ -39,6 +39,8 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 |------|----------|----------|
 | Web 端侧 E2E | 涉及 Web 页面、用户路径、浏览器交互、前端控制台、网络请求、后端日志联动验证 | [references/web-e2e-testing.md](references/web-e2e-testing.md) |
 
+> **项目级功能地图模板**：若项目涉及持续演进的端侧/交互应用，建议在目标项目 `spec/context/knowledge/feature-map.md` 按 [references/feature-map-template.md](references/feature-map-template.md) 维护用户视角功能地图与统一测试驱动约定，作为测试与审查的共享词汇表。
+
 新增策略时放入 `spec-test/references/<场景>-testing.md`，并在上表补一行。策略文件只写长期可复用的测试方法，不写某个项目的一次性细节。
 
 ### 策略撰写标准
@@ -86,6 +88,8 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 3. 如果是新增策略，同步更新上方「测试策略库」表格
 4. 只写长期可复用的测试方法，不写当前项目的账号、URL、业务私有规则或临时 workaround
 
+> 若目标项目维护了 `spec/context/knowledge/feature-map.md` 且本轮变更影响了页面入口、稳定选择器或状态名称，在确认属于产品合法演进后，同步更新该功能地图并刷新其 `last_verified_commit`。
+
 ## 阶段一：撰写测试计划（Spec 创建阶段）
 
 ### 步骤 1：读取探索报告
@@ -99,7 +103,7 @@ description: 当角色 spec-tester 需要为 Spec 撰写 tester/test-plan.html�
 
 通过 TeamLead 中转，与 spec-writer 讨论：
 - 接口设计（参数类型、返回值、异常情况）
-- 验收边界（何时算通过、何时算失败）
+- 验收边界（何时算通过、何时算失败，并对齐 `writer/plan.html` 中的核心不变量 Invariants 与项目 `spec/context/knowledge/feature-map.md`）
 - 边界条件（空值、极端输入、并发场景）
 - 关键路径日志点（状态流转、权限边界、数据写入、异步任务、外部 API、错误恢复）
 - 端侧审计证据（控制台日志、网络摘要、截图/录屏、设备/浏览器/App 版本）

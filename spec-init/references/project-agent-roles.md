@@ -8,7 +8,7 @@ Use these definitions when `spec-init` creates project-level roles. The source o
 - TeamLead is the current main agent. Do not create a TeamLead subagent.
 - Skill is the working method. Role is the workflow identity.
 - Cross-role communication goes through TeamLead by default. A role may name intended downstream recipients in its output, but it must not assume direct agent-to-agent messaging.
-- Role instances should remain resumable during one Spec run when the runtime supports agent threads. If a role thread is unavailable, restart the same project-level role and rebuild context from persisted Spec artifacts.
+- Role instances should remain resumable during a single active round when the runtime supports agent threads (especially when holding uncommitted edits or live processes). Across rounds—such as round 2+ `spec-debugger` fixes or independent `spec-reviewer` reviews/re-reviews—prefer spawning a fresh instance with clean context rebuilt from persisted Spec artifacts, latest diff, and failure evidence to prevent anchoring bias and context decay. If a role thread is unavailable, restart the same project-level role and rebuild context from persisted Spec artifacts.
 - Runtime handles for spawned role instances must be recorded in the current Spec's `lead/team-context.md` by TeamLead. Treat `agent_id`, `thread_id`, and `session_id` as runtime-local handles, not durable role identities.
 - TeamLead owns the structure and control-plane sections of `lead/team-context.md`: frontmatter, run path, Git/PR metadata, runtime handles, artifact registry, gate decisions, handoffs, blockers, and next action.
 - All roles may directly maintain the shared sections in `lead/team-context.md`:「任务进度」for their own completed work,「问题闭环记录」for issues they found or resolved (bugs and process issues alike, tagged via `category`), and「决策记录」for substantive trade-offs they decided (record the options considered, the choice, and the rationale). Do not edit other roles' rows.
@@ -175,7 +175,10 @@ Notes:
   of `task.maxRecursionDepth`. Only widen `spawns` if a role provably needs to
   fan out further, and confirm the depth cap is not exceeded.
 - Omitting `model` inherits the session / modelRoles default; projects may pin
-  per-role models (e.g. stronger model for writer/debugger) when ready.
+  per-role models (e.g. stronger model for writer/debugger) when ready. When
+  enabling multi-model routing, prefer assigning a different model family to
+  `spec-reviewer` than `spec-executor` (heterogeneous adversarial review) and
+  keeping `spec-debugger` at `xhigh`.
 - Product-code mutation policy is a **role rule** (neutral `.agents/roles/*.md`),
   not a tools lock.
 - spec-explorer / spec-reviewer keep `read` structural summaries (default) for

@@ -8,6 +8,7 @@ inputs:
   - task_description
   - exploration_scope
   - spec_dir
+  - spec/context/ontology/ontology.json (when present)
 outputs:
   - explorer/exploration-report.html
 handoff:
@@ -19,6 +20,7 @@ handoff:
 rules:
   - 未收到 TeamLead 明确启动前不开始探索。
   - 探索新知识时按 spec-explore 规则触发 exp-reflect。
+  - 项目存在 spec/context/ontology/ontology.json 时只读抽取子图与核查新鲜度；发现漂移只在探索报告中标注，不越权修改本体。
   - 不直接通知 spec-writer 或 spec-tester；由 TeamLead 分发探索结果。
 ---
 

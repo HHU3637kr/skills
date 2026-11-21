@@ -163,6 +163,7 @@
   &lt;tbody&gt;
     &lt;tr&gt;&lt;td&gt;问题代码位置&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;问题类型&lt;/td&gt;&lt;td&gt;{设计遗漏 | 实现偏差 | 环境问题 | 集成问题}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;本体定位与不变量&lt;/td&gt;&lt;td&gt;{未启用本体写「未启用」；启用则写锚定节点 ID、新鲜度状态、上游回填/降级链与涉事 INV-xxx}&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;div class="rk-cal key"&gt;&lt;div class="t"&gt;根因&lt;/div&gt;&lt;p&gt;{详细说明为什么会发生这个问题}&lt;/p&gt;&lt;/div&gt;
@@ -181,7 +182,7 @@
     &lt;tr&gt;&lt;td&gt;&lt;code&gt;src/xxx/xxx.ts&lt;/code&gt;&lt;/td&gt;&lt;td&gt;{修改说明}&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
-&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;风险评估&lt;/div&gt;&lt;p&gt;是否影响其他功能：{是|否}——{说明}。&lt;/p&gt;&lt;/div&gt;
+&lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;风险评估&lt;/div&gt;&lt;p&gt;是否影响其他功能：{是|否}——{说明}。&lt;b&gt;下游爆炸半径（需 spec-tester 定向回归的消费方）&lt;/b&gt;：{未启用本体写「按代码引用核对」；启用则列出 downstream 受波及模块/字段/展示位清单}。&lt;/p&gt;&lt;/div&gt;
 &lt;p&gt;若在多个修复路径间做了取舍（最小补丁 vs 重构、降级 vs 报错），决策本身记在账本
 &lt;a href="../lead/team-context.md" data-rk-link="ledger"&gt;运行账本&lt;/a&gt;的 Decision Log，此处只引用编号 &lt;code&gt;D-xxx&lt;/code&gt;。&lt;/p&gt;
 
@@ -341,6 +342,16 @@
     &lt;tr&gt;&lt;td&gt;缩小的失败范围&lt;/td&gt;&lt;td&gt;{有|无}——{说明}&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;新增可验证证据&lt;/td&gt;&lt;td&gt;{有|无}——{说明}&lt;/td&gt;&lt;/tr&gt;
     &lt;tr&gt;&lt;td&gt;判定&lt;/td&gt;&lt;td&gt;{有进展 → 连续无进展归零 | 无进展 → 连续无进展 +1}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;6. 本体同步检查（供 spec-end 统一写回）&lt;/h2&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;检查项&lt;/th&gt;&lt;th&gt;结果与待同步摘要&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;是否涉及契约/口径/不变量变更&lt;/td&gt;&lt;td&gt;{否 | 是：简述受影响字段或 INV-xxx}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;是否暴露未登记隐式依赖或降级路径&lt;/td&gt;&lt;td&gt;{否 | 是：简述 shared_state / fallback_to / backfills_from 线索}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;待同步处置去向&lt;/td&gt;&lt;td&gt;{无需变更 | 交由 spec-end 统一写回 ontology.json | 独立热修待用户确认后同步}&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 

@@ -18,10 +18,12 @@ R&K Flow 是一套 Spec 驱动式开发 Skills 体系，报告用 HTML 承载，
 - `version-*`：项目版本生命周期管理 Skills（start / update / release / end）
 - `spec-*`：R&K Flow 核心原子 Spec 研发生命周期 Skills
 - `exp-*`：经验与知识记忆 Skills
+- `project-ontology/`：项目内视角领域本体（JSON 真源 + 离线 HTML 视图 + 子图查询/机检工具链）
 - `html-report/`：报告 HTML 契约与共享样式资产
 - `git-work/`：`dev + release` 集成与发布工作流（平台中立 PR/MR）
 - `.agents/rules/`：长期项目规则（包含 version-workflow 等）、项目偏好和文档规范
 - `spec/versions/`：版本管理目录（包含各 Version 规划、发版记录与各 Spec）
 - `spec/context/experience/`：跨版本共享的显式经验记忆
 - `spec/context/knowledge/`：跨版本共享的显式知识记忆
+- `spec/context/ontology/`：跨版本共享的项目本体图谱（`ontology.json` 真源 + `index.html` 视图）
 > AGENTS.md 是入口清单，不承载长篇规范。详细规则和项目偏好维护在 `.agents/rules/`。

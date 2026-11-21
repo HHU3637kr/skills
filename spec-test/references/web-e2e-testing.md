@@ -26,6 +26,8 @@
 
 按 `spec-test`「推荐并确认测试方式」执行：提供常规浏览器自动化、agent-qa 辅助、组合使用三个选项，说明真实适用条件及推荐，由用户选择；未确认不得擅自切换。常规方式优先复用项目已有 E2E 工具（Playwright / Cypress / Vitest browser 等），没有现成框架时使用当前运行环境可用的浏览器自动化能力。
 
+- **Feature Map 共享词汇表对齐**：先检查项目是否存在 `spec/context/knowledge/feature-map.md`。若存在，优先复用其中约定的启动命令、统一驱动 CLI、用户视角名称与稳定选择器（`data-testid` / `role`），并在测试计划中标明每个 `US-xxx` 覆盖哪些 `FM-xxx` 入口；若不存在且该项目持续迭代 Web 页面，建议按 [feature-map-template.md](feature-map-template.md) 初始化，减少后续 Spec 重复摸索入口与选择器。
+
 计划中写清：
 - 启动前端和后端的命令
 - 测试 URL、浏览器类型、视口尺寸
@@ -102,8 +104,13 @@ tester/artifacts/test-logs/<RUN_ID>/
 2. 按用户可见控件点击、输入、提交
 3. 等待页面状态变化，不用固定 sleep 代替状态等待
 4. 断言 UI 文案、URL、数据列表、按钮状态、错误提示
-5. 截图关键状态
+5. 截图关键状态（文件按 `{US-ID}-{关键状态slug}.png` 清晰命名，如 `US-001-submitted.png`、`US-002-rejected.png`，便于下游 `spec-review` 在报告首屏直接内嵌展示）
 6. 记录失败时的页面 HTML 摘要、截图、console、network
+7. 若项目维护了 `spec/context/knowledge/feature-map.md`，测试完成后如实测确认页面入口或稳定选择器发生合法演进，同步更新该文件并刷新 `last_verified_commit`
+
+#### 复杂 UI 交互的可选属性测试
+
+当页面包含大量并发输入、快速切换、撤销/重做或复杂多态组合时，可在常规确定性旅程之外，按需补充基于属性的界面探索测试（如 Bombadil 思路：定义界面不变量后自动生成操作序列探索异常状态）。属性测试只用于发现常规路径遗漏的边界缺陷；一旦捕获异常序列，必须将其沉淀为固定步骤的确定性回归用例与录屏证据。
 
 ### 4. 捕获前端控制台
 

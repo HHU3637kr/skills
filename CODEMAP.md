@@ -6,7 +6,7 @@
 
 **仓库地址**：`github.com/HHU3637kr/skills`
 **当前分支**：`master`
-**文档口径**：v2.10.1
+**文档口径**：v2.11.0
 **分发方式**：git clone + 软链接（不走 npm）
 
 核心架构与 README 保持一致：
@@ -74,6 +74,7 @@ skills/
 ├── spec-test/                         # spec-tester
 │   ├── SKILL.md                       # tester/test-plan.html + tester/test-report.html
 │   └── references/
+│       ├── feature-map-template.md    # 项目级用户视角 Feature Map 模板
 │       └── web-e2e-testing.md         # Web E2E 测试策略
 │
 ├── spec-execute/                      # spec-executor
@@ -84,12 +85,16 @@ skills/
 ├── spec-debug/                        # spec-debugger
 │   ├── SKILL.md                       # 诊断/修复 bug → debugger/debug-*.html
 │   └── references/
+│       ├── attack-the-premise.md      # 连续两次同前提失败时的前提证伪协议
+│       ├── ontology-rca.md            # 基于本体的四步 OB-RCA、消费核对与三路归因协议
 │       └── debug-template.html        # debug-001.html + debug-001-fix.html 骨架
 │
 ├── spec-review/                       # spec-reviewer
 │   ├── SKILL.md                       # 审查 Spec 执行情况 → reviewer/review.html
 │   └── references/
-│       └── review-template.html       # review.html + update-XXX-review.html 骨架
+│       ├── review-rubric.md           # 审查评级、六类清单与只读实测探针协议
+│       ├── review-template.html       # review.html + update-XXX-review.html 骨架
+│       └── statechart-review.md       # 用户视角状态机与不变量审查规范
 │
 ├── spec-end/                          # spec-ender
 │   └── SKILL.md                       # 经验沉淀、规范审查、归档、提交、推送、PR
@@ -114,6 +119,12 @@ skills/
 │   ├── assets/                        # rk-report.css（唯一样式源）+ rk-report.js（三视图）
 │   ├── templates/                     # 版本级报告模板（version-plan, release-report, version-end-report）
 │   └── example/                       # 已验证的完整报告范例
+├── project-ontology/                  # 项目内视角领域本体与 OB-RCA 工具链
+│   ├── SKILL.md                       # 初次建图、增量同步与局部子图查询规范
+│   ├── assets/                        # ontology.css + ontology.js（自动内联进离线视图）
+│   ├── references/schema.md           # ontology.json v1.0 Schema、8 类关系边语义与三层经验挂接
+│   ├── scripts/                       # render-ontology.js / check-ontology.js / query-ontology.js
+│   └── example/                       # 示例真源 ontology.json 与渲染后的 index.html
 ├── skill-creator/                     # Skill 创建/验证工具
 └── find-skills/                       # Skill 生态发现
 ```
@@ -156,7 +167,8 @@ skills/
 └── spec/
     └── context/
         ├── experience/
-        └── knowledge/
+        ├── knowledge/
+        └── ontology/                  # 可选项目本体（ontology.json 真源 + index.html 视图）
 ```
 
 `.agents/roles/` 是角色定义的权威来源；`.claude/`、`.codex/` 只是运行时适配层。Codex agent 文件名使用 hyphenated role id，TOML `name` 使用 snake_case，例如 `spec-explorer.toml` 中 `name = "spec_explorer"`。
@@ -171,7 +183,7 @@ skills/
 | spec-tester | `spec-test` | `tester/test-plan.html`, `tester/test-report.html` | 设计和执行测试，不直接修 bug |
 | spec-executor | `spec-execute` | `executor/summary.html`, `executor/artifacts/` | 严格按 plan 以测试先行实现，拥有单元测试，不提交不归档 |
 | spec-debugger | `spec-debug` | `debugger/debug-*.html`, `debugger/debug-*-fix.html` | 不改已确认 plan，修复后交 TeamLead 重新验证 |
-| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-*-review.html` | 审查一致性、完成度、风险和测试缺口 |
+| spec-reviewer | `spec-review` | `reviewer/review.html`, `reviewer/update-*-review.html` | 基于验证产物、代码与只读反例探针审查一致性、完成度、状态机不变量与验证充分度 |
 | spec-ender | `spec-end` | `ender/end-report.html` | 收尾、沉淀、规范审查、归档、PR |
 
 ---
@@ -195,10 +207,10 @@ spec-start → git-work → lead/team-context.md
   ↓
 阶段四：spec-test ↔ spec-debug，spec-review（gated 可选 / autopilot 强制）
   ↓
-阶段五：spec-end → exp-reflect / exp-write → git-work
+阶段五：spec-end → exp-reflect / exp-write + project-ontology（按需增量同步）→ git-work
 ```
 
-`spec-update` 是同一活跃 Spec 分支内的小迭代流程，不创建新 Spec，不归档；它读取 `lead/team-context.md` 的分支信息，把更新产物写入 `updater/`，并可由 `spec-review` 产出 `reviewer/update-xxx-review.html`。
+`spec-update` 是同一活跃 Spec 分支内的小迭代流程，不创建新 Spec，不设独立收尾阶段，不归档；它读取 `lead/team-context.md` 的分支信息，把更新产物写入 `updater/`，并可由 `spec-review` 产出 `reviewer/update-xxx-review.html`，审查通过后统一交由 `spec-end` 执行经验沉淀、规范与本体同步、提交推送与 PR/归档决策。
 
 `spec-swarm` 是**执行形态启动器**，不是并行流程。它只做前置校验（角色可发现 / 可 spawn / 无 `tools` 白名单）、把 `execution: swarm` 写入账本、声明编排硬约束，随后委派 `spec-start` 跑同一套五阶段。`execution`（谁执行）与 `mode`（谁验证）正交，四种组合全部合法。
 
@@ -210,11 +222,12 @@ spec-start → git-work → lead/team-context.md
 | `exp-reflect` | 从 Spec 文档中判断是否沉淀经验、知识、SOP、工具记忆或项目规则 | 收尾/更新时触发 |
 | `exp-write` | 写入经验或知识并维护索引 | `spec/context/experience/`, `spec/context/knowledge/` |
 
-### 3. 报告与呈现
+### 3. 报告、呈现与领域本体
 
 | Skill | 作用 |
 |-------|------|
 | `html-report` | HTML 报告契约：固定骨架与样式、重点组件、`ins`/`del` 修订标记与三视图、`rk:*` 元数据、双向关联 |
+| `project-ontology` | 项目内视角领域本体（`ontology.json` 真源 + 离线 HTML 视图 + 子图查询/机检工具链），支撑 OB-RCA 根因定位 |
 
 ### 4. 辅助能力
 
@@ -301,8 +314,9 @@ spec-test      → tester/test-report.html + tester/artifacts/test-logs/<run-id>
 spec-debug     → debugger/debug-*.html + debugger/debug-*-fix.html
 spec-review    → reviewer/review.html 或 reviewer/update-*-review.html
 spec-update    → updater/update-*.html + updater/update-*-summary.html
-spec-end       → ender/end-report.html + archive / PR
+spec-end       → ender/end-report.html + 经验/规范/本体同步 + archive / PR
 exp-write      → spec/context/experience/*.md 或 spec/context/knowledge/*.md
+project-ontology → spec/context/ontology/ontology.json + index.html
 ```
 
 ### Git 数据流
@@ -314,11 +328,11 @@ exp-write      → spec/context/experience/*.md 或 spec/context/knowledge/*.md
              → spec-end → git-work commit + push + PR
              → lead/team-context.md 写回 pr_url
 
-同一 Spec 更新：
-  spec-update → 读取 lead/team-context.md 校验当前分支
+同一 Spec 更新（统一交 spec-end 收尾）：
+  spec-update → git-work 模式三校验当前分支
               → updater/update-xxx.html / updater/update-xxx-summary.html
               → 必要时 reviewer/update-xxx-review.html
-              → git-work commit + push；必要时创建或更新 PR
+              → 审查通过后交 spec-end → 同步经验/规范/本体 → git-work commit + push + 创建/更新 PR（可选保留活跃态不归档）
               → lead/team-context.md 写回 pr_url
 ```
 
@@ -345,21 +359,22 @@ TeamLead → 下游角色：
 |-------|------------------|----------|
 | `spec-init` | `find-skills`, `project-agent-roles.md` | 用户一次性调用 |
 | `spec-start` | `intent-confirmation`, `git-work` | 用户启动新 Spec |
-| `spec-explore` | `exp-search` | TeamLead |
-| `spec-write` | `html-report`, `spec-test` 协作 | TeamLead |
+| `spec-explore` | `exp-search`, `project-ontology`（只读子图） | TeamLead |
+| `spec-write` | `html-report`, `spec-test` 协作, `project-ontology` | TeamLead |
 | `spec-test` | `spec-debug` handoff, 测试工具链 | TeamLead |
 | `spec-execute` | `exp-search`, `writer/plan.html` | TeamLead |
-| `spec-debug` | `spec-test` 复验 | TeamLead |
+| `spec-debug` | `spec-test` 复验, `project-ontology`（OB-RCA 子图） | TeamLead |
 | `spec-review` | `html-report` | `gated` 下 TeamLead 或用户按需调用；`autopilot` 下 TeamLead 必须调用 |
-| `spec-end` | `exp-reflect`, `git-work` | TeamLead |
-| `spec-update` | `git-work`, `spec-review`, `exp-reflect` | 用户在活跃 Spec 分支调用 |
-| `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `spec-update` |
+| `spec-end` | `exp-reflect`, `project-ontology`, `git-work` | TeamLead（完整 Spec 收尾与 `spec-update` 统一收尾） |
+| `spec-update` | `git-work`（分支复用校验）, `spec-review`, `project-ontology`（只读查询） | 用户在活跃 Spec 分支调用（审查后交 `spec-end`） |
+| `exp-reflect` | `exp-write`, `skill-creator` | `spec-end`, `version-end` |
+| `project-ontology` | Node.js 工具链（render/check/query）, `git diff` | 用户建图、`spec-end`、`spec-debug`、`spec-explore`、`version-end` |
 | `loop-design` | `intent-confirmation`, `spec-start`（修复循环预算）, `skill-creator` | 用户在需要设计循环时调用 |
 | `version-start` | `html-report`, `git-work` | TeamLead / 用户启动新版本 |
 | `version-update` | `html-report` | TeamLead / 用户调整版本范围 |
 | `version-release` | `git-work`, `html-report`, `version-update` | TeamLead / 用户提测与正式发版 |
-| `version-end` | `exp-reflect`, `git-work` | TeamLead / 用户版本归档复盘 |
-| `git-work` | Git CLI / dev + release 工作流 | `spec-start`, `spec-end`, `spec-update`, `version-release`, `version-end` |
+| `version-end` | `exp-reflect`, `project-ontology`, `git-work` | TeamLead / 用户版本归档复盘 |
+| `git-work` | Git CLI / dev + release 工作流 | `spec-start`, `spec-end`, `spec-update`（仅校验）, `version-release`, `version-end` |
 
 ---
 

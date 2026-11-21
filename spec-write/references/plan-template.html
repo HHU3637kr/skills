@@ -152,12 +152,25 @@
   <thead><tr><th>条件 / 场景</th><th>行为与责任层</th><th>异常 / 拒绝处理</th><th>关联任务或风险</th></tr></thead>
   <tbody><tr><td>{输入与前置条件}</td><td>{处理结果及责任模块}</td><td>{失败、拒绝或恢复}</td><td>{T / R 编号}</td></tr></tbody>
 </table>
+<h4>核心不变量（有状态流转 / 并发 / 权限边界适用）</h4>
+<p>用用户或业务语言写明不可违背的硬规则，供下游 <code>spec-test</code> 验证与 <code>spec-review</code> 状态机核对（若项目已启用 <code>spec/context/ontology/ontology.json</code>，优先引用并延续既有 <code>INV-xxx</code>）；无状态/并发/权限约束时写「不适用」。</p>
+<table>
+  <thead><tr><th>编号</th><th>不变量（用户/业务视角）</th><th>触发风险场景</th><th>拟验证方式</th></tr></thead>
+  <tbody><tr><td>INV-001</td><td>{例如：已取消的订单不能再次进入已支付态}</td><td>{并发取消与支付回调延迟到达}</td><td>{并发单测 / 探针 / 状态机检查}</td></tr></tbody>
+</table>
 
 <h3>3.2 数据模型</h3>
 <pre><code>{模型定义}</code></pre>
 
 <h3>3.3 接口设计</h3>
 <p>{方法签名、参数、返回值、异常}，涉及的代码位置写成 <span class="rk-ref">src/path/file.ts:88</span>。</p>
+
+<h3>3.4 预期本体变更（启用项目本体时填写）</h3>
+<p>若项目存在 <code>spec/context/ontology/ontology.json</code> 且本次设计改动了跨模块契约、数据血缘、业务口径或核心不变量，在此声明变更清单供 <code>spec-end</code> 统一写回；未启用或无跨模块骨架变动写「无」。</p>
+<table>
+  <thead><tr><th>变更类型</th><th>目标节点 / 边</th><th>变动内容摘要</th></tr></thead>
+  <tbody><tr><td>{新增字段 / 修改口径 / 新增边 / 新增 INV}</td><td>{module/unit/field ID}</td><td>{一句话说明，由 spec-end 落盘}</td></tr></tbody>
+</table>
 
 <div class="rk-cal key"><div class="t">关键决策</div><p>{在 A / B 方案里选了 A，因为 B 会 ⋯⋯。被否决项也要写下来，同一行决策同步登记到运行账本的「决策记录」}</p></div>
 

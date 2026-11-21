@@ -37,11 +37,25 @@ description: >
 3. 检查提测期间的修复是否已全部合入 `dev`（`git log release/<version> ^dev` 输出为空，确认无遗漏提交）。
 4. 业务方与用户是否已确认交付验收。
 
-### 步骤 2：沉淀通用经验与知识
+### 步骤 2：沉淀通用经验、知识与校准项目本体
 
-调用 `/exp-reflect`：
-- 将本版本在架构设计、AI Agent 研发、依赖治理等方面的突破性经验写入 `spec/context/experience/`。
-- 将成熟的技术选型与设计规范补充入 `spec/context/knowledge/`。
+1. 调用 `/exp-reflect`：
+   - 将本版本在架构设计、AI Agent 研发、依赖治理等方面的突破性经验写入 `spec/context/experience/`。
+   - 将成熟的技术选型与设计规范补充入 `spec/context/knowledge/`。
+2. **项目本体基线校准（如存在 `spec/context/ontology/ontology.json`）**：
+   运行新鲜度与严格机检，确认本体与本版本发版 Tag 对齐（无未同步口径或残留 `todos`）：
+   ```bash
+   node .agents/skills/project-ontology/scripts/query-ontology.js spec/context/ontology/ontology.json --freshness --repo .
+   node .agents/skills/project-ontology/scripts/check-ontology.js spec/context/ontology/ontology.json --strict
+   ```
+   若仍有漂移，先按 `project-ontology` 同步并重新渲染 `index.html`，确保随步骤 5 的 `spec/context` 一并合入 `master` 并回流 `dev`。
+
+#### 高频坑结构固化复盘（类 `/correct`）
+
+版本收尾时做一次跨 Spec 汇总：
+1. 扫描本版本各 Spec 的 `debugger/debug-*.html`、`reviewer/review.html` 与新增 `spec/context/experience/`，筛出**重复出现 ≥ 2 次的同类缺陷模式**。
+2. 按「**架构边界 → 类型系统 → Lint/机检脚本 → 回归测试 → 文档规则**」优先级，整理一份「高频缺陷 → 结构固化建议」对照表写入 `end-report.html`。
+3. 推动下一版本优先以 `tech` / `debt` Spec 将高频文本教训升级为确定性机械门禁，避免同类错误持续靠人工或规则文本兜底。
 
 ### 步骤 3：产出版本复盘报告 `end-report.html`
 
@@ -65,7 +79,7 @@ description: >
 
 ### 步骤 5：提交归档文档至主干并回流 dev
 
-由于代码已经在 `master` 上，本次归档报告与账本先提交合入 `master`，然后**强制回流 `dev`**（保证 `spec/context/{knowledge,experience}` 的最新沉淀跨版本在开发线共享）：
+由于代码已经在 `master` 上，本次归档报告与账本先提交合入 `master`，然后**强制回流 `dev`**（保证 `spec/context/{knowledge,experience,ontology}` 的最新沉淀跨版本在开发线共享）：
 
 ```bash
 git checkout master

@@ -1,0 +1,332 @@
+{
+  "schema_version": "1.0",
+  "project": {
+    "name": "TeachingAnalyzer 智能教研分析系统（本体示例）",
+    "summary": "从课堂音视频转写、多维结构化抽取到教学质量综合评分与离线报告导出的全链路管线",
+    "key_facts": [
+      "上游依赖 ASR 转写产物（transcript_segments），下游统一消费标准化评分快照",
+      "核心评分采用「规则确定性分 + LLM 语义分」混合加权，并在超时时降级回纯规则分",
+      "部分缓存键历史遗留全局可变上下文，修改评分权重时必须同步回归导出看板"
+    ]
+  },
+  "version": {
+    "last_verified_commit": "6dfc23d",
+    "commit_summary": "示例基线：对齐综合评分权重与降级路径口径",
+    "synced_prs": ["!12", "!14"],
+    "updated_at": "2026-11-21 09:30"
+  },
+  "flow": [
+    {
+      "nodes": [
+        { "id": "flow-ingest", "label": "音视频接入与 ASR", "desc": "生成分段文本 transcript_segments", "style": "default" },
+        { "id": "flow-scoring", "label": "综合评分管线", "desc": "规则分 + LLM 语义分混合计算", "style": "hl" },
+        { "id": "flow-cache", "label": "共享评分上下文缓存", "desc": "旁路可变状态（Phase 4.5 关注）", "style": "dim" }
+      ],
+      "arrow_after": "输出标准化评估结果 score_total 与分项指标"
+    },
+    {
+      "nodes": [
+        { "id": "flow-export", "label": "报告渲染与看板", "desc": "展示综合教学质量分与离线 PDF/HTML", "style": "default" }
+      ]
+    }
+  ],
+  "modules": [
+    {
+      "id": "mod-ext-asr",
+      "name": "外部云端 ASR 服务",
+      "kind": "external",
+      "dirs": [],
+      "entry_anchors": ["https://asr.vendor.example/v2/transcribe"],
+      "summary": "第三方语音转写网关（外部系统边界，静音音频返回空数组且不纳入本地 Git 漂移校验）",
+      "todos": [],
+      "units": [
+        {
+          "id": "unit-ext-asr-api",
+          "name": "第三方转写回调接口",
+          "producer_type": "code",
+          "summary": "异步返回原始 utterances 数组与毫秒级时间戳",
+          "code_anchors": ["src/ingest/asrClient.ts#fetchRawTranscript"],
+          "detail_mode": "artifact",
+          "fields": [
+            {
+              "id": "field-ext-asr-raw",
+              "name": "raw_utterances",
+              "producer_type": "code",
+              "formula_and_deps": "第三方云端识别原始句段数组；纯静音或未检出人声时返回 [] 而非 HTTP 错误码",
+              "code_anchors": ["src/ingest/asrClient.ts#parseAsrPayload"],
+              "invariants": [],
+              "null_and_default_semantics": "静音或无人声时外部服务返回空数组 []，需由接入边界拦截，不可视作有效 0 句段继续算分"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-ingest",
+      "name": "输入接入与预处理",
+      "dirs": ["src/ingest/", "src/asr/"],
+      "entry_anchors": ["src/ingest/pipeline.ts#ingestAudio"],
+      "summary": "负责接收课程音频、调用 ASR 转写并产出标准化分段中间产物",
+      "todos": [],
+      "units": [
+        {
+          "id": "unit-asr-segmenter",
+          "name": "ASR 分段标准化单元",
+          "producer_type": "code",
+          "summary": "清洗时间戳与说话人标签，生成 transcript_segments 供下游分析",
+          "code_anchors": ["src/asr/segmenter.ts#normalizeSegments"],
+          "detail_mode": "artifact",
+          "hint": "当说话人识别缺失时允许字段 speaker_role 为 unknown，不得静默丢弃整句",
+          "fields": [
+            {
+              "id": "field-transcript-segments",
+              "name": "transcript_segments",
+              "producer_type": "code",
+              "formula_and_deps": "按时间轴升序归并相邻同说话人句段；依赖原始 ASR JSON 与说话人映射表",
+              "code_anchors": ["src/asr/segmenter.ts#buildSegments"],
+              "invariants": ["INV-002"],
+              "null_and_default_semantics": "禁止产出空数组 [] 或 null；当上游 raw_utterances 为空时在边界抛 EmptyAudioError，防下游触发除零",
+              "state_scope": "单节课时预处理产物（lesson_id 绑定）；生成后冻结为只读分段快照",
+              "confused_with": [
+                {
+                  "term": "raw_utterances",
+                  "diff": "raw_utterances 是外部 ASR 原始返回（静音可为空数组），transcript_segments 已做说话人归并及边界非空校验"
+                }
+              ]
+            },
+            {
+              "id": "field-teacher-talk-ratio",
+              "name": "teacher_talk_ratio",
+              "producer_type": "code",
+              "formula_and_deps": "sum(speaker=teacher duration) / total_duration；分母为 0 时边界抛 ValidationError",
+              "code_anchors": ["src/asr/metrics.ts#calcTalkRatio"],
+              "invariants": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-scoring",
+      "name": "多维教学评分核心",
+      "dirs": ["src/scoring/", "src/llm/"],
+      "entry_anchors": ["src/scoring/engine.ts#evaluateLesson"],
+      "summary": "消费 transcript_segments 计算规则分与 LLM 语义分，并合成为综合评分",
+      "todos": [],
+      "units": [
+        {
+          "id": "unit-llm-eval",
+          "name": "LLM 语义维度评估",
+          "producer_type": "llm",
+          "summary": "基于课堂互动话术提取启发式提问得分 llm_score",
+          "code_anchors": ["src/llm/evaluator.ts#evaluateSemantics"],
+          "detail_mode": "metrics",
+          "fields": [
+            {
+              "id": "field-llm-score",
+              "name": "llm_score",
+              "product_name": "课堂启发度（AI 评估）",
+              "product_source": "详情页 -> 维度拆解卡片",
+              "producer_type": "llm",
+              "formula_and_deps": "LLM 输出 0~100 分值；超时(>15s)或解析失败时触发降级路径",
+              "code_anchors": ["src/llm/evaluator.ts#parseLlmScore"],
+              "invariants": []
+            }
+          ]
+        },
+        {
+          "id": "unit-rule-eval",
+          "name": "规则确定性评分",
+          "producer_type": "code",
+          "summary": "根据教师发言占比与互动频次计算稳定规则基线分 rule_score",
+          "code_anchors": ["src/scoring/rules.ts#computeRuleScore"],
+          "detail_mode": "metrics",
+          "fields": [
+            {
+              "id": "field-rule-score",
+              "name": "rule_score",
+              "product_name": "基础结构规范分",
+              "product_source": "详情页 -> 规则基线栏",
+              "producer_type": "code",
+              "formula_and_deps": "clamp(100 - abs(teacher_talk_ratio - 0.65) * 120, 0, 100)；若 talk_ratio 缺失则回填上一讲默认值",
+              "code_anchors": ["src/scoring/rules.ts#calcRuleBaseline"],
+              "invariants": []
+            }
+          ]
+        },
+        {
+          "id": "unit-aggregator",
+          "name": "综合评分聚合器",
+          "producer_type": "mix",
+          "summary": "融合 rule_score 与 llm_score 生成对外展示总分 score_total",
+          "code_anchors": ["src/scoring/aggregator.ts#aggregateScore"],
+          "detail_mode": "metrics",
+          "hint": "重点警戒：当前聚合器与异步重试器共用模块级可变缓存 scoreCache",
+          "fields": [
+            {
+              "id": "field-score-total",
+              "name": "score_total",
+              "product_name": "综合教学质量分",
+              "product_source": "总览页顶部核心评分卡 & 教研看板列表",
+              "producer_type": "mix",
+              "formula_and_deps": "0.6 * rule_score + 0.4 * llm_score；当 llm_score 降级缺失时取 1.0 * rule_score",
+              "code_anchors": ["src/scoring/aggregator.ts#calcScoreTotal"],
+              "invariants": ["INV-001"],
+              "known_diff": "PRD v1.2 原定权重为 0.5/0.5，MR !12 已调整为 0.6/0.4，需求文档尚未同步",
+              "null_and_default_semantics": "对外输出禁止为 null 或 NaN；llm_score 缺失时回退 1.0 * rule_score，而非把缺失项当 0 加权",
+              "state_scope": "课时任务终态评分（lesson_id 作用域）；须隔离异步重试期 scoreCache 防并发串台污染",
+              "confused_with": [
+                {
+                  "term": "rule_score",
+                  "diff": "rule_score 是仅基于说话占比与互动频次的规则基线分，score_total 为加权或降级后的最终总分"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "mod-export",
+      "name": "报告输出与看板",
+      "dirs": ["src/export/", "src/dashboard/"],
+      "entry_anchors": ["src/export/reportBuilder.ts#buildReport"],
+      "summary": "将综合评分与维度明细渲染为前端看板与可离线下载的 HTML/PDF 报告",
+      "todos": [],
+      "units": [
+        {
+          "id": "unit-dashboard-view",
+          "name": "教研看板总览视图",
+          "producer_type": "code",
+          "summary": "聚合多节课 score_total 并渲染校级/年级趋势图",
+          "code_anchors": ["src/dashboard/overviewView.ts#renderOverview"],
+          "detail_mode": "metrics",
+          "fields": [
+            {
+              "id": "field-grade-badge",
+              "name": "grade_badge",
+              "product_name": "教学评级徽章（S/A/B/C）",
+              "product_source": "教研看板列表 & 报告页眉",
+              "producer_type": "code",
+              "formula_and_deps": "score_total >= 90 -> S, >= 75 -> A, >= 60 -> B, 其余 C；若 score_total 为 null 将直接异常或误判为 C",
+              "code_anchors": ["src/dashboard/overviewView.ts#mapGradeBadge"],
+              "invariants": ["INV-001"]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "invariants": [
+    {
+      "id": "INV-001",
+      "statement": "score_total 在报告终态生成前必须为 [0, 100] 有限数值，不得为 null 或 NaN",
+      "owner_node": "field-score-total",
+      "enforcement_layer": "root",
+      "violation_symptom": "教研看板 grade_badge 误判为最低档或前端渲染抛出 NaN",
+      "verification": "tests/scoring/aggregator.test.ts",
+      "applicable_when": "lesson 任务进入 completed 终态或写入报告快照前",
+      "status": "verified"
+    },
+    {
+      "id": "INV-002",
+      "statement": "transcript_segments 在空音频或非法输入时必须在接入边界快速失败并显式报错，禁止生成空分段继续流转",
+      "owner_node": "unit-asr-segmenter",
+      "enforcement_layer": "boundary",
+      "violation_symptom": "空分段进入规则评分触发除零或静默产出假 0 分",
+      "verification": "tests/asr/segmenter.test.ts",
+      "applicable_when": "音视频预处理接入边界开启校验时",
+      "status": "verified"
+    }
+  ],
+  "relations": [
+    {
+      "from": "field-ext-asr-raw",
+      "to": "field-transcript-segments",
+      "type": "maps_to",
+      "note": "第三方 ASR 原始 utterances 映射并规范化为内部 transcript_segments（含毫秒转秒与说话人标准化）"
+    },
+    {
+      "from": "unit-asr-segmenter",
+      "to": "field-transcript-segments",
+      "type": "produces",
+      "note": "ASR 预处理阶段输出标准化分段列表"
+    },
+    {
+      "from": "unit-llm-eval",
+      "to": "field-transcript-segments",
+      "type": "consumes",
+      "note": "LLM Prompt 依赖分段后的说话人对话文本"
+    },
+    {
+      "from": "field-llm-score",
+      "to": "field-rule-score",
+      "type": "fallback_to",
+      "note": "LLM 超时(>15s)或 JSON 解析失败时静默降级为纯 rule_score；若未透出降级标记会掩盖模型故障"
+    },
+    {
+      "from": "field-rule-score",
+      "to": "field-teacher-talk-ratio",
+      "type": "backfills_from",
+      "note": "当当前课时未显式传入互动统计时，从 ASR teacher_talk_ratio 回填基线参数"
+    },
+    {
+      "from": "field-score-total",
+      "to": "field-llm-score",
+      "type": "depends_on",
+      "note": "非降级路径下占 40% 权重"
+    },
+    {
+      "from": "field-score-total",
+      "to": "field-rule-score",
+      "type": "depends_on",
+      "note": "常规占 60% 权重，降级占 100% 权重"
+    },
+    {
+      "from": "unit-aggregator",
+      "to": "unit-llm-eval",
+      "type": "shared_state",
+      "note": "历史模块级单例 scoreCache 被重试逻辑与聚合器共同读写，并发跑多课时易串台污染"
+    },
+    {
+      "from": "field-score-total",
+      "to": "field-grade-badge",
+      "type": "propagates_to",
+      "note": "score_total 的口径漂移或 NaN 会直接传播为看板评级错误"
+    },
+    {
+      "from": "field-score-total",
+      "to": "field-teacher-talk-ratio",
+      "type": "depends_on",
+      "note": "历史误认为 score_total 直接消费 teacher_talk_ratio 参与总分加权",
+      "status": "retracted",
+      "retracted_reason": "已在 v1.0 核实中证伪：score_total 仅通过 rule_score 间接依赖 teacher_talk_ratio，避免排查权重问题时错改接入层口径"
+    }
+  ],
+  "experience_refs": [
+    {
+      "exp_id": "EXP-001",
+      "path": "spec/context/experience/exp-001-silent-audio-divide-by-zero.md",
+      "nodes": ["field-ext-asr-raw", "field-transcript-segments", "unit-asr-segmenter", "field-teacher-talk-ratio"],
+      "symptom_node": "field-teacher-talk-ratio",
+      "root_cause_node": "field-ext-asr-raw",
+      "patch_node": "unit-asr-segmenter",
+      "risk_summary": "静音长音频时外部 ASR 返回 []，若接入边界放行空分段会导致下游计算说话人占比除零或产出假 0 分",
+      "applicable_when": "录音全程静音或 VAD 静音切片后 raw_utterances.length === 0",
+      "not_applicable_when": "外部 ASR 直接返回 5xx 超时或网络断连（该分支会直接抛出接口异常，不进入分段）",
+      "status": "verified"
+    },
+    {
+      "exp_id": "EXP-002",
+      "path": "spec/context/experience/exp-002-score-cache-cross-lesson.md",
+      "nodes": ["unit-aggregator", "unit-llm-eval", "field-score-total"],
+      "symptom_node": "field-score-total",
+      "root_cause_node": "unit-aggregator",
+      "patch_node": "unit-aggregator",
+      "risk_summary": "并发评测多节课时，模块级单例 scoreCache 未按 lesson_id 隔离读写，导致 score_total 串台污染",
+      "applicable_when": "批量任务并行调度且异步重试逻辑读写共享 scoreCache",
+      "not_applicable_when": "单课时串行调试或关闭全局缓存在内存隔离模式运行",
+      "status": "verified"
+    }
+  ]
+}

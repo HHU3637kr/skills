@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: exp-reflect
-description: 当任务完成、解决困难问题、用户要求总结经验/记录项目理解/更新项目规范，或 spec-end/spec-update 需要从当前 Spec 文档判断是否沉淀经验、知识、SOP、工具记忆、长期项目规范时使用。本 Skill 只做识别 + 分类 + 权重判断 + 草稿 + 用户确认，不落盘写入；内容已经明确、只需写入经验/知识文件并更新索引时直接用 exp-write；程序记忆（SOP）落盘成新 Skill 用 skill-creator。不要用于普通文档摘要、历史记忆检索或已明确内容的直接写入。
+description: 当任务完成、解决困难问题、用户要求总结经验/记录项目理解/更新项目规范，或 spec-end 统一收尾需要从当前 Spec 文档判断是否沉淀经验、知识、SOP、工具记忆、长期项目规范时使用（spec-update 不设独立收尾，统一汇入 spec-end 处理）。本 Skill 只做识别 + 分类 + 权重判断 + 草稿 + 用户确认，不落盘写入；内容已经明确、只需写入经验/知识文件并更新索引时直接用 exp-write；程序记忆（SOP）落盘成新 Skill 用 skill-creator；跨模块结构、契约字段、数据血缘、不变量与降级/共享状态边的动态维护归 project-ontology（spec/context/ontology/），与 knowledge/*.md 互补不重复。不要用于普通文档摘要、历史记忆检索或已明确内容的直接写入。
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -22,6 +22,8 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 ## 概述
 
 基于 MUSE 框架的"反思 → 结构化 → 记忆化"理念，读取当前任务产出的 Spec 文档，提取可沉淀的记忆，并按记忆类型分流到不同存储层。
+
+**优先级总则（信任金字塔升阶）**：遇到反复踩坑或可机械校验的失误时，同一教训优先固化为确定性结构约束，优先级自高到低为 **架构/目录边界 → 类型系统 → Lint/静态检查/机检脚本（如 `check-report.js`）→ 自动化回归测试 → 最后才是文本记忆/规则（`.agents/rules/`、`spec/context/`）**。文本规则应只承载需要判断力或暂无法机械化的经验。
 
 **记忆类型识别**：
 - **困境-策略对**（经验记忆）→ 按权重分流（重大→exp-write 写入 `spec/context/experience/` / 轻量→Auto Memory）
@@ -54,6 +56,7 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 | 问自己 | 是 | 否 |
 |--------|-----|-----|
+| 这个问题/教训能否固化为确定性结构检查（架构边界/类型/Lint/机检脚本/回归测试）？ | **结构固化建议**（优先落地或立项 tech/debt Spec，暂无法落地再转下方文本记忆） | 继续下一问 |
 | 这是一个"困境→解决方案"的经验？ | **经验记忆** | 继续下一问 |
 | 这是项目理解（架构/数据流/模块分析）？ | **知识记忆** | 继续下一问 |
 | 这是技术调研（框架对比/选型分析）？ | **知识记忆** | 继续下一问 |
@@ -102,9 +105,10 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
       | 内容特征 | 记忆类型 | 存储位置 |
       |----------|----------|----------|
+      | 可机械预防的反复失误、架构越界或格式违约？ | 确定性结构约束 | 优先结构固化建议（架构/类型/Lint/机检脚本/测试；立项 tech/debt Spec） |
+      | 跨模块契约、数据血缘、口径阈值、不变量、降级或共享状态变化？ | 项目本体（不入 exp-write，交 `project-ontology`） | spec/context/ontology/ontology.json |
       | 解决了什么问题？为什么这样解决？ | 经验记忆 | spec/context/experience/ |
-      | 项目架构、数据流、模块分析？ | 知识记忆 | spec/context/knowledge/ |
-      | 技术调研、框架对比、选型分析？ | 知识记忆 | spec/context/knowledge/ |
+      | 项目架构叙事、技术调研、框架对比？ | 知识记忆 | spec/context/knowledge/ |
       | 完成了哪些多步骤操作（>5步）？是否可复用？ | 程序记忆 | sop-xxx Skill |
       | 以后每次都要遵守的项目身份、编码、安全、日志、测试、审计、目录/命名规范、产品/前端偏好？ | 项目规范/规则记忆 | AGENTS.md / .agents/rules/*.md |
       | 某 Skill 执行后总是需要做什么？ | 工具记忆 | Skill 末尾后续动作 |
@@ -163,6 +167,16 @@ allowed-tools: Read, Write, Edit, Glob, Grep
 
 ```markdown
 📝 经验反思结果
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏗️ 结构固化建议（确定性约束，优先级高于文档规则）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**目标层级**：架构边界 / 类型系统 / Lint 或机检脚本 / 自动化回归测试
+**拟固化手段**：[例如：补充 ESLint 规则 / 在 check-report.js 增设检查 / 抽离受保护目录边界]
+**触发依据**：[本次 Spec 中哪类缺陷或反复纠错可通过该结构约束彻底消除]
+**落地建议**：[随当前变更提交（需确认） / 登记为下个 tech 或 debt Spec 待办]
+**兜底文本去向**（若暂不立即落地）：[对应 experience/*.md 或 .agents/rules/*.md]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📚 经验记忆（困境-策略对）

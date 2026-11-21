@@ -19,7 +19,7 @@ description: >
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | `explorer/exploration-report.html`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据、`html-report` skill 的报告契约 |
+| 输入 | `explorer/exploration-report.html`、与 spec-tester 讨论的接口边界、TeamLead 提供的 Git 元数据、`html-report` skill 的报告契约、项目本体 `spec/context/ontology/ontology.json`（如存在） |
 | 权限 | 只写 `writer/plan.html`（设计方案）；不写测试计划、不实现代码、不归档、不提交；目录分类错误时通过 TeamLead 请求修正 |
 | 验证 | plan 含 7 个必需章节、版本目录归属正确、命名为 `YYYYMMDD-HHMM-属性-任务描述`（中文任务描述）、分支字段与当前分支一致、HTML 骨架与修订标记符合 `html-report` 规范；plan 必须含接口签名、数据结构、文件清单、每个任务的验证命令，缺任一项不得进入实现 |
 | 停止 | plan 定稿且通过确认即停止，不在确认前编写代码、不"顺手"加 Spec 未要求的设计 |
@@ -142,7 +142,7 @@ description: >
 - ✅ 使用 html-report 的 `rk-cal` / `rk-verdict` 组件突出重点，修订遵循 `data-rev` 规范
 - ✅ 原 frontmatter 字段双轨保留（`<meta name="rk:*">` + `.rk-meta`），关联产物双向（`rk-links` + `rk-backlinks`）
 - ✅ 确认 `writer/plan.html` 的 `rk:git-branch` 与当前分支一致
-- ✅ **方案表达**：首屏用方案全景图标明本次改动、复用、系统边界及风险编号；实施顺序图区分技术依赖与交付顺序。复杂分支或跨模块交互须画关键场景流程，简单情况说明不适用。接口签名、字段类型、文件清单及每任务验证命令保留精确契约，不因压缩篇幅省略；审核重点见 `references/plan-quality.md`。
+- ✅ **方案表达**：首屏用方案全景图标明本次改动、复用、系统边界及风险编号；实施顺序图区分技术依赖与交付顺序。复杂分支或跨模块交互须画关键场景流程，简单情况说明不适用。涉及多状态流转、异步重试、并发竞争或权限边界时，在 `3.1` 节列出用户/业务视角的「核心不变量（Invariants）」，供下游 `spec-test` 与 `spec-review` 核对（若项目启用了 `spec/context/ontology/ontology.json`，须继承并对齐既有术语口径与 `INV-xxx`，并在 `3.4` 节声明本次改动带来的预期本体变更交由 `spec-end` 统一写回）。遇到无先例的技术或交互实证分叉时，优先引用探索期实测原型数据或在仓库外临时目录做最小原型对比后再定案（记入「关键决策」与账本「决策记录」），产品偏好与范围取舍仍交用户确认。接口签名、字段类型、文件清单及每任务验证命令保留精确契约，不因压缩篇幅省略；审核重点见 `references/plan-quality.md`。
 - ✅ 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
 ## 后续流程

@@ -12,12 +12,12 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | `writer/plan.html` 或 `updater/update-xxx.html`、`executor/summary.html` 或 `updater/update-xxx-summary.html`、`executor/artifacts/`、`tester/test-plan.html` 与 `tester/test-report.html`、实际代码 |
-| 权限 | 只写 `reviewer/review.html` / `update-xxx-review.html`（审查结论）；只读代码核对，不修改代码、不修 bug、不归档 |
-| 验证 | 按完成度/一致性/额外实现三维核对，每个检查项标注 Spec 位置 + 代码位置（file:line）。**审查结论必须落到具体文件与行号**，「整体不错」「建议再优化一下」这类无法据以行动的评价不算结论 |
+| 输入 | `writer/plan.html` 或 `updater/update-xxx.html`、`executor/summary.html` 或 `updater/update-xxx-summary.html`、`executor/artifacts/`、`tester/test-plan.html` 与 `tester/test-report.html`、`tester/artifacts/`、`spec/context/knowledge/feature-map.md`（若存在）、实际代码 |
+| 权限 | 只写 `reviewer/review.html` / `update-xxx-review.html`（审查结论）；不修改业务代码、不修 bug、不归档；允许以只读/临时沙箱方式运行最小反例探针实测验证怀疑的行为缺陷 |
+| 验证 | 以验证产物（截图/录屏/日志/探针/状态图）为核心核对依据，按完成度/一致性/额外实现/验证产物与不变量维度核对；行为性缺陷须附实测证据或显式标注 `[INFERENCE]`，**审查结论必须落到具体文件与行号**，「整体不错」「建议再优化一下」这类无法据以行动的评价不算结论 |
 | 停止 | 审查报告定稿且通过该模式对应的确认（`gated` 用户确认 / `autopilot` 自门禁通过）即停止；不越界去修复发现的问题（交给 spec-debugger/spec-update） |
-| 升级 | 发现核心功能未实现、数据模型严重不符或需重新实现时，在「问题闭环记录」记录并交回 TeamLead 由用户决策 |
-| 参考 | 开始审查 → 必读 `references/review-rubric.md` |
+| 升级 | 发现核心功能未实现、数据模型严重不符、违背核心不变量或需重新实现时，在「问题闭环记录」记录并交回 TeamLead 由用户决策 |
+| 参考 | 开始审查 → 必读 `references/review-rubric.md`；涉及多状态流转/并发/重试/权限切换 → 必读 `references/statechart-review.md` |
 
 ## 核心规则
 
@@ -30,7 +30,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 
 **介入方式随模式**：`gated` 模式下 spec-reviewer 可选，由 TeamLead 按需启动；`autopilot` 模式下 **spec-reviewer 强制介入**，因为它是自动驾驶下唯一的独立视角，没有它就没有任何人核对「实现是否等于已确认的 plan」。
 
-**确认方式随模式**：`gated` 模式下完成审查报告后必须用当前运行环境的确认方式向用户确认；`autopilot` 模式下由「五类清单逐类给出结论 + 每项结论带 `file:line` + 结论与 `executor/artifacts/` 实际输出一致」替代该确认，三者缺一不可放行。判定标准见 `references/review-rubric.md`。
+**确认方式随模式**：`gated` 模式下完成审查报告后必须用当前运行环境的确认方式向用户确认；`autopilot` 模式下由「五类常驻清单（及适用时的清单 ⑥ 不变量与状态机）逐类给出结论 + 每项结论带 `file:line` + 结论与 `executor/artifacts/`、`tester/artifacts/` 实际输出及产物形态一致」替代该确认，三者缺一不可放行。判定标准见 `references/review-rubric.md`。
 
 `gated` 模式的确认话术：
 
@@ -55,6 +55,7 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 | 完成度 | Spec 定义的功能是否全部实现（功能点、数据模型、API、测试） | ✅ 已完成 / ❌ 未完成 |
 | 一致性 | 实现是否与 Spec 设计一致（接口签名、数据结构、业务逻辑、命名） | ⚠️ 不符 |
 | 额外实现 | 是否有 Spec 未定义的额外功能、字段、参数 | ➕ 额外 |
+| 验证产物与不变量 | 核对运行产物充分度、`feature-map` 覆盖、核心不变量与用户视角状态机一致性 | ✅ 实证充分 / ⚠️ 产物不足或 `[INFERENCE]` / ❌ 违背不变量 |
 | AWR 状态一致性 | AWR Work 状态、checkpoint 记录是否与落盘报告和实际测试证据一致，有无遗留未关闭的 open-loop | 🔍 AWR 对齐 / ❌ 状态脱节 |
 ### 审查严格程度
 
@@ -67,11 +68,11 @@ description: 审查 Spec 执行完成情况，检验实现是否严格按照 Spe
 | 步骤 | 操作 | 要点 |
 |------|------|------|
 | 1 | 接力 AWR 会话并读取 Spec 文档 | 调用检查点脚本（`AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; if [ ! -f "$AWR_CP" ]; then AWR_CP=scripts/rk-awr-checkpoint.sh; fi` 随后执行 `bash "$AWR_CP" --work <SPEC-ID> --agent spec-reviewer --digest "接力开工进入审查" --next-action "执行一致性审查"`）自动从前驱完成租约接力；随后执行 `awr work prepare <SPEC-ID> --session <SESSION-ID> --response-view summary`；读取 `writer/plan.html` 或 `updater/update-xxx.html`，提取功能点、数据模型、接口定义 |
-| 2 | 读取实现与测试产物 | 读取 `executor/summary.html` 或 `updater/update-xxx-summary.html`、`tester/test-plan.html`、`tester/test-report.html`，并列出 `executor/artifacts/` 下的证据文件 |
-| 3 | 建立检查清单 | 从 Spec 提取所有需实现的功能点、模型、接口、测试；按 `references/review-rubric.md` 的五类清单展开 |
-| 4 | 检查代码实现 | 根据 summary 文件列表读取实际代码，逐项核对 |
-| 5 | 对比分析 | 按三个维度（完成度、一致性、额外实现）识别差异，每项按 `blocker` / `major` / `minor` 定级 |
-| 6 | 生成审查报告 | 撰写前先读 `html-report` skill；在 Spec 目录下创建 `reviewer/review.html`，模板见 [references/review-template.html](references/review-template.html) |
+| 2 | 读取实现、验证产物与功能地图 | 读取 `executor/summary.html` 或 `updater/update-xxx-summary.html`、`tester/test-plan.html`、`tester/test-report.html`，扫描 `executor/artifacts/` 与 `tester/artifacts/`（截图、录屏、trace、日志），并读取项目 `spec/context/knowledge/feature-map.md`（若存在） |
+| 3 | 建立检查清单 | 从 Spec 提取所有需实现的功能点、模型、接口、不变量与测试；按 `references/review-rubric.md` 五类常驻清单与（适用时的）清单 ⑥ 展开 |
+| 4 | 检查代码、状态机与实测反例 | 根据 summary 文件列表读取实际代码核对；对存疑的行为性缺陷在只读/临时沙箱运行最小探针实测（无法实测须标 `[INFERENCE]`）；涉及状态流转时按 `references/statechart-review.md` 反向抽取用户视角状态机与最短违规路径 |
+| 5 | 对比分析 | 按各审查维度（完成度、一致性、额外实现、验证产物与不变量）识别差异，每项按 `blocker` / `major` / `minor` 定级 |
+| 6 | 生成审查报告 | 撰写前先读 `html-report` skill；按 [references/review-template.html](references/review-template.html) 在 Spec 目录下创建 `reviewer/review.html`，将「验证产物总览」（及适用时的状态机 SVG）置于首屏核对区 |
 | 7 | 按模式确认 | `gated` 用当前运行环境的确认方式等待用户确认；`autopilot` 以自门禁证据替代（判定标准见 `references/review-rubric.md`） |
 
 ### 步骤 5：对比分析要点
@@ -93,9 +94,9 @@ AWR 状态机与结构一致性检查：
 - 关联 `writer/plan.html`、`executor/summary.html` 用相对链接，分「本报告引用」（`rk-links`）与「引用本报告」（`rk-backlinks`）两向；指向运行账本写 `../lead/team-context.md` 或 `../lead/team-context.html`（按账本实际格式）
 - frontmatter 语义双轨保留：`<head>` 内 `<meta name="rk:*">` + `<link rel="rk-*">` 机器可读，`.rk-meta` 人可读镜像，两处字段一致，`git_branch` / `base_branch` / `pr_url` 不可丢
 - 修订遵循 `data-rev` 规范：修订号 +1、修订历史表追加一行、正文用 `<ins class="rk-ins" data-rev="N">` / `<del class="rk-del" data-rev="N">` / `<p class="rk-added|rk-removed" data-rev="N">` 标记，永不静默改写
-- **首屏与图**（机检强制最低图种）：结论块一句话给出审查结果（通过 / 需修复 / 严重不符，与 `rk:result` 一致）；紧跟指标卡（`rk-kpis`：通过 / 不符 / 风险项计数），放在结论块之后、第一个正文章节结束之前。
-- **图与表分工**：计数用 kpis；多个任务做横向符合度对比时可用表格内迷你条（`rk-barcell`）或柱状条（`rk-chart`）。功能、数据模型、API、测试检查与问题清单必须用表格承载 Spec 位置、代码位置和证据，不用图替代证据。小 Spec 可只有 kpis，未发现的类别在表中写「（无）」，不删检查项；不符合项用 `is-fail`/`is-warn`，不得把未检查项计入通过。
-- **开发者审核关注点**：每个不符项是否同时给出 Spec 位置、代码位置与可复核的事实；`blocker` / `major` / `minor` 定级依据；测试结论是否有 tester 证据支持（本角色不重做 Test Quality）；额外实现与范围外发现是否单列；AWR 结构缺口是否登记。
+- **首屏与图**（机检强制最低图种）：结论块一句话给出审查结果（通过 / 需修复 / 严重不符，与 `rk:result` 一致）；紧跟指标卡（`rk-kpis`：通过 / 不符 / 风险项计数），放在结论块之后、第一个正文章节结束之前。紧随「1. 审查摘要」设「2. 验证产物总览」，将关键截图（UI 变更用 `figure.rk-fig` 内嵌并附录屏/trace 链接）、实跑命令输出摘要以及（状态流转场景按 `references/statechart-review.md` 绘制的）用户视角 SVG 状态机前置呈现。
+- **图与表分工**：计数用 kpis；多个任务做横向符合度对比时可用表格内迷你条（`rk-barcell`）或柱状条（`rk-chart`）；有状态流转或 UI 验证截图时用 `figure.rk-fig`（画法见 `html-report/references/figures.md`）。功能、数据模型、API、测试检查、不变量路径与问题清单必须用表格承载 Spec 位置、代码位置、复现探针和证据，不用图替代证据。小 Spec 可只有 kpis，未发现的类别在表中写「（无）」，不删检查项；不符合项用 `is-fail`/`is-warn`，不得把未检查项计入通过。
+- **开发者审核关注点**：验证产物充分度及与结论一致性；每个不符项是否同时给出 Spec 位置、代码位置与实测复现依据（未实测是否标 `[INFERENCE]`）；`blocker` / `major` / `minor` 定级依据；状态机与不变量检查是否覆盖异常路径；测试结论是否有 tester 证据支持（本角色不重做 Test Quality）；额外实现与范围外发现是否单列；AWR 结构缺口是否登记。
 - **篇幅**：按内容选择图，不按字数凑图；单段聚焦一个判断，建议 150 字以内便于扫读。差异说明、证据路径用表格或代码保留，不因篇幅删减。画法见 `html-report/references/figures.md`
 - 写完按 html-report「结构机检」一节的命令运行 `check-report.js`，退出码为 0 才算完成
 
@@ -132,6 +133,8 @@ AWR 状态机与结构一致性检查：
 
 **禁止**：
 - ❌ 只检查完成度，忽略一致性和额外实现检查
+- ❌ 忽略 `tester/artifacts/` 验证产物充分度，只看测试报告结论字面
+- ❌ 未经实测就把静态猜测写成确凿 `blocker`（未实测必须显式标 `[INFERENCE]`）
 - ❌ 审查报告缺少具体代码位置引用（`rk-ref`）
 - ❌ 跳过该模式对应的确认（`gated` 缺用户确认 / `autopilot` 缺自门禁证据）
 - ❌ `autopilot` 模式下跳过审查阶段
@@ -139,6 +142,9 @@ AWR 状态机与结构一致性检查：
 
 **推荐**：
 - ✅ 每个检查项标注 Spec 位置 + 代码位置
-- ✅ 问题按严重度分类（`blocker` / `major` / `minor`）
+- ✅ 首屏前置呈现验证产物与实跑证据，降低人工逐行看代码负担
+- ✅ 有状态流转时用用户视角 SVG 状态机暴露违规、死锁与缺失回退路径
+- ✅ 问题按严重度分类（`blocker` / `major` / `minor`）并附实测探针输出
 - ✅ 复审只看原始发现项 + 修复带来的 diff，范围外新问题记为延后次要项
+- ✅ 审查遗留物时按白名单清理借口注释与掩盖正确性检查的 lint/类型抑制
 - ✅ 发现常见实现偏差模式时记录到经验库

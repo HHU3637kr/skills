@@ -184,13 +184,13 @@ tests/
 <h3>6.2 后续优化（可选）</h3>
 <p>{后续优化项}</p>
 
-<h3>6.3 规范维护审查</h3>
+<h3>6.3 待 spec-end 汇总的规范与本体变更线索</h3>
 <table>
-  <thead><tr><th>审查项</th><th>结论</th></tr></thead>
+  <thead><tr><th>线索项</th><th>记录摘要（不在此阶段落盘，交由 spec-end 统一审定写回）</th></tr></thead>
   <tbody>
-    <tr><td>是否需要更新 AGENTS.md 入口清单</td><td>{否/是（说明）}</td></tr>
-    <tr><td>是否需要更新 .agents/rules/ 长期规则或项目偏好</td><td>{否/是（说明）}</td></tr>
-    <tr><td>规则性质</td><td>{长期规则 / 一次性实现细节（一次性细节不写入规范）}</td></tr>
+    <tr><td>是否触发 AGENTS.md / .agents/rules/ 长期规则变更</td><td>{否 | 是：简述长期规则线索（一次性实现细节不写入）}</td></tr>
+    <tr><td>是否触发 spec/context/ontology/ontology.json 本体变更</td><td>{否 | 是：简述变动的契约/口径/不变量/关系边（由 spec-end 统一写回并渲染）}</td></tr>
+    <tr><td>可复用经验与知识线索</td><td>{无 | 简述困境-策略对或模块认知（由 spec-end 调用 exp-reflect 统一分流）}</td></tr>
   </tbody>
 </table>
 

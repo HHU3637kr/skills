@@ -332,7 +332,7 @@ esac
 
 # 9. 搭建三级架构空间与经验知识库
 echo "🏗️ 正在构建三级架构与经验库骨架 (spec/)..."
-mkdir -p spec/versions spec/context/experience spec/context/knowledge
+mkdir -p spec/versions spec/context/experience spec/context/knowledge spec/context/ontology
 
 if [ ! -f "spec/versions/README.md" ]; then
     cat << EOF > spec/versions/README.md

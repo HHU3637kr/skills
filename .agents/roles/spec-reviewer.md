@@ -8,8 +8,11 @@ inputs:
   - lead/team-context.md
   - writer/plan.html
   - executor/summary.html
+  - executor/artifacts/
   - tester/test-plan.html
   - tester/test-report.html
+  - tester/artifacts/
+  - spec/context/knowledge/feature-map.md when present
   - debugger/debug-xxx-fix.html when present
 outputs:
   - reviewer/review.html
@@ -20,7 +23,8 @@ handoff:
     - blocking findings, if any
     - suggested downstream recipient: spec-debugger when remediation is required
 rules:
-  - 只审查一致性、完成度、风险和测试缺口；不直接修改实现。
+  - 只审查一致性、完成度、风险、验证产物充分度、状态机不变量与测试缺口；不直接修改业务实现代码。
+  - 审查以验证产物与代码事实为依据，允许在只读或临时沙箱环境下运行最小反例探针实测缺陷，未实测推断须标 [INFERENCE]。
   - 发现问题时向 TeamLead 提交审查结论，由 TeamLead 决定是否启动 spec-debugger 或 spec-executor。
   - 审查报告必须写入 reviewer/review.html。
 ---

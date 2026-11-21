@@ -136,15 +136,62 @@
 &lt;h2&gt;1. 审查摘要&lt;/h2&gt;
 &lt;p&gt;审查日期 {YYYY-MM-DD HH:MM}，严格程度 {严格|宽松}；已完成 / 未完成 / 不符项 / 额外项计数见上方指标卡。&lt;/p&gt;
 
-&lt;h2&gt;2. 详细检查结果&lt;/h2&gt;
+&lt;h2&gt;2. 验证产物总览&lt;/h2&gt;
+&lt;p&gt;先核对实跑产物与用户视角状态行为，再按需下钻代码行号。&lt;/p&gt;
 
-&lt;h3&gt;2.1 功能完成度&lt;/h3&gt;
+&lt;h3&gt;2.1 关键运行证据&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;验证对象 / 验收项&lt;/th&gt;&lt;th&gt;产物类型&lt;/th&gt;&lt;th&gt;证据路径与摘要&lt;/th&gt;&lt;th&gt;充分度与一致性&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{US-001 / 关键路径}&lt;/td&gt;&lt;td&gt;{截图 / 录屏 / trace / CLI 输出}&lt;/td&gt;&lt;td&gt;&lt;code&gt;../tester/artifacts/test-logs/{run-id}/...&lt;/code&gt;（Exit: 0）&lt;/td&gt;&lt;td&gt;{充分 / 产物不足}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;!-- UI/端侧变更保留下方截图块（export-standalone.js 会自动转 data URI）；纯后端/CLI 变更删去此图并保留下方实跑命令摘要块 --&gt;
+&lt;figure class="rk-fig"&gt;
+  &lt;img src="../tester/artifacts/test-logs/{run-id}/screenshots/{key-state}.png" alt="{关键交互状态截图}"&gt;
+  &lt;figcaption&gt;图 1：关键验证截图（录屏/trace 见 &lt;a href="../tester/artifacts/test-logs/{run-id}/recordings/"&gt;recordings&lt;/a&gt;）。&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;pre&gt;&lt;code&gt;$ {验证命令（如适用；UI 类若无需命令行摘要可删除本块）}
+# Exit: 0 | Run: {run-id} | 关键输出：{可核对的实跑结果摘要}&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3&gt;2.2 核心不变量与用户视角状态机（有状态/并发/权限场景适用）&lt;/h3&gt;
+&lt;!-- 无多状态流转/并发/重试/权限切换时，删去下方 SVG 与表格，保留一句「不适用（本次无状态流转）」。禁止在状态节点或箭头中暴露内部变量名或函数名。 --&gt;
+&lt;figure class="rk-fig"&gt;
+  &lt;svg viewBox="0 0 640 160" role="img" aria-label="用户视角状态转移与不变量检查示意"&gt;
+    &lt;defs&gt;&lt;marker id="rv1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" orient="auto"&gt;&lt;path class="arrow" d="M0 0 L8 4 L0 8 z"/&gt;&lt;/marker&gt;&lt;/defs&gt;
+    &lt;rect class="node" x="10" y="20" width="120" height="44" rx="8"/&gt;
+    &lt;text x="70" y="46" text-anchor="middle"&gt;{初始态}&lt;/text&gt;
+    &lt;path class="edge" d="M130 42 H208" marker-end="url(#rv1)"/&gt;
+    &lt;text class="lbl" x="169" y="32" text-anchor="middle"&gt;{用户动作}&lt;/text&gt;
+    &lt;rect class="c-amber" x="210" y="20" width="120" height="44" rx="8"/&gt;
+    &lt;text x="270" y="46" text-anchor="middle"&gt;{可疑中间态}&lt;/text&gt;
+    &lt;path class="edge" d="M330 42 H428" marker-end="url(#rv1)"/&gt;
+    &lt;text class="lbl" x="379" y="32" text-anchor="middle"&gt;{正常完成}&lt;/text&gt;
+    &lt;rect class="c-green" x="430" y="20" width="140" height="44" rx="8"/&gt;
+    &lt;text x="500" y="46" text-anchor="middle"&gt;{安全终态}&lt;/text&gt;
+    &lt;path class="edge dash" d="M270 64 V122 H428" marker-end="url(#rv1)"/&gt;
+    &lt;text class="lbl" x="349" y="114" text-anchor="middle"&gt;{异常/竞态触发}&lt;/text&gt;
+    &lt;rect class="c-red" x="430" y="100" width="140" height="44" rx="8"/&gt;
+    &lt;text x="500" y="126" text-anchor="middle"&gt;{违规/死锁态}&lt;/text&gt;
+  &lt;/svg&gt;
+  &lt;figcaption&gt;图 2：用户视角状态机——&lt;code&gt;c-green&lt;/code&gt; 为安全态，&lt;code&gt;c-amber&lt;/code&gt; 为缺证据/可疑态，&lt;code&gt;c-red&lt;/code&gt; 与虚线为违背不变量路径；未画出全局重置转移。&lt;/figcaption&gt;
+&lt;/figure&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;不变量&lt;/th&gt;&lt;th&gt;用户视角规则&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;th&gt;最短触发路径&lt;/th&gt;&lt;th&gt;代码位置与证据&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;INV-001&lt;/td&gt;&lt;td&gt;{不可违背的业务约束}&lt;/td&gt;&lt;td&gt;{通过 / 违背 / 缺实证}&lt;/td&gt;&lt;td&gt;{无 / 初始态 → 动作 → 异常事件 → 违规态}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:45&lt;/span&gt;（{探针输出或 [INFERENCE]}）&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;3. 详细检查结果&lt;/h2&gt;
+
+&lt;h3&gt;3.1 功能完成度&lt;/h3&gt;
 
 &lt;div class="rk-cal ok"&gt;&lt;div class="t"&gt;已完成&lt;/div&gt;&lt;p&gt;下列功能实现与 Spec 一致。&lt;/p&gt;&lt;/div&gt;
 &lt;table&gt;
-  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;功能&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;验证产物&lt;/th&gt;&lt;th&gt;说明&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
-    &lt;tr&gt;&lt;td&gt;{功能 1}&lt;/td&gt;&lt;td&gt;plan 3.1&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:50&lt;/span&gt;&lt;/td&gt;&lt;td&gt;符合预期&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;{功能 1}&lt;/td&gt;&lt;td&gt;plan 3.1&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:50&lt;/span&gt;&lt;/td&gt;&lt;td&gt;&lt;code&gt;tester/artifacts/...&lt;/code&gt;&lt;/td&gt;&lt;td&gt;符合预期&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 
@@ -172,7 +219,7 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h3&gt;2.2 数据模型检查&lt;/h3&gt;
+&lt;h3&gt;3.2 数据模型检查&lt;/h3&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;模型/字段&lt;/th&gt;&lt;th&gt;Spec 定义&lt;/th&gt;&lt;th&gt;实际实现&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -180,7 +227,7 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h3&gt;2.3 API 接口检查&lt;/h3&gt;
+&lt;h3&gt;3.3 API 接口检查&lt;/h3&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;接口&lt;/th&gt;&lt;th&gt;Spec 定义&lt;/th&gt;&lt;th&gt;实现位置&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -188,7 +235,7 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h3&gt;2.4 测试检查&lt;/h3&gt;
+&lt;h3&gt;3.4 测试检查&lt;/h3&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;测试项&lt;/th&gt;&lt;th&gt;计划&lt;/th&gt;&lt;th&gt;实际&lt;/th&gt;&lt;th&gt;证据&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -196,20 +243,20 @@
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h2&gt;3. 问题清单&lt;/h2&gt;
+&lt;h2&gt;4. 问题清单&lt;/h2&gt;
 &lt;table&gt;
-  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;优先级&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;严重度&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;复现依据 / 探针&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
-    &lt;tr&gt;&lt;td&gt;高&lt;/td&gt;&lt;td&gt;{核心功能未实现 / 数据模型严重不符}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;td&gt;中&lt;/td&gt;&lt;td&gt;{接口参数不一致 / 测试缺失}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/yyy.ts:31&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
-    &lt;tr&gt;&lt;td&gt;低&lt;/td&gt;&lt;td&gt;{命名差异 / 额外实现}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/zzz.ts:7&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class="rk-tag is-fail"&gt;blocker&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{核心功能未实现 / 违背 INV-001 / 数据错误}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{实测探针命令与输出，或 artifacts 路径；未实测须标 [INFERENCE]}&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class="rk-tag is-warn"&gt;major&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{接口不一致 / 缺失异常路径或验证产物}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/yyy.ts:31&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{实测输出或 [INFERENCE]}&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class="rk-tag"&gt;minor&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{命名差异 / 额外实现 / 可读性}&lt;/td&gt;&lt;td&gt;plan {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/zzz.ts:7&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{静态核对位置}&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 &lt;div class="rk-cal risk"&gt;&lt;div class="t"&gt;需升级给用户决策&lt;/div&gt;&lt;p&gt;
   {核心功能未实现 / 数据模型严重不符 / 需重新实现}——已在运行账本「问题闭环记录」登记，交回 TeamLead 由用户决策。无此类问题时删除本块。
 &lt;/p&gt;&lt;/div&gt;
 
-&lt;h2&gt;4. 归档判定&lt;/h2&gt;
+&lt;h2&gt;5. 归档判定&lt;/h2&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;result&lt;/th&gt;&lt;th&gt;本次&lt;/th&gt;&lt;th&gt;后续操作&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -242,7 +289,7 @@
 
 <p>与骨架 A 结构相同，差异集中在元信息与审查对象：<code>rk:type</code> 仍是 <code>review</code>，增加
 <code>rk:update-number</code>，关联对象从 <code>plan</code> + <code>summary</code> 换成 <code>plan</code> +
-<code>update-XXX</code> + <code>update-XXX-summary</code>。正文各检查章节（2.1–2.4、问题清单、归档判定）照骨架 A 原样保留。</p>
+<code>update-XXX</code> + <code>update-XXX-summary</code>。正文沿用 <code>2. 验证产物总览</code>（2.1 关键运行证据 + 2.2 状态机/不变量按需检查）、<code>3. 详细检查结果</code>（3.1–3.4 与 3.5 回归检查）、<code>4. 问题清单</code>（<code>blocker/major/minor</code> 与复现依据）及 <code>5. 归档判定</code>。</p>
 
 <pre><code>&lt;!DOCTYPE html&gt;
 &lt;html lang="zh-CN"&gt;
@@ -329,12 +376,31 @@
 &lt;h2&gt;1. 审查摘要&lt;/h2&gt;
 &lt;p&gt;已完成 / 未完成 / 不符项 / 额外项计数见上方指标卡；审查对象为 update-XXX 的变更清单。&lt;/p&gt;
 
-&lt;h2&gt;2. 详细检查结果&lt;/h2&gt;
-&lt;p&gt;章节结构与新功能审查一致：2.1 功能完成度（&lt;code&gt;rk-cal ok&lt;/code&gt; 已完成 / &lt;code&gt;rk-cal risk&lt;/code&gt; 未完成 /
-&lt;code&gt;rk-cal warn&lt;/code&gt; 不符项 + 额外项）、2.2 数据模型、2.3 API 接口、2.4 测试；每个检查项都带
+&lt;h2&gt;2. 验证产物总览&lt;/h2&gt;
+&lt;h3&gt;2.1 关键运行证据&lt;/h3&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;验证对象 / 验收项&lt;/th&gt;&lt;th&gt;产物类型&lt;/th&gt;&lt;th&gt;证据路径与摘要&lt;/th&gt;&lt;th&gt;充分度与一致性&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;{update-XXX 变更路径}&lt;/td&gt;&lt;td&gt;{截图 / trace / CLI 输出}&lt;/td&gt;&lt;td&gt;&lt;code&gt;../tester/artifacts/test-logs/{run-id}/...&lt;/code&gt;（Exit: 0）&lt;/td&gt;&lt;td&gt;{充分 / 产物不足}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;UI/端侧变更按骨架 A 嵌入 &lt;code&gt;figure.rk-fig&lt;/code&gt; 关键截图与录屏链接；纯后端/CLI 变更附实跑命令、退出码与输出摘要。&lt;/p&gt;
+
+&lt;h3&gt;2.2 核心不变量与用户视角状态机（有状态/并发/权限场景适用）&lt;/h3&gt;
+&lt;p&gt;涉及状态流转或权限切换时，按骨架 A 嵌入用户视角 SVG 状态机并核对下表；无状态流转时保留本标题并写明「不适用（本次无状态流转）」。&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;不变量&lt;/th&gt;&lt;th&gt;用户视角规则&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;th&gt;最短触发路径&lt;/th&gt;&lt;th&gt;代码位置与证据&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;INV-001&lt;/td&gt;&lt;td&gt;{不适用 / 业务约束}&lt;/td&gt;&lt;td&gt;{通过 / 违背 / 不适用}&lt;/td&gt;&lt;td&gt;{无 / 最短路径}&lt;/td&gt;&lt;td&gt;{证据或 [INFERENCE]}&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;h2&gt;3. 详细检查结果&lt;/h2&gt;
+&lt;p&gt;章节结构与新功能审查一致：3.1 功能完成度（&lt;code&gt;rk-cal ok&lt;/code&gt; 已完成含「验证产物」列 / &lt;code&gt;rk-cal risk&lt;/code&gt; 未完成 /
+&lt;code&gt;rk-cal warn&lt;/code&gt; 不符项 + 额外项）、3.2 数据模型、3.3 API 接口、3.4 测试；每个检查项都带
 &lt;code&gt;Spec 位置&lt;/code&gt; 与 &lt;span class="rk-ref"&gt;file:line&lt;/span&gt; 代码位置。&lt;/p&gt;
 
-&lt;h3&gt;2.5 回归检查（更新审查特有）&lt;/h3&gt;
+&lt;h3&gt;3.5 回归检查（更新审查特有）&lt;/h3&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;原有功能&lt;/th&gt;&lt;th&gt;是否受影响&lt;/th&gt;&lt;th&gt;证据&lt;/th&gt;&lt;th&gt;结论&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -343,15 +409,15 @@
 &lt;/table&gt;
 &lt;div class="rk-cal warn"&gt;&lt;div class="t"&gt;注意&lt;/div&gt;&lt;p&gt;{更新引入的兼容性风险或需人工验证的场景}&lt;/p&gt;&lt;/div&gt;
 
-&lt;h2&gt;3. 问题清单&lt;/h2&gt;
+&lt;h2&gt;4. 问题清单&lt;/h2&gt;
 &lt;table&gt;
-  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;优先级&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;严重度&lt;/th&gt;&lt;th&gt;问题&lt;/th&gt;&lt;th&gt;Spec 位置&lt;/th&gt;&lt;th&gt;代码位置&lt;/th&gt;&lt;th&gt;复现依据 / 探针&lt;/th&gt;&lt;th&gt;修复建议&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
-    &lt;tr&gt;&lt;td&gt;高&lt;/td&gt;&lt;td&gt;{问题}&lt;/td&gt;&lt;td&gt;update-XXX {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;span class="rk-tag is-warn"&gt;major&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{问题}&lt;/td&gt;&lt;td&gt;update-XXX {X.X}&lt;/td&gt;&lt;td&gt;&lt;span class="rk-ref"&gt;src/xxx.ts:88&lt;/span&gt;&lt;/td&gt;&lt;td&gt;{实测探针输出或 [INFERENCE]}&lt;/td&gt;&lt;td&gt;{建议}&lt;/td&gt;&lt;/tr&gt;
   &lt;/tbody&gt;
 &lt;/table&gt;
 
-&lt;h2&gt;4. 归档判定&lt;/h2&gt;
+&lt;h2&gt;5. 归档判定&lt;/h2&gt;
 &lt;table&gt;
   &lt;thead&gt;&lt;tr&gt;&lt;th&gt;result&lt;/th&gt;&lt;th&gt;本次&lt;/th&gt;&lt;th&gt;后续操作&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
   &lt;tbody&gt;
@@ -442,14 +508,16 @@
 
 <h2>撰写要点</h2>
 <ul>
+  <li><strong>验证产物优先呈现在第 2 节</strong>：UI/端侧变更通过 <code>figure.rk-fig</code> 内嵌关键截图并链接录屏/trace（<code>export-standalone.js</code> 会自动内联本地图片），后端/CLI 变更附实跑命令、退出码与摘要；让人类审阅者先看运行事实再查代码。</li>
+  <li><strong>有状态流转时按 <code>statechart-review.md</code> 画用户视角 SVG 状态机</strong>：用 <code>node</code> / <code>c-green</code> / <code>c-amber</code> / <code>c-red</code> / <code>edge dash</code> 标出安全态与违背不变量的路径，图后附最短触发路径表；无状态流转则删图写明不适用。</li>
   <li>审查结果用 Callout 分组：<code>rk-cal ok</code> 已完成、<code>rk-cal risk</code> 未完成/严重不符、<code>rk-cal warn</code> 不符项与需关注风险。</li>
   <li>结论块 <code>rk-verdict is-pass|is-fail</code> 与 <code>rk:result</code> 保持一致，一句话说清能否归档。</li>
   <li>每个检查项必须同时给出 Spec 位置与代码位置，代码位置一律 <code>&lt;span class="rk-ref"&gt;src/x.ts:88&lt;/span&gt;</code>。</li>
-  <li>问题按高/中/低优先级分类，写进问题清单表；发现需升级的问题时同步登记运行账本「问题闭环记录」。</li>
+  <li>问题清单统一按 <code>blocker</code> / <code>major</code> / <code>minor</code>（<code>rk-tag</code>）定级，并写明「复现依据 / 探针」输出（未实测须显式标 <code>[INFERENCE]</code>）；发现需升级的问题时同步登记运行账本「问题闭环记录」。</li>
   <li>首屏指标卡计数必须等于下方各检查表行数之和；多个任务需要横向比较符合度时，可在表格内用 <code>rk-barcell</code>（如「符合项 / 检查项」），不要另造一张无来源的图。未检查的类别在表中写「（无）」并保留检查项，不计入通过。</li>
-  <li>开发者审核关注点：每个不符项是否给出 Spec 位置、代码位置与可复核事实；定级是否按 rubric；测试结论是否有 tester 证据支持；额外实现与范围外发现是否单列。</li>
+  <li>开发者审核关注点：验证产物是否足以支撑结论；每个不符项是否给出 Spec 位置、代码位置、复现依据或 <code>[INFERENCE]</code> 标示；定级是否按 rubric；测试结论是否有 tester 证据支持；额外实现与范围外发现是否单列。</li>
   <li>双向关联：本报告 <code>rk-links</code> 加一条时，对侧报告 <code>rk-backlinks</code> 补一条；对侧尚未产出先标注「（待创建）」，等产出后补齐。</li>
-  <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN；更新审查编号递增时同步替换文件名与全部链接。</li>
+  <li>禁止 <code>&lt;style&gt;</code>、行内 <code>style=</code>、外部 CDN 与 SVG 硬编码色值；更新审查编号递增时同步替换文件名与全部链接。</li>
 </ul>
 
 </body>

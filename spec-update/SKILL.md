@@ -1,18 +1,30 @@
 ---
 disable-model-invocation: false
 name: spec-update
-description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<spec-dir>/`）在当前工作分支内需要小迭代、补充需求、修正方案或优化实现，且原 Spec 目录已有 writer/plan.html + executor/summary.html 时使用。典型信号：'改 writer/plan.html 里漏掉的分页参数''补一条原 Spec 没覆盖的需求''修 update 方案里写错的验收标准'、修订既有 writer/plan.html / executor/summary.html、给已有报告递增修订号并补修订历史行（5 列格式与 `<ins>/<del>` 标记规则由 html-report 定义，写什么内容、为什么归本 Skill）——只要动的是报告所承载的 Spec 内容，就走本 Skill；请求里出现 report/html 字样不改变归属。只关心报告骨架、样式表、修订标记或 meta/双链格式本身时改用 html-report。默认复用 writer/plan.html 记录的 git_branch，不新建分支。不要用于新功能从零设计、已合并/已关闭分支上的后续需求，或需要独立 PR/MR 的较大变更。
+description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<spec-dir>/`）在当前工作分支内需要小迭代、补充需求、修正方案或优化实现，且原 Spec 目录已有 writer/plan.html + executor/summary.html 时使用。典型信号：'改 writer/plan.html 里漏掉的分页参数''补一条原 Spec 没覆盖的需求''修 update 方案里写错的验收标准'、修订既有 writer/plan.html / executor/summary.html、给已有报告递增修订号并补修订历史行（5 列格式与 `<ins>/<del>` 标记规则由 html-report 定义，写什么内容、为什么归本 Skill）——只要动的是报告所承载的 Spec 内容，就走本 Skill；请求里出现 report/html 字样不改变归属。只关心报告骨架、样式表、修订标记或 meta/双链格式本身时改用 html-report。默认复用 writer/plan.html 记录的 git_branch，不新建分支。本 Skill 只负责增量方案、实现、测试与审查闭环，**不设独立收尾阶段**——审查通过后统一交回 TeamLead，由 `spec-end` 执行经验沉淀、规范与本体维护、提交/推送、PR 与（可选）原位归档。不要用于新功能从零设计、已合并/已关闭分支上的后续需求，或需要独立 PR/MR 的较大变更。
 ---
 # Spec Update
+
+## 运行契约
+
+> 进入核心原则前先对齐这张表。它把本 Skill 当成一个有边界的小迭代循环单元：明确读什么、能动什么、怎么算完成、什么时候停、什么时候交还统一收尾。
+
+| 项 | 本 Skill 的约定 |
+|----|----------------|
+| 输入 | 原 Spec 产物（`writer/plan.html`、`executor/summary.html`、`lead/team-context.md`）、AWR 聚焦上下文、`exp-search` 检索结果、项目本体 `spec/context/ontology/ontology.json`（如存在） |
+| 权限 | 复用当前 Spec 分支（校验，不新开）；写 `updater/update-xxx.html` / `update-xxx-summary.html` + 增量代码与测试 + 协调 `spec-review`；**不做独立收尾**（不执行 `exp-reflect`、不落盘修改 `AGENTS.md`/rules/全局本体、不提交/推送/创建更新 PR、不归档——全部统一交 `spec-end`） |
+| 验证 | update 方案经确认；新增测试 + 回归测试全绿；`reviewer/update-xxx-review.html` 审查通过；报告均过 `html-report` 结构机检 |
+| 停止 | `reviewer/update-xxx-review.html` 确认通过且账本与待汇总线索记录完毕即停止，交回 TeamLead 进入下一轮 update 或 `spec-end` 统一收尾 |
+| 升级 | 原分支已合并/删除、当前变更需独立 PR、或回归/审查发现超出原 Spec 范围时，停止并交回 TeamLead 由用户决策 |
 
 ## 核心原则
 
 1. **同 Spec 原则**：update 报告必须放在原 Spec 目录的 `updater/` 下，禁止创建新的 Spec 根目录
-2. **不归档原则**：更新完成后不归档，保留在原目录以便后续更新
+2. **不归档原则**：更新阶段不自行归档，保留在原目录以便后续更新或统一交由 `spec-end` 归档
 3. **编号递增**：`updater/update-001.html` → `updater/update-002.html` → `updater/update-003.html`（三位数，不跳号）
 4. **严格遵循方案**：只实现 `updater/update-xxx.html` 定义的修改，不添加方案之外的内容
 5. **回归测试必须通过**：新增测试 + 修改测试 + 原有功能回归测试全部通过
-6. **规范维护审查**：更新也可能产生长期规则，完成后同样检查是否需要维护 AGENTS.md / .agents/rules/
+6. **不做独立收尾**：经验沉淀（`exp-reflect`）、规范与本体维护、归档、分支提交/推送与 PR 统一由 `spec-end` 执行；本阶段仅在 `update-xxx-summary.html` 登记待汇总的规范与本体变更线索
 7. **同分支原则**：update 默认复用原 Spec 的 `git_branch`，禁止为同一活跃 Spec 的小更新默认创建新分支
 8. **报告用 HTML**：update 报告遵循 html-report 契约（HTML + 共享样式表 + `data-rev` 修订标记）；经验/知识记忆保持 Markdown（账本两种格式皆可）
 9. **续接同一批角色**：update 是同一个 Spec 的延续，不是新任务。必须续接原来那批角色，不重新 spawn —— 见下文「角色续接」
@@ -36,7 +48,7 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 
 ## 确认方式随模式（必须执行）
 
-`gated` 模式下，以下三个节点必须使用当前运行环境的确认方式向用户确认。`autopilot` 模式下由各节点标注的机械证据替代，缺证据不得放行：
+`gated` 模式下，以下两个节点必须使用当前运行环境的确认方式向用户确认（分支收尾与提交/推送/PR 统一在 `spec-end` 中确认）。`autopilot` 模式下由各节点标注的机械证据替代，缺证据不得放行：
 
 **节点 1 — 更新方案确认**（创建 `updater/update-xxx.html` 后）：
 ```text
@@ -48,18 +60,10 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 
 **节点 2 — 审查报告确认**（生成 `reviewer/update-xxx-review.html` 后）：
 ```text
-确认目标：reviewer/update-xxx-review.html 已创建完成，审查结果是否通过？
+确认目标：reviewer/update-xxx-review.html 已创建完成，审查结果是否通过？审查通过后将交由 TeamLead / spec-end 执行统一收尾（或继续下一轮 spec-update）。
 确认选项：
 - 审查通过
 - 需要修复（请说明问题）
-```
-
-**节点 3 — 分支收尾确认**（测试和审查通过后）：
-```text
-确认目标：本次 update 已通过测试和审查。是否提交并推送当前 Spec 分支？如果该 Spec 已准备整体交付，是否创建/更新 PR？
-确认选项：
-- 确认，提交并推送
-- 暂不提交
 ```
 
 响应处理：选择确认选项 → 继续；选择修改/修复或"Other" → 根据用户反馈调整后重新确认。
@@ -100,17 +104,20 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
    AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
    bash "$AWR_CP" --work <SPEC-ID> --agent spec-update --digest "spec-update: update-xxx 方案确认，准备进入实现" --next-action "spec-update: 按方案执行代码更新与单测"
    ```
-6. **检索历史经验**：调用 `/exp-search <关键词>`
+6. **检索历史经验与本体影响面**：调用 `/exp-search <关键词>`；若项目存在 `spec/context/ontology/ontology.json`，运行本体子图查询确认上下游影响面与回归边界：
+   ```bash
+   node .agents/skills/project-ontology/scripts/query-ontology.js \
+     spec/context/ontology/ontology.json \
+     --target "<变更模块/字段>" --direction both --depth 2 --freshness --repo .
+   ```
 7. **创建任务清单**：根据 `updater/update-xxx.html` 的"实现步骤"章节创建
 8. **按方案实现更新**：严格遵循方案，不修改方案之外的代码
 9. **编写/更新测试**：新增测试 + 修改测试 + 回归测试
 10. **运行测试验证**：全部通过才能继续
-11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；并继承 update 报告的 Git 元信息，同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链。本步修订或新建的每份报告都要过结构机检（退出码 0）：`node .agents/skills/html-report/scripts/check-report.js <SPEC-DIR>`；其中 update 报告至少含结构图或流程条、update-summary 至少含指标卡或流程条（放在结论块之后）；图按内容选择，不按字数凑图，单段建议 150 字以内便于扫读，详尽证据用表格或代码保留、不得删减
+11. **创建 updater/update-xxx-summary.html**：参照 [references/summary-template.html](references/summary-template.html)，应用 html-report 契约：完整 `rk:*` meta + `rk-*` link 双轨元信息、`rk-verdict` 结论块、`rk-cal ok` / `rk-cal warn` 组件、`rk-links` / `rk-backlinks` 双向关联，修订遵循 `data-rev` 规范；继承 update 报告的 Git 元信息，并在第 6.3 节登记待 `spec-end` 汇总的规范与本体变更线索（同时在 `update-xxx.html` 的 `rk-backlinks` 补上本总结的反链）。本步修订或新建的每份报告都要过结构机检（退出码 0）：`node .agents/skills/html-report/scripts/check-report.js <SPEC-DIR>`；其中 update 报告至少含结构图或流程条、update-summary 至少含指标卡或流程条（放在结论块之后）；图按内容选择，不按字数凑图，单段建议 150 字以内便于扫读，详尽证据用表格或代码保留、不得删减
 12. **使用 spec-review 审查**：生成 `reviewer/update-xxx-review.html`；审查报告产出后，回到 `update-xxx.html` / `update-xxx-summary.html` 的 `rk-backlinks` 把「审查报告」反链补齐（原先标注「待创建」的条目同步去掉标注）
 13. **等待用户确认审查报告**：使用当前运行环境的确认方式（节点 2）
-14. **经验与规范收尾**：调用 `/exp-reflect`，并审查是否需要维护 AGENTS.md / .agents/rules/
-15. **等待分支收尾确认**：使用当前运行环境的确认方式（节点 3）
-16. **提交并推送当前 Spec 分支**：调用 `/git-work` 的“完成 Spec 分支”模式，提交并推送；如果用户确认该 Spec 已准备整体交付，则创建/更新面向 `dev` 的 PR/MR；如获得 PR/MR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 的 `.rk-meta`（按修订规范递增修订号、追加修订历史行），并**并入同一次提交**（`git commit --amend --no-edit` + `git push --force-with-lease`），不产生第二次提交
+14. **交接统一收尾（不设独立收尾）**：更新 `lead/team-context.md` 的「任务进度」（必要时更新「问题闭环记录」与「决策记录」），提交 AWR 阶段检查点（**不传 `--end`**，会话留待后续 update 或 `spec-end` 接力），并通知 TeamLead：本轮 `update-xxx` 已通过测试与审查，可继续下一轮 `spec-update` 或启动 `spec-end` 执行统一收尾（经验沉淀、规范与本体同步、提交推送与 PR/归档）。
 
 ## 错误处理
 
@@ -125,15 +132,12 @@ description: 当同一个活跃 Spec（位于 `spec/versions/<version>/specs/<sp
 ## 后续动作
 
 完成更新后：
-1. 调用 `/exp-reflect` 进行经验反思
-2. 审查是否需要维护 `AGENTS.md` / `.agents/rules/`；只写长期规则，不写一次性实现细节
-3. 如有经验沉淀，更新 `updater/update-xxx-summary.html` 添加经验引用（经验/知识文件本身保持 `.md`）
-4. 调用 `/git-work` 提交并推送当前 Spec 分支；只有当 Spec 准备整体交付时才创建/更新 PR
-5. 如有 PR URL，写回 `writer/plan.html` / `executor/summary.html` / `updater/update-xxx.html` / `updater/update-xxx-summary.html` 并通过 amend + force-with-lease 并入同一次提交
-6. 更新 `lead/team-context.md` 的「任务进度」，必要时更新「问题闭环记录」和「决策记录」
-7. **不归档**，保留在原目录
-8. 向 AWR 提交更新完成会话检查点：
+1. 在 `updater/update-xxx-summary.html` 第 6.3 节记录本次触发的长期规则或项目本体变更线索（不自行调用 `/exp-reflect`、不直接修改 `AGENTS.md`/`.agents/rules/`/全局本体，全部交由 `spec-end` 统一审定落盘）
+2. 不执行独立的 `git commit` / `push` / 创建 PR / 归档操作，全部交由 `spec-end` 统一收尾
+3. 更新 `lead/team-context.md` 的「任务进度」，必要时更新「问题闭环记录」和「决策记录」
+4. 保留在原 Spec 目录，不归档
+5. 向 AWR 提交更新完成阶段检查点（不传 `--end`，由 `spec-end` 最终核验并释放会话）：
    ```bash
    AWR_CP=.agents/skills/scripts/rk-awr-checkpoint.sh; [ -f "$AWR_CP" ] || AWR_CP=scripts/rk-awr-checkpoint.sh
-   bash "$AWR_CP" --work <SPEC-ID> --agent spec-update --digest "spec-update: 完成 update-xxx 更新与验证，产出 updater/update-xxx-summary.html" --next-action "待用户确认或合流" --end
+   bash "$AWR_CP" --work <SPEC-ID> --agent spec-update --digest "spec-update: 完成 update-xxx 更新、回归与审查，交由 spec-end 统一收尾" --next-action "spec-ender: 执行 spec-end 统一收尾（或继续 spec-update）"
    ```

@@ -2,7 +2,8 @@
 
 - 报告类产物（exploration-report / plan / test-plan / test-report / summary / debug / review / update / end-report）使用 HTML，遵循 `html-report` skill 的骨架与组件
 - 账本 `lead/team-context.md` 或 `lead/team-context.html` 二者皆可；用 HTML 时复用 `html-report` 的样式与组件，但**豁免修订标记**（账本是高频追写的运行流水，不是定稿后修订的报告）
-- `spec/context/` 记忆文件保持 Markdown（`exp-search` 按文本检索）
+- `spec/context/experience/` 与 `spec/context/knowledge/` 记忆文件保持 Markdown（`exp-search` 按文本检索）
+- `spec/context/ontology/`（如启用）以 `ontology.json` 为唯一真源，离线 HTML `index.html` 由脚本自动渲染
 - Spec 目录命名：`YYYYMMDD-HHMM-任务描述`，任务描述使用中文
 - 报告每次修改：修订号 +1、修订历史表追加一行、正文用 `<ins class="rk-ins">` / `<del class="rk-del">` 加 `data-rev` 标记，不静默改写原文
 - 报告样式只改 `html-report/assets/rk-report.css`，报告内禁止写 `<style>` 或行内 `style=`

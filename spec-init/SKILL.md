@@ -353,9 +353,10 @@ max_depth = 1
 mkdir -p "spec/versions"
 
 # 需求性质（feat/tech/debt/fix）由 Spec 属性指定，无需创建数字流程目录
-# 创建记忆系统目录
+# 创建记忆与本体目录（ontology 按需由 project-ontology 初始化 ontology.json）
 mkdir -p "spec/context/experience"
 mkdir -p "spec/context/knowledge"
+mkdir -p "spec/context/ontology"
 ```
 
 ### 步骤 6：创建记忆索引文件
@@ -435,7 +436,7 @@ New-Item -ItemType Junction -Path html-report\assets -Target (Resolve-Path .agen
 ```
 
 项目实际层级不同就相应调整，务必保证 `file://` 直接打开报告时样式生效。
-格式边界：报告用 `.html`，`spec/context/experience|knowledge/*.md` 保持 Markdown，账本两种格式皆可。
+格式边界：报告用 `.html`，`spec/context/experience|knowledge/*.md` 保持 Markdown，`spec/context/ontology/` 以 `ontology.json` 为真源并自动渲染 `index.html`，账本两种格式皆可。
 ### 步骤 8：配置 AWR 运行时环境
 
 R&K Flow 采用 AWR 作为底层运行状态与上下文编译引擎。在此步骤建立 AWR 配置并验证：
@@ -538,6 +539,7 @@ R&K Flow 采用 AWR 作为底层运行状态与上下文编译引擎。在此步
 │       ├── git-work/SKILL.md
 │       ├── skill-creator/SKILL.md
 │       ├── find-skills/SKILL.md
+│       ├── project-ontology/SKILL.md # 项目本体建模、查询与离线 HTML 渲染
 │       ├── html-report/SKILL.md      # HTML 报告契约 + assets/（样式与脚本单一源）
 │       └── html-report/assets/       # rk-report.css / rk-report.js
 ├── .claude/                          # 仅当 <runtime> == claude 生成
@@ -603,11 +605,12 @@ R&K Flow 采用 AWR 作为底层运行状态与上下文编译引擎。在此步
 │   │               │   └── update-001-summary.html
 │   │               └── ender/         # spec-ender 产物（原位归档）
 │   │                   └── end-report.html
-│   └── context/                       # 项目级记忆（跨全部版本共享）
+│   └── context/                       # 项目级长期记忆与本体（跨全部版本共享）
 │       ├── experience/
 │       │   └── index.md               # 经验索引
-│       └── knowledge/
-│           └── index.md               # 知识索引
+│       ├── knowledge/
+│       │   └── index.md               # 知识索引
+│       └── ontology/                  # 可选项目本体（由 project-ontology 按需生成 ontology.json + index.html）
 └── html-report/                      # 报告资产（可选：独立于 .agents/skills/ 分发时）
     └── assets/
         ├── rk-report.css             # 唯一样式源

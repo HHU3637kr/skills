@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Enterprise AI Coding Workflow 一键初始化脚本 (Windows 原生 PowerShell 版本)
     基于 R&K Flow 规范 (HHU3637kr/skills) 与 AWR (Agent Work Runtime ≥0.5.0)
@@ -318,6 +318,7 @@ Write-Host "🏗️ 正在构建三级架构与经验库骨架 (spec\)..." -Fore
 New-Item -ItemType Directory -Force -Path "spec\versions" | Out-Null
 New-Item -ItemType Directory -Force -Path "spec\context\experience" | Out-Null
 New-Item -ItemType Directory -Force -Path "spec\context\knowledge" | Out-Null
+New-Item -ItemType Directory -Force -Path "spec\context\ontology" | Out-Null
 
 if (-not (Test-Path "spec\versions\README.md")) {
     $versionsReadme = @"

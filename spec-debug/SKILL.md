@@ -12,12 +12,12 @@ description: 诊断并修复 Spec 执行过程中发现的问题。由角色 spe
 
 | 项 | 本 Skill 的约定 |
 |----|----------------|
-| 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`、`exp-search` 结果 |
-| 权限 | 写 `debugger/debug-xxx.html` / `debug-xxx-fix.html` + 最小化修复代码；不改已确认的 `writer/plan.html`、不加新功能、不自行判定修复成功 |
-| 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据）。**未验证根因不得改码**；修复后必须在当前工作树上跑一次复现步骤并观察输出，最终结论由 spec-tester 重新验证 |
-| 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复。另：连续几轮都有进展、但每轮都翻出新的共享状态或耦合时（Phase 4.5），停下质疑架构而非继续修 |
+| 输入 | TeamLead 转交的 bug handoff（含复现步骤）、`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`、`exp-search` 结果、项目本体 `spec/context/ontology/ontology.json`（如存在） |
+| 权限 | 写 `debugger/debug-xxx.html` / `debug-xxx-fix.html` + 最小化修复代码；不改已确认的 `writer/plan.html`、不加新功能、不自行判定修复成功；不直接在调试期改写全局本体（登记待同步线索交 `spec-end`，独立热修除外） |
+| 验证 | 诊断含根因分析、修复总结含前后对比与本轮进展（新增根因/缩小范围/新增证据）。**未验证根因不得改码**；启用本体时须附本体新鲜度校验、上游溯源/不变量核查与下游爆炸半径清单；修复后必须在当前工作树上跑一次复现步骤并观察输出，最终结论由 spec-tester 重新验证 |
+| 停止 | 受「修复循环预算」约束：「已用轮数」 达 「最大轮数」 或 「连续无进展」 达 「最大无进展轮数」 时停止修复。另：连续几轮都有进展、但每轮都翻出新的共享状态或耦合时（Phase 4.5），或本体命中 `shared_state`/绕开显式数据流边暴露架构耦合时，停下质疑架构而非继续修 |
 | 升级 | 触发预算上限、Phase 4.5 触发、或根因涉及权限/计费/数据迁移/需绕过测试时，停止并交回 TeamLead 由用户决策 |
-| 参考 | 进入诊断 → 必读 `references/root-cause-tracing.md`；涉及超时/竞态/等待 → 必读 `references/condition-based-waiting.md`；同类 bug 反复出现 → 必读 `references/defense-in-depth.md` |
+| 参考 | 进入诊断 → 必读 `references/root-cause-tracing.md`；项目存在 `spec/context/ontology/ontology.json` → 必读 `references/ontology-rca.md`；涉及超时/竞态/等待 → 必读 `references/condition-based-waiting.md`；同类 bug 反复出现 → 必读 `references/defense-in-depth.md`；基于同一前提连续失败 2 次 → 必读 `references/attack-the-premise.md` |
 
 ## 核心原则
 
@@ -59,6 +59,13 @@ spec-tester 发现 bug
    - 预期行为 vs 实际行为
    - 相关测试用例编号
 3. 读取相关文档：`writer/plan.html`、`executor/summary.html`、`tester/test-report.html`（草稿）。
+4. **本体新鲜度与子图抽取（如存在 `spec/context/ontology/ontology.json`）**：先读 `references/ontology-rca.md`，按现象关键字运行查询脚本抽取上下游子图与漂移提交：
+   ```bash
+   node .agents/skills/project-ontology/scripts/query-ontology.js \
+     spec/context/ontology/ontology.json \
+     --target "<报错字段/产品指标名/模块或文件名>" \
+     --direction both --depth 2 --freshness --repo .
+   ```
 
 ### 步骤 2：检索历史经验
 
@@ -70,7 +77,7 @@ spec-tester 发现 bug
 
 ### 步骤 3：复现并定位问题
 
-尝试复现问题，使用日志、调试工具定位问题代码，确认边界条件。
+尝试复现问题，使用日志、调试工具定位问题代码，确认边界条件。若启用了项目本体：优先核查 `--freshness` 标出的未同步业务提交，并沿子图代码锚点与 `backfills_from` / `fallback_to` 边向上追溯，避免在下游兜底掩盖真实报错。
 
 ### 步骤 4：分析根因
 
@@ -80,6 +87,8 @@ spec-tester 发现 bug
 | 实现偏差 | 实现与 `writer/plan.html` 不一致 |
 | 环境问题 | 依赖、配置、版本问题 |
 | 集成问题 | 模块间交互问题 |
+
+若启用了项目本体：核查涉事 `INV-xxx` 不变量是在 `root` 根因层还是 `boundary` 边界层被绕过；若命中 `shared_state` 边或真实故障传播绕开了所有显式数据流边，直接触发 **Phase 4.5** 预警并上报架构耦合问题。
 
 ### 步骤 5：创建 debug-xxx.html 诊断文档
 
@@ -123,7 +132,7 @@ spec-tester 发现 bug
 
 `<header class="rk-head">` 里的 `.rk-meta` 镜像同样字段（含 `base_branch` 与 `pr_url`），机器可读与人可读两轨缺一不可。
 
-**必须包含**：问题现象（`rk-cal risk`）、复现步骤、根因分析（`rk-cal key`）、修复方案、与 `writer/plan.html` 的关系（`rk-cal key` 设计关联）、结论块 `<section class="rk-verdict is-fail">`、修订历史表、双向关联产物（`rk-links` / `rk-backlinks`）。
+**必须包含**：问题现象（`rk-cal risk`）、复现步骤、根因分析（`rk-cal key`，启用本体时填本体定位与 `INV-xxx` 核查）、修复方案（启用本体时在风险评估写明 `downstream` 下游爆炸半径供 `spec-tester` 定向回归）、与 `writer/plan.html` 的关系（`rk-cal key` 设计关联）、结论块 `<section class="rk-verdict is-fail">`、修订历史表、双向关联产物（`rk-links` / `rk-backlinks`）。
 
 代码位置一律用 `<span class="rk-ref">src/x.ts:88</span>`。
 
@@ -164,6 +173,8 @@ spec-tester 发现 bug
 1. 如果 「最大轮数」 / 「最大无进展轮数」 仍为「待确认」：`gated` 模式下先停止并请 TeamLead 用 `intent-confirmation` 确认预算，不要在无预算的情况下进入修复；`autopilot` 模式下取模式预设值（3 轮 / 连续 2 轮无进展）并立即写回账本，不停等人——自动驾驶下没有人可确认，停等会死锁。
 
    另：如果连续几轮修复**都有进展**，但每轮都翻出新的共享状态、隐式耦合或全局副作用（Phase 4.5 信号），不要继续修——这个信号独立于「连续无进展」，现有预算抓不到它。停下并向 TeamLead 升级，议题是架构而不是这个 bug。
+
+   另外，若基于同一底层前提的 2 次修复连续倒在同一门禁，禁止写第 3 个同前提补丁，先按 `references/attack-the-premise.md` 直接证伪前提本身。
 2. 如果 「已用轮数」 已达到 「最大轮数」，或 「连续无进展」 已达到 「最大无进展轮数」，**不要再修复**，直接向 TeamLead 升级，由用户决定继续加预算、改方案还是暂停。
 3. 预算未触上限时，继续步骤 8 的修复。
 
@@ -172,7 +183,7 @@ spec-tester 发现 bug
 按照确认的修复方案修改代码：
 - 最小化修改范围
 - 不借机添加新功能
-- 在代码注释中引用 debug 文档：`# 修复: debugger/debug-001.html`
+- 溯源通过 Git commit 与 `debugger/debug-xxx-fix.html` 的 `rk-ref` 留痕，不在业务代码中堆砌过程性调试注释或变通辩护词，严禁靠 lint/类型抑制绕过根因
 
 ### 步骤 9：创建 debug-xxx-fix.html 修复总结
 
@@ -209,7 +220,7 @@ spec-tester 发现 bug
 </head>
 ```
 
-**必须包含**：修改的文件、关键修改前后对比（`rk-cal key` 说明为什么这样改）、验证结果（`rk-cal ok` 本地自检 + `rk-cal warn` 待 spec-tester 复验）、本轮相对上一轮的进展（新增定位的根因 / 缩小的失败范围 / 新增证据）、修订历史表、双向关联产物。
+**必须包含**：修改的文件、关键修改前后对比（`rk-cal key` 说明为什么这样改）、验证结果（`rk-cal ok` 本地自检 + `rk-cal warn` 待 spec-tester 复验）、本轮相对上一轮的进展（新增定位的根因 / 缩小的失败范围 / 新增证据）、**第 6 节「本体同步检查」**（记录本次修复是否改动契约/口径/不变量，或暴露未登记的 `shared_state` / `fallback_to` / `backfills_from`；处于 Spec 流程内交 `spec-end` 统一写回，独立线上热修则在复验通过后提示用户调用 `project-ontology` 同步）、修订历史表、双向关联产物。
 
 复验通过后再把结论块改为 `is-pass`，并按修订规范留痕（修订号 +1、修订历史表追加一行、`data-rev` 标记），永不静默改写。
 
@@ -242,7 +253,7 @@ spec-tester 发现 bug
 通知 TeamLead：
 - bug 已修复（第 {rounds_used} 轮）
 - 本轮进展：[新增根因 / 缩小范围 / 新增证据]
-- 请启动 spec-tester 重新验证测试用例 TC-XXX
+- 请启动 spec-tester 重新验证测试用例 TC-XXX（及受波及的下游爆炸半径：[简述/无]）
 - 修复详情：debugger/debug-001-fix.html
 ```
 
@@ -284,4 +295,5 @@ spec-debugger → TeamLead → spec-tester（重新验证）
 - 修复时引入了新功能（应使用 spec-update）
 - 每轮都写新的 debug 文档但没有实质进展，却不更新 「连续无进展」（loop 在原地打转）
 - 在预算未确认或已触上限时仍继续修复（应停止并升级给 TeamLead）
+- 启用本体时跳过 `--freshness` / 下游爆炸半径评估，或修复暴露新隐式耦合却不登记「本体同步检查」
 - 撰写诊断或修复总结前没读 `html-report` skill，写成 Markdown 或漏掉 `data-rev` 修订标记

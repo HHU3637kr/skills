@@ -1,7 +1,7 @@
 ---
 disable-model-invocation: true
 name: git-work
-description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end/spec-update 需要提交、推送、创建 PR、合并后清理分支时使用。也用于发版管理：建立或维护 release 分支、打版本 tag、发补丁版本、把修复 cherry-pick 到多条发布线、核对 tag 与分支是否错位、对齐镜像标签与 git tag、清理带版本号的旧分支。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
+description: 当 spec-start 需要为新 Spec 创建 GitHub Flow 工作分支，spec-update 需要复用/校验当前 Spec 分支，或 spec-end 需要统一收尾提交、推送、创建/更新 PR、合并后清理分支时使用。也用于发版管理：建立或维护 release 分支、打版本 tag、发补丁版本、把修复 cherry-pick 到多条发布线、核对 tag 与分支是否错位、对齐镜像标签与 git tag、清理带版本号的旧分支。不要用于单次查看 git 状态、普通 diff 查询，或用户明确要求不走 GitHub Flow 的临时操作。
 ---
 
 # Git 工作流 SOP（dev + release 发版管理）
@@ -32,16 +32,16 @@ spec-start
   → plan.html 记录 git_branch、base_branch: dev、pr_url
 
 spec-update
-  → git-work：确认当前分支与 plan.html 的 git_branch 一致
+  → git-work：模式三确认当前分支与 plan.html 的 git_branch 一致（不做独立收尾提交）
   → update-xxx.html 继承 plan.html 的 git_branch、base_branch、pr_url
 
 开发与测试阶段
   → 始终留在当前 Spec 分支
   → 必要时推送远程分支，方便团队协作
 
-spec-end / spec-update 收尾
+spec-end（统一收尾，含完整 Spec 与 spec-update 小迭代）
   → git-work：提交、推送当前 Spec 分支
-  → 面向 `dev` 创建 PR/MR；spec-update 仅在 Spec 准备整体交付时创建/更新 PR/MR
+  → 面向 `dev` 创建或更新 PR/MR（活跃 Spec 经 spec-update 阶段性收尾且暂不归档时亦由 spec-end 统一执行）
   → 记录 PR/MR URL，并通过 amend 并入同一次提交
 
 PR/MR 合并后
@@ -200,7 +200,7 @@ git status --short
 
 ## 模式四：完成 Spec 分支
 
-由 `spec-end` 或 `spec-update` 收尾时调用。
+由 `spec-end` 统一收尾时调用（`spec-update` 不再设独立收尾，审查通过后统一交由 `spec-end` 执行本模式）。
 
 ### 1. 确认当前分支
 
@@ -245,7 +245,7 @@ git push -u origin <branch-name>
 
 ### 5. 创建或更新 Pull Request
 
-`spec-end` 默认创建 PR。`spec-update` 默认只提交并推送当前 Spec 分支；如果该 Spec 已准备整体交付，或用户明确要求，则创建/更新 PR。
+完整 Spec 归档收尾默认创建 PR；由 `spec-update` 触发 `spec-end` 阶段性统一收尾且保留活跃态时，按用户确认或既有分支状态提交推送，准备整体交付时创建/更新面向 `dev` 的 PR。
 
 如果可用，优先使用 GitHub CLI：
 
@@ -274,7 +274,7 @@ PR 内容至少包含：
 pr_url: https://github.com/<owner>/<repo>/pull/<number>
 ```
 
-写回后**并入同一次提交**（spec-end / spec-update 收尾的硬要求：全部处理完只提交一次，不产生第二次提交）：
+写回后**并入同一次提交**（`spec-end` 统一收尾的硬要求：全部处理完只提交一次，不产生第二次提交）：
 
 ```bash
 git add <spec-docs>

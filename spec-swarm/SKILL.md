@@ -106,9 +106,10 @@ grep -l '^tools:' .omp/agents/spec-*.md ~/.omp/agent/agents/spec-*.md 2>/dev/nul
 
 七个角色一律 `spawns: ""`，深度 1。角色之间不直接 spawn，跨角色协作走主控中转或 `hub` 消息。放开 `spawns` 会让孙 Agent 不在账本句柄表里，审计轨断裂。
 
-**3.3 续接只发消息**
+**3.3 同轮续接，跨轮默认新开（Fresh by Default）**
 
-`running` / `idle` / `parked` 一律 `hub send` 续接同一实例（`parked` 收消息自动复活且上下文完整）。只有 `aborted` 才重新 spawn 并从账本与产物重建上下文。同名再 spawn 会得到零历史的影子角色。
+- **同轮续接（`hub send`）**：仅当角色正在处理**同一轮未完成任务**，或手里握有高迁移成本现场（未提交工作树改动、存活调试进程、同一阶段内补充追问）时，对 `running` / `idle` / `parked` 发 `hub send` 续接；同轮活跃期间禁止再开同名影子角色（只有 `aborted` 才重新 spawn 并重建上下文）。
+- **跨轮默认新开（Fresh Subagent）**：进入**第 2 轮及以上 `spec-debug` 修复**、以及**独立 `spec-review` 或复审**时，默认结束旧实例并新开干净子 Agent，只喂「原始目标 + 已落盘 HTML 产物路径 + 最新 diff 与失败证据日志」，防止上一轮错误假设污染推理（锚定偏误与上下文衰减）；新实例在账本「角色运行句柄」带轮次标识登记（如 `spec-debugger#r2`、`spec-reviewer#r2`），旧 handle 标为 `retired`。
 
 ## 步骤 4：委派 spec-start
 
