@@ -474,7 +474,7 @@ $ignoreEntries = @(
     "*.bak-*",
     "",
     "# Skills 单版本源与共享样式",
-    ".agents/skills/",
+    ".agents/skills",
     "html-report",
     "",
     "# 本地 Agent 客户端私有适配（按需本地生成，不污染团队仓库）",
